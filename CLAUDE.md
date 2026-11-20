@@ -336,7 +336,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `bar_pic` / `bar_u`) and its buttons are at y 0.882, x 0.142 save, 0.320
   load, 0.5 settings, 0.678 bug, 0.857 close (tapped twice), with or without
   Controls above (profile `controls`), whose tiles are around y 0.794; the
-  pin at 0.926,0.839 (0.926,0.776 with Controls); a tap elsewhere puts the bar
+  pin at 0.922,0.841 (0.922,0.779 with Controls), its SNES tile at 0.652,0.794; a tap elsewhere puts the bar
   away (pinned: opens the menu from outside the bar)), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_SCREENS=1920x1080,1240x1080` (with `GBADS_WINDOW=1920x2160`) splits the window into two screens of those sizes, stacked, as on devices whose screens differ (AYN Thor; add `--screen_ppi=367,419` for `screen_match = size`). The "Swipe up for quick menu" hint is up for the first 3 s (real time), so pass `--quick_bar_hint=0` for exact pictures (regress.py does). `GBADS_DEBUG=1` logs map captures,
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:

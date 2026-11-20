@@ -13,6 +13,8 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "ui.h"
 #include "bezel.h"
 #include "ra.h"
+#include "textfont.h"
+#include "font.h"
 #include "logo.h"
 #include <ctype.h>
 #include <dirent.h>
@@ -2511,9 +2513,10 @@ static void draw_battery(void) {
  * (tapped twice). In games with another button layout, Controls above.
  * Swiping down, the pause menu opening or 5 seconds untouched put it
  * away. It is drawn inside the second screen's picture (the GBA's 240x160
- * on the touchscreen, every size below in GBA pixels, bar_u screen pixels
- * each), in the menus' colour (Settings > Display's accent) with the menus'
- * raised keys. */
+ * on the touchscreen, every size below in GBA pixels), in the menus' colour
+ * (Settings > Display's accent) with the menus' raised keys. It is drawn at
+ * the GBA's own resolution (a 240x160 canvas, no smoothing) and scaled up
+ * with the picture. */
 static bool barOpen;
 static float barShown;          /* 0 hidden .. 1 all the way up (sliding) */
 static Uint32 barSince;         /* last touched */
@@ -2527,10 +2530,10 @@ static int barGX, barGY;        /* where the finger went down */
 static bool barDownOpen;        /* the bar was up when it went down */
 enum { BB_SAVE, BB_LOAD, BB_SETTINGS, BB_BUG, BB_EXIT, BB_COUNT };
 
-/* the bar's panel and its edge: the menus' colour (the header's, a little see-through) */
+/* the bar's panel and its edge: the menus' colour (the header's) */
 static SDL_Color bar_panel(void) {
 	SDL_Color c = ui_accent_color(AC_HEADER);
-	c.a = 244;
+	c.a = 255;
 	return c;
 }
 #define G_BG bar_panel()
@@ -2633,69 +2636,61 @@ static const char* const icon_exit[] = {
 
 /* Top to bottom: in games with another button layout (profile
  * controls), the Controls picker, centred; the status row (time, battery,
- * FPS); the buttons, across the whole width. */
+ * FPS); the buttons, across the whole width; a line for messages. All of it in
+ * GBA pixels (the *_g functions: 240x160, the second screen's picture), drawn
+ * into a canvas of that size (below) and scaled up with the picture. */
+enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 22, BAR_MSG_H = 13, BAR_PICK_H = 24 };
+static int bar_pick_h(void) {
+	return ctlProf ? BAR_PICK_H : 0;
+}
 static int game_screen(void);
 
-/* Where the second screen's picture is on screen s (screen-local, the part that
- * is on the screen): the bar lives inside it. With no map the touchscreen may
- * show the game: then the game's picture. */
-static SDL_Rect bar_pic(int s) {
-	SDL_Rect sr = screens[s].rect;
+static SDL_Rect bar_rect_g(void) {
+	int h = bar_pick_h() + BAR_STATUS_H + BAR_BUTTONS_H + BAR_MSG_H;
+	int slide = (int) ((1.0f - barShown) * (h + BAR_M));
+	return (SDL_Rect) { BAR_M, GBA_H - BAR_M - h + slide, GBA_W - BAR_M * 2, h };
+}
+/* the buttons: the bottom row, sharing its width */
+static SDL_Rect bar_button_g(int i) {
+	SDL_Rect b = bar_rect_g();
+	int in = 3, gap = 3, h = BAR_BUTTONS_H - in;
+	int x0 = b.x + in + (b.w - in * 2 + gap) * i / BB_COUNT, x1 = b.x + in + (b.w - in * 2 + gap) * (i + 1) / BB_COUNT - gap;
+	return (SDL_Rect) { x0, b.y + bar_pick_h() + BAR_STATUS_H, x1 - x0, h };
+}
+/* the pin, a square in the top right corner */
+static SDL_Rect bar_pin_g(void) {
+	SDL_Rect b = bar_rect_g();
+	return (SDL_Rect) { b.x + b.w - 2 - 12, b.y + 2, 12, 12 };
+}
+/* the time, FPS and battery: three cells across the row above the buttons */
+static SDL_Rect bar_cell_g(int i) {
+	SDL_Rect b = bar_rect_g();
+	int x0 = b.x + b.w * i / 3, x1 = b.x + b.w * (i + 1) / 3;
+	return (SDL_Rect) { x0, b.y + bar_pick_h(), x1 - x0, BAR_STATUS_H };
+}
+
+/* Where the second screen's picture is on screen s (screen-local; unclipped:
+ * zoom can run past the screen's edges). The bar is in it, a GBA pixel being
+ * the picture's w / 240 screen pixels. With no map the touchscreen may show
+ * the game: then the game's picture. */
+static SDL_Rect bar_pic_full(int s) {
 	bool gameHere = nScreens == 1 || s == game_screen() || !((mc || logoOnly) && cfg->map);
-	SDL_Rect r = ui_image_rect(s, GBA_W, GBA_H, gameHere ? cfg->scale : cfg->mapScale);
-	int x0 = SDL_max(r.x, 0), y0 = SDL_max(r.y, 0), x1 = SDL_min(r.x + r.w, sr.w), y1 = SDL_min(r.y + r.h, sr.h);
+	return ui_image_rect(s, GBA_W, GBA_H, gameHere ? cfg->scale : cfg->mapScale);
+}
+static SDL_Rect bar_to_screen(int s, SDL_Rect g) {
+	SDL_Rect p = bar_pic_full(s);
+	int x0 = p.x + g.x * p.w / GBA_W, x1 = p.x + (g.x + g.w) * p.w / GBA_W;
+	int y0 = p.y + g.y * p.h / GBA_H, y1 = p.y + (g.y + g.h) * p.h / GBA_H;
 	return (SDL_Rect) { x0, y0, x1 - x0, y1 - y0 };
 }
-/* a GBA pixel, in screen pixels (4 on the RG DS Plus, 2 on the RG DS) */
-static float bar_u(int s) {
-	SDL_Rect r = bar_pic(s);
-	return SDL_max(1.0f, r.h / (float) GBA_H);
-}
-
-static int bar_status_h(int s) {
-	return bar_u(s) * 14;
-}
-static int bar_buttons_h(int s) {
-	return bar_u(s) * 22;
-}
-static int bar_pick_h(int s) {
-	return ctlProf ? bar_u(s) * 24 : 0;
-}
-/* under the buttons: a line for messages (State saved...) */
-static int bar_msg_h(int s) {
-	return bar_u(s) * 13;
-}
-
 static SDL_Rect bar_rect(int s) {
-	SDL_Rect r = bar_pic(s);
-	float px = bar_u(s);
-	int m = px * 4, h = bar_pick_h(s) + bar_status_h(s) + bar_buttons_h(s) + bar_msg_h(s);
-	int slide = (int) ((1.0f - barShown) * (h + m));
-	return (SDL_Rect) { r.x + m, r.y + r.h - m - h + slide, r.w - m * 2, h };
+	return bar_to_screen(s, bar_rect_g());
 }
-
-/* the buttons: the bottom row, sharing its width */
 static SDL_Rect bar_button(int s, int i) {
-	SDL_Rect b = bar_rect(s);
-	float px = bar_u(s);
-	int in = px * 3, gap = px * 3, h = bar_buttons_h(s) - in;
-	int x0 = b.x + in + (b.w - in * 2 + gap) * i / BB_COUNT, x1 = b.x + in + (b.w - in * 2 + gap) * (i + 1) / BB_COUNT - gap;
-	return (SDL_Rect) { x0, b.y + bar_pick_h(s) + bar_status_h(s), x1 - x0, h };
+	return bar_to_screen(s, bar_button_g(i));
 }
-
-/* the pin, a square in the top right corner */
 static SDL_Rect bar_pin(int s) {
-	SDL_Rect b = bar_rect(s);
-	float px = bar_u(s);
-	int in = px * 2, w = px * 10;
-	return (SDL_Rect) { b.x + b.w - in - w, b.y + in, w, w };
-}
-
-/* the time, FPS and battery: three cells across the row above the buttons */
-static SDL_Rect bar_cell(int s, int i) {
-	SDL_Rect b = bar_rect(s);
-	int x0 = b.x + b.w * i / 3, x1 = b.x + b.w * (i + 1) / 3;
-	return (SDL_Rect) { x0, b.y + bar_pick_h(s), x1 - x0, bar_status_h(s) };
+	return bar_to_screen(s, bar_pin_g());
 }
 
 static int bar_button_at(int s, int x, int y) {
@@ -2707,23 +2702,225 @@ static int bar_button_at(int s, int x, int y) {
 	return -1;
 }
 
-static void ctl_draw(int s);
+/* ---- The bar's canvas: 240x160, the GBA's own resolution, drawn pixel by
+ * pixel (no smoothing: the text is Jost thresholded to whole pixels), uploaded
+ * as a texture and scaled up in the picture's place by the same whole steps as
+ * the picture. Transparent where the bar isn't. */
+static uint32_t barPx[GBA_W * GBA_H]; /* ABGR8888 */
+static SDL_Texture* barTex[2];
+static SDL_Renderer* barTexRen[2];
+
+static uint32_t cv_rgba(SDL_Color c) {
+	return (uint32_t) c.a << 24 | (uint32_t) c.b << 16 | (uint32_t) c.g << 8 | c.r;
+}
+static void cv_put(int x, int y, SDL_Color c) {
+	if (x >= 0 && y >= 0 && x < GBA_W && y < GBA_H) barPx[y * GBA_W + x] = cv_rgba(c);
+}
+static void cv_rect(SDL_Rect r, SDL_Color c) {
+	for (int y = r.y; y < r.y + r.h; ++y)
+		for (int x = r.x; x < r.x + r.w; ++x) cv_put(x, y, c);
+}
+/* a rectangle with rounded corners: the corner pixels outside a circle of radius rad left out */
+static void cv_round(SDL_Rect r, int rad, SDL_Color c) {
+	rad = SDL_min(rad, SDL_min(r.w, r.h) / 2);
+	for (int y = r.y; y < r.y + r.h; ++y) {
+		for (int x = r.x; x < r.x + r.w; ++x) {
+			float cx = x - r.x + 0.5f, cy = y - r.y + 0.5f;
+			float dx = cx < rad ? rad - cx : cx > r.w - rad ? cx - (r.w - rad) : 0;
+			float dy = cy < rad ? rad - cy : cy > r.h - rad ? cy - (r.h - rad) : 0;
+			if (dx * dx + dy * dy <= (float) rad * rad) cv_put(x, y, c);
+		}
+	}
+}
+static void cv_disc(float cx, float cy, float rad, SDL_Color c) {
+	for (int y = (int) (cy - rad) - 1; y <= (int) (cy + rad) + 1; ++y)
+		for (int x = (int) (cx - rad) - 1; x <= (int) (cx + rad) + 1; ++x) {
+			float dx = x + 0.5f - cx, dy = y + 0.5f - cy;
+			if (dx * dx + dy * dy <= rad * rad) cv_put(x, y, c);
+		}
+}
+static SDL_Color cv_mix(SDL_Color a, SDL_Color b, int pct) {
+	return (SDL_Color) { a.r + (b.r - a.r) * pct / 100, a.g + (b.g - a.g) * pct / 100, a.b + (b.b - a.b) * pct / 100, 255 };
+}
+/* the menus' raised key at one pixel's detail: the edge a row below it, the border, the rim, the body in tones darker at the bottom */
+static void cv_key(SDL_Rect r, int state) {
+	SDL_Color border, rim, hi, lo, edge, ring;
+	ui_key_palette(state, &border, &rim, &hi, &lo, &edge, &ring);
+	if (state == KEY_SEL) cv_round((SDL_Rect) { r.x - 1, r.y - 1, r.w + 2, r.h + 3 }, 3, ring);
+	cv_round((SDL_Rect) { r.x, r.y + 1, r.w, r.h }, 2, edge);
+	cv_round(r, 2, border);
+	cv_round((SDL_Rect) { r.x + 1, r.y + 1, r.w - 2, r.h - 2 }, 1, rim);
+	SDL_Rect body = { r.x + 2, r.y + 2, r.w - 4, r.h - 4 };
+	cv_round(body, 1, lo);
+	cv_round((SDL_Rect) { body.x, body.y, body.w, body.h * 55 / 100 }, 1, cv_mix(lo, hi, 18));
+	cv_round((SDL_Rect) { body.x, body.y, body.w, body.h * 25 / 100 + 1 }, 1, cv_mix(lo, hi, 30));
+}
+/* pixel art ('X' rows, NULL-ended) one pixel to a pixel, centred on cx, cy */
+static void cv_icon(const char* const* art, int cx, int cy, SDL_Color c) {
+	int rows = 0, cols = (int) strlen(art[0]);
+	while (art[rows]) ++rows;
+	for (int y = 0; y < rows; ++y)
+		for (int x = 0; x < cols; ++x)
+			if (art[y][x] == 'X') cv_put(cx - cols / 2 + x, cy - rows / 2 + y, c);
+}
+
+/* text rasterized at whole pixels: Jost (so every language works) at the
+ * capitals' height cap, a pixel on where it covers over a third. Kept a while:
+ * the same few strings come every frame. */
+typedef struct { char* text; int cap; TfBitmap b; Uint32 used; } CvText;
+static CvText cvText[16];
+static CvText* cv_text_entry(const char* text, int cap) {
+	CvText* slot = &cvText[0];
+	for (int i = 0; i < 16; ++i) {
+		CvText* e = &cvText[i];
+		if (e->text && e->cap == cap && !strcmp(e->text, text)) {
+			e->used = SDL_GetTicks();
+			return e;
+		}
+		if (!e->text || (slot->text && e->used < slot->used)) slot = e;
+	}
+	if (slot->text) {
+		free(slot->text);
+		tf_free(&slot->b);
+	}
+	memset(slot, 0, sizeof(*slot));
+	slot->text = strdup(text);
+	slot->cap = cap;
+	slot->used = SDL_GetTicks();
+	if (!slot->text || !tf_render(TF_BOLD, cap, text, &slot->b)) memset(&slot->b, 0, sizeof(slot->b));
+	return slot;
+}
+static void cv_text_drop(void) {
+	for (int i = 0; i < 16; ++i) {
+		if (cvText[i].text) {
+			free(cvText[i].text);
+			tf_free(&cvText[i].b);
+		}
+		memset(&cvText[i], 0, sizeof(cvText[i]));
+	}
+}
+/* centred on cx, the capitals centred on cy; smaller (down to 4 pixels) if it's wider than maxW; the width it took */
+static int cv_text(int cx, int cy, int cap, const char* text, SDL_Color c, int maxW) {
+	const char* t = tr(text);
+	int w = tf_width(TF_BOLD, cap, t);
+	while (maxW > 0 && w > maxW && cap > 4) w = tf_width(TF_BOLD, --cap, t);
+	CvText* e = cv_text_entry(t, cap);
+	if (!e->b.alpha) return w;
+	int x0 = cx - w / 2 + e->b.left, y0 = cy + cap / 2 - e->b.baseline;
+	for (int y = 0; y < e->b.h; ++y)
+		for (int x = 0; x < e->b.w; ++x)
+			if (e->b.alpha[y * e->b.w + x] > 90) cv_put(x0 + x, y0 + y, c);
+	return w;
+}
+/* Pixel fonts, as a GBA game's own: the app's 5x7 (font.c, capitals) and a 3x5 of the same
+ * kind (below) for the small text. Whatever has a letter they lack (other
+ * scripts and accents) is drawn in Jost, thresholded, as above. */
+static const struct { char c; uint8_t r[5]; } font35[] = {
+	{ 'A', { 2, 5, 7, 5, 5 } }, { 'B', { 6, 5, 6, 5, 6 } }, { 'C', { 3, 4, 4, 4, 3 } }, { 'D', { 6, 5, 5, 5, 6 } },
+	{ 'E', { 7, 4, 6, 4, 7 } }, { 'F', { 7, 4, 6, 4, 4 } }, { 'G', { 3, 4, 5, 5, 3 } }, { 'H', { 5, 5, 7, 5, 5 } },
+	{ 'I', { 7, 2, 2, 2, 7 } }, { 'J', { 1, 1, 1, 5, 2 } }, { 'K', { 5, 5, 6, 5, 5 } }, { 'L', { 4, 4, 4, 4, 7 } },
+	{ 'M', { 5, 7, 7, 5, 5 } }, { 'N', { 6, 5, 5, 5, 5 } }, { 'O', { 2, 5, 5, 5, 2 } }, { 'P', { 6, 5, 6, 4, 4 } },
+	{ 'Q', { 2, 5, 5, 7, 3 } }, { 'R', { 6, 5, 6, 5, 5 } }, { 'S', { 3, 4, 2, 1, 6 } }, { 'T', { 7, 2, 2, 2, 2 } },
+	{ 'U', { 5, 5, 5, 5, 7 } }, { 'V', { 5, 5, 5, 5, 2 } }, { 'W', { 5, 5, 7, 7, 5 } }, { 'X', { 5, 5, 2, 5, 5 } },
+	{ 'Y', { 5, 5, 2, 2, 2 } }, { 'Z', { 7, 1, 2, 4, 7 } },
+	{ '0', { 7, 5, 5, 5, 7 } }, { '1', { 2, 6, 2, 2, 7 } }, { '2', { 6, 1, 2, 4, 7 } }, { '3', { 6, 1, 2, 1, 6 } },
+	{ '4', { 5, 5, 7, 1, 1 } }, { '5', { 7, 4, 6, 1, 6 } }, { '6', { 3, 4, 7, 5, 7 } }, { '7', { 7, 1, 2, 2, 2 } },
+	{ '8', { 7, 5, 7, 5, 7 } }, { '9', { 7, 5, 7, 1, 6 } },
+	{ '.', { 0, 0, 0, 0, 2 } }, { ',', { 0, 0, 0, 2, 4 } }, { ':', { 0, 2, 0, 2, 0 } }, { ';', { 0, 2, 0, 2, 4 } },
+	{ '!', { 2, 2, 2, 0, 2 } }, { '?', { 6, 1, 2, 0, 2 } }, { '\'', { 2, 2, 0, 0, 0 } }, { '-', { 0, 0, 7, 0, 0 } },
+	{ '+', { 0, 2, 7, 2, 0 } }, { '%', { 5, 1, 2, 4, 5 } }, { '/', { 1, 1, 2, 4, 4 } }, { '(', { 2, 4, 4, 4, 2 } },
+	{ ')', { 2, 1, 1, 1, 2 } }, { '"', { 5, 5, 0, 0, 0 } }, { '_', { 0, 0, 0, 0, 7 } }, { '=', { 0, 7, 0, 7, 0 } },
+};
+static const uint8_t* font35_glyph(char c) {
+	static const uint8_t blank[5] = { 0 };
+	if (c >= 'a' && c <= 'z') c -= 'a' - 'A';
+	for (unsigned i = 0; i < sizeof(font35) / sizeof(*font35); ++i)
+		if (font35[i].c == c) return font35[i].r;
+	return blank;
+}
+/* the text as plain ASCII for a pixel font (an em dash as a hyphen), or false if it has anything else */
+static bool cv_ascii(const char* t, char* out, size_t n) {
+	size_t k = 0;
+	for (const unsigned char* p = (const unsigned char*) t; *p && k + 1 < n; ++p) {
+		if (*p < 0x80) out[k++] = (char) *p;
+		else if (p[0] == 0xE2 && p[1] == 0x80 && p[2] == 0x94) out[k++] = '-', p += 2;
+		else return false;
+	}
+	out[k] = 0;
+	return true;
+}
+/* big: the 5x7 (6 pixels to a letter), else the 3x5 (4 to a letter) */
+static int cv_pix_width(const char* a, bool big) {
+	int n = (int) strlen(a);
+	return n ? n * (big ? 6 : 4) - 1 : 0;
+}
+static void cv_pix_draw(int x0, int y0, const char* a, bool big, SDL_Color c) {
+	for (int i = 0; a[i]; ++i, x0 += big ? 6 : 4) {
+		if (big) {
+			const uint8_t* g = font_glyph(a[i]);
+			for (int y = 0; y < 7; ++y)
+				for (int x = 0; x < 5; ++x)
+					if (g[y] >> (4 - x) & 1) cv_put(x0 + x, y0 + y, c);
+		} else {
+			const uint8_t* g = font35_glyph(a[i]);
+			for (int y = 0; y < 5; ++y)
+				for (int x = 0; x < 3; ++x)
+					if (g[y] >> (2 - x) & 1) cv_put(x0 + x, y0 + y, c);
+		}
+	}
+}
+/* centred on cx, its middle on cy; the 5x7 if big and it fits maxW, else the 3x5; false if it needed Jost (drawn so) */
+static void cv_label(int cx, int cy, bool big, const char* text, SDL_Color c, int maxW) {
+	const char* t = tr(text);
+	char a[160];
+	if (!cv_ascii(t, a, sizeof(a))) {
+		cv_text(cx, cy, big ? 7 : 5, t, c, maxW);
+		return;
+	}
+	if (big && maxW > 0 && cv_pix_width(a, true) > maxW) big = false;
+	int w = cv_pix_width(a, big);
+	cv_pix_draw(cx - w / 2, cy - (big ? 3 : 2), a, big, c);
+}
+/* the message line: one line of 3x5 if it fits, else two, broken at the space nearest the middle (and cut with ".." if it still doesn't) */
+static void cv_message(SDL_Rect area, const char* msg, SDL_Color c) {
+	const char* t = tr(msg);
+	int cx = area.x + area.w / 2, cy = area.y + area.h / 2;
+	char a[200];
+	if (!cv_ascii(t, a, sizeof(a))) {
+		cv_text(cx, cy, 5, t, c, area.w);
+		return;
+	}
+	if (cv_pix_width(a, false) <= area.w) {
+		cv_label(cx, cy, false, a, c, 0);
+		return;
+	}
+	int mid = (int) strlen(a) / 2, best = -1;
+	for (int i = 1; a[i]; ++i)
+		if (a[i] == ' ' && (best < 0 || abs(i - mid) < abs(best - mid))) best = i;
+	char one[200], two[200];
+	snprintf(one, sizeof(one), "%.*s", best < 0 ? (int) strlen(a) : best, a);
+	snprintf(two, sizeof(two), "%s", best < 0 ? "" : a + best + 1);
+	char* lines[2] = { one, two };
+	for (int i = 0; i < 2; ++i) {
+		int maxN = (area.w + 1) / 4;
+		if ((int) strlen(lines[i]) > maxN) strcpy(lines[i] + maxN - 2, "..");
+		if (lines[i][0]) cv_label(cx, cy + (i ? 3 : -3), false, lines[i], c, 0);
+	}
+}
+
+static void ctl_draw(void);
 static bool ctl_tap(int s, int x, int y);
 static void save_prefs(void);
 
 static const char* const icon_pin[] = {
-	"...XXXXXX...",
-	"...XXXXXX...",
-	"....XXXX....",
-	"....XXXX....",
-	"....XXXX....",
-	"...XXXXXX...",
-	"..XXXXXXXX..",
-	"XXXXXXXXXXXX",
-	".....XX.....",
-	".....XX.....",
-	".....XX.....",
-	"......X.....",
+	"..XXX..",
+	"..XXX..",
+	"..XXX..",
+	".XXXXX.",
+	"XXXXXXX",
+	"...X...",
+	"...X...",
+	"...X...",
 	NULL,
 };
 
@@ -2740,26 +2937,6 @@ static void bar_toggle(void) {
 	}
 	barOpen = true;
 	barSince = SDL_GetTicks();
-}
-
-/* pixel art ('X' rows, NULL-ended), as big as fits size, centred on cx, cy */
-static void draw_icon(int s, const char* const* art, int cx, int cy, int size, SDL_Color c) {
-	int rows = 0, cols = (int) strlen(art[0]);
-	while (art[rows]) ++rows;
-	int n = SDL_max(rows, cols), u = SDL_max(1, (size + n / 2) / n); /* (rounded: on 640x480 screens 2 rather than 1) */
-	int x0 = cx - cols * u / 2, y0 = cy - rows * u / 2;
-	for (int y = 0; y < rows; ++y) {
-		for (int x = 0; x < cols;) {
-			if (art[y][x] != 'X') {
-				++x;
-				continue;
-			}
-			int e = x;
-			while (e < cols && art[y][e] == 'X') ++e;
-			ui_fill(s, (SDL_Rect) { x0 + x * u, y0 + y * u, (e - x) * u, u }, c);
-			x = e;
-		}
-	}
 }
 
 /* The hint at a game's start, "Swipe up for quick menu" under an arrow
@@ -2859,59 +3036,73 @@ static void draw_rewind(void) {
 }
 
 static void draw_bar(void) {
+	static bool wasShown;
 	barShown = barOpen ? SDL_min(1.0f, barShown + 0.25f) : SDL_max(0.0f, barShown - 0.25f);
-	if (barShown <= 0) return;
+	if (barShown <= 0) {
+		wasShown = false;
+		return;
+	}
+	if (!wasShown) cv_text_drop(); /* (the language or its fonts may have changed) */
+	wasShown = true;
 	if (barExitArmed && SDL_GetTicks() - barExitArmed > 3000) barExitArmed = 0;
 	int s = ui_touch_screen();
-	float px = bar_u(s);
-	SDL_Rect b = bar_rect(s), pic = bar_pic(s);
-	/* inside the picture: sliding up from its bottom edge, not from the screen's */
-	SDL_Rect clip = { screens[s].rect.x + pic.x, screens[s].rect.y + pic.y, pic.w, pic.h };
-	ui_clip(s, &clip);
-	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, G_EDGE, px * 4 + 1);
-	ui_fill_round(s, b, G_BG, px * 4);
-	int cap = px * 6;
+	memset(barPx, 0, sizeof(barPx));
+	SDL_Rect b = bar_rect_g();
+	cv_round((SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, 4, G_EDGE);
+	cv_round(b, 3, G_BG);
 	char buf[3][24] = { "", "", "" };
 	time_t now = time(NULL);
 	struct tm tm;
 	if (localtime_r(&now, &tm)) snprintf(buf[0], sizeof(buf[0]), "%02d:%02d", tm.tm_hour, tm.tm_min);
 	int pct = battery_percent();
 	if (fps > 0) snprintf(buf[1], sizeof(buf[1]), "%.1f FPS", fps);
-	else snprintf(buf[1], sizeof(buf[1]), "\u2014 FPS"); /* (the first second) */
+	else snprintf(buf[1], sizeof(buf[1]), "— FPS"); /* (the first second) */
 	if (pct >= 0) snprintf(buf[2], sizeof(buf[2]), "%d%%", pct);
-	else snprintf(buf[2], sizeof(buf[2]), "\u2014"); /* (no battery found) */
+	else snprintf(buf[2], sizeof(buf[2]), "—"); /* (no battery found) */
 	for (int i = 0; i < 3; ++i) {
-		SDL_Rect c = bar_cell(s, i);
-		int w = ui_font_width(TF_BOLD, cap, buf[i]), fc = w > c.w - px * 2 ? cap * (c.w - px * 2) / SDL_max(1, w) : cap;
-		ui_font_text(s, TF_BOLD, c.x + c.w / 2, c.y + c.h / 2, fc, buf[i], G_TEXT, 0);
+		SDL_Rect c = bar_cell_g(i);
+		cv_label(c.x + c.w / 2, c.y + c.h / 2, true, buf[i], G_TEXT, c.w - 2);
 	}
-	if (ctlProf) ctl_draw(s);
+	if (ctlProf) ctl_draw();
 	static const char* const* const art[BB_COUNT] = { icon_save, icon_load, icon_gear, icon_bug, icon_exit };
 	bool lit = barLit >= 0 && SDL_GetTicks() - barLitAt < 1500;
 	for (int i = 0; i < BB_COUNT; ++i) {
-		SDL_Rect r = bar_button(s, i);
+		SDL_Rect r = bar_button_g(i);
 		bool down = barGesture == G_BTN && barBtn == i;
 		bool armed = i == BB_EXIT && barExitArmed;
 		bool en = i != BB_LOAD || file_exists(gp.quick);
 		bool done = lit && barLit == i; /* (just saved, loaded or reported) */
 		/* the menus' keys: raised, in the menu colour while pressed or armed, lighter for a moment once done */
-		ui_key(s, r, px * 3, down || armed ? KEY_SEL : done ? KEY_LIT : KEY_PLAIN);
+		cv_key(r, down || armed ? KEY_SEL : done ? KEY_LIT : KEY_PLAIN);
 		SDL_Color ink = !en ? G_DIS : done ? (SDL_Color) { 20, 16, 36, 255 } : down || armed ? G_LIT : ui_key_ink();
-		draw_icon(s, art[i], r.x + r.w / 2, r.y + r.h / 2, r.h * 7 / 10, ink);
+		cv_icon(art[i], r.x + r.w / 2, r.y + r.h / 2, ink);
 	}
 	/* the pin: a key too, in the menu colour while pinned */
-	SDL_Rect pin = bar_pin(s);
-	ui_key(s, pin, px * 2, cfg->barPinned ? KEY_SEL : KEY_PLAIN);
-	draw_icon(s, icon_pin, pin.x + pin.w / 2, pin.y + pin.h / 2, pin.h * 7 / 10, cfg->barPinned ? G_LIT : G_DIS);
+	SDL_Rect pin = bar_pin_g();
+	cv_key(pin, cfg->barPinned ? KEY_SEL : KEY_PLAIN);
+	cv_icon(icon_pin, pin.x + pin.w / 2, pin.y + pin.h / 2, cfg->barPinned ? G_LIT : G_DIS);
 	/* messages (the OSD's, while the bar covers where it's drawn) */
 	const char* msg = ui_osd_text();
 	if (msg) {
-		SDL_Rect last = bar_button(s, 0);
-		int my = last.y + last.h + bar_msg_h(s) / 2, mc = px * 5;
-		int w = ui_font_width(TF_BOLD, mc, msg);
-		if (w > b.w - px * 8) mc = mc * (b.w - px * 8) / SDL_max(1, w);
-		ui_font_text(s, TF_BOLD, b.x + b.w / 2, my, mc, msg, G_TEXT, 0);
+		SDL_Rect last = bar_button_g(0);
+		cv_message((SDL_Rect) { b.x + 4, last.y + last.h + 2, b.w - 8, BAR_MSG_H - 2 }, msg, G_TEXT);
 	}
+	/* up to the screen: one texture per view, made again for a new renderer; drawn in the picture's place, nearest */
+	for (int v = 0; v < nViews; ++v) {
+		if (barTex[v] && barTexRen[v] != views[v].ren) barTex[v] = NULL;
+		if (!barTex[v]) {
+			barTex[v] = SDL_CreateTexture(views[v].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+			barTexRen[v] = views[v].ren;
+			if (!barTex[v]) continue;
+			SDL_SetTextureBlendMode(barTex[v], SDL_BLENDMODE_BLEND);
+			SDL_SetTextureScaleMode(barTex[v], SDL_ScaleModeNearest);
+		}
+		ui_update_texture_plain(barTex[v], barPx, GBA_W * 4);
+	}
+	SDL_Rect pic = bar_pic_full(s), sr = screens[s].rect;
+	SDL_Rect clip = { sr.x, sr.y, sr.w, sr.h };
+	ui_clip(s, &clip);
+	ui_image(s, barTex, GBA_W, GBA_H, "stretch", &pic);
 	ui_clip(s, NULL);
 }
 
@@ -5495,66 +5686,64 @@ typedef struct {
 } CtlGeom;
 
 /* The quick bar's top row: "Controls" and two or three square tiles,
- * centred across the bar. */
-static CtlGeom ctl_geom(int s) {
+ * centred across the bar (in GBA pixels). */
+static CtlGeom ctl_geom_g(void) {
 	CtlGeom g;
-	SDL_Rect b = bar_rect(s);
-	float u = bar_u(s);
-	int t = bar_pick_h(s) - u * 4, gap = u * 3;
-	g.cap = u * 6;
-	int lw = ui_label_width(s, g.cap, "Controls");
+	SDL_Rect b = bar_rect_g();
+	int t = BAR_PICK_H - 4, gap = 3;
+	g.cap = 6;
+	char ca[64];
+	const char* ct = tr("Controls");
+	int lw = cv_ascii(ct, ca, sizeof(ca)) ? cv_pix_width(ca, true) : tf_width(TF_BOLD, 7, ct);
 	int n = ctl_tiles();
 	int total = lw + gap * 3 + t * n + gap * (n - 1);
 	int x = b.x + (b.w - total) / 2;
-	int y = b.y + u * 4;
-	g.all = (SDL_Rect) { x - gap, y - u, total + gap * 2, t + u * 2 };
+	int y = b.y + 4;
+	g.all = (SDL_Rect) { x - gap, y - 1, total + gap * 2, t + 2 };
 	g.labelX = x + lw / 2;
 	g.labelY = y + t / 2;
 	x += lw + gap * 3;
 	for (int i = 0; i < 3; ++i) g.tile[i] = (SDL_Rect) { x + i * (t + gap), y, i < n ? t : 0, i < n ? t : 0 };
 	return g;
 }
-
-static void ctl_button(int s, int id, const SDL_Rect* t, int cx, int cy, int w) {
-	static SDL_Texture* tex[BRAND_COUNT][2];
-	static int tw[BRAND_COUNT], th[BRAND_COUNT];
-	if (!tex[id][0] && !tex[id][1]) ui_load_brand(id, tex[id], &tw[id], &th[id]);
-	if (!tw[id]) return;
-	int h = w * th[id] / tw[id];
-	SDL_Rect a = { t->x + t->w * cx / 100 - w / 2, t->y + t->h * cy / 100 - h / 2, w, h };
-	ui_image(s, tex[id], tw[id], th[id], "fit", &a);
+/* (on screen s, for taps) */
+static CtlGeom ctl_geom(int s) {
+	CtlGeom g = ctl_geom_g();
+	g.all = bar_to_screen(s, g.all);
+	for (int i = 0; i < 3; ++i) g.tile[i] = bar_to_screen(s, g.tile[i]);
+	return g;
 }
 
-static void ctl_draw(int s) {
-	CtlGeom g = ctl_geom(s);
+/* a tile's picture in ink, one pixel to a pixel: the GBA's two shoulder buttons and its B and A, or the four-button layout's diamond */
+static void ctl_tile_art(int kind, SDL_Rect t, SDL_Color ink) {
+	float cx = t.x + t.w / 2.0f, cy = t.y + t.h / 2.0f;
+	if (kind == CTL_GBA) {
+		cv_rect((SDL_Rect) { t.x + 3, t.y + 4, 5, 2 }, ink);
+		cv_rect((SDL_Rect) { t.x + t.w - 8, t.y + 4, 5, 2 }, ink);
+		cv_disc(cx - 3.5f, cy + 3.5f, 2.5f, ink);
+		cv_disc(cx + 3.5f, cy + 1.5f, 2.5f, ink);
+	} else {
+		cv_disc(cx, cy - 4.5f, 2.2f, ink);
+		cv_disc(cx - 4.5f, cy, 2.2f, ink);
+		cv_disc(cx + 4.5f, cy, 2.2f, ink);
+		cv_disc(cx, cy + 4.5f, 2.2f, ink);
+	}
+}
+
+static void ctl_draw(void) {
+	CtlGeom g = ctl_geom_g();
 	int active = ctl_four() ? CTL_FOUR : CTL_GBA;
-	ui_label(s, g.labelX, g.labelY, g.cap, "Controls", G_TEXT);
+	cv_label(g.labelX, g.labelY, true, "Controls", G_TEXT, 0);
 	for (int i = 0; i < ctl_tiles(); ++i) {
 		SDL_Rect t = g.tile[i];
-		int rad = t.w / 6;
 		bool sel = ctlMode == i;
 		/* the menus' keys: chosen: in the menu colour; in Auto, the layout in use right now: lighter */
 		bool inUse = !sel && ctlMode == CTL_AUTO && i == active;
-		ui_key(s, t, rad, sel ? KEY_SEL : inUse ? KEY_LIT : KEY_PLAIN);
+		cv_key(t, sel ? KEY_SEL : inUse ? KEY_LIT : KEY_PLAIN);
 		SDL_Color tink = inUse ? (SDL_Color) { 20, 16, 36, 255 } : sel ? G_TEXT : ui_key_ink();
-		int d = t.w * 30 / 100;
-		if (ctl_snes()) {
-			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, i == CTL_GBA ? "GBA" : "SNES", tink);
-		} else if (i == CTL_GBA) {
-			ctl_button(s, BRAND_PILL_L, &t, 32, 27, t.w * 34 / 100);
-			ctl_button(s, BRAND_PILL_R, &t, 68, 27, t.w * 34 / 100);
-			d = t.w * 28 / 100;
-			ctl_button(s, BRAND_BTN_B, &t, 34, 69, d);
-			ctl_button(s, BRAND_BTN_A, &t, 66, 60, d);
-		} else if (i == CTL_FOUR) {
-			d = t.w * 28 / 100;
-			ctl_button(s, BRAND_BTN_A, &t, 50, 27, d);
-			ctl_button(s, BRAND_BTN_L, &t, 27, 50, d);
-			ctl_button(s, BRAND_BTN_R, &t, 73, 50, d);
-			ctl_button(s, BRAND_BTN_B, &t, 50, 73, d);
-		} else {
-			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, "Auto", tink);
-		}
+		if (ctl_snes()) cv_label(t.x + t.w / 2, t.y + t.h / 2, false, i == CTL_GBA ? "GBA" : "SNES", tink, 0);
+		else if (i == CTL_GBA || i == CTL_FOUR) ctl_tile_art(i, t, tink);
+		else cv_label(t.x + t.w / 2, t.y + t.h / 2, false, "Auto", tink, 0);
 	}
 }
 
