@@ -2639,14 +2639,19 @@ static const char* const icon_exit[] = {
  * FPS); the buttons, across the whole width; a line for messages. All of it in
  * GBA pixels (the *_g functions: 240x160, the second screen's picture), drawn
  * into a canvas of that size (below) and scaled up with the picture. */
-enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 22, BAR_MSG_H = 19, BAR_PICK_H = 24 };
+enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 24, BAR_MSG_H = 19, BAR_PICK_H = 24 };
 static int bar_pick_h(void) {
 	return ctlProf ? BAR_PICK_H : 0;
+}
+/* the row of time, FPS and battery: without the Controls row above it, tall enough that the pin
+ * (2 px down, 12 high, its edge a row more) has a clear pixel row before the buttons */
+static int bar_status_h(void) {
+	return ctlProf ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
 }
 static int game_screen(void);
 
 static SDL_Rect bar_rect_g(void) {
-	int h = bar_pick_h() + BAR_STATUS_H + BAR_BUTTONS_H + BAR_MSG_H;
+	int h = bar_pick_h() + bar_status_h() + BAR_BUTTONS_H + BAR_MSG_H;
 	int slide = (int) ((1.0f - barShown) * (h + BAR_M));
 	return (SDL_Rect) { BAR_M, GBA_H - BAR_M - h + slide, GBA_W - BAR_M * 2, h };
 }
@@ -2655,7 +2660,7 @@ static SDL_Rect bar_button_g(int i) {
 	SDL_Rect b = bar_rect_g();
 	int in = 3, gap = 3, h = BAR_BUTTONS_H - in;
 	int x0 = b.x + in + (b.w - in * 2 + gap) * i / BB_COUNT, x1 = b.x + in + (b.w - in * 2 + gap) * (i + 1) / BB_COUNT - gap;
-	return (SDL_Rect) { x0, b.y + bar_pick_h() + BAR_STATUS_H, x1 - x0, h };
+	return (SDL_Rect) { x0, b.y + bar_pick_h() + bar_status_h(), x1 - x0, h };
 }
 /* the pin, a square in the top right corner */
 static SDL_Rect bar_pin_g(void) {
@@ -2666,7 +2671,7 @@ static SDL_Rect bar_pin_g(void) {
 static SDL_Rect bar_cell_g(int i) {
 	SDL_Rect b = bar_rect_g();
 	int x0 = b.x + b.w * i / 3, x1 = b.x + b.w * (i + 1) / 3;
-	return (SDL_Rect) { x0, b.y + bar_pick_h(), x1 - x0, BAR_STATUS_H };
+	return (SDL_Rect) { x0, b.y + bar_pick_h(), x1 - x0, bar_status_h() };
 }
 
 /* Where the second screen's picture is on screen s (screen-local; unclipped:

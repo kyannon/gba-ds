@@ -333,10 +333,10 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   the whole window), `TICK SWIPE:x0,y0,x1,y1` (down, 4 moves, up: the quick
   bar comes up with `SWIPE:0.5,0.99,0.5,0.85`; in a 1024x1536 window the bar is
   drawn inside the second screen's 960x640 picture (4 px to a GBA pixel;
-  `bar_pic` / `bar_u`) and its buttons are at y 0.866, x 0.142 save, 0.320
+  `bar_pic` / `bar_u`) and its buttons are at y 0.864, x 0.142 save, 0.320
   load, 0.5 settings, 0.678 bug, 0.857 close (tapped twice), with or without
-  Controls above (profile `controls`), whose tiles are around y 0.778; the
-  pin at 0.922,0.825 (0.922,0.763 with Controls), its SNES tile at 0.676,0.778; a tap elsewhere puts the bar
+  Controls above (profile `controls`), whose tiles are around y 0.773; the
+  pin at 0.922,0.820 (0.922,0.758 with Controls), its SNES tile at 0.676,0.773; a tap elsewhere puts the bar
   away (pinned: opens the menu from outside the bar)), `TICK QUIT`, `TICK LOAD:file.ss` (load a state, the second screen kept). `GBADS_SCREENS=1920x1080,1240x1080` (with `GBADS_WINDOW=1920x2160`) splits the window into two screens of those sizes, stacked, as on devices whose screens differ (AYN Thor; add `--screen_ppi=367,419` for `screen_match = size`). The "Swipe up for quick menu" hint is up for the first 3 s (real time), so pass `--quick_bar_hint=0` for exact pictures (regress.py does). `GBADS_DEBUG=1` logs map captures,
   snapshot and control-scheme switches, taps.
 - `build/host/harness ROM OUTDIR SCRIPT` drives the core frame by frame:
