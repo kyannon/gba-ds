@@ -1358,9 +1358,17 @@ uint32_t ui_color_correct(uint32_t p) {
 	return ccLut[key] | (p & 0xFF000000u);
 }
 
+static void update_texture(SDL_Texture* t, const void* px, int pitch, bool correct);
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
+	update_texture(t, px, pitch, true);
+}
+/* the same for the interface's own pictures: no colour correction (it's the game's) */
+void ui_update_texture_plain(SDL_Texture* t, const void* px, int pitch) {
+	update_texture(t, px, pitch, false);
+}
+static void update_texture(SDL_Texture* t, const void* px, int pitch, bool correct) {
 	if (!t) return;
-	if (ccOn) {
+	if (ccOn && correct) {
 		/* (through the colour correction's table, alpha kept) */
 		static uint32_t* buf;
 		static size_t bufN;
@@ -2960,24 +2968,33 @@ static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
 	return c;
 }
 
+/* A key's colours: its border, the rim inside it, the top and bottom of the
+ * body, the edge under it and (selected keys) the ring round it. */
+void ui_key_palette(int state, SDL_Color* border, SDL_Color* rim, SDL_Color* hi, SDL_Color* lo, SDL_Color* edge, SDL_Color* ring) {
+	*ring = ui_accent_color(AC_SEL_RING);
+	if (state == KEY_SEL) {
+		*border = *rim = ui_accent_color(AC_SEL_BORDER);
+		*hi = ui_accent_color(AC_SEL_HI), *lo = ui_accent_color(AC_SEL_LO), *edge = ui_accent_color(AC_SEL_EDGE);
+	} else if (state == KEY_LIT) {
+		*border = *rim = ui_accent_color(AC_LIT_BORDER);
+		*hi = ui_accent_color(AC_LIT_HI), *lo = ui_accent_color(AC_LIT_LO), *edge = ui_accent_color(AC_LIT_EDGE);
+	} else if (themeLight) {
+		*border = (SDL_Color) { 171, 173, 181, 255 }, *rim = *border;
+		*hi = (SDL_Color) { 222, 223, 228, 255 }, *lo = (SDL_Color) { 190, 192, 199, 255 }, *edge = (SDL_Color) { 141, 143, 152, 255 };
+	} else {
+		*border = (SDL_Color) { 12, 12, 16, 255 }, *rim = (SDL_Color) { 94, 95, 107, 255 };
+		*hi = (SDL_Color) { 66, 67, 76, 255 }, *lo = (SDL_Color) { 44, 45, 52, 255 }, *edge = (SDL_Color) { 5, 5, 8, 255 };
+	}
+}
+
 void ui_key(int screen, SDL_Rect r, int radius, int state) {
 	inKey = true;
 	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
-	SDL_Color border, rim, hi, lo, edge;
+	SDL_Color border, rim, hi, lo, edge, ring;
+	ui_key_palette(state, &border, &rim, &hi, &lo, &edge, &ring);
 	if (state == KEY_SEL) {
-		border = rim = ui_accent_color(AC_SEL_BORDER);
-		hi = ui_accent_color(AC_SEL_HI), lo = ui_accent_color(AC_SEL_LO), edge = ui_accent_color(AC_SEL_EDGE);
 		int e = SDL_max(2, lift);
-		ui_fill_round(screen, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 + lift }, ui_accent_color(AC_SEL_RING), radius + e);
-	} else if (state == KEY_LIT) {
-		border = rim = ui_accent_color(AC_LIT_BORDER);
-		hi = ui_accent_color(AC_LIT_HI), lo = ui_accent_color(AC_LIT_LO), edge = ui_accent_color(AC_LIT_EDGE);
-	} else if (themeLight) {
-		border = (SDL_Color) { 171, 173, 181, 255 }, rim = border;
-		hi = (SDL_Color) { 222, 223, 228, 255 }, lo = (SDL_Color) { 190, 192, 199, 255 }, edge = (SDL_Color) { 141, 143, 152, 255 };
-	} else {
-		border = (SDL_Color) { 12, 12, 16, 255 }, rim = (SDL_Color) { 94, 95, 107, 255 };
-		hi = (SDL_Color) { 66, 67, 76, 255 }, lo = (SDL_Color) { 44, 45, 52, 255 }, edge = (SDL_Color) { 5, 5, 8, 255 };
+		ui_fill_round(screen, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 + lift }, ring, radius + e);
 	}
 	/* the edge under the key, then the key: border, rim, the body in two tones, a highlight along the top */
 	ui_fill_round(screen, (SDL_Rect) { r.x, r.y + lift, r.w, r.h }, edge, radius);

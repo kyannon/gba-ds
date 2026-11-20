@@ -140,6 +140,8 @@ void ui_clip(int screen, const SDL_Rect* clip);
 /* SDL_UpdateTexture (whole texture) that ui.c notices: use it for anything
  * drawn on the screens, so the second screen on Android redraws. */
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch);
+/* ui_update_texture for the interface's own pictures: not colour-corrected */
+void ui_update_texture_plain(SDL_Texture* t, const void* px, int pitch);
 /* Colour correction for everything given to ui_update_texture (the game's
  * pictures, ABGR8888): the GBA's own screen, as mGBA's GBA Color shader
  * (sRGB profile, Darken Screen 0.5) draws it. */
@@ -168,6 +170,7 @@ SDL_Color ui_accent_color(int role);
 void ui_brightness(int top, int bottom); /* each screen's brightness, 20..100: dims this app's picture only */
 bool ui_theme_light(void);
 SDL_Color ui_key_ink(void);          /* text and icons on a key */
+void ui_key_palette(int state, SDL_Color* border, SDL_Color* rim, SDL_Color* hi, SDL_Color* lo, SDL_Color* edge, SDL_Color* ring); /* a key's colours */
 SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */
 /* Text in Jost (textfont.h: TF_BOLD for labels and headings, TF_BODY for
  * longer text), any UTF-8 string, capitals capPx tall and centred on cy.

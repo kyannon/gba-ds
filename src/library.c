@@ -814,9 +814,11 @@ typedef struct {
 	int headerH, listH, m, gap, tileW, tileH, rowH, cols, visibleRows;
 } ListGeom;
 
-/* The game list as names (default) or a grid of logos: library_view in
- * <state_dir>/library.cfg, switched by the header button or X. */
-static bool listMode = true;
+/* The game list as names (default) or a grid of logos, two or three columns
+ * wide: library_view ("list", "grid", "grid3") in <state_dir>/library.cfg,
+ * switched by the header button or X (list, two columns, three, list...). */
+static int viewCols = 1; /* 1: the list; 2 or 3: that many columns of logos */
+#define listMode (viewCols == 1)
 
 static ListGeom list_geom(int scr) {
 	ListGeom g;
@@ -829,10 +831,14 @@ static ListGeom list_geom(int scr) {
 		g.gap = px * 2;
 		g.cols = 1;
 		g.tileH = px * 17;
-	} else { /* two columns of logos */
+	} else if (viewCols == 2) { /* two columns of logos */
 		g.gap = px * 4;
 		g.cols = 2;
 		g.tileH = px * 40;
+	} else { /* three columns: the same tile's shape, narrower */
+		g.gap = px * 4;
+		g.cols = 3;
+		g.tileH = px * 28;
 	}
 	g.tileW = (r.w - g.m * 2 - g.gap * (g.cols - 1)) / g.cols;
 	g.rowH = g.tileH + g.gap;
@@ -943,19 +949,28 @@ static void draw_games_button(const Config* cfg, int scr) {
 	label_fit(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, b.w - px * 2, b.h, cfg->showAll ? tr("All") : tr("Supported"));
 }
 
-/* Four squares (in the list: switch to the grid) or three lines (in the
- * grid: switch to the list). */
+/* What the button does next: four squares (in the list: switch to two
+ * columns), nine (in two columns: switch to three) or three lines (in three
+ * columns: switch to the list). */
 static void draw_view_button(int scr) {
 	SDL_Rect b = view_button(scr);
 	float px = ui_px(scr);
 	ui_key(scr, b, px * 3, KEY_PLAIN);
 	SDL_Color ink = ui_key_ink();
 	int cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-	if (listMode) {
+	if (viewCols == 1) {
 		int sq = b.h * 12 / 56, gap = b.h * 6 / 56;
 		for (int i = 0; i < 2; ++i) {
 			for (int j = 0; j < 2; ++j) {
 				SDL_Rect q = { cx - sq - gap / 2 + i * (sq + gap), cy - sq - gap / 2 + j * (sq + gap), sq, sq };
+				ui_fill_round(scr, q, ink, SDL_max(1, sq / 4));
+			}
+		}
+	} else if (viewCols == 2) {
+		int sq = b.h * 8 / 56, gap = b.h * 4 / 56;
+		for (int i = -1; i <= 1; ++i) {
+			for (int j = -1; j <= 1; ++j) {
+				SDL_Rect q = { cx + i * (sq + gap) - sq / 2, cy + j * (sq + gap) - sq / 2, sq, sq };
 				ui_fill_round(scr, q, ink, SDL_max(1, sq / 4));
 			}
 		}
@@ -968,6 +983,10 @@ static void draw_view_button(int scr) {
 	}
 }
 
+static const char* view_name(void) {
+	return viewCols == 3 ? "grid3" : viewCols == 2 ? "grid" : "list";
+}
+
 /* library.cfg: the game list's own settings (and, on Android, the ROM and
  * save folders and the saves' type, from Settings > Folders). */
 static void save_library_cfg(const Config* cfg) {
@@ -975,7 +994,7 @@ static void save_library_cfg(const Config* cfg) {
 	snprintf(file, sizeof(file), "%s/library.cfg", cfg->stateDir);
 	FILE* f = fopen(file, "w");
 	if (!f) return;
-	fprintf(f, "# written by the game list\nlibrary_view = %s\n", listMode ? "list" : "grid");
+	fprintf(f, "# written by the game list\nlibrary_view = %s\n", view_name());
 	/* (Settings > Save States: shared with RetroArch or not, issue #39) */
 	fprintf(f, "state_folder = %s\n", strcmp(cfg->stateFolder, "retroarch") ? "gbads" : "retroarch");
 	/* (Settings > RetroArch's Folder: one chosen by hand, or empty: found from RetroArch's settings) */
@@ -996,8 +1015,8 @@ static void toggle_theme(Config* cfg) {
 }
 
 static void toggle_view(Config* cfg) {
-	listMode = !listMode;
-	snprintf(cfg->libraryView, sizeof(cfg->libraryView), "%s", listMode ? "list" : "grid");
+	viewCols = viewCols % 3 + 1;
+	snprintf(cfg->libraryView, sizeof(cfg->libraryView), "%s", view_name());
 	save_library_cfg(cfg);
 }
 
@@ -1078,7 +1097,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		}
 		if (tileLogo[i][0] || tileLogo[i][1]) {
 			/* the logo, as large as fits with some padding, keeping its shape */
-			int pad = px * 5;
+			int pad = viewCols == 3 ? px * 4 : px * 5;
 			int aw = t.w - pad * 2, ah = t.h - pad * 2;
 			int w = aw, h = tileLogoH[i] * aw / tileLogoW[i];
 			if (h > ah) h = ah, w = tileLogoW[i] * ah / tileLogoH[i];
@@ -2481,7 +2500,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	for (int i = 0; i < nGames; ++i) {
 		if (!strcmp(games[i].path, last)) sel = i;
 	}
-	listMode = strcmp(cfg->libraryView, "grid") != 0;
+	viewCols = !strcmp(cfg->libraryView, "grid3") ? 3 : !strcmp(cfg->libraryView, "grid") ? 2 : 1;
 	int ls = ui_touch_screen();
 	int scroll = sel > 0 ? keep_visible(ls, sel, 0) : 0;
 	bool dragging = false, pressed = false;

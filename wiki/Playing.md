@@ -2,7 +2,7 @@
 
 GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS Plus), with the selected game's logo and resume picture on the other screen.
 
-- **Two views:** a list of names (the default) or a two-column grid of the games' logos. Switch with **X** or the square button left of the **Supported** / **All** button; GBA DS remembers which you chose.
+- **Three views:** a list of names (the default), a two-column grid of the games' logos, or a three-column grid (smaller logos, more games on screen). Each press of **X** moves on to the next view, and so does the square button left of the **Supported** / **All** button, whose picture shows what the next press gives; GBA DS remembers which you chose.
 - **Names** come from the file names, without tags like `(USA)` or `(En,Fr,De)`. When you have more than one regional copy of a game, a flag tells them apart. `name_tags = 1` in `gba-ds.cfg` keeps the tags.
 - **Which games:** the button between the view button and **Settings** says **Supported** (only games with second-screen support, see [[Supported games]]) or **All** (every GBA ROM; the others play normally on one screen). Touch it to switch; GBA DS remembers it (`show_all`).
 - **The other screen** shows the selected game's logo, and the picture where it will resume once you've played it.
@@ -15,7 +15,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | L1 / R1 | Page up / down |
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
-| X, or tap the button left of Settings | Switch between list and grid |
+| X, or tap the button left of Settings | Next view: list, two columns, three columns |
 | SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder and Updates (Linux) or Folders, RetroAchievements sign-in and Updates (Android)) |
 | B or HOME | Back to EmulationStation / the launcher |
 
@@ -89,7 +89,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 
 ## The quick bar and bug reports
 
-Swipe up from the bottom edge of the touchscreen for the quick bar, or press **L3** (or HOME + X); press it again, or swipe down, to put it away. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2 and 3), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
+Swipe up from the bottom edge of the touchscreen for the quick bar, or press **L3** (or HOME + X); press it again, or swipe down, to put it away. The game keeps running underneath it. The bar is drawn inside the second screen's picture at the GBA's own resolution (240x160, scaled up with the picture, in pixel letters), in your menu **Color** with the same raised buttons as the menus. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2 and 3), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
 - **Save State** (floppy disk) and **Load State** (folder): the quick state, a slot of its own, apart from the pause menu's ten (Load is greyed out until you've saved one). HOME + R1 / L1 save and load it too.
 - **Settings** (gear): the pause menu.
 - **Bug Report** (bug): see below.

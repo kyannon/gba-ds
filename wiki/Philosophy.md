@@ -88,5 +88,6 @@ What this means in practice:
   - Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, and the red X from its quick slots marking where you are;
   - Boktai's clock and sunrise and sunset times, three lines of the game's own from its ITEM page, kept on the Map at the top (on both screens when that page is open on the game screen), with the Map's title bar left out;
   - Shin Megami Tensei's automap taller than the game's window, made from the game's own scrolling and drawn over its own grid, which is continued above and below it to fill the second screen.
+  - Breath of Fire's and Breath of Fire II's party overview kept on the second screen through a battle, taken from before it, though the battle's own boxes on the game screen have the live numbers.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".

@@ -1,0 +1,596 @@
+{
+ "game": "yu-gi-oh-7-trials-to-glory",
+ "rules": "docs/games/yu-gi-oh-7-trials-to-glory.md",
+ "cases": [
+  {
+   "id": "ywc-logo-by7e",
+   "kind": "logo",
+   "rom": "BY7E",
+   "desc": "BY7E logo extraction",
+   "rules": [
+    "GEN-1",
+    "YWC-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ywc-logo-byij",
+   "kind": "logo",
+   "rom": "BYIJ",
+   "desc": "BYIJ logo extraction (Japan: the logo only)",
+   "rules": [
+    "GEN-1",
+    "YWC-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "ywc-us-hand",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-hand.ss",
+   "desc": "the player's turn, the cursor on Autonomous Action Unit in the hand: its Card View; UP to an empty field zone: it stays; the game screen as it is",
+   "rules": [
+    "YWC-1",
+    "YWC-3",
+    "YWC-6"
+   ],
+   "input": [
+    [
+     150,
+     "UP"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 100,
+    "empty": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       186,
+       "424242"
+      ],
+      [
+       990,
+       466,
+       "424242"
+      ],
+      [
+       990,
+       586,
+       "424242"
+      ],
+      [
+       38,
+       146,
+       "000000"
+      ],
+      [
+       54,
+       702,
+       "A5A5A5"
+      ]
+     ],
+     "rule": "YWC-1",
+     "shot": "start",
+     "what": "Autonomous Action Unit's Card View"
+    },
+    {
+     "rule": "YWC-3",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the last card stays on an empty zone"
+    }
+   ]
+  },
+  {
+   "id": "ywc-us-deck-mode",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-deck-mode.ss",
+   "desc": "Deck mode, the cursor on Blue-Eyes White Dragon: its Detail; DOWN to Summoned Skull: another card",
+   "rules": [
+    "YWC-2"
+   ],
+   "input": [
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 100,
+    "down": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       186,
+       "424242"
+      ],
+      [
+       990,
+       466,
+       "424242"
+      ],
+      [
+       990,
+       586,
+       "424242"
+      ],
+      [
+       38,
+       146,
+       "000000"
+      ],
+      [
+       54,
+       702,
+       "A5A5A5"
+      ]
+     ],
+     "rule": "YWC-2",
+     "shot": "start",
+     "what": "Blue-Eyes' Detail"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       186,
+       "424242"
+      ],
+      [
+       990,
+       466,
+       "424242"
+      ],
+      [
+       990,
+       586,
+       "424242"
+      ],
+      [
+       38,
+       146,
+       "000000"
+      ],
+      [
+       54,
+       702,
+       "A5A5A5"
+      ]
+     ],
+     "rule": "YWC-2",
+     "shot": "down",
+     "what": "Summoned Skull's Detail"
+    },
+    {
+     "rule": "YWC-2",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "down",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "ywc-us-draw-phase",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-draw-phase.ss",
+   "desc": "the duel's first moments (Draw Phase, before the player can act): the card's capture is refused, the logo stays",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-commands",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-commands.ss",
+   "desc": "a hand card's commands already open (Set, Card View): its Card View, A alone opens it on the hidden copy",
+   "rules": [
+    "YWC-1"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": [
+    {
+     "rule": "YWC-1",
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       990,
+       186,
+       "424242"
+      ],
+      [
+       990,
+       466,
+       "424242"
+      ],
+      [
+       990,
+       586,
+       "424242"
+      ],
+      [
+       38,
+       146,
+       "000000"
+      ],
+      [
+       54,
+       702,
+       "A5A5A5"
+      ]
+     ],
+     "shot": "start",
+     "what": "Card View"
+    }
+   ]
+  },
+  {
+   "id": "ywc-us-empty-zone",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-empty-zone.ss",
+   "desc": "the cursor on an empty field zone, no card seen yet: the logo",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-end-menu",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-end-menu.ss",
+   "desc": "'End your turn?' up: not the player's free cursor, so no capture: the logo",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-deck-select",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-deck-select.ss",
+   "desc": "the Deck select list: A, A opens Deck mode, not a card: nothing taken, the logo",
+   "rules": [
+    "YWC-3",
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-town",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-town.ss",
+   "desc": "the town: the logo",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-title",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-title.ss",
+   "desc": "the title: the logo",
+   "rules": [
+    "YWC-4",
+    "YWC-5"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-title",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-title.ss",
+   "desc": "Japan's title: the logo",
+   "rules": [
+    "YWC-4",
+    "YWC-5",
+    "YWC-7"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-opp-turn",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-opp-turn.ss",
+   "desc": "the opponent's turn, its Goblin Attack Force named in the info bar: the logo, not its card",
+   "rules": [
+    "YWC-8"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-end-turn",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-hand.ss",
+   "desc": "a card's Card View shown, then End your turn? YES: the logo through the opponent's turn, the card forgotten",
+   "rules": [
+    "YWC-8"
+   ],
+   "input": [
+    [
+     150,
+     "B"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 100,
+    "after": 600
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-next-turn",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-end-menu.ss",
+   "desc": "End your turn? YES, the opponent's turn passes: the logo back in the player's Draw Phase (cursor on the Deck), then the drawn card's Card View",
+   "rules": [
+    "YWC-8",
+    "YWC-1"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     1500,
+     "A"
+    ],
+    [
+     1504,
+     "-"
+    ],
+    [
+     1560,
+     "A"
+    ],
+    [
+     1564,
+     "-"
+    ]
+   ],
+   "shots": {
+    "opp": 400,
+    "draw": 1450,
+    "drawn": 1750
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-draw-hand",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-draw-hand.ss",
+   "desc": "the Draw Phase before drawing, the cursor moved to a hand card (Fissure): its Card View",
+   "rules": [
+    "YWC-1",
+    "YWC-8"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-binder",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-binder.ss",
+   "desc": "Japan: the card binder (Volume.1 list, another screen): the logo",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-deck-select",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-deck-select.ss",
+   "desc": "Japan: Deck select, the deck list: the logo",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-deck-select-cards",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-deck-select-cards.ss",
+   "desc": "Japan: Deck select, the cursor in the deck's cards: the logo (a Deck mode screen is not Deck mode)",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-rps",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-rps.ss",
+   "desc": "Japan: rock-paper-scissors: the logo",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-duel-start",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-duel-start.ss",
+   "desc": "Japan: the duel field arriving, nothing named yet: the logo",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-hand-predraw",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-hand-predraw.ss",
+   "desc": "Japan: Draw Phase before drawing, the cursor on a hand card (Kamen Madoushi): its Card View",
+   "rules": [
+    "YWC-1"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-commands",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-commands.ss",
+   "desc": "Japan: a hand card's commands open (the Japanese Card View label): its Card View",
+   "rules": [
+    "YWC-1"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-end-menu",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-end-menu.ss",
+   "desc": "Japan: \"End your turn?\" up: the logo or last card (nothing taken)",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-opp-turn",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-opp-turn.ss",
+   "desc": "Japan: the opponent's turn: the logo, not the card the game itself shows large",
+   "rules": [
+    "YWC-7",
+    "YWC-8"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  }
+ ]
+}

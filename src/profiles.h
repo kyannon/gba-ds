@@ -135,6 +135,10 @@ typedef struct {
 	int minY, minX, maxX; /* with maxY: only this box (maxX 0: the whole width); a frame
 	                       * round the logo left out (Super Mario World's) */
 	MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */
+	/* sprites left out of the logo's render (Duel Masters: Kaijudo
+	 * Showdown's translucent light rays, black on their own, cross the
+	 * subtitle), an emu_hide_sprites list; empty: none */
+	SpriteRule hide[2];
 	int rev; /* bump when extraction changes, so cached logos are made again */
 	/* The logo is painted into the whole title picture: render every
 	 * layer and keep the pixels inside this mask (THPS2). */

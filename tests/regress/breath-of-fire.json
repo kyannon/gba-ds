@@ -1,0 +1,559 @@
+{
+ "game": "Breath of Fire",
+ "rules": "docs/games/breath-of-fire.md",
+ "cases": [
+  {
+   "id": "bof-us-town",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-town.ss",
+   "desc": "in a town: the party overview (us)",
+   "rules": [
+    "BOF-4",
+    "BOF-8"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-4",
+     "what": "the party window is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF-4",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       60,
+       400,
+       "000000"
+      ],
+      [
+       960,
+       400,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF-8",
+     "what": "the game screen shows no overlay of ours",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "bof-us-battle",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-battle.ss",
+   "desc": "in a battle: with no picture yet, the logo (us)",
+   "rules": [
+    "BOF-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-5",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-eu-town",
+   "rom": "ABFP",
+   "state": "breath-of-fire/eu-town.ss",
+   "desc": "in a town: the party overview (eu)",
+   "rules": [
+    "BOF-4",
+    "BOF-8"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-4",
+     "what": "the party window is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF-4",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       60,
+       400,
+       "000000"
+      ],
+      [
+       960,
+       400,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF-8",
+     "what": "the game screen shows no overlay of ours",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "bof-eu-battle",
+   "rom": "ABFP",
+   "state": "breath-of-fire/eu-battle.ss",
+   "desc": "in a battle: with no picture yet, the logo (eu)",
+   "rules": [
+    "BOF-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-5",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-jp-town",
+   "rom": "ABFJ",
+   "state": "breath-of-fire/jp-town.ss",
+   "desc": "in a town: the party overview (jp)",
+   "rules": [
+    "BOF-4",
+    "BOF-8"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-4",
+     "what": "the party window is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    },
+    {
+     "rule": "BOF-4",
+     "what": "black either side of the picture",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       60,
+       400,
+       "000000"
+      ],
+      [
+       960,
+       400,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF-8",
+     "what": "the game screen shows no overlay of ours",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "bof-jp-battle",
+   "rom": "ABFJ",
+   "state": "breath-of-fire/jp-battle.ss",
+   "desc": "in a battle: with no picture yet, the logo (jp)",
+   "rules": [
+    "BOF-5"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-5",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-us-overworld",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-overworld.ss",
+   "desc": "on the overworld with the Map: the world map",
+   "rules": [
+    "BOF-3"
+   ],
+   "shots": {
+    "a": 300
+   },
+   "checks": [
+    {
+     "rule": "BOF-3",
+     "what": "the map is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-jp-overworld",
+   "rom": "ABFJ",
+   "state": "breath-of-fire/jp-overworld.ss",
+   "desc": "on the overworld with the Map (Japan): the world map",
+   "rules": [
+    "BOF-3"
+   ],
+   "shots": {
+    "a": 300
+   },
+   "checks": [
+    {
+     "rule": "BOF-3",
+     "what": "the map is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-eu-overworld-nomap",
+   "rom": "ABFP",
+   "state": "breath-of-fire/eu-overworld.ss",
+   "desc": "on the overworld before the party has the Map: the party overview instead",
+   "rules": [
+    "BOF-3",
+    "BOF-4"
+   ],
+   "shots": {
+    "a": 300
+   },
+   "checks": [
+    {
+     "rule": "BOF-4",
+     "what": "the party window is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-us-cave",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-cave.ss",
+   "desc": "in a cave: the party overview with the cave's name",
+   "rules": [
+    "BOF-4"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-4",
+     "what": "the party window is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-us-title",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-title.ss",
+   "desc": "the title: the logo, no captures",
+   "rules": [
+    "BOF-1",
+    "BOF-2"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-2",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-x-title",
+   "rom": "ABFX",
+   "state": "breath-of-fire/fx-title.ss",
+   "desc": "Europe's English, French and German release at its title: the logo",
+   "rules": [
+    "BOF-1",
+    "BOF-2"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-2",
+     "what": "the logo is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-us-menu-open",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-menu.ss",
+   "desc": "SELECT's menu open in the game: the party overview, once",
+   "rules": [
+    "BOF-7"
+   ],
+   "shots": {
+    "a": 240
+   },
+   "checks": [
+    {
+     "rule": "BOF-7",
+     "what": "the party window is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-us-map-open",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-map-open.ss",
+   "desc": "START's map open in the game: the party overview, not the map twice",
+   "rules": [
+    "BOF-7"
+   ],
+   "shots": {
+    "a": 300
+   },
+   "checks": [
+    {
+     "rule": "BOF-7",
+     "what": "the party window is shown",
+     "type": "not_uniform",
+     "shot": "a",
+     "screen": "second",
+     "rect": [
+      300,
+      150,
+      720,
+      650
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof-us-logo",
+   "kind": "logo",
+   "rom": "ABFE",
+   "desc": "the title lettering and flame",
+   "rules": [
+    "BOF-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "bof-eu-logo",
+   "kind": "logo",
+   "rom": "ABFP",
+   "desc": "the title lettering and flame",
+   "rules": [
+    "BOF-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "bof-jp-logo",
+   "kind": "logo",
+   "rom": "ABFJ",
+   "desc": "the title lettering and flame",
+   "rules": [
+    "BOF-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "bof-x-logo",
+   "kind": "logo",
+   "rom": "ABFX",
+   "desc": "the title lettering and flame",
+   "rules": [
+    "BOF-1"
+   ],
+   "checks": []
+  },
+  {
+   "id": "bof-us-battle-keeps",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-town.ss",
+   "desc": "a battle starts after a town: the party overview from the town stays (not the logo)",
+   "rules": [
+    "BOF-5"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:breath-of-fire/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 240,
+    "b": 420
+   },
+   "checks": []
+  },
+  {
+   "id": "bof-us-battle-from-map",
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-overworld.ss",
+   "desc": "a battle starts with the world map on the second screen: the party overview, not the map",
+   "rules": [
+    "BOF-5"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:breath-of-fire/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 380,
+    "b": 600
+   },
+   "checks": []
+  }
+ ]
+}

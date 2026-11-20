@@ -290,7 +290,7 @@ After the first milestone:
   the game thread through JNI on the activity), the tree URI turned into a
   plain path (All files access), saved as `rom_dir` in
   `<state_dir>/library.cfg` (loaded after prefs.cfg on every platform).
-  library.cfg also holds `library_view` (list/grid) on every platform;
+  library.cfg also holds `library_view` (list/grid/grid3) on every platform;
   both are written by `save_library_cfg()` in library.c, so neither is lost.
   "ROM Folder" is a Futura label (MENU_TEXTS; brand_data.c regenerated).
 - Every game was listed twice on the device: the default rom_dir had
