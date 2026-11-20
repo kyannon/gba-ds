@@ -257,6 +257,8 @@ static const KnownDump knownDumps[] = {
 	{ "BY3J", 0x7ab1ec04, true, false, "Yu-Gi-Oh! Duel Monsters Expert 3 (Japan) (En,Ja,Fr,De,Es,It)" },
 	{ "BY6E", 0xf968a196, true, false, "Yu-Gi-Oh! - Ultimate Masters - World Championship Tournament 2006 (USA) (En,Ja,Fr,De,Es,It)" },
 	{ "BY6P", 0xcede4060, true, false, "Yu-Gi-Oh! - Ultimate Masters Edition - World Championship Tournament 2006 (Europe) (En,Ja,Fr,De,Es,It)" },
+	{ "BY7E", 0x584db6a6, true, false, "Yu-Gi-Oh! - 7 Trials to Glory - World Championship Tournament 2005 (USA) (En,Ja,Fr,De,Es,It)" },
+	{ "BYIJ", 0x6dcfb879, true, false, "Yu-Gi-Oh! Duel Monsters International 2 (Japan) (En,Ja)" },
 	{ "BYWE", 0x69b6f229, true, false, "Yu-Gi-Oh! - World Championship Tournament 2004 (USA) (En,Ja,Fr,De,Es,It)" },
 	{ "BYWP", 0x3c42e84c, true, false, "Yu-Gi-Oh! - World Championship Tournament 2004 (Europe) (En,Ja,Fr,De,Es,It)" },
 	{ "BZ4E", 0xfeeebde4, true, false, "Final Fantasy IV Advance (USA)" },

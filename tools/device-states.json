@@ -634,6 +634,84 @@
     "8": ["eu-es-hand-rothus.ss", "Practice duel with the game set to Spanish, cursor on Rothus: Card Details in Spanish (DMK-1, DMK-7)"],
     "9": ["eu-es-hand-piedrasaurio.ss", "Spanish, cursor on Piedrasaurio (Stonesaur): another Spanish card (DMK-1, DMK-7)"]
    }
+  },
+  "yu-gi-oh-7-trials-to-glory": {
+   "Yu-Gi-Oh! - 7 Trials to Glory - World Championship Tournament 2005 (USA) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "us-hand.ss",
+     "Your turn, cursor on a hand card (Autonomous Action Unit): its Card View within about a second (YWC-1). Move to other hand cards: the page follows."
+    ],
+    "2": [
+     "us-commands.ss",
+     "The hand card's commands already open (Set / Card View): the Card View is shown (YWC-1)."
+    ],
+    "3": [
+     "us-empty-zone.ss",
+     "Cursor on an empty field zone, no card looked at yet: the logo (YWC-3). Move onto a card: its Card View; back to the empty zone: that card stays."
+    ],
+    "4": [
+     "us-end-menu.ss",
+     "'End your turn?' up: the second screen doesn't change (logo here, YWC-3). Answer YES: the logo through the opponent's whole turn, whatever card it shows or attacks with (YWC-8); when your turn comes round the logo stays through the Draw Phase, and after you draw the card's Card View returns (YWC-1)."
+    ],
+    "5": [
+     "us-draw-hand.ss",
+     "Draw Phase before drawing, the cursor already on a hand card (Fissure): its Card View (YWC-1). Move it to the Deck: the card stays; A on the Deck draws; the drawn card's Card View follows when the cursor is on it."
+    ],
+    "6": [
+     "us-deck-mode.ss",
+     "Edit Deck's Deck mode, cursor on Blue-Eyes White Dragon: its Detail (YWC-2). Move the cursor down: each card's Detail follows."
+    ],
+    "7": [
+     "us-deck-select.ss",
+     "Deck select list: the logo (YWC-3/4; A, A opens Deck mode on the hidden copy, nothing taken). Press A, A yourself to reach Deck mode (as slot 6)."
+    ],
+    "8": [
+     "us-title.ss",
+     "The title screen: the logo, the same picture as the title's lettering (YWC-4, YWC-5)."
+    ],
+    "9": [
+     "us-opp-turn.ss",
+     "In the opponent's turn (its Goblin Attack Force is named in the info bar): the logo, not that card (YWC-8). Let it play on, then your turn: the logo until you draw and the cursor is on a card."
+    ]
+   },
+   "Yu-Gi-Oh! Duel Monsters International 2 (Japan) (En,Ja)": {
+    "1": [
+     "jp-opp-turn.ss",
+     "The opponent's turn (the game itself shows its summoned card large): the logo on the second screen (YWC-8). Let it play on to your turn: the logo until the cursor is on a card."
+    ],
+    "2": [
+     "jp-binder.ss",
+     "The card binder (Volume.1): another screen, the logo (YWC-4)."
+    ],
+    "3": [
+     "jp-deck-select.ss",
+     "Deck select, the deck list: the logo (YWC-4). Move into the cards (right) and A, A: their Detail, as slot 4."
+    ],
+    "4": [
+     "jp-deck-select-cards.ss",
+     "Deck select with the cursor in a deck's cards (Deck mode): the Detail of the card under it (YWC-2). Move the cursor: the page follows."
+    ],
+    "5": [
+     "jp-hand-predraw.ss",
+     "Draw Phase before drawing, the cursor on a hand card: its Card View (YWC-1). Move to the Deck: the card stays; A on the Deck draws."
+    ],
+    "6": [
+     "jp-commands.ss",
+     "A hand card's commands open (詳細表示): its Card View (YWC-1)."
+    ],
+    "7": [
+     "jp-end-menu.ss",
+     "'End your turn?' up: the second screen doesn't change (logo here). Answer はい: the logo through the opponent's turn (YWC-8)."
+    ],
+    "8": [
+     "jp-duel-start.ss",
+     "The duel field arriving, nothing named: the logo (YWC-3)."
+    ],
+    "9": [
+     "jp-title.ss",
+     "The title of a first start: the logo, the title's lettering (YWC-5, YWC-7)."
+    ]
+   }
   }
  }
 }
