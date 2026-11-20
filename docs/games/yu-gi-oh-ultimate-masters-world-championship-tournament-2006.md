@@ -4,9 +4,9 @@
 |---|---|
 | Releases | `BY6E` USA · `BY6P` Europe (Ultimate Masters Edition) |
 | Dumps | `BY6E` cartridge `f968a196` (tested) · `BY6P` cartridge `cede4060` (tested) |
-| Profile | `src/profiles.c`: the `BY6E` entry (wct_compose), with `BY6P` in its codes |
+| Profile | `src/profiles.c`: the `BY6E` entry (um6_compose, um6_virt); variant `BY6P` (um6_eur): the same screens and addresses, its language menu first |
 | Tests | `tests/regress/yu-gi-oh-ultimate-masters-world-championship-tournament-2006.json` (`tools/regress.py yu-gi-oh-ultimate-masters-world-championship-tournament-2006`) |
-| Status | in progress (branch `game/yu-gi-oh-ultimate-masters-world-championship-tournament-2006`); the Japanese release (Yu-Gi-Oh! Duel Monsters Expert 2006, `BY6J`) is a different build and isn't handled yet |
+| Status | tried on the device (USA and Europe); merged into `dev` |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list yu-gi-oh-ultimate-masters-world-championship-tournament-2006`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
@@ -18,19 +18,19 @@ This game is a sequel on the same ideas as [Yu-Gi-Oh! The Eternal Duelist Soul](
 
 ## Rules
 
-**WCT-1. Card View in a duel.** In a duel, while the player moves the cursor freely on the field in their turn, in any phase (the Draw Phase before drawing, the Battle Phase and Main Phase 2 too), with it on a card they can look at (a card in their hand, a monster or a Magic or Trap card on the field: theirs, face-up or face-down, or the opponent's face-up ones; the cards the info bar at the bottom names), the second screen shows that card's Card View, the whole screen at the game screen's size, as the game draws it: the card with its picture, its name, its type and its text. It's opened on the hidden copy (A, then the first command, Card View, which A always starts on), taken as soon as the cursor has stopped on another card, and again about once a second while it stays. With Card View open in the game (from a card's commands), it's taken as it is.
+**UM6-1. Card View in a duel.** In a duel, while the player moves the cursor freely on the field in their turn, in any phase (the Draw Phase before drawing, the Battle Phase and Main Phase 2 too), with it on a card they can look at (a card in their hand, a monster or a Magic or Trap card on the field: theirs, face-up or face-down, or the opponent's face-up ones; the cards the info bar at the bottom names), the second screen shows that card's Card View, the whole screen at the game screen's size, as the game draws it: the card with its picture, its name, its type and its text. It's opened on the hidden copy (A, then the first command, Card View, which A always starts on), taken as soon as the cursor has stopped on another card, and again about once a second while it stays. With Card View open in the game (from a card's commands), it's taken as it is.
 
-**WCT-2. Deck Edit.** In Deck Edit's card grid and list (SELECT switches them), the second screen shows the Card View of the card under the cursor (A, then Detail, which A starts on). With Card View open in the game, it's taken as it is.
+**UM6-2. Deck Edit.** In Deck Edit's card grid and list (SELECT switches them), the second screen shows the Card View of the card under the cursor (A, then Detail, which A starts on). With Card View open in the game, it's taken as it is.
 
-**WCT-3. Last card stays.** In a duel or Deck Edit, where the cursor isn't on a card that can be looked at (an empty zone, a pile on the field (the Decks, Graveyards, Extra Decks and Removed Cards), the opponent's face-down cards or hand, Deck Edit's tabs and menus), or the player isn't moving the cursor in their turn (a phase banner, a summon or an attack playing out, the card's commands or the phase menu open, a question the game asks, choosing a target), the last Card View stays; before the first in a duel or Deck Edit, the logo.
+**UM6-3. Last card stays.** In a duel or Deck Edit, where the cursor isn't on a card that can be looked at (an empty zone, a pile on the field (the Decks, Graveyards, Extra Decks and Removed Cards), the opponent's face-down cards or hand, Deck Edit's tabs and menus), or the player isn't moving the cursor in their turn (a phase banner, a summon or an attack playing out, the card's commands or the phase menu open, a question the game asks, choosing a target), the last Card View stays; before the first in a duel or Deck Edit, the logo.
 
-**WCT-4. Logo elsewhere.** Out of the duels and Deck Edit (the title, the main menu, the Campaign's choice of duelist, the coin toss, conversations, the Duel Results, Get Cards, the Forbidden/Limited lists, Options), the second screen shows the logo, idle, and the last Card View is forgotten. So it is from the moment a duel is won or lost (its life points are 0).
+**UM6-4. Logo elsewhere.** Out of the duels and Deck Edit (the title, the main menu, the Campaign's choice of duelist, the coin toss, conversations, the Duel Results, Get Cards, the Forbidden/Limited lists, Options), the second screen shows the logo, idle, and the last Card View is forgotten. So it is from the moment a duel is won or lost (its life points are 0).
 
-**WCT-5. Logo between turns.** From the moment the opponent's turn begins until a card can be shown again (WCT-1), the second screen shows the logo, idle, and the last Card View is forgotten: through the opponent's whole turn (a Card View the player opens in it is shown, then the logo again), and in the player's next turn until the cursor is on a card (the Draw Phase starts on the Deck). While the player's own End Phase plays out, the last Card View stays (WCT-3).
+**UM6-5. Logo between turns.** From the moment the opponent's turn begins until a card can be shown again (UM6-1), the second screen shows the logo, idle, and the last Card View is forgotten: through the opponent's whole turn (a Card View the player opens in it is shown, then the logo again), and in the player's next turn until the cursor is on a card (the Draw Phase starts on the Deck). While the player's own End Phase plays out, the last Card View stays (UM6-3).
 
-**WCT-6. Logo.** The logo is the title screen's emblem: YU-GI-OH! ULTIMATE MASTERS, World Championship Tournament 2006 (BG0), above New Game / Continue and the copyright line (700 frames from power-on, the title fully faded in).
+**UM6-6. Logo.** The logo is the title screen's emblem: YU-GI-OH! ULTIMATE MASTERS, World Championship Tournament 2006 (BG0), above New Game / Continue and the copyright line (700 frames from power-on, the title fully faded in).
 
-**WCT-7. Game screen untouched.** Nothing leaves the game screen.
+**UM6-7. Game screen untouched.** Nothing leaves the game screen.
 
 ## Facts about the game
 
@@ -46,7 +46,7 @@ This game is a sequel on the same ideas as [Yu-Gi-Oh! The Eternal Duelist Soul](
 
 ## Known issues
 
-- Deck Edit's tabs and menus aren't told from its grid, so on them the hidden copy tries A and A and finds no Card View: the last card stays (WCT-3).
+- Deck Edit's tabs and menus aren't told from its grid, so on them the hidden copy tries A and A and finds no Card View: the last card stays (UM6-3).
 - A pile's list in a duel (the Graveyard, Removed Cards, an Extra Deck) isn't a screen the profile knows: the last Card View stays while it's open.
 - Choosing the monster to attack, or a target for a card's effect: A brings up no commands there, so the last Card View stays.
 - A card that changes under a cursor that hasn't moved (the hand closing up after a summon, a card flipped face-up) shows at the next refresh, about a second later.
@@ -56,22 +56,3 @@ This game is a sequel on the same ideas as [Yu-Gi-Oh! The Eternal Duelist Soul](
 ## Not covered yet
 
 - A duel's card lists (Graveyard and the others), choosing a target, and Link Battle.
-
-## For the merge
-
-*Changelog line (under New games):*
-
-- **Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006** (USA and Europe): the second screen shows the game's own **Card View** of the card under your cursor (its picture, name, type and text), in duels (your hand, your cards and the opponent's face-up ones) and in Deck Edit. Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a phase or an attack playing out), the last card stays; on the title, menus and conversations, and through the opponent's turn, the logo. The Japanese release isn't supported yet, a duel's card lists and Link Battle haven't been tried.
-
-*Wiki section (`wiki/Supported-games.md`; table row: `BY6E` `BY6P`, "Card View of the card under the cursor"):*
-
-## Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006
-
-The USA and Europe releases. Tried in Free Duel and Campaign duels and in Deck Edit; Link Battle hasn't been tried.
-
-- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game shows it when you choose Card View. Your hand, your cards on the field and the opponent's face-up cards; it follows the cursor as you move it, in every phase of your turn. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
-- **In Deck Edit,** the same: the card under the cursor.
-- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a phase or an attack playing out, a question the game asks), the last card stays.
-- **When the opponent's turn begins,** the second screen shows the logo, through their turn, until your cursor is on a card again.
-- On the title screen, the menus and the conversations, and from the moment a duel is won or lost, the second screen shows the logo.
-- Known issues: a duel's card lists (the Graveyard...) keep the last card; the Japanese release isn't supported yet.
