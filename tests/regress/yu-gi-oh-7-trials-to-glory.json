@@ -364,6 +364,8 @@
    "state": "yu-gi-oh-7-trials-to-glory/jp-title.ss",
    "desc": "Japan's title: the logo",
    "rules": [
+    "YWC-4",
+    "YWC-5",
     "YWC-7"
    ],
    "shots": {
@@ -465,6 +467,124 @@
    "desc": "the Draw Phase before drawing, the cursor moved to a hand card (Fissure): its Card View",
    "rules": [
     "YWC-1",
+    "YWC-8"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-binder",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-binder.ss",
+   "desc": "Japan: the card binder (Volume.1 list, another screen): the logo",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-deck-select",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-deck-select.ss",
+   "desc": "Japan: Deck select, the deck list: the logo",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-deck-select-cards",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-deck-select-cards.ss",
+   "desc": "Japan: Deck select, the cursor in the deck's cards: the logo (a Deck mode screen is not Deck mode)",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-rps",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-rps.ss",
+   "desc": "Japan: rock-paper-scissors: the logo",
+   "rules": [
+    "YWC-4"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-duel-start",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-duel-start.ss",
+   "desc": "Japan: the duel field arriving, nothing named yet: the logo",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-hand-predraw",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-hand-predraw.ss",
+   "desc": "Japan: Draw Phase before drawing, the cursor on a hand card (Kamen Madoushi): its Card View",
+   "rules": [
+    "YWC-1"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-commands",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-commands.ss",
+   "desc": "Japan: a hand card's commands open (the Japanese Card View label): its Card View",
+   "rules": [
+    "YWC-1"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-end-menu",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-end-menu.ss",
+   "desc": "Japan: \"End your turn?\" up: the logo or last card (nothing taken)",
+   "rules": [
+    "YWC-3"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-jp-opp-turn",
+   "rom": "BYIJ",
+   "state": "yu-gi-oh-7-trials-to-glory/jp-opp-turn.ss",
+   "desc": "Japan: the opponent's turn: the logo, not the card the game itself shows large",
+   "rules": [
+    "YWC-7",
     "YWC-8"
    ],
    "shots": {

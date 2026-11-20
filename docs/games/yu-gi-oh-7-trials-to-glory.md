@@ -4,9 +4,9 @@
 |---|---|
 | Releases | `BY7E` USA · `BYIJ` Japan |
 | Dumps | `BY7E` cartridge `584db6a6` (tested) · `BYIJ` cartridge `6dcfb879` (tested) |
-| Profile | `src/profiles.c`: the `BY7E` entry (ygo7_compose, ygo7_virt); the `BYIJ` entry (logo only) |
+| Profile | `src/profiles.c`: the `BY7E` entry (yw_compose_for, yw_virt_for, ywUS); the `BYIJ` variant (ywc_jpn, ywJP) |
 | Tests | `tests/regress/yu-gi-oh-7-trials-to-glory.json` (`tools/regress.py yu-gi-oh-7-trials-to-glory`) |
-| Status | USA: Card View on the second screen; Japan: logo only |
+| Status | USA and Japan: Card View on the second screen |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them. Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused.
 
@@ -30,7 +30,7 @@ Like Yu-Gi-Oh! The Eternal Duelist Soul, the game is played through its cards, a
 
 **YWC-8. Logo through the opponent's turn.** From the moment the opponent's turn begins (after "End your turn?" is answered YES, as the game's duel state changes) until the player's next turn, the second screen shows the logo, idle, and the last Card View is forgotten: the opponent's cards the info bar names, their attacks and summons included. In the player's next turn the logo stays until the cursor is on a card (YWC-1), also in the Draw Phase before drawing, when the cursor can already be moved to the hand; the turn starts on the Deck.
 
-**YWC-7. Japan: the logo.** Yu-Gi-Oh! Duel Monsters International 2 (`BYIJ`) is untried: its second screen shows the logo only (its title's lettering), until its screens have been checked.
+**YWC-7. Japan.** Yu-Gi-Oh! Duel Monsters International 2 (`BYIJ`) follows YWC-1 to YWC-6 and YWC-8 as the USA release does (the same engine and screens; its title's lettering is the logo, with no Language Selection first). Its Card View label reads 詳細表示 and its page is the same Card View; tried from the owner's states (Deck mode, a hand card before drawing, the commands open, "End your turn?", the opponent's turn).
 
 ## Facts about the game
 
@@ -39,22 +39,21 @@ Like Yu-Gi-Oh! The Eternal Duelist Soul, the game is played through its cards, a
 - Weekly banlists: Mokuba refuses a duel with a banned card or fewer than 40 cards in the active deck; resting 7 nights moves to the next week's list.
 - A on a hand card shows Set and a highlighted Card View (magnifier tile 548-like sprites at the bottom right); a street duel starts by facing the duelist and pressing R.
 - The info bar's name is in white; a pile's count is cyan ("Deck:35"); an empty zone shows a plain bar.
-- `0x0201A460` (8 bits), the duel's state: 2 and 3 in the player's Draw Phase (the cursor on the Deck, or moved to a hand card, where Card View works as in the Main Phase; 3 stays while the drawn card comes to the hand), 5 with the cursor free in the player's Main Phase (also with a card's commands open and "End your turn?" up), 6 as the turn is ended, and **8 through the whole of the opponent's turn** (its Draw Phase, summons, attacks, the life points counting down) until the player's Draw Phase. Other values (the player's Battle Phase, an effect playing out) weren't seen; only 8 is taken as the opponent's.
-- Deck mode's list cursor row: `0x02026AB0`.
+- `0x0201A460` (8 bits; Japan `0x0201A450`), the duel's state: 2 and 3 in the player's Draw Phase (the cursor on the Deck, or moved to a hand card, where Card View works as in the Main Phase; 3 stays while the drawn card comes to the hand), 5 with the cursor free in the player's Main Phase (also with a card's commands open and "End your turn?" up), 6 as the turn is ended, and **8 through the whole of the opponent's turn** (its Draw Phase, summons, attacks, the life points counting down) until the player's Draw Phase. Other values (the player's Battle Phase, an effect playing out) weren't seen; only 8 is taken as the opponent's.
+- Deck mode's list cursor row: `0x02026AB0` (Japan `0x02026AA0`). Japan's Card View has BG1CNT `0x0104` (USA `0x4104`); its lists and field have the same registers as the USA ones, the card binder (Volume.1) `0x0005` `0x0106`, a screen of its own (the logo).
 
 ## Known issues
 
-- A duel's end, the pile lists (Graveyard...), the cards won and the Japan release's own screens were not tried: the logo is shown where no known screen is up.
+- A duel's end, the pile lists (Graveyard...), the cards won the card binder and Japan's own banlist were not tried: the logo is shown where no known screen is up.
 - The opponent's turn is told by the duel's state byte reading 8 (YWC-8). If the game also uses 8 in some phase of the player's own turn (the Battle Phase wasn't tried), the logo would show there until the byte changes.
 - Deck select's A, A opens Deck mode on the hidden copy, not a card: nothing is taken (YWC-3).
-- Japan (`BYIJ`) shows the logo only (YWC-7).
 
 ## Not covered yet
 
-- A duel's end, the card lists in a duel, the cards won, Card Trading and Password.
+- The banlist (both releases), a duel's end, the card lists in a duel, the cards won, Card Trading and Password.
 
 ## For the merge
 
-Changelog line (under the open version, New games): **Yu-Gi-Oh! 7 Trials to Glory: World Championship Tournament 2005** (USA): the second screen shows the Card View of the card under your cursor in a duel, and the Detail of the card in Deck Edit and the banlist; the logo elsewhere. Japan's Duel Monsters International 2 shows the logo only. Known: a duel's end isn't told apart yet.
+Changelog line (under the open version, New games): **Yu-Gi-Oh! 7 Trials to Glory: World Championship Tournament 2005** (USA and Japan's Duel Monsters International 2): the second screen shows the Card View of the card under your cursor in a duel, and the Detail of the card in Deck Edit and the banlist; the logo elsewhere. Japan's Duel Monsters International 2 works the same way. Known: a duel's end isn't told apart yet.
 
 Wiki section for `Supported-games.md`: the same, with the rules YWC-1 to YWC-8 in the player's terms.

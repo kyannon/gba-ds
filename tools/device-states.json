@@ -486,8 +486,40 @@
    },
    "Yu-Gi-Oh! Duel Monsters International 2 (Japan) (En,Ja)": {
     "1": [
+     "jp-opp-turn.ss",
+     "The opponent's turn (the game itself shows its summoned card large): the logo on the second screen (YWC-8). Let it play on to your turn: the logo until the cursor is on a card."
+    ],
+    "2": [
+     "jp-binder.ss",
+     "The card binder (Volume.1): another screen, the logo (YWC-4)."
+    ],
+    "3": [
+     "jp-deck-select.ss",
+     "Deck select, the deck list: the logo (YWC-4). Move into the cards (right) and A, A: their Detail, as slot 4."
+    ],
+    "4": [
+     "jp-deck-select-cards.ss",
+     "Deck select with the cursor in a deck's cards (Deck mode): the Detail of the card under it (YWC-2). Move the cursor: the page follows."
+    ],
+    "5": [
+     "jp-hand-predraw.ss",
+     "Draw Phase before drawing, the cursor on a hand card: its Card View (YWC-1). Move to the Deck: the card stays; A on the Deck draws."
+    ],
+    "6": [
+     "jp-commands.ss",
+     "A hand card's commands open (詳細表示): its Card View (YWC-1)."
+    ],
+    "7": [
+     "jp-end-menu.ss",
+     "'End your turn?' up: the second screen doesn't change (logo here). Answer はい: the logo through the opponent's turn (YWC-8)."
+    ],
+    "8": [
+     "jp-duel-start.ss",
+     "The duel field arriving, nothing named: the logo (YWC-3)."
+    ],
+    "9": [
      "jp-title.ss",
-     "Japan's title: the logo, the title's lettering (YWC-7). This state is a first start (New Game only); nothing else is tried for Japan, so the logo should stay wherever you go."
+     "The title of a first start: the logo, the title's lettering (YWC-5, YWC-7)."
     ]
    }
   }

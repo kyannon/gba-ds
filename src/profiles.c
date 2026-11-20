@@ -2751,10 +2751,17 @@ static const char* eds_compose_jp(Emu* s, const void* state, uint32_t* out, int 
 #define YW_V_IDLE 0xF0000051
 #define YW_V_ROOM 0xF0000052
 enum { YW_NONE, YW_FIELD, YW_VIEW, YW_LIST };
+/* the two releases' addresses (the same engine, 0x10 apart: tools/romxref.py) */
+typedef struct {
+	uint32_t state; /* the duel's state byte */
+	uint32_t list;  /* the list's cursor row */
+} YwRelease;
+static const YwRelease ywUS = { 0x0201A460, 0x02026AB0 };
+static const YwRelease ywJP = { 0x0201A450, 0x02026AA0 };
 static int yw_screen(Emu* e) {
 	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A);
 	if (bg0 == 0x4007 && bg1 == 0x4206) return YW_FIELD;
-	if (bg0 == 0x0087 && bg1 == 0x4104) return YW_VIEW;
+	if (bg0 == 0x0087 && (bg1 == 0x4104 || bg1 == 0x0104)) return YW_VIEW; /* Japan's 0x0104 */
 	if (bg0 == 0x0004 && bg1 == 0x0105) return YW_LIST;
 	return YW_NONE;
 }
@@ -2773,34 +2780,34 @@ static bool yw_named(Emu* e) {
 	return white >= 12;
 }
 /* the duel's state byte: 8 through the opponent's whole turn (YWC-8) */
-static bool yw_opp_turn(Emu* e) {
-	return emu_read8(e, 0x0201A460) == 8;
+static bool yw_opp_turn(const YwRelease* r, Emu* e) {
+	return emu_read8(e, r->state) == 8;
 }
 /* not the player's free cursor: the turn being ended (6), the opponent's
  * turn (8). The Draw Phase (2, 3) is free: the cursor can go to the hand */
-static bool yw_busy(Emu* e) {
-	int v = emu_read8(e, 0x0201A460);
+static bool yw_busy(const YwRelease* r, Emu* e) {
+	int v = emu_read8(e, r->state);
 	return v == 6 || v == 8;
 }
 static bool yw_field_up(Emu* e) {
 	return (emu_read16(e, 0x03000330) & 0xFF00) == 0x3500;
 }
-static uint32_t yw_virt(Emu* e, uint32_t addr) {
+static uint32_t yw_virt_for(const YwRelease* r, Emu* e, uint32_t addr) {
 	int sc = yw_screen(e);
 	if (addr == YW_V_LIVE) {
-		if (sc == YW_FIELD) return !yw_busy(e) && yw_field_up(e) && yw_named(e);
+		if (sc == YW_FIELD) return !yw_busy(r, e) && yw_field_up(e) && yw_named(e);
 		return sc != YW_NONE;
 	}
-	if (addr == YW_V_IDLE) return sc == YW_NONE || (sc == YW_FIELD && yw_opp_turn(e));
+	if (addr == YW_V_IDLE) return sc == YW_NONE || (sc == YW_FIELD && yw_opp_turn(r, e));
 	if (addr == YW_V_ROOM) {
 		uint32_t k = (uint32_t) sc << 28;
 		if (sc == YW_FIELD) {
 			uint32_t h = 2166136261u;
 			for (int y = 151; y < 159; ++y)
 				for (int x = 2; x < 120; ++x) h = (h ^ (e->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
-			h = (h ^ emu_read8(e, 0x0201A460)) * 16777619u; /* a capture again once the state settles */
+			h = (h ^ emu_read8(e, r->state)) * 16777619u; /* a capture again once the state settles */
 			k |= (h & 0x0FFFFFFF);
-		} else if (sc == YW_LIST) k |= emu_read8(e, 0x02026AB0);
+		} else if (sc == YW_LIST) k |= emu_read8(e, r->list);
 		return k;
 	}
 	return 0;
@@ -2820,14 +2827,14 @@ static bool yw_wait_view(Emu* s, int max) {
 	}
 	return false;
 }
-static const char* yw_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+static const char* yw_compose_for(const YwRelease* r, Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
 	int sc = yw_screen(s);
 	if (sc == YW_NONE) return "not a card screen";
 	if (sc != YW_VIEW) {
 		aw_run(s, 0, sc == YW_LIST ? 30 : 12); /* the cursor glides to its place (a list scrolls) */
-		if (sc == YW_FIELD && (yw_busy(s) || !yw_field_up(s) || !yw_named(s))) return "map button did nothing";
+		if (sc == YW_FIELD && (yw_busy(r, s) || !yw_field_up(s) || !yw_named(s))) return "map button did nothing";
 		/* A: the card's commands (Card View chosen), or the list's command
 		 * bar (Detail chosen); with them already up, A opens the page. The
 		 * field's first A can be lost to a banner (the turn's "Main Phase"),
@@ -2845,6 +2852,18 @@ static const char* yw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	if (emu_cancelled(s)) return "called off";
 	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
 	return NULL;
+}
+static uint32_t yw_virt_us(Emu* e, uint32_t addr) {
+	return yw_virt_for(&ywUS, e, addr);
+}
+static uint32_t yw_virt_jp(Emu* e, uint32_t addr) {
+	return yw_virt_for(&ywJP, e, addr);
+}
+static const char* yw_compose_us(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return yw_compose_for(&ywUS, s, state, out, w, h);
+}
+static const char* yw_compose_jp(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return yw_compose_for(&ywJP, s, state, out, w, h);
 }
 
 /* ---------------------------------------------------------- Zoids: Legacy
@@ -10651,8 +10670,8 @@ static const MapProfile profiles[] = {
 		 * the cursor, see yw_compose (YWC-1 to YWC-4) */
 		.codes = { "BY7E" },
 		.title = "Yu-Gi-Oh! 7 Trials to Glory",
-		.compose = yw_compose,
-		.virt = yw_virt,
+		.compose = yw_compose_us,
+		.virt = yw_virt_us,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
 		.live = { { YW_V_LIVE, 0xFF, 1, 4 } },
@@ -10663,12 +10682,6 @@ static const MapProfile profiles[] = {
 		 * the sprites alone, once English is chosen on the Language
 		 * Selection of a first start (YWC-5) */
 		.logo = { .steps = { { 0, 700 }, { K_A, 4 }, { 0, 1100 } }, .layers = 0x10, .maxY = 112 },
-	},
-	{
-		/* Duel Monsters International 2 (Japan): the logo only (YWC-7) */
-		.codes = { "BYIJ" },
-		.title = "Yu-Gi-Oh! Duel Monsters International 2",
-		.logo = { .wait = 1700, .layers = 0x10, .maxY = 112 },
 	},
 	{
 		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
@@ -11578,6 +11591,15 @@ static void eds_jpn(MapProfile* p) {
 	p->logo = (typeof(p->logo)) { .steps = { { 0, 1440 }, { K_START, 4 }, { 0, 120 } }, .layer = 1, .maxY = 120 };
 }
 
+/* Yu-Gi-Oh! Duel Monsters International 2 (Japan): the same engine and
+ * screens, its own addresses (ywJP, YWC-7) and title (no Language Selection) */
+static void ywc_jpn(MapProfile* p) {
+	p->title = "Yu-Gi-Oh! Duel Monsters International 2";
+	p->compose = yw_compose_jp;
+	p->virt = yw_virt_jp;
+	p->logo = (typeof(p->logo)) { .wait = 1700, .layers = 0x10, .maxY = 112 };
+}
+
 /* Harvest Moon: Friends of Mineral Town in Japan (Bokujou Monogatari:
  * Mineral Town no Nakama-tachi): its own title sign, wider and lower, with
  * no rider beside it */
@@ -11752,6 +11774,7 @@ static const Variant variants[] = {
 	{ "B8CP", "B8CE", 0, khc_eur },
 	{ "B8CJ", "B8CE", 0, khc_jpn },
 	{ "AY5J", "AY5E", 0, eds_jpn },
+	{ "BYIJ", "BY7E", 0, ywc_jpn },
 	/* (Zoids Saga II's addresses: ZlRegion) */
 	{ "AZ2J", "AZ2E", 0, NULL },
 	{ "A4NJ", "A4NE", 0, hm_jpn },
