@@ -768,7 +768,7 @@
    "id": "bof2-us-world",
    "rom": "AB2E",
    "state": "breath-of-fire-ii/us-world.ss",
-   "desc": "the overworld: the party overview (us)",
+   "desc": "the overworld: the world map (us)",
    "rules": [
     "BOF2-3"
    ],
@@ -778,34 +778,15 @@
    "checks": [
     {
      "rule": "BOF2-3",
-     "what": "the party overview is shown",
-     "type": "not_uniform",
-     "shot": "a",
-     "screen": "second",
-     "rect": [
-      300,
-      150,
-      720,
-      650
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BOF2-3",
-     "what": "black either side of the picture",
+     "what": "the world map START opens is shown",
      "type": "pixels",
      "shot": "a",
      "screen": "second",
      "probes": [
       [
-       20,
-       400,
-       "000000"
-      ],
-      [
-       1004,
-       400,
-       "000000"
+       50,
+       100,
+       "73A5C6"
       ]
      ]
     }
@@ -843,7 +824,7 @@
    "id": "bof2-eu-world",
    "rom": "AB2P",
    "state": "breath-of-fire-ii/eu-world.ss",
-   "desc": "the overworld: the party overview (eu)",
+   "desc": "the overworld: the world map (eu)",
    "rules": [
     "BOF2-3"
    ],
@@ -853,34 +834,15 @@
    "checks": [
     {
      "rule": "BOF2-3",
-     "what": "the party overview is shown",
-     "type": "not_uniform",
-     "shot": "a",
-     "screen": "second",
-     "rect": [
-      300,
-      150,
-      720,
-      650
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BOF2-3",
-     "what": "black either side of the picture",
+     "what": "the world map START opens is shown",
      "type": "pixels",
      "shot": "a",
      "screen": "second",
      "probes": [
       [
-       20,
-       400,
-       "000000"
-      ],
-      [
-       1004,
-       400,
-       "000000"
+       50,
+       100,
+       "73A5C6"
       ]
      ]
     }
@@ -918,7 +880,7 @@
    "id": "bof2-jp-world",
    "rom": "AB2J",
    "state": "breath-of-fire-ii/jp-world.ss",
-   "desc": "the overworld: the party overview (jp)",
+   "desc": "the overworld: the world map (jp)",
    "rules": [
     "BOF2-3"
    ],
@@ -928,34 +890,15 @@
    "checks": [
     {
      "rule": "BOF2-3",
-     "what": "the party overview is shown",
-     "type": "not_uniform",
-     "shot": "a",
-     "screen": "second",
-     "rect": [
-      300,
-      150,
-      720,
-      650
-     ],
-     "color": "000000"
-    },
-    {
-     "rule": "BOF2-3",
-     "what": "black either side of the picture",
+     "what": "the world map START opens is shown",
      "type": "pixels",
      "shot": "a",
      "screen": "second",
      "probes": [
       [
-       20,
-       400,
-       "000000"
-      ],
-      [
-       1004,
-       400,
-       "000000"
+       50,
+       100,
+       "73A5C6"
       ]
      ]
     }
@@ -986,6 +929,257 @@
       650
      ],
      "color": "000000"
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-town-edge",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-town-edge.ss",
+   "desc": "a player's bug report: the overworld one step south of a town: the world map",
+   "rules": [
+    "BOF2-3"
+   ],
+   "shots": {
+    "a": 300
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the world map is shown",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-enter-town",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-town-edge.ss",
+   "desc": "walking north into the town: the party overview once inside",
+   "rules": [
+    "BOF2-3"
+   ],
+   "input": [
+    [
+     0,
+     "UP"
+    ],
+    [
+     120,
+     "-"
+    ]
+   ],
+   "shots": {
+    "b": 600
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview inside the town",
+     "type": "pixels",
+     "shot": "b",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "000000"
+      ],
+      [
+       512,
+       400,
+       "56A3D5"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-exit-town",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-town.ss",
+   "desc": "walking out of the town: the party overview, then the world map once on the overworld",
+   "rules": [
+    "BOF2-3"
+   ],
+   "input": [
+    [
+     0,
+     "DOWN"
+    ],
+    [
+     160,
+     "-"
+    ]
+   ],
+   "shots": {
+    "a": 120,
+    "b": 700
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the party overview in the town",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "000000"
+      ],
+      [
+       512,
+       400,
+       "56A3D5"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "the world map back on the overworld",
+     "type": "pixels",
+     "shot": "b",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-world-battle-keeps",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-world.ss",
+   "desc": "a battle starts on the overworld: the overview taken for it stays",
+   "rules": [
+    "BOF2-4"
+   ],
+   "input": [
+    [
+     300,
+     "LOAD:breath-of-fire-ii/us-battle.ss"
+    ]
+   ],
+   "shots": {
+    "a": 270,
+    "b": 600
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the map before the battle",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-4",
+     "what": "the party overview in the battle",
+     "type": "pixels",
+     "shot": "b",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "000000"
+      ],
+      [
+       512,
+       400,
+       "56A3D5"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bof2-us-world-walk",
+   "rom": "AB2E",
+   "state": "breath-of-fire-ii/us-world.ss",
+   "desc": "walking about on the overworld: the world map stays, not the overview, whatever step the party is in when it is taken again",
+   "rules": [
+    "BOF2-3"
+   ],
+   "input": [
+    [
+     0,
+     "RIGHT"
+    ],
+    [
+     200,
+     "-"
+    ]
+   ],
+   "shots": {
+    "a": 90,
+    "b": 150,
+    "c": 330
+   },
+   "checks": [
+    {
+     "rule": "BOF2-3",
+     "what": "the world map while walking",
+     "type": "pixels",
+     "shot": "a",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "the world map while walking",
+     "type": "pixels",
+     "shot": "b",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
+    },
+    {
+     "rule": "BOF2-3",
+     "what": "the world map once stopped",
+     "type": "pixels",
+     "shot": "c",
+     "screen": "second",
+     "probes": [
+      [
+       50,
+       100,
+       "73A5C6"
+      ]
+     ]
     }
    ]
   }

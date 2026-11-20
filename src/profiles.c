@@ -8234,9 +8234,12 @@ static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, 
 #define BOF2_BG0_MENU 0x0008
 #define BOF2_BG0_BATTLE 0x020C
 /* 1 on the title (BOF2-2) */
+/* BG3CNT: the world map START opens (BOF2-3); walking about has 0x4207 */
+#define BOF2_BG3_MAP 0x4204
 #define BOF2_V_LOGO 0xF0000090
 /* which screen it is, for a quick refresh when it changes: 1 walking about, 2 a menu,
- * 3 a battle, 4 the title, 0 anything else (fades, the intro) */
+ * 3 a battle, 4 the title, 5 the overworld, 6 the world map
+ * open in the game, 0 anything else (fades, the intro) */
 #define BOF2_V_SCREEN 0xF0000091
 /* the party overview, faded in: the frame of the zenny's window at the top (x, y,
  * 0xRRGGBB), which only the first page of the menu has */
@@ -8269,7 +8272,8 @@ static uint32_t bof2_virt(Emu* e, uint32_t addr) {
 		return bg0 == BOF2_BG0_TITLE;
 	}
 	if (addr != BOF2_V_SCREEN) return 0;
-	return bg0 == BOF2_BG0_FIELD || bg0 == BOF2_BG0_WORLD ? 1 : bg0 == BOF2_BG0_MENU ? 2 : bg0 == BOF2_BG0_BATTLE ? 3 : bg0 == BOF2_BG0_TITLE ? 4 : 0;
+	if (bg0 == BOF2_BG0_FIELD) return emu_io16(e, 0x0E) == BOF2_BG3_MAP ? 6 : 1;
+	return bg0 == BOF2_BG0_WORLD ? 5 : bg0 == BOF2_BG0_MENU ? 2 : bg0 == BOF2_BG0_BATTLE ? 3 : bg0 == BOF2_BG0_TITLE ? 4 : 0;
 }
 
 static bool bof2_party_up(Emu* s) {
@@ -8292,6 +8296,53 @@ static bool bof2_settled(Emu* s, int n) {
 		memcpy(last, s->fb, sizeof(last));
 	}
 	return still >= 3;
+}
+
+/* the world map START opens on the overworld: up when BG3 has the map's setup; it fades in
+ * (the top left corner, sea, stops changing) and then only its marker pulses and the towns
+ * twinkle */
+static bool bof2_map_up(Emu* s) {
+	return emu_io16(s, 0x0E) == BOF2_BG3_MAP;
+}
+
+/* the marker (a dark disc) grows and shrinks over about 24 frames; its pixels are the
+ * darker ones the map otherwise has none of */
+static int bof2_dark(const uint32_t* fb) {
+	int n = 0;
+	for (int i = 0; i < GBA_W * GBA_H; ++i) {
+		uint32_t c = fb[i];
+		uint32_t a = c & 0xFF, b = (c >> 8) & 0xFF, d = (c >> 16) & 0xFF;
+		uint32_t mx = a > b ? a : b;
+		if (d > mx) mx = d;
+		n += mx < 0x80 && mx > 0x20;
+	}
+	return n;
+}
+
+/* the map once faded in, with the marker at its largest over a cycle (BOF2-3): into out
+ * (w by h, the game's 240 by 160); false if it never faded in */
+static bool bof2_map_take(Emu* s, uint32_t* out, int w, int h) {
+	static uint32_t best[GBA_W * GBA_H];
+	uint32_t corner = 0;
+	int still = 0;
+	for (int f = 0; f < 300 && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s)) return false;
+		still = bof2_map_up(s) && s->fb[0] == corner && corner != 0xFF000000 ? still + 1 : 0;
+		corner = s->fb[0];
+	}
+	if (still < 3) return false;
+	int bestDark = -1;
+	for (int f = 0; f < 40; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s) || !bof2_map_up(s)) return false;
+		int d = bof2_dark(s->fb);
+		if (d > bestDark) bestDark = d, memcpy(best, s->fb, sizeof(best));
+	}
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? best[y * GBA_W + x] : 0xFF000000;
+	}
+	return true;
 }
 
 /* the party overview, from SELECT's menu (B first, as often as it takes to leave one of its
@@ -8338,9 +8389,49 @@ static const char* bof2_compose(Emu* s, const void* state, uint32_t* out, int w,
 		memcpy(out, bof2Kept.px, (size_t)w * h * sizeof(uint32_t));
 		return NULL;
 	}
-	/* walking about, or a menu (BOF2-3, BOF2-6); the title, the intro and the like
-	 * (BOF2-2) press nothing */
+	/* the title, the intro and the like (BOF2-2) press nothing */
 	if (bg0 != BOF2_BG0_FIELD && bg0 != BOF2_BG0_WORLD && bg0 != BOF2_BG0_MENU) return "not walking about";
+	/* the world map open in the game: back to the field with B (BOF2-6), which fades out
+	 * and in again, then the overview as for a menu */
+	if (bg0 == BOF2_BG0_FIELD && bof2_map_up(s)) {
+		aw_run(s, K_B, 4);
+		for (int f = 0; f < 240 && bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+		if (bof2_map_up(s)) return "the map didn't close";
+		for (int f = 0; f < 240 && emu_io16(s, 0x08) != BOF2_BG0_FIELD && emu_io16(s, 0x08) != BOF2_BG0_WORLD; f += 2) aw_run(s, 0, 2);
+		aw_run(s, 0, 10);
+		bg0 = emu_io16(s, 0x08);
+		return bof2_party(s, false, out, w, h);
+	}
+	/* the overworld: the world map, START (BOF2-3), where the game opens it; where it opens
+	 * nothing, or in the camp menu, the overview */
+	if (bg0 == BOF2_BG0_WORLD) {
+		/* the game ignores START between two steps of the party's walk: the copy gets no
+		 * keys, so it finishes the step first */
+		aw_run(s, 0, 24);
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 150 && !bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+		if (bof2_map_up(s)) {
+			if (!bof2_map_take(s, out, w, h)) return emu_cancelled(s) ? "called off" : "the map didn't settle";
+			/* and the overview, for a battle that starts while the map is up (BOF2-4): B,
+			 * then SELECT; the map stays as it is if it fails */
+			static uint32_t* scratch;
+			static int scratchN;
+			if (scratchN < w * h) {
+				free(scratch);
+				scratch = malloc((size_t)w * h * sizeof(uint32_t));
+				scratchN = scratch ? w * h : 0;
+			}
+			aw_run(s, K_B, 4);
+			for (int f = 0; f < 240 && bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+			for (int f = 0; f < 240 && emu_io16(s, 0x08) != BOF2_BG0_WORLD; f += 2) aw_run(s, 0, 2);
+			if (scratch && !emu_cancelled(s) && emu_io16(s, 0x08) == BOF2_BG0_WORLD) {
+				aw_run(s, 0, 10);
+				bof2_party(s, false, scratch, w, h);
+			}
+			return NULL;
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
 	return bof2_party(s, bg0 == BOF2_BG0_MENU, out, w, h);
 }
 
