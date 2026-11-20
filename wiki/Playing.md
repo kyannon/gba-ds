@@ -2,7 +2,7 @@
 
 GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS Plus), with the selected game's logo and resume picture on the other screen.
 
-- **Two views:** a list of names (the default) or a two-column grid of the games' logos. Switch with **X** or the square button left of the **Supported** / **All** button; GBA DS remembers which you chose.
+- **Three views:** a list of names (the default), a two-column grid of the games' logos, or a three-column grid (smaller logos, more games on screen). Each press of **X** moves on to the next view, and so does the square button left of the **Supported** / **All** button, whose picture shows what the next press gives; GBA DS remembers which you chose.
 - **Names** come from the file names, without tags like `(USA)` or `(En,Fr,De)`. When you have more than one regional copy of a game, a flag tells them apart. `name_tags = 1` in `gba-ds.cfg` keeps the tags.
 - **Which games:** the button between the view button and **Settings** says **Supported** (only games with second-screen support, see [[Supported games]]) or **All** (every GBA ROM; the others play normally on one screen). Touch it to switch; GBA DS remembers it (`show_all`).
 - **The other screen** shows the selected game's logo, and the picture where it will resume once you've played it.
@@ -15,7 +15,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | L1 / R1 | Page up / down |
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
-| X, or tap the button left of Settings | Switch between list and grid |
+| X, or tap the button left of Settings | Next view: list, two columns, three columns |
 | SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder and Updates (Linux) or Folders, RetroAchievements sign-in and Updates (Android)) |
 | B or HOME | Back to EmulationStation / the launcher |
 
