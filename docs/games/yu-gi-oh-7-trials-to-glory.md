@@ -20,13 +20,15 @@ Like Yu-Gi-Oh! The Eternal Duelist Soul, the game is played through its cards, a
 
 **YWC-2. Deck Edit and the banlist.** In Deck Edit's Deck mode and the banlist's list of cards, the second screen shows the Detail page (the same Card View) of the card under the cursor (A for the command bar, whose first command is Detail, then A).
 
-**YWC-3. Last card stays.** Where the cursor isn't on a card that can be looked at (an empty zone, a pile, the opponent's face-down cards, the Deck in the Draw Phase), or the player isn't moving it (the card's commands open on a screen the game didn't, "End your turn?", an attack or summon playing out), the last Card View stays; before the first, the logo. Where the hidden copy's A does something other than open Card View, nothing is taken.
+**YWC-3. Last card stays.** Where the cursor isn't on a card that can be looked at (an empty zone, a pile, the opponent's face-down cards, the Deck in the Draw Phase), or the player isn't moving it ("End your turn?", an attack or summon playing out, the card still coming to the hand in the Draw Phase), the last Card View stays; before the first, the logo. Where the hidden copy's A does something other than open Card View, nothing is taken.
 
 **YWC-4. Logo elsewhere.** Everywhere else (the title, the main menu, the town and its conversations, the Deck select list, rock-paper-scissors, the Status and Options screens), the second screen shows the logo, idle, and the last Card View is forgotten.
 
 **YWC-5. Logo.** The logo is the title screen's: YU-GI-OH! 7 TRIALS TO GLORY WORLD CHAMPIONSHIP TOURNAMENT 2005, the flame and crystal on the hex-grid background, above Continue / New Game.
 
 **YWC-6. Game screen untouched.** Nothing leaves the game screen.
+
+**YWC-8. Logo through the opponent's turn.** From the moment the opponent's turn begins (after "End your turn?" is answered YES, as the game's duel state changes) until the player's next turn, the second screen shows the logo, idle, and the last Card View is forgotten: the opponent's cards the info bar names, their attacks and summons included. In the player's next turn the logo stays until the cursor is on a card (YWC-1); the turn starts on the Deck.
 
 **YWC-7. Japan: the logo.** Yu-Gi-Oh! Duel Monsters International 2 (`BYIJ`) is untried: its second screen shows the logo only (its title's lettering), until its screens have been checked.
 
@@ -37,21 +39,22 @@ Like Yu-Gi-Oh! The Eternal Duelist Soul, the game is played through its cards, a
 - Weekly banlists: Mokuba refuses a duel with a banned card or fewer than 40 cards in the active deck; resting 7 nights moves to the next week's list.
 - A on a hand card shows Set and a highlighted Card View (magnifier tile 548-like sprites at the bottom right); a street duel starts by facing the duelist and pressing R.
 - The info bar's name is in white; a pile's count is cyan ("Deck:35"); an empty zone shows a plain bar.
+- `0x0201A460` (8 bits), the duel's state: 2 and 3 in the player's Draw Phase (before and after the card is drawn, the cursor on the Deck), 5 with the cursor free in the player's Main Phase (also with a card's commands open and "End your turn?" up), 6 as the turn is ended, and **8 through the whole of the opponent's turn** (its Draw Phase, summons, attacks, the life points counting down) until the player's Draw Phase. Other values (the player's Battle Phase, an effect playing out) weren't seen; only 8 is taken as the opponent's.
 - Deck mode's list cursor row: `0x02026AB0`.
 
 ## Known issues
 
-- Opponent's turn, a duel's end, the pile lists (Graveyard...), the cards won and the Japan release's own screens were not tried: the field stays as the last card; the logo is shown where no known screen is up.
-- Which turn it is isn't read from memory: the card shown stays through the opponent's turn rather than giving way to the logo.
+- A duel's end, the pile lists (Graveyard...), the cards won and the Japan release's own screens were not tried: the logo is shown where no known screen is up.
+- The opponent's turn is told by the duel's state byte reading 8 (YWC-8). If the game also uses 8 in some phase of the player's own turn (the Battle Phase wasn't tried), the logo would show there until the byte changes.
 - Deck select's A, A opens Deck mode on the hidden copy, not a card: nothing is taken (YWC-3).
 - Japan (`BYIJ`) shows the logo only (YWC-7).
 
 ## Not covered yet
 
-- The opponent's turn, a duel's end, the card lists in a duel, the cards won, Card Trading and Password.
+- A duel's end, the card lists in a duel, the cards won, Card Trading and Password.
 
 ## For the merge
 
-Changelog line (under the open version, New games): **Yu-Gi-Oh! 7 Trials to Glory: World Championship Tournament 2005** (USA): the second screen shows the Card View of the card under your cursor in a duel, and the Detail of the card in Deck Edit and the banlist; the logo elsewhere. Japan's Duel Monsters International 2 shows the logo only. Known: the opponent's turn and a duel's end aren't told apart yet.
+Changelog line (under the open version, New games): **Yu-Gi-Oh! 7 Trials to Glory: World Championship Tournament 2005** (USA): the second screen shows the Card View of the card under your cursor in a duel, and the Detail of the card in Deck Edit and the banlist; the logo elsewhere. Japan's Duel Monsters International 2 shows the logo only. Known: a duel's end isn't told apart yet.
 
-Wiki section for `Supported-games.md`: the same, with the rules YWC-1 to YWC-7 in the player's terms.
+Wiki section for `Supported-games.md`: the same, with the rules YWC-1 to YWC-8 in the player's terms.

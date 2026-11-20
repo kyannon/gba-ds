@@ -370,6 +370,93 @@
     "start": 100
    },
    "checks": []
+  },
+  {
+   "id": "ywc-us-opp-turn",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-opp-turn.ss",
+   "desc": "the opponent's turn, its Goblin Attack Force named in the info bar: the logo, not its card",
+   "rules": [
+    "YWC-8"
+   ],
+   "shots": {
+    "start": 100
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-end-turn",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-hand.ss",
+   "desc": "a card's Card View shown, then End your turn? YES: the logo through the opponent's turn, the card forgotten",
+   "rules": [
+    "YWC-8"
+   ],
+   "input": [
+    [
+     150,
+     "B"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 100,
+    "after": 600
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-next-turn",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-end-menu.ss",
+   "desc": "End your turn? YES, the opponent's turn passes: the logo back in the player's Draw Phase (cursor on the Deck), then the drawn card's Card View",
+   "rules": [
+    "YWC-8",
+    "YWC-1"
+   ],
+   "input": [
+    [
+     20,
+     "A"
+    ],
+    [
+     24,
+     "-"
+    ],
+    [
+     1500,
+     "A"
+    ],
+    [
+     1504,
+     "-"
+    ],
+    [
+     1560,
+     "A"
+    ],
+    [
+     1564,
+     "-"
+    ]
+   ],
+   "shots": {
+    "opp": 400,
+    "draw": 1450,
+    "drawn": 1750
+   },
+   "checks": []
   }
  ]
 }

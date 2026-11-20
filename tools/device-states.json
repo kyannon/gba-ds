@@ -461,7 +461,7 @@
     ],
     "4": [
      "us-end-menu.ss",
-     "'End your turn?' up: the second screen doesn't change (logo here, YWC-3). Don't answer YES unless you want to see the opponent's turn: note whether the second screen goes to the logo or stays (known issue)."
+     "'End your turn?' up: the second screen doesn't change (logo here, YWC-3). Answer YES: the logo through the opponent's whole turn, whatever card it shows or attacks with (YWC-8); when your turn comes round the logo stays through the Draw Phase, and after you draw the card's Card View returns (YWC-1)."
     ],
     "5": [
      "us-draw-phase.ss",
@@ -480,8 +480,8 @@
      "The title screen: the logo, the same picture as the title's lettering (YWC-4, YWC-5)."
     ],
     "9": [
-     "us-town.ss",
-     "Out in the town: the logo (YWC-4)."
+     "us-opp-turn.ss",
+     "In the opponent's turn (its Goblin Attack Force is named in the info bar): the logo, not that card (YWC-8). Let it play on, then your turn: the logo until you draw and the cursor is on a card."
     ]
    },
    "Yu-Gi-Oh! Duel Monsters International 2 (Japan) (En,Ja)": {

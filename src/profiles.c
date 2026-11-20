@@ -2772,22 +2772,33 @@ static bool yw_named(Emu* e) {
 		for (int x = 2; x < 120; ++x) white += (e->fb[y * GBA_W + x] & 0xFFFFFF) == 0xFFFFFF;
 	return white >= 12;
 }
+/* the duel's state byte: 8 through the opponent's whole turn (YWC-8) */
+static bool yw_opp_turn(Emu* e) {
+	return emu_read8(e, 0x0201A460) == 8;
+}
+/* not the player's free cursor: the Draw Phase (2, 3: the card still comes
+ * to the hand), the turn being ended (6), the opponent's turn (8) */
+static bool yw_busy(Emu* e) {
+	int v = emu_read8(e, 0x0201A460);
+	return v == 2 || v == 3 || v == 6 || v == 8;
+}
 static bool yw_field_up(Emu* e) {
 	return (emu_read16(e, 0x03000330) & 0xFF00) == 0x3500;
 }
 static uint32_t yw_virt(Emu* e, uint32_t addr) {
 	int sc = yw_screen(e);
 	if (addr == YW_V_LIVE) {
-		if (sc == YW_FIELD) return yw_field_up(e) && yw_named(e);
+		if (sc == YW_FIELD) return !yw_busy(e) && yw_field_up(e) && yw_named(e);
 		return sc != YW_NONE;
 	}
-	if (addr == YW_V_IDLE) return sc == YW_NONE;
+	if (addr == YW_V_IDLE) return sc == YW_NONE || (sc == YW_FIELD && yw_opp_turn(e));
 	if (addr == YW_V_ROOM) {
 		uint32_t k = (uint32_t) sc << 28;
 		if (sc == YW_FIELD) {
 			uint32_t h = 2166136261u;
 			for (int y = 151; y < 159; ++y)
 				for (int x = 2; x < 120; ++x) h = (h ^ (e->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+			h = (h ^ emu_read8(e, 0x0201A460)) * 16777619u; /* a capture again once the state settles */
 			k |= (h & 0x0FFFFFFF);
 		} else if (sc == YW_LIST) k |= emu_read8(e, 0x02026AB0);
 		return k;
@@ -2816,16 +2827,18 @@ static const char* yw_compose(Emu* s, const void* state, uint32_t* out, int w, i
 	if (sc == YW_NONE) return "not a card screen";
 	if (sc != YW_VIEW) {
 		aw_run(s, 0, sc == YW_LIST ? 30 : 12); /* the cursor glides to its place (a list scrolls) */
-		if (sc == YW_FIELD && (!yw_field_up(s) || !yw_named(s))) return "map button did nothing";
+		if (sc == YW_FIELD && (yw_busy(s) || !yw_field_up(s) || !yw_named(s))) return "map button did nothing";
 		/* A: the card's commands (Card View chosen), or the list's command
-		 * bar (Detail chosen); with them already up, A opens the page */
-		aw_tap(s, K_A, 1);
-		aw_run(s, 0, sc == YW_LIST ? 30 : 12);
-		if (!yw_view(s)) {
-			/* still the same screen: the command bar is up, A takes Card View /
-			 * Detail; another: the page is fading in (or A did something else,
-			 * which yw_wait_view gives up on) */
-			if (yw_screen(s) == sc) aw_tap(s, K_A, 1);
+		 * bar (Detail chosen); with them already up, A opens the page. The
+		 * field's first A can be lost to a banner (the turn's "Main Phase"),
+		 * so up to four; a list's are exactly two (a third would go into
+		 * Deck mode's first card from Deck select). A press that leaves the
+		 * screen starts the page fading in, or is something else, which
+		 * yw_wait_view gives up on. */
+		for (int n = 0; n < (sc == YW_FIELD ? 4 : 2); ++n) {
+			aw_tap(s, K_A, 1);
+			aw_run(s, 0, sc == YW_LIST ? 30 : 12);
+			if (yw_screen(s) != sc) break;
 		}
 	}
 	if (!yw_view(s) && !yw_wait_view(s, 60)) return "Card View didn't open";
