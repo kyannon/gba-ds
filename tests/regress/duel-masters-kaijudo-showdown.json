@@ -177,6 +177,279 @@
      "match": "map capture: ok"
     }
    ]
+  },
+  {
+   "id": "dmk-eu-title-languages",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-title-languages.ss",
+   "desc": "Europe's title with the language flags: the logo",
+   "rules": [
+    "DMK-5",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 90
+   }
+  },
+  {
+   "id": "dmk-eu-title-menu",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-title-menu.ss",
+   "desc": "Europe's title menu: the logo",
+   "rules": [
+    "DMK-4",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 90
+   }
+  },
+  {
+   "id": "dmk-eu-hand-rothus",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-hand-rothus.ss",
+   "desc": "Europe, English: Rothus, the Traveler in the hand",
+   "rules": [
+    "DMK-1",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-1",
+     "shot": "start",
+     "what": "Rothus's Card Details"
+    }
+   ]
+  },
+  {
+   "id": "dmk-eu-hand-stonesaur",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-hand-stonesaur.ss",
+   "desc": "Europe, English: Stonesaur in the hand",
+   "rules": [
+    "DMK-1",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-1",
+     "shot": "start",
+     "what": "Stonesaur's Card Details"
+    }
+   ]
+  },
+  {
+   "id": "dmk-eu-decklist-beetle",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-decklist-beetle.ss",
+   "desc": "Europe: Deck Management's list on Deathblade Beetle",
+   "rules": [
+    "DMK-2",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-2",
+     "shot": "start",
+     "what": "Deathblade Beetle's Card Details"
+    }
+   ]
+  },
+  {
+   "id": "dmk-eu-decklist-great-horn",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-decklist-great-horn.ss",
+   "desc": "Europe: the list on Roaring Great-Horn",
+   "rules": [
+    "DMK-2",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-2",
+     "shot": "start",
+     "what": "Roaring Great-Horn's Card Details"
+    }
+   ]
+  },
+  {
+   "id": "dmk-eu-game-card-details",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-game-card-details.ss",
+   "desc": "Europe: the game's own Card Details open",
+   "rules": [
+    "DMK-3",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 120
+   }
+  },
+  {
+   "id": "dmk-eu-es-hand-rothus",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-es-hand-rothus.ss",
+   "desc": "Europe, Spanish text: Rothus in the hand",
+   "rules": [
+    "DMK-1",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-1",
+     "shot": "start",
+     "what": "Rothus's Card Details in Spanish"
+    }
+   ]
+  },
+  {
+   "id": "dmk-eu-es-hand-piedrasaurio",
+   "rom": "BD6P",
+   "state": "duel-masters-kaijudo-showdown/eu-es-hand-piedrasaurio.ss",
+   "desc": "Europe, Spanish text: Piedrasaurio in the hand",
+   "rules": [
+    "DMK-1",
+    "DMK-7"
+   ],
+   "shots": {
+    "start": 200
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       952,
+       132,
+       "000000"
+      ],
+      [
+       64,
+       424,
+       "000000"
+      ],
+      [
+       400,
+       608,
+       "000000"
+      ]
+     ],
+     "rule": "DMK-1",
+     "shot": "start",
+     "what": "Piedrasaurio's Card Details in Spanish"
+    }
+   ]
   }
  ]
 }
