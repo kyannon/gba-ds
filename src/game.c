@@ -2510,7 +2510,10 @@ static void draw_battery(void) {
  * Settings (the pause menu), Bug Report (bug_report) and Close GBA DS
  * (tapped twice). In games with another button layout, Controls above.
  * Swiping down, the pause menu opening or 5 seconds untouched put it
- * away. Greys only, to sit over any game's colours. */
+ * away. It is drawn inside the second screen's picture (the GBA's 240x160
+ * on the touchscreen, every size below in GBA pixels, bar_u screen pixels
+ * each), in the menus' colour (Settings > Display's accent) with the menus'
+ * raised keys. */
 static bool barOpen;
 static float barShown;          /* 0 hidden .. 1 all the way up (sliding) */
 static Uint32 barSince;         /* last touched */
@@ -2524,9 +2527,15 @@ static int barGX, barGY;        /* where the finger went down */
 static bool barDownOpen;        /* the bar was up when it went down */
 enum { BB_SAVE, BB_LOAD, BB_SETTINGS, BB_BUG, BB_EXIT, BB_COUNT };
 
-static const SDL_Color G_BG = { 22, 22, 22, 238 }, G_EDGE = { 128, 128, 128, 255 }, G_BTN_C = { 60, 60, 60, 255 },
-                       G_BTN_DOWN = { 120, 120, 120, 255 }, G_TEXT = { 236, 236, 236, 255 }, G_DIS = { 110, 110, 110, 255 },
-                       G_LIT = { 255, 255, 255, 255 };
+/* the bar's panel and its edge: the menus' colour (the header's, a little see-through) */
+static SDL_Color bar_panel(void) {
+	SDL_Color c = ui_accent_color(AC_HEADER);
+	c.a = 244;
+	return c;
+}
+#define G_BG bar_panel()
+#define G_EDGE ui_accent_color(AC_EDGE)
+static const SDL_Color G_TEXT = { 236, 236, 244, 255 }, G_DIS = { 120, 120, 138, 255 }, G_LIT = { 255, 255, 255, 255 };
 
 static const char* const icon_save[] = {
 	"XXXXXXXXXXXXX...",
@@ -2625,32 +2634,50 @@ static const char* const icon_exit[] = {
 /* Top to bottom: in games with another button layout (profile
  * controls), the Controls picker, centred; the status row (time, battery,
  * FPS); the buttons, across the whole width. */
+static int game_screen(void);
+
+/* Where the second screen's picture is on screen s (screen-local, the part that
+ * is on the screen): the bar lives inside it. With no map the touchscreen may
+ * show the game: then the game's picture. */
+static SDL_Rect bar_pic(int s) {
+	SDL_Rect sr = screens[s].rect;
+	bool gameHere = nScreens == 1 || s == game_screen() || !((mc || logoOnly) && cfg->map);
+	SDL_Rect r = ui_image_rect(s, GBA_W, GBA_H, gameHere ? cfg->scale : cfg->mapScale);
+	int x0 = SDL_max(r.x, 0), y0 = SDL_max(r.y, 0), x1 = SDL_min(r.x + r.w, sr.w), y1 = SDL_min(r.y + r.h, sr.h);
+	return (SDL_Rect) { x0, y0, x1 - x0, y1 - y0 };
+}
+/* a GBA pixel, in screen pixels (4 on the RG DS Plus, 2 on the RG DS) */
+static float bar_u(int s) {
+	SDL_Rect r = bar_pic(s);
+	return SDL_max(1.0f, r.h / (float) GBA_H);
+}
+
 static int bar_status_h(int s) {
-	return ui_px(s) * 14;
+	return bar_u(s) * 14;
 }
 static int bar_buttons_h(int s) {
-	return ui_px(s) * 22;
+	return bar_u(s) * 22;
 }
 static int bar_pick_h(int s) {
-	return ctlProf ? ui_px(s) * 24 : 0;
+	return ctlProf ? bar_u(s) * 24 : 0;
 }
 /* under the buttons: a line for messages (State saved...) */
 static int bar_msg_h(int s) {
-	return ui_px(s) * 13;
+	return bar_u(s) * 13;
 }
 
 static SDL_Rect bar_rect(int s) {
-	SDL_Rect r = screens[s].rect;
-	float px = ui_px(s);
+	SDL_Rect r = bar_pic(s);
+	float px = bar_u(s);
 	int m = px * 4, h = bar_pick_h(s) + bar_status_h(s) + bar_buttons_h(s) + bar_msg_h(s);
 	int slide = (int) ((1.0f - barShown) * (h + m));
-	return (SDL_Rect) { m, r.h - m - h + slide, r.w - m * 2, h };
+	return (SDL_Rect) { r.x + m, r.y + r.h - m - h + slide, r.w - m * 2, h };
 }
 
 /* the buttons: the bottom row, sharing its width */
 static SDL_Rect bar_button(int s, int i) {
 	SDL_Rect b = bar_rect(s);
-	float px = ui_px(s);
+	float px = bar_u(s);
 	int in = px * 3, gap = px * 3, h = bar_buttons_h(s) - in;
 	int x0 = b.x + in + (b.w - in * 2 + gap) * i / BB_COUNT, x1 = b.x + in + (b.w - in * 2 + gap) * (i + 1) / BB_COUNT - gap;
 	return (SDL_Rect) { x0, b.y + bar_pick_h(s) + bar_status_h(s), x1 - x0, h };
@@ -2659,7 +2686,7 @@ static SDL_Rect bar_button(int s, int i) {
 /* the pin, a square in the top right corner */
 static SDL_Rect bar_pin(int s) {
 	SDL_Rect b = bar_rect(s);
-	float px = ui_px(s);
+	float px = bar_u(s);
 	int in = px * 2, w = px * 10;
 	return (SDL_Rect) { b.x + b.w - in - w, b.y + in, w, w };
 }
@@ -2836,8 +2863,11 @@ static void draw_bar(void) {
 	if (barShown <= 0) return;
 	if (barExitArmed && SDL_GetTicks() - barExitArmed > 3000) barExitArmed = 0;
 	int s = ui_touch_screen();
-	float px = ui_px(s);
-	SDL_Rect b = bar_rect(s);
+	float px = bar_u(s);
+	SDL_Rect b = bar_rect(s), pic = bar_pic(s);
+	/* inside the picture: sliding up from its bottom edge, not from the screen's */
+	SDL_Rect clip = { screens[s].rect.x + pic.x, screens[s].rect.y + pic.y, pic.w, pic.h };
+	ui_clip(s, &clip);
 	ui_fill_round(s, (SDL_Rect) { b.x - 1, b.y - 1, b.w + 2, b.h + 2 }, G_EDGE, px * 4 + 1);
 	ui_fill_round(s, b, G_BG, px * 4);
 	int cap = px * 6;
@@ -2864,12 +2894,14 @@ static void draw_bar(void) {
 		bool armed = i == BB_EXIT && barExitArmed;
 		bool en = i != BB_LOAD || file_exists(gp.quick);
 		bool done = lit && barLit == i; /* (just saved, loaded or reported) */
-		ui_fill_round(s, r, down || armed || done ? G_BTN_DOWN : G_BTN_C, px * 3);
-		draw_icon(s, art[i], r.x + r.w / 2, r.y + r.h / 2, r.h * 7 / 10, !en ? G_DIS : done || armed ? G_LIT : G_TEXT);
+		/* the menus' keys: raised, in the menu colour while pressed or armed, lighter for a moment once done */
+		ui_key(s, r, px * 3, down || armed ? KEY_SEL : done ? KEY_LIT : KEY_PLAIN);
+		SDL_Color ink = !en ? G_DIS : done ? (SDL_Color) { 20, 16, 36, 255 } : down || armed ? G_LIT : ui_key_ink();
+		draw_icon(s, art[i], r.x + r.w / 2, r.y + r.h / 2, r.h * 7 / 10, ink);
 	}
-	/* the pin: grey, or white while pinned */
+	/* the pin: a key too, in the menu colour while pinned */
 	SDL_Rect pin = bar_pin(s);
-	ui_fill_round(s, pin, cfg->barPinned ? G_BTN_DOWN : G_BTN_C, px * 2);
+	ui_key(s, pin, px * 2, cfg->barPinned ? KEY_SEL : KEY_PLAIN);
 	draw_icon(s, icon_pin, pin.x + pin.w / 2, pin.y + pin.h / 2, pin.h * 7 / 10, cfg->barPinned ? G_LIT : G_DIS);
 	/* messages (the OSD's, while the bar covers where it's drawn) */
 	const char* msg = ui_osd_text();
@@ -2880,6 +2912,7 @@ static void draw_bar(void) {
 		if (w > b.w - px * 8) mc = mc * (b.w - px * 8) / SDL_max(1, w);
 		ui_font_text(s, TF_BOLD, b.x + b.w / 2, my, mc, msg, G_TEXT, 0);
 	}
+	ui_clip(s, NULL);
 }
 
 static void set_page(int page) {
@@ -5466,7 +5499,7 @@ typedef struct {
 static CtlGeom ctl_geom(int s) {
 	CtlGeom g;
 	SDL_Rect b = bar_rect(s);
-	float u = ui_px(s);
+	float u = bar_u(s);
 	int t = bar_pick_h(s) - u * 4, gap = u * 3;
 	g.cap = u * 6;
 	int lw = ui_label_width(s, g.cap, "Controls");
@@ -5494,24 +5527,19 @@ static void ctl_button(int s, int id, const SDL_Rect* t, int cx, int cy, int w) 
 
 static void ctl_draw(int s) {
 	CtlGeom g = ctl_geom(s);
-	float u = ui_px(s);
 	int active = ctl_four() ? CTL_FOUR : CTL_GBA;
 	ui_label(s, g.labelX, g.labelY, g.cap, "Controls", G_TEXT);
 	for (int i = 0; i < ctl_tiles(); ++i) {
 		SDL_Rect t = g.tile[i];
 		int rad = t.w / 6;
 		bool sel = ctlMode == i;
-		/* chosen: filled; in Auto, the layout in use right now: outlined */
-		if (sel || (ctlMode == CTL_AUTO && i == active)) {
-			ui_fill_round(s, t, G_LIT, rad);
-			int e = sel ? u : SDL_max(1, u / 2);
-			t = (SDL_Rect) { t.x + e, t.y + e, t.w - e * 2, t.h - e * 2 };
-		}
-		ui_fill_round(s, t, sel ? G_BTN_DOWN : G_BTN_C, rad);
-		t = g.tile[i];
+		/* the menus' keys: chosen: in the menu colour; in Auto, the layout in use right now: lighter */
+		bool inUse = !sel && ctlMode == CTL_AUTO && i == active;
+		ui_key(s, t, rad, sel ? KEY_SEL : inUse ? KEY_LIT : KEY_PLAIN);
+		SDL_Color tink = inUse ? (SDL_Color) { 20, 16, 36, 255 } : sel ? G_TEXT : ui_key_ink();
 		int d = t.w * 30 / 100;
 		if (ctl_snes()) {
-			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, i == CTL_GBA ? "GBA" : "SNES", G_TEXT);
+			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, i == CTL_GBA ? "GBA" : "SNES", tink);
 		} else if (i == CTL_GBA) {
 			ctl_button(s, BRAND_PILL_L, &t, 32, 27, t.w * 34 / 100);
 			ctl_button(s, BRAND_PILL_R, &t, 68, 27, t.w * 34 / 100);
@@ -5525,7 +5553,7 @@ static void ctl_draw(int s) {
 			ctl_button(s, BRAND_BTN_R, &t, 73, 50, d);
 			ctl_button(s, BRAND_BTN_B, &t, 50, 73, d);
 		} else {
-			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, "Auto", G_TEXT);
+			ui_label(s, t.x + t.w / 2, t.y + t.h / 2, g.cap * 4 / 5, "Auto", tink);
 		}
 	}
 }

@@ -11,6 +11,7 @@
 - **Yu-Gi-Oh! 7 Trials to Glory: World Championship Tournament 2005** (USA, and Japan: Yu-Gi-Oh! Duel Monsters International 2): in a duel the second screen shows the game's own **Card View** of the card under your cursor (its picture, name, type and text): your hand, also before you draw, your monsters and Magic and Trap cards, and the opponent's face-up cards; and in Deck Edit the Detail page of the card under the cursor. Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a phase or an attack playing out), the last card stays; on the title, the menus and the Deck select list, and through the opponent's turn once you end yours, the logo. Known: the banlist screen, a duel's end and your Battle Phase haven't been tried, and the Europe release isn't supported.
 
 ### Menus and interface
+- **The quick bar is drawn like the menus.** It now sits inside the second screen's picture, at the GBA's own size (240x160), instead of across the whole touchscreen, in your menu color (Settings > Display > Color) instead of grey, and its buttons are the raised keys the other menus use. The "Swipe up for quick menu" hint takes the same color.
 - **A three-column logo view in the game list.** The list/grid button and **X** now go round three views: the list of names, two columns of logos, and three columns of smaller logos (more games on screen). It's chosen and remembered like the other two (`library_view = grid3`).
 
 ### Fixes
