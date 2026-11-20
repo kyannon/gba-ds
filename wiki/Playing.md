@@ -76,7 +76,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Screen Placement**: **Centered** (the default: each screen's picture in the middle of its screen) or **Closest to Gap** (the top screen's picture against its bottom edge and the bottom screen's against its top, so the two are as close together as they go, as on a DS; Pokémon Pinball's table then carries on across the hinge without a jump). It moves the picture only where it doesn't fill the screen's height: Pixel Perfect and Full Width. With Closest to Gap, the Generated bezel has no room for its logo by the hinge, so it's shown once, on the bottom screen below the picture. Greyed out with one screen. Remembered for next time.
 
 **Extras** (Swap Screens, Rewind, Fast Forward, Save on Quit and Auto-Load are remembered for next time)
-- **Swap Screens**: game and second screen trade places (also HOME + Y).
+- **Swap Screens**: game and second screen trade places (also HOME + D-pad up).
 - **Cheats**: see [below](#cheats).
 - **Patches**: romhacks and other patches for the game; see [below](#patches).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
@@ -125,10 +125,10 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | R2 (hold) | Fast-forward (default 3×; Fast Forward in Extras sets the speed or turns it off). HOME + R2 too |
 | HOME + R1 / L1 | Quick save / load state (the same state as the quick bar's buttons) |
 | HOME + Start | Close GBA DS |
-| HOME + A | Close the game (back to the game list) |
+| HOME + B | Close the game (back to the game list) |
 | HOME + X | Quick bar (it shows the FPS too) |
-| HOME + Y | Swap screens |
-| HOME + B | Toggle the selected shader (off, and back on) |
+| HOME + D-pad up | Swap screens |
+| HOME + D-pad down | Toggle the selected shader (off, and back on) |
 
 If HOME doesn't open the menu on your device, see `home_button` in [[Settings]]; `menu_combo = select+start` also makes SELECT + START open it.
 

@@ -132,7 +132,7 @@ static void draw(int scr, const View_* v) {
 	} else if (v->sel == R_MOD) {
 		foot = N_("Select or Start still reach the game when tapped on their own, L3 still opens the quick menu");
 	} else if (v->sel == R_RESET) {
-		snprintf(line, sizeof(line), tr("%s as the hotkey button, with Start, R1, L1, X, Y and B"), HOME_TITLE), foot = line;
+		snprintf(line, sizeof(line), tr("%s as the hotkey button, with Start, B, R1, L1, X, Up and Down"), HOME_TITLE), foot = line;
 	} else if (v->sel == R_DONE) {
 		foot = N_("Kept for every game");
 	}

@@ -11,7 +11,7 @@
 
 const char* const shaderNames[SH_COUNT] = { N_("off"), "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
 const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader" };
-static const char* const hotkeyDefaults[HK_COUNT] = { "start", "a", "r", "l", "x", "y", "b" };
+static const char* const hotkeyDefaults[HK_COUNT] = { "start", "b", "r", "l", "x", "up", "down" };
 
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
