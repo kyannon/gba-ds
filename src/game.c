@@ -7995,6 +7995,18 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
 	} else {
 		ra_game_start(&emu, rom);
+		if (ra_loading()) {
+			/* The server's answers for a game with a big set are parsed on this thread
+			 * (a second or two of CPU on the device): behind a screen, not a second into play. */
+			ui_notice("Loading achievements...", tr("A few seconds"));
+			Uint32 t0 = SDL_GetTicks();
+			while (ra_loading() && SDL_GetTicks() - t0 < 12000) {
+				ui_events();
+				ra_idle();
+				SDL_Delay(20);
+			}
+			fprintf(stderr, "ra: waited %u ms for the achievements before starting\n", (unsigned) (SDL_GetTicks() - t0));
+		}
 	}
 	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);

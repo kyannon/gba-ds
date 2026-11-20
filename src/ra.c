@@ -603,6 +603,7 @@ static Emu* emu;
 static char gameHash[33];
 static bool gameWanted; /* a game is running and should be loaded once signed in */
 static bool gameLoaded;
+static bool loadFailed; /* this game's achievements won't load (ra_loading is over) */
 static char pendingProgress[1100]; /* a state loaded before the game was */
 
 enum { LOGIN_OFF, LOGIN_BUSY, LOGIN_OK, LOGIN_FAILED };
@@ -688,6 +689,7 @@ static void login_done(int result, const char* error, rc_client_t* c, void* ud) 
 	}
 	loginRejected = false; /* offline or the server is down: try again with the next game */
 	loginState = LOGIN_FAILED;
+	if (gameWanted) loadFailed = true;
 	if (gameWanted) note("Couldn't connect", "Playing without achievements this time");
 }
 
@@ -756,6 +758,7 @@ static void load_done(int result, const char* error, rc_client_t* c, void* ud) {
 	(void) c, (void) ud;
 	if (!gameWanted) return; /* ended meanwhile */
 	if (result != RC_OK) {
+		loadFailed = true;
 		fprintf(stderr, "ra: game not loaded (%s)\n", error && *error ? error : rc_error_str(result));
 		if (result == RC_NO_GAME_LOADED) {
 			char desc[120];
@@ -1008,6 +1011,7 @@ void ra_game_start(Emu* e, const char* romPath) {
 	if (!client) return;
 	emu = e;
 	gameLoaded = false;
+	loadFailed = false;
 	gameWanted = true;
 	pendingProgress[0] = 0;
 	nPopups = 0;
@@ -1030,6 +1034,13 @@ void ra_game_start(Emu* e, const char* romPath) {
 	}
 	if (loginState == LOGIN_OK) begin_load();
 	else if (loginState == LOGIN_FAILED && !loginRejected) start_login();
+}
+
+/* The game's achievements are still being fetched and set up (the server's
+ * answers are parsed on the main thread: seconds of CPU on the device, which
+ * froze a game a second into play; game.c waits for it behind a screen). */
+bool ra_loading(void) {
+	return client && gameWanted && !gameLoaded && !loadFailed && (loginState == LOGIN_OK || loginState == LOGIN_BUSY);
 }
 
 void ra_game_patched(void) {
