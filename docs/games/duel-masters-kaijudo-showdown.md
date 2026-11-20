@@ -67,3 +67,5 @@ Changelog line (under the open version), New games:
 - **Duel Masters: Kaijudo Showdown** (USA and Europe): the second screen shows the Card Details of the card under your cursor, in a duel and in Deck Management, without the "B Exit" prompt; the title's logo elsewhere.
 
 Wiki (`Supported-games.md`): a table row (USA, Europe; second screen: Card Details of the cursor's card, else the logo) and a section copying "Why these screens", DMK-1 to DMK-4 in the player's words, and the Known issues above.
+
+At the merge: the branch touches shared code in one small place, `src/logo.c` (a `logo.hide` list of sprites left out of the logo's render, empty for every other game, so their logos are unchanged: 24 other games' logo cases, one in eight, were run and pass). Run the logo cases of the games that use `logo_extract` (`tools/regress.py --changed` against the merge's first parent will say which).

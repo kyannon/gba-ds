@@ -10656,7 +10656,11 @@ static const MapProfile profiles[] = {
 		.room = { { DMK_V_ROOM, 0, 0, 4 } },
 		/* the title's DUEL MASTERS lettering (BG0) and its KAIJUDO SHOWDOWN
 		 * line (sprites above the menu), DMK-5 */
-		.logo = { .wait = 2300, .layers = 0x01, .lowFrom = 98, .lowLayers = 0x10, .maxY = 114, .minX = 12, .edgeClear = { 0x000001 }, .rev = 1 },
+		.logo = { .wait = 2300, .layers = 0x11, .maxY = 114, .minX = 12,
+			/* the lettering is BG0 and the subtitle sprites (palette 0); the
+			 * orb, the glint across the M and the translucent rays are
+			 * sprites of the other palettes (Europe also has its flags and PRESS START there) */
+			.hide = { { -64, -64, 304, 224, 0, 1023, -1, 0xFFFE, 0, 0 } }, .rev = 3 },
 	},
 	{
 		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
