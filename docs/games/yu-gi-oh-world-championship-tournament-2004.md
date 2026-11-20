@@ -64,7 +64,7 @@ The three releases (USA, Europe, Japan: the Japanese cartridge is the same game,
 - A card that changes under a cursor that hasn't moved (the hand closing up after a summon, a card flipped face-up) shows at the next refresh, about a second later.
 - Choosing the monster to attack keeps the last Card View (WCT-5): the target's own Card View isn't taken as it is in The Eternal Duelist Soul.
 - Link Duel hasn't been tried (it needs a second GBA).
-- Only English was tried (the cartridges' other five languages draw the same screens).
+- Only English and Japanese were tried (English by the cases; Japanese on the device by the owner, Nov 19, 2026: Card View is recognised properly). The cartridges' other four languages draw the same screens.
 
 ## Not covered yet
 
@@ -73,6 +73,6 @@ The three releases (USA, Europe, Japan: the Japanese cartridge is the same game,
 ## For the merge
 
 - **Changelog line** (under the open version, "New games"): Yu-Gi-Oh! World Championship Tournament 2004 (USA, Europe, Japan: Duel Monsters Expert 3): the second screen shows the Card View of the card under the cursor in a duel, in the card lists (Graveyard, Removed Cards, Fusion Deck), in Deck Edit and Card Trade, and in the cards won; the logo out of the duels and through the opponent's turn. Known: choosing the monster to attack keeps the last card.
-- **Wiki** (`wiki/Supported-games.md`, table row and section): row: Yu-Gi-Oh! World Championship Tournament 2004, Konami, 3 releases, "Card View of the card under the cursor". Section: *In a duel the second screen is the Card View of the card the cursor is on (a card in your hand, a monster, a Magic or Trap card: yours, or the opponent's if face-up): the card's picture, name, type and text, as the game draws it. The same in the card lists (a Graveyard, Removed Cards, Fusion Deck), in Deck Edit and Card Trade, and in the list of cards you win. Where the cursor isn't on a card the last one stays; out of the duels and through the opponent's turn it shows the logo.* Known issues: choosing the monster to attack keeps the last card; only English tried; Link Duel untried.
+- **Wiki** (`wiki/Supported-games.md`, table row and section): row: Yu-Gi-Oh! World Championship Tournament 2004, Konami, 3 releases, "Card View of the card under the cursor". Section: *In a duel the second screen is the Card View of the card the cursor is on (a card in your hand, a monster, a Magic or Trap card: yours, or the opponent's if face-up): the card's picture, name, type and text, as the game draws it. The same in the card lists (a Graveyard, Removed Cards, Fusion Deck), in Deck Edit and Card Trade, and in the list of cards you win. Where the cursor isn't on a card the last one stays; out of the duels and through the opponent's turn it shows the logo.* Known issues: choosing the monster to attack keeps the last card; only English and Japanese tried; Link Duel untried.
 - **Philosophy page**: no change (no exception).
 - **`docs/games/README.md`**: add the game's row to its table (rule prefix WCT, `BYWE` + 2 more releases).
