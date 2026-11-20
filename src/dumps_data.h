@@ -204,6 +204,8 @@ static const KnownDump knownDumps[] = {
 	{ "BCNE", 0xe6d58aa0, true, false, "Crash Nitro Kart (USA)" },
 	{ "BCNJ", 0x70f8291f, true, false, "Crash Bandicoot Bakusou! Nitro Cart (Japan)" },
 	{ "BCNP", 0x03925772, true, false, "Crash Nitro Kart (Europe) (En,Fr,De,Es,It,Nl)" },
+	{ "BD6E", 0x804e5de2, true, false, "Duel Masters - Kaijudo Showdown (USA)" },
+	{ "BD6P", 0x52e0aa95, true, false, "Duel Masters - Kaijudo Showdown (Europe) (En,Fr,De,Es,It)" },
 	{ "BDTE", 0x8686436e, true, false, "River City Ransom EX (USA)" },
 	{ "BDTJ", 0x32e9a0bd, true, false, "Downtown - Nekketsu Monogatari EX (Japan)" },
 	{ "BE8E", 0xa47246ae, true, false, "Fire Emblem - The Sacred Stones (USA, Australia)" },

@@ -3084,6 +3084,110 @@ static const char* um6_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return NULL;
 }
 
+/* ---------------------------------------------------- Duel Masters: Kaijudo Showdown
+ *
+ * The second screen (DMK-1 to DMK-4): the game's own Card Details page for
+ * the card under the player's cursor, opened on the shadow core from the
+ * live state at every capture: SELECT in a duel (the zone views, the field
+ * while a creature is chosen), A in Deck Management's card list. It's
+ * checked by its fixed pixels (the black name, description and statistics
+ * panels) and taken once it has faded in and held still, with its "B Exit"
+ * prompt (a sprite) left out.
+ *
+ * Which screen is up is told by BG0CNT to BG3CNT (each screen sets them once):
+ *   duel   0x1F02 0x1E02 0x1D03 0x1C0B   zones, the field, Summon/Cast
+ *   view   0x1F03 0x1E02 0x1D01 0x1C02   Card Details, wherever it's opened
+ *   list   0x1F08 0x1E81 0x1D0A 0x1C0B   Deck Management (its deck choice too)
+ * Nothing else a duel can be in shares the duel's (the overworld has
+ * 0x1F00 0x1E01 0x1D0A 0x1C03, the coin flip 0x1F03 0x1E01 0x1D0A 0x1C03).
+ * The hand's cursor is 0x0300145A (the slot), which with the bar naming the
+ * card (the rows above the bottom line) is the room key. */
+#define DMK_V_LIVE 0xF0000050 /* a card may be under a cursor: taken */
+#define DMK_V_IDLE 0xF0000051 /* out of the duels and the card lists: the logo */
+#define DMK_V_ROOM 0xF0000052 /* the screen and where its cursor is */
+enum { DMK_NONE, DMK_DUEL, DMK_VIEW, DMK_LIST };
+static const Probe dmkView[8] = {
+	/* the black panels: the name box, the description box (right of its
+	 * text), the power and cost box, and the corner under the card */
+	{ 230, 17, 0x000000 }, { 80, 17, 0x000000 }, { 230, 45, 0x000000 }, { 230, 100, 0x000000 },
+	{ 230, 140, 0x000000 }, { 8, 90, 0x000000 }, { 100, 90, 0x000000 }, { 100, 136, 0x000000 },
+};
+static int dmk_screen(Emu* e) {
+	uint16_t b0 = emu_io16(e, 0x08), b1 = emu_io16(e, 0x0A), b2 = emu_io16(e, 0x0C), b3 = emu_io16(e, 0x0E);
+	if (b0 == 0x1F02 && b1 == 0x1E02 && b2 == 0x1D03 && b3 == 0x1C0B) return DMK_DUEL;
+	if (b0 == 0x1F03 && b1 == 0x1E02 && b2 == 0x1D01 && b3 == 0x1C02) return DMK_VIEW;
+	if (b0 == 0x1F08 && b1 == 0x1E81 && b2 == 0x1D0A && b3 == 0x1C0B) return DMK_LIST;
+	return DMK_NONE;
+}
+static bool dmk_view(Emu* s) {
+	if (dmk_screen(s) != DMK_VIEW || !som_probes(s, dmkView, 8, 8, 8)) return false;
+	/* not the black of a fade (the probes are black panels): the page's
+	 * background and card fill much of the rest */
+	int lit = 0;
+	for (int i = 0; i < GBA_W * GBA_H; ++i) lit += (s->fb[i] & 0xFFFFFF) != 0;
+	return lit >= 5000;
+}
+static uint32_t dmk_virt(Emu* e, uint32_t addr) {
+	int sc = dmk_screen(e);
+	/* a card may be under the cursor: a duel's views and the card list; the
+	 * page itself open in the game isn't taken again (DMK-3) */
+	if (addr == DMK_V_LIVE) return sc == DMK_DUEL || sc == DMK_LIST;
+	if (addr == DMK_V_IDLE) return sc == DMK_NONE;
+	if (addr == DMK_V_ROOM) {
+		uint32_t k = (uint32_t) sc << 28;
+		if (sc == DMK_DUEL) {
+			/* the cursor's slot and the name bar's pixels (the card under it) */
+			uint32_t h = 2166136261u;
+			for (int y = 128; y < 140; ++y)
+				for (int x = 8; x < 232; x += 2) h = (h ^ (e->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+			k |= (emu_read8(e, 0x0300145A) << 16) | (h & 0xFFFF);
+		}
+		return k;
+	}
+	return 0;
+}
+/* runs frames until Card Details is up and has held still for 3 (its
+ * fade-in done); false if the screen stays as it was (nothing opened) */
+static bool dmk_wait_view(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	static uint32_t first[GBA_W * GBA_H];
+	int still = 0;
+	bool moved = false;
+	memcpy(first, s->fb, sizeof(first));
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		if (!moved && f == 24 && !memcmp(first, s->fb, sizeof(first))) return false;
+		if (!dmk_view(s)) {
+			still = 0;
+			continue;
+		}
+		moved = true;
+		still = still && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 1;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+static const char* dmk_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int sc = dmk_screen(s);
+	if (sc != DMK_DUEL && sc != DMK_LIST) return "not a card screen";
+	/* (the cursor glides to its place, and a press on the way does nothing) */
+	aw_run(s, 0, 12);
+	aw_run(s, sc == DMK_DUEL ? K_SELECT : K_A, 3);
+	if (!dmk_wait_view(s, 180)) return "no Card Details";
+	/* the "B Exit" prompt: a 32x8 sprite at the bottom left */
+	static const SpriteRule exitPrompt = { 0, 142, 48, 156, 0, 1023, 0, 0, 0, 0 };
+	emu_hide_sprites(s, &exitPrompt, 1);
+	emu_frame(s, 0);
+	emu_frame(s, 0);
+	emu_hide_sprites(s, NULL, 0);
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
 /* ---------------------------------------------------------- Zoids: Legacy
  *
  * The second screen, from zl_compose on the hidden copy:
@@ -10922,6 +11026,28 @@ static const MapProfile profiles[] = {
 		/* the title's emblem (BG0), above New Game and the copyright line
 		 * (UM6-6) */
 		.logo = { .wait = 700, .layers = 0x01, .maxY = 120 },
+	},
+	{
+		/* Duel Masters: Kaijudo Showdown (USA; Europe): the Card Details of
+		 * the card under the cursor, see dmk_compose (DMK-1 to DMK-4) */
+		.codes = { "BD6E", "BD6P" },
+		.title = "Duel Masters: Kaijudo Showdown",
+		.compose = dmk_compose,
+		.virt = dmk_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.live = { { DMK_V_LIVE, 0xFF, 1, 4 } },
+		/* out of the duels and the card lists: the logo, the card
+		 * forgotten (DMK-4) */
+		.menu = { { DMK_V_IDLE, 0xFF, 1, 4 } },
+		.room = { { DMK_V_ROOM, 0, 0, 4 } },
+		/* the title's DUEL MASTERS lettering (BG0) and its KAIJUDO SHOWDOWN
+		 * line (sprites above the menu), DMK-5 */
+		.logo = { .wait = 2300, .layers = 0x11, .maxY = 114, .minX = 12,
+			/* the lettering is BG0 and the subtitle sprites (palette 0); the
+			 * orb, the glint across the M and the translucent rays are
+			 * sprites of the other palettes (Europe also has its flags and PRESS START there) */
+			.hide = { { -64, -64, 304, 224, 0, 1023, -1, 0xFFFE, 0, 0 } }, .rev = 3 },
 	},
 	{
 		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in

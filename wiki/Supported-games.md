@@ -15,6 +15,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
+| Duel Masters: Kaijudo Showdown | `BD6E` `BD6P` | Card Details of the card under the cursor | |
 | Eragon | `BENE` `BENP` (no Japanese release) | the Party screen, every card lit; the map where L opens one; in battles, the party's HP bars | |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big | |
@@ -189,6 +190,16 @@ The USA, European and Japanese (International) releases.
 - The HP and EP bars stay on the game screen.
 - In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus it shows the logo.
 - Not tried yet: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
+
+## Duel Masters: Kaijudo Showdown
+
+The USA release and the European one (English, French, German, Spanish, Italian). Tried in the practice duel and in Deck Management, in English and Spanish; the Duel Room and the tournaments' duels weren't reached.
+
+- **In a duel,** the second screen shows the **Card Details** of the card under your cursor, the page the game opens with SELECT: its picture, race, power, cost, rarity and text, in its civilization's colours. Your hand, your mana and battle zones, a graveyard and the opponent's face-up cards; it follows the cursor within a second. The page's "B Exit" prompt is left out, as there's nothing to press there.
+- **In Deck Management,** the same: the card under the cursor in the list.
+- Where there's nothing to look at (an empty slot, the opponent's hidden cards, the opponent's turn, an attack playing out), the last card stays. With the game's own Card Details open on the game screen, the second screen keeps the card it had instead of showing the page twice.
+- On the title screen, in the menus, the conversations and the overworld, and from the moment a duel ends, the second screen shows the logo: the title's DUEL MASTERS lettering with its KAIJUDO SHOWDOWN line.
+- Known issues: the duel's other views (the field in 3D, the opponent's zones) show the last card, not a view of their own; link battles and trading haven't been tried, and Trade's and the shops' card lists aren't followed.
 
 ## Eragon
 

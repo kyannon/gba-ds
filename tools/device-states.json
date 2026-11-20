@@ -614,6 +614,26 @@
      "Title screen: this release's own logo, at half strength (UM6-6, WCT-7)"
     ]
    }
+  },
+  "duel-masters-kaijudo-showdown": {
+   "Duel Masters - Kaijudo Showdown (USA)": {
+    "1": ["us-title.ss", "Title menu (New Game, Continue...): the logo alone on the second screen, nothing else (DMK-4, DMK-5)"],
+    "2": ["us-hand-zyler.ss", "Practice duel, your turn, cursor on Brawler Zyler in the hand: its Card Details, no 'B Exit' prompt (DMK-1)"],
+    "3": ["us-hand-rothus.ss", "Same duel, cursor on Rothus, the Traveler: a different card (DMK-1); then move the cursor and the card follows within a second"],
+    "4": ["us-decklist.ss", "Deck Management's card list, cursor on Roaring Great-Horn: its Card Details (DMK-2); then move down the list"],
+    "5": ["us-game-card-details.ss", "The game's own Card Details open on its screen: the second screen keeps its picture, nothing twice (DMK-3, DMK-6)"]
+   },
+   "Duel Masters - Kaijudo Showdown (Europe) (En,Fr,De,Es,It)": {
+    "1": ["eu-title-languages.ss", "Title with the five language flags, English selected: the logo (DMK-5, DMK-7)"],
+    "2": ["eu-title-menu.ss", "Title menu after choosing English: the logo (DMK-4, DMK-7)"],
+    "3": ["eu-hand-rothus.ss", "Practice duel in English, cursor on Rothus, the Traveler: its Card Details (DMK-1, DMK-7)"],
+    "4": ["eu-hand-stonesaur.ss", "Same duel, cursor on Stonesaur: a different card (DMK-1); move the cursor and it follows"],
+    "5": ["eu-decklist-beetle.ss", "Deck Management's list in English, cursor on Deathblade Beetle (DMK-2, DMK-7)"],
+    "6": ["eu-decklist-great-horn.ss", "The list with the cursor on Roaring Great-Horn (DMK-2); move up and down"],
+    "7": ["eu-game-card-details.ss", "The game's own Card Details open (English): the second screen keeps its picture (DMK-3, DMK-7)"],
+    "8": ["eu-es-hand-rothus.ss", "Practice duel with the game set to Spanish, cursor on Rothus: Card Details in Spanish (DMK-1, DMK-7)"],
+    "9": ["eu-es-hand-piedrasaurio.ss", "Spanish, cursor on Piedrasaurio (Stonesaur): another Spanish card (DMK-1, DMK-7)"]
+   }
   }
  }
 }
