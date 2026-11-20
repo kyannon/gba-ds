@@ -2776,11 +2776,11 @@ static bool yw_named(Emu* e) {
 static bool yw_opp_turn(Emu* e) {
 	return emu_read8(e, 0x0201A460) == 8;
 }
-/* not the player's free cursor: the Draw Phase (2, 3: the card still comes
- * to the hand), the turn being ended (6), the opponent's turn (8) */
+/* not the player's free cursor: the turn being ended (6), the opponent's
+ * turn (8). The Draw Phase (2, 3) is free: the cursor can go to the hand */
 static bool yw_busy(Emu* e) {
 	int v = emu_read8(e, 0x0201A460);
-	return v == 2 || v == 3 || v == 6 || v == 8;
+	return v == 6 || v == 8;
 }
 static bool yw_field_up(Emu* e) {
 	return (emu_read16(e, 0x03000330) & 0xFF00) == 0x3500;

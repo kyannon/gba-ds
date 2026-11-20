@@ -20,7 +20,7 @@ Like Yu-Gi-Oh! The Eternal Duelist Soul, the game is played through its cards, a
 
 **YWC-2. Deck Edit and the banlist.** In Deck Edit's Deck mode and the banlist's list of cards, the second screen shows the Detail page (the same Card View) of the card under the cursor (A for the command bar, whose first command is Detail, then A).
 
-**YWC-3. Last card stays.** Where the cursor isn't on a card that can be looked at (an empty zone, a pile, the opponent's face-down cards, the Deck in the Draw Phase), or the player isn't moving it ("End your turn?", an attack or summon playing out, the card still coming to the hand in the Draw Phase), the last Card View stays; before the first, the logo. Where the hidden copy's A does something other than open Card View, nothing is taken.
+**YWC-3. Last card stays.** Where the cursor isn't on a card that can be looked at (an empty zone, a pile, the opponent's face-down cards, the Deck in the Draw Phase), or the player isn't moving it ("End your turn?", an attack or summon playing out), the last Card View stays; before the first, the logo. Where the hidden copy's A does something other than open Card View, nothing is taken.
 
 **YWC-4. Logo elsewhere.** Everywhere else (the title, the main menu, the town and its conversations, the Deck select list, rock-paper-scissors, the Status and Options screens), the second screen shows the logo, idle, and the last Card View is forgotten.
 
@@ -28,7 +28,7 @@ Like Yu-Gi-Oh! The Eternal Duelist Soul, the game is played through its cards, a
 
 **YWC-6. Game screen untouched.** Nothing leaves the game screen.
 
-**YWC-8. Logo through the opponent's turn.** From the moment the opponent's turn begins (after "End your turn?" is answered YES, as the game's duel state changes) until the player's next turn, the second screen shows the logo, idle, and the last Card View is forgotten: the opponent's cards the info bar names, their attacks and summons included. In the player's next turn the logo stays until the cursor is on a card (YWC-1); the turn starts on the Deck.
+**YWC-8. Logo through the opponent's turn.** From the moment the opponent's turn begins (after "End your turn?" is answered YES, as the game's duel state changes) until the player's next turn, the second screen shows the logo, idle, and the last Card View is forgotten: the opponent's cards the info bar names, their attacks and summons included. In the player's next turn the logo stays until the cursor is on a card (YWC-1), also in the Draw Phase before drawing, when the cursor can already be moved to the hand; the turn starts on the Deck.
 
 **YWC-7. Japan: the logo.** Yu-Gi-Oh! Duel Monsters International 2 (`BYIJ`) is untried: its second screen shows the logo only (its title's lettering), until its screens have been checked.
 
@@ -39,7 +39,7 @@ Like Yu-Gi-Oh! The Eternal Duelist Soul, the game is played through its cards, a
 - Weekly banlists: Mokuba refuses a duel with a banned card or fewer than 40 cards in the active deck; resting 7 nights moves to the next week's list.
 - A on a hand card shows Set and a highlighted Card View (magnifier tile 548-like sprites at the bottom right); a street duel starts by facing the duelist and pressing R.
 - The info bar's name is in white; a pile's count is cyan ("Deck:35"); an empty zone shows a plain bar.
-- `0x0201A460` (8 bits), the duel's state: 2 and 3 in the player's Draw Phase (before and after the card is drawn, the cursor on the Deck), 5 with the cursor free in the player's Main Phase (also with a card's commands open and "End your turn?" up), 6 as the turn is ended, and **8 through the whole of the opponent's turn** (its Draw Phase, summons, attacks, the life points counting down) until the player's Draw Phase. Other values (the player's Battle Phase, an effect playing out) weren't seen; only 8 is taken as the opponent's.
+- `0x0201A460` (8 bits), the duel's state: 2 and 3 in the player's Draw Phase (the cursor on the Deck, or moved to a hand card, where Card View works as in the Main Phase; 3 stays while the drawn card comes to the hand), 5 with the cursor free in the player's Main Phase (also with a card's commands open and "End your turn?" up), 6 as the turn is ended, and **8 through the whole of the opponent's turn** (its Draw Phase, summons, attacks, the life points counting down) until the player's Draw Phase. Other values (the player's Battle Phase, an effect playing out) weren't seen; only 8 is taken as the opponent's.
 - Deck mode's list cursor row: `0x02026AB0`.
 
 ## Known issues

@@ -464,8 +464,8 @@
      "'End your turn?' up: the second screen doesn't change (logo here, YWC-3). Answer YES: the logo through the opponent's whole turn, whatever card it shows or attacks with (YWC-8); when your turn comes round the logo stays through the Draw Phase, and after you draw the card's Card View returns (YWC-1)."
     ],
     "5": [
-     "us-draw-phase.ss",
-     "Draw Phase before drawing: the logo; A on the Deck draws a card (YWC-3). After the draw, the drawn card's Card View."
+     "us-draw-hand.ss",
+     "Draw Phase before drawing, the cursor already on a hand card (Fissure): its Card View (YWC-1). Move it to the Deck: the card stays; A on the Deck draws; the drawn card's Card View follows when the cursor is on it."
     ],
     "6": [
      "us-deck-mode.ss",

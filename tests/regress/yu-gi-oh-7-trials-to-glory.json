@@ -234,7 +234,7 @@
    "id": "ywc-us-draw-phase",
    "rom": "BY7E",
    "state": "yu-gi-oh-7-trials-to-glory/us-draw-phase.ss",
-   "desc": "the Draw Phase before drawing (A there draws a card, not Card View): nothing taken, the logo",
+   "desc": "the duel's first moments (Draw Phase, before the player can act): the card's capture is refused, the logo stays",
    "rules": [
     "YWC-3"
    ],
@@ -455,6 +455,20 @@
     "opp": 400,
     "draw": 1450,
     "drawn": 1750
+   },
+   "checks": []
+  },
+  {
+   "id": "ywc-us-draw-hand",
+   "rom": "BY7E",
+   "state": "yu-gi-oh-7-trials-to-glory/us-draw-hand.ss",
+   "desc": "the Draw Phase before drawing, the cursor moved to a hand card (Fissure): its Card View",
+   "rules": [
+    "YWC-1",
+    "YWC-8"
+   ],
+   "shots": {
+    "start": 100
    },
    "checks": []
   }
