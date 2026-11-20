@@ -453,7 +453,7 @@
     ],
     "2": [
      "us-draw-phase.ss",
-     "A duel's first turn, Draw Phase, the game's own Card View of the drawn card open: that Card View as it is (WCT-1, WCT-3)"
+     "A duel's first turn, Draw Phase, the cursor on your Deck with the Draw prompt: the logo, idle, nothing to show yet (WCT-3, WCT-5). Press A to draw: the cursor goes to a card in your hand and its Card View comes up (WCT-1)"
     ],
     "3": [
      "us-hand.ss",
@@ -491,7 +491,7 @@
     ],
     "2": [
      "eu-dev-draw-phase.ss",
-     "A duel's first turn, Draw Phase, the game's own Card View of the drawn card open: that Card View as it is (WCT-1, WCT-3)"
+     "A duel's first turn, Draw Phase, the game's own Card View of the drawn card open: that Card View as it is (WCT-1, WCT-3). B, then the cursor on your hand: it follows (WCT-1)"
     ],
     "3": [
      "eu-dev-hand.ss",
