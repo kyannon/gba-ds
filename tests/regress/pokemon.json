@@ -3146,6 +3146,236 @@
      "match": "map updated"
     }
    ]
+  },
+  {
+   "id": "pk-battle-bpee",
+   "rom": "BPEE",
+   "state": "pokemon/battle/BPEE.ss",
+   "desc": "Emerald (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-bpre",
+   "rom": "BPRE",
+   "state": "pokemon/battle/BPRE.ss",
+   "desc": "FireRed (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-bpge",
+   "rom": "BPGE",
+   "state": "pokemon/battle/BPGE.ss",
+   "desc": "LeafGreen (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-axve",
+   "rom": "AXVE",
+   "state": "pokemon/battle/AXVE.ss",
+   "desc": "Ruby (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-axpe",
+   "rom": "AXPE",
+   "state": "pokemon/battle/AXPE.ss",
+   "desc": "Sapphire (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
   }
  ]
 }
