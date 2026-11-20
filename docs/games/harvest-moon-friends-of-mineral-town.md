@@ -6,6 +6,7 @@
 | Dumps | `A4NE` cartridge `8e923168` (tested) · `A4NP` cartridge `f50f82ad` (tested) · `A4ND` cartridge `c11757d7` (tested) · `A4NJ` cartridge `09185657` (tested) |
 | Profile | `src/profiles.c`: the `A4NE` entry (hm_compose; `A4NP` and `A4ND` the same); variant `A4NJ` (its own logo, hm_jpn) |
 | Tests | `tests/regress/harvest-moon-friends-of-mineral-town.json` (`tools/regress.py harvest-moon-friends-of-mineral-town`) |
+| Toggle | `views`, `ONPRESS`: the town map (HM-1), the farm map and the status pages · GEN-14 |
 | Status | supported (new in v1.4.10) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list harvest-moon-friends-of-mineral-town`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

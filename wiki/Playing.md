@@ -128,6 +128,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | HOME + X | Quick bar (it shows the FPS too) |
 | HOME + Y | Swap screens |
 | HOME + B | Toggle the selected shader (off, and back on) |
+| HOME + A | Turn the second screen's page or view (Settings > Second screen > Contextual toggle, off by default) |
 
 If HOME doesn't open the menu on your device, see `home_button` in [[Settings]]; `menu_combo = select+start` also makes SELECT + START open it.
 
@@ -136,7 +137,7 @@ If HOME doesn't open the menu on your device, see `home_button` in [[Settings]];
 The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and open **Controls** and choose **Hotkeys** (under Map buttons):
 
 - **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
-- **Quit**, **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
+- **Quit**, **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader) and **Turn the second screen** (with the contextual toggle on): the button for each.
 
 Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, HOME is the BACK button (Android keeps HOME for itself), and Hotkeys calls it Back.
 

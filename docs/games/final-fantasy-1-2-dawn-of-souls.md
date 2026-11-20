@@ -6,6 +6,7 @@
 | Dumps | `BFFE` cartridge `1b39cdab` (tested) · `BFFP` cartridge `7c9854c6` (tested) · `BFFJ` Rev 1 `0f3bd723` (tested), Rev 1, Virtual Console `2c58c9c1` |
 | Profile | `src/profiles.c`: the `BFFE` entry (`ff_compose`) |
 | Tests | `tests/regress/final-fantasy-1-2-dawn-of-souls.json` (`tools/regress.py final-fantasy-1-2-dawn-of-souls`) |
+| Toggle | `views`, `HELD`: the party screen (FF-5, FF-10) and the world map (FF-4, FF-11), where both exist; the party picture is already kept (FF-12) · GEN-14 |
 | Status | in progress (branch `game/final-fantasy-1-2-dawn-of-souls`) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list final-fantasy-1-2-dawn-of-souls`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

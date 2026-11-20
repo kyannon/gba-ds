@@ -6,6 +6,7 @@
 | Dumps | `B8CE` cartridge `d031ce67` (tested) · `B8CP` cartridge `772d97fb` (tested) · `B8CJ` cartridge `8d5a0d84` (tested) |
 | Profile | `src/profiles.c`: the `B8CE` entry (khc_compose); variants `B8CP`, `B8CJ` (their battle pointer and logo, khc_eur / khc_jpn) |
 | Tests | `tests/regress/kingdom-hearts-chain-of-memories.json` (`tools/regress.py kingdom-hearts-chain-of-memories`) |
+| Toggle | `views`, `ONPRESS`: the World Map (KHC-1) and another page of the menu; which one is still to be chosen, so the button stays inactive until then · GEN-14 |
 | Status | supported (new in v1.4.8) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list kingdom-hearts-chain-of-memories`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

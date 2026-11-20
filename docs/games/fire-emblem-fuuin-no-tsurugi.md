@@ -7,6 +7,7 @@
 | Mods | `AFEJ` English v1.2.1 (FE6 Localization fan translation) `197de10b` (tested) |
 | Profile | `src/profiles.c`: the `AFEJ` entry (Fire Emblem's `fe_virt` / `fe_compose`; its addresses in `feRegions`) |
 | Tests | `tests/regress/fire-emblem-fuuin-no-tsurugi.json` (`tools/regress.py fire-emblem-fuuin-no-tsurugi`) |
+| Toggle | `pages`: a unit's three pages (FE6-2) · GEN-14 |
 | Status | supported (merged into dev Nov 16, 2026, for v1.5.4) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list fire-emblem-fuuin-no-tsurugi`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
