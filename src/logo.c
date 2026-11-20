@@ -38,6 +38,13 @@ static void layer_set(Emu* e, unsigned mask) {
 	for (int i = 0; i < NLAYERS; ++i) e->core->enableVideoLayer(e->core, i, (mask >> i) & 1);
 }
 
+/* the profile's sprites to leave out, for the render that follows */
+static void logo_hide(Emu* e, const MapProfile* p) {
+	int n = 0;
+	while (n < 2 && (p->logo.hide[n].x1 > p->logo.hide[n].x0 || p->logo.hide[n].y1 > p->logo.hide[n].y0)) ++n;
+	emu_hide_sprites(e, n ? p->logo.hide : NULL, n);
+}
+
 bool logo_extract(const char* romPath, const char* gameCode, const char* outPng) {
 	const MapProfile* p = profile_find(gameCode);
 	if (!p || (!p->logo.wait && !p->logo.steps[0].frames)) return false;
@@ -85,6 +92,7 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	else if (p->logo.layers) layer_set(&e, p->logo.layers); /* a logo over several layers (FFTA: its shadow) */
 	else layers(&e, p->logo.layer);
 	emu_state_load(&e, st);
+	logo_hide(&e, p);
 	emu_frame(&e, 0);
 	memcpy(fg, e.fb, GBA_W * GBA_H * 4);
 	if (!p->logo.mask && p->logo.layers && p->logo.objMaxY > 0 && p->logo.objMaxY < GBA_H) {
@@ -100,9 +108,11 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		 * badge's lowest rows beside the copyright line's) */
 		layer_set(&e, p->logo.lowLayers);
 		emu_state_load(&e, st);
+		logo_hide(&e, p);
 		emu_frame(&e, 0);
 		memcpy(fg + p->logo.lowFrom * GBA_W, e.fb + p->logo.lowFrom * GBA_W, (size_t) (GBA_H - p->logo.lowFrom) * GBA_W * 4);
 	}
+	emu_hide_sprites(&e, NULL, 0);
 	layers(&e, -2);
 	emu_close(&e);
 	free(st);

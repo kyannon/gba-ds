@@ -22,7 +22,7 @@ In the game list's Settings > System, **Reset settings to defaults** puts every 
 | `name_tags` | `0` | `1` keeps tags like `(USA)` and `(En,Fr,De)` in game names. |
 | `theme` | `dark` | **Light/dark mode**: the look of the menus' buttons: `dark` (dark grey keys with a heavy edge) or `light` (light grey, like the web player's). The sun / moon button in the game list switches it too. In Settings > Display. For all games (not a game's own file). |
 | `accent` | `purple` | **Color**: the menus' color for what's selected, the edges and glows, the panels' tint and the highlight on chosen values and pills: `purple`, `blue`, `teal`, `green`, `red`, `orange` or `pink`. Each has a dark and a light version, made to read in either mode. In Settings > Display. For all games. |
-| `library_view` | `list` | `list` (names) or `grid` (logos). Also switched with X in the list; remembered in `library.cfg`. |
+| `library_view` | `list` | `list` (names), `grid` (two columns of logos) or `grid3` (three columns). Also switched with X in the list; remembered in `library.cfg`. |
 | `save_on_quit` | `1` | Save a state (a resume point) when you leave a game. Also in the pause menu. |
 | `quick_bar_hint` | `1` | At a game's start, "Swipe up for quick menu" at the bottom of the touchscreen for 3 seconds (or until you touch it); `0` turns it off. |
 | `quick_bar_pinned` | `0` | The quick bar stays up, as with its pin (top right of the bar) on; the pin sets this too. |

@@ -15,6 +15,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
+| Duel Masters: Kaijudo Showdown | `BD6E` `BD6P` | Card Details of the card under the cursor | |
 | Eragon | `BENE` `BENP` (no Japanese release) | the Party screen, every card lit; the map where L opens one; in battles, the party's HP bars | |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big | |
@@ -67,6 +68,8 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | V-Rally 3 | `AVRE` `AVRP` `AVRJ` | the stage's HUD, with the course map twice as big | |
 | Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | Color palette enhancement 1.1 (USA and Europe) |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor | |
+| Yu-Gi-Oh! World Championship Tournament 2004 (Yu-Gi-Oh! Duel Monsters Expert 3 in Japan) | `BYWE` `BYWP` `BY3J` | Card View of the card under the cursor | |
+| Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006 | `BY6E` `BY6P` | Card View of the card under the cursor | |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing | |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Overlays]]).
@@ -187,6 +190,16 @@ The USA, European and Japanese (International) releases.
 - The HP and EP bars stay on the game screen.
 - In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus it shows the logo.
 - Not tried yet: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
+
+## Duel Masters: Kaijudo Showdown
+
+The USA release and the European one (English, French, German, Spanish, Italian). Tried in the practice duel and in Deck Management, in English and Spanish; the Duel Room and the tournaments' duels weren't reached.
+
+- **In a duel,** the second screen shows the **Card Details** of the card under your cursor, the page the game opens with SELECT: its picture, race, power, cost, rarity and text, in its civilization's colours. Your hand, your mana and battle zones, a graveyard and the opponent's face-up cards; it follows the cursor within a second. The page's "B Exit" prompt is left out, as there's nothing to press there.
+- **In Deck Management,** the same: the card under the cursor in the list.
+- Where there's nothing to look at (an empty slot, the opponent's hidden cards, the opponent's turn, an attack playing out), the last card stays. With the game's own Card Details open on the game screen, the second screen keeps the card it had instead of showing the page twice.
+- On the title screen, in the menus, the conversations and the overworld, and from the moment a duel ends, the second screen shows the logo: the title's DUEL MASTERS lettering with its KAIJUDO SHOWDOWN line.
+- Known issues: the duel's other views (the field in 3D, the opponent's zones) show the last card, not a view of their own; link battles and trading haven't been tried, and Trade's and the shops' card lists aren't followed.
 
 ## Eragon
 
@@ -679,6 +692,27 @@ The USA release and the Japanese original (Yu-Gi-Oh! Duel Monsters 5 Expert 1, w
 - Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a card a Magic or Trap card asks you to choose), the last card stays.
 - **When you end your turn,** the second screen shows the logo, through the opponent's turn, until your cursor is on a card again.
 - On the title screen, the menus, the conversations and the other screens, and from the moment a duel is won or lost, the second screen shows the logo.
+
+## Yu-Gi-Oh! World Championship Tournament 2004
+
+The USA and Europe releases and the Japanese one (Yu-Gi-Oh! Duel Monsters Expert 3). Tried in all six of the cartridge's languages, in Campaign duels, Deck Edit, the Graveyard and the cards won after a duel; Link Duel hasn't been tried.
+
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game draws it. Your hand, your monsters and Magic and Trap cards, and the opponent's face-up cards; it follows the cursor. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In the Graveyard and other card lists, Deck Edit, Card Trade's choice of a card and the list of cards you've won,** the same: the card under the cursor.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's), the last card stays. While you choose which monster to attack, the last card stays too.
+- **When you end your turn,** the second screen shows the logo, through the opponent's turn, until your cursor is on a card again.
+- On the title screen, the menus, and from the moment a duel is won or lost, the second screen shows the logo.
+
+## Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006
+
+The USA and Europe releases. Tried on the device in both releases, in Free Duel and Campaign duels and in Deck Edit; Link Battle hasn't been tried.
+
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game shows it when you choose Card View. Your hand, your cards on the field and the opponent's face-up cards; it follows the cursor as you move it, in every phase of your turn. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In Deck Edit,** the same: the card under the cursor.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a phase or an attack playing out, a question the game asks), the last card stays.
+- **When the opponent's turn begins,** the second screen shows the logo, through their turn, until your cursor is on a card again.
+- On the title screen, the menus and the conversations, and from the moment a duel is won or lost, the second screen shows the logo.
+- Known issues: a duel's card lists (the Graveyard...) keep the last card; the Japanese release isn't supported yet.
 
 ## Zoids: Legacy
 
