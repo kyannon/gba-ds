@@ -19,7 +19,7 @@ const char* const hotkeyBtnNames[B_COUNT] = { "a", "b", "x", "y", "start", "sele
 static const char* const btnTitles[B_COUNT] = { "A", "B", "X", "Y", "Start", "Select", HOME_TITLE, "L1", "R1", "L2", "R2", "L3",
 	                                            N_("Up"), N_("Down"), N_("Left"), N_("Right")};
 static const char* const actionTitles[HK_COUNT] = { N_("Close emulator"), N_("Close game"), N_("Quick save state"), N_("Quick load state"), N_("Open quick menu"), N_("Swap screens"),
-                                                    N_("Toggle selected shader")};
+                                                    N_("Toggle selected shader"), N_("Turn second screen")};
 
 static int btn_by_name(const char* s) {
 	for (int b = 0; b < B_COUNT; ++b) {
@@ -132,7 +132,7 @@ static void draw(int scr, const View_* v) {
 	} else if (v->sel == R_MOD) {
 		foot = N_("Select or Start still reach the game when tapped on their own, L3 still opens the quick menu");
 	} else if (v->sel == R_RESET) {
-		snprintf(line, sizeof(line), tr("%s as the hotkey button, with Start, B, R1, L1, X, Up and Down"), HOME_TITLE), foot = line;
+		snprintf(line, sizeof(line), tr("%s as the hotkey button, with Start, B, R1, L1, X, Up, Down and A"), HOME_TITLE), foot = line;
 	} else if (v->sel == R_DONE) {
 		foot = N_("Kept for every game");
 	}

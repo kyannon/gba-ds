@@ -550,6 +550,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
   snapshot), the quick bar (Controls picker, buttons, bug reports), pause
   menu, cheats screen, screenshots.
+  The contextual toggle (GEN-14, issue #37; settings `toggle`, `auto_rotate`,
+  `toggle_button`, hotkey action `HK_TOGGLE`, HOME + A): `toggle_ready()` is the one
+  gate, `toggle_press()` / `toggle_step()` the state machine (a turn that waits
+  fades the picture: `fadeLevel`), `toggle_new_subject()` starts the pages again
+  at the first when a capture was for a new subject (`capSubject`), `second_page()`
+  says which page is up. Tests: `GBADS_TOGGLE_WAIT=N` (a case's `env`) forces a wait.
 - `ra.c` RetroAchievements (casual only) via rcheevos' rc_client, vendored in
   `third_party/rcheevos` (v12.5.0, trimmed: no hashing beyond md5.c, no
   libretro/RAIntegration). Server calls run the system `curl` in a worker

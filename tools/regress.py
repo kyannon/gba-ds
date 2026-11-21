@@ -314,6 +314,7 @@ def run_app(case, args, workdir):
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)
         env.update(GBADS_NOPACE="1", GBADS_DRAW_SHOTS_ONLY="1")
+    env.update({k: str(v) for k, v in case.get("env", {}).items()})  # (a case's own: GBADS_TOGGLE_WAIT...)
     try:
         p = subprocess.run(cmd, env=env, capture_output=True, text=True, errors="replace", timeout=args.timeout)
         r.log = p.stdout + p.stderr
