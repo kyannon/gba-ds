@@ -190,6 +190,10 @@
     "1": [
      "jp-porky.ss",
      "the party's Status: turn to the next member (M3-3)"
+    ],
+    "2": [
+     "jp-tazmily.ss",
+     "the area map: press, the picture fades while the Status is taken, again for the map (M3-2, M3-3)"
     ]
    }
   },
@@ -274,6 +278,70 @@
     "3": [
      "us-moon.ss",
      "The Moon's surface: its map; the button turns to the party screen (FF4-8)"
+    ]
+   }
+  },
+  "zelda-the-minish-cap": {
+   "Legend of Zelda, The - The Minish Cap (USA)": {
+    "1": [
+     "us-town.ss",
+     "the map: press, it fades while Quest Status is taken, again for the map (TMC-1, TMC-4)"
+    ],
+    "2": [
+     "us-no-map.ss",
+     "where there is no map: check the button's state (TMC-4)"
+    ]
+   }
+  },
+  "mario-and-luigi-superstar-saga": {
+   "Mario & Luigi - Superstar Saga (USA)": {
+    "1": [
+     "us-field.ss",
+     "the brother in front's Bros. Info: press for the other brother's, again to come back (ML-2)"
+    ]
+   }
+  },
+  "breath-of-fire": {
+   "Breath of Fire (USA)": {
+    "1": [
+     "us-overworld.ss",
+     "the overworld: the party picture is up: press to turn to the world map, again to come back (GEN-14)"
+    ]
+   }
+  },
+  "breath-of-fire-ii": {
+   "Breath of Fire II (USA)": {
+    "1": [
+     "us-world.ss",
+     "the world: the party picture is up: press to turn to the world map, again to come back (GEN-14)"
+    ]
+   }
+  },
+  "final-fantasy-v-advance": {
+   "Final Fantasy V Advance (USA)": {
+    "1": [
+     "us-world.ss",
+     "the world: the party picture is up: press to turn to the world map, again to come back (GEN-14)"
+    ]
+   }
+  },
+  "final-fantasy-vi-advance": {
+   "Final Fantasy VI Advance (USA)": {
+    "1": [
+     "us-wob.ss",
+     "the World of Balance: the party picture is up: press to turn to the world map, again to come back (GEN-14)"
+    ]
+   }
+  },
+  "final-fantasy-1-2-dawn-of-souls": {
+   "Final Fantasy I & II - Dawn of Souls (USA)": {
+    "1": [
+     "us-ff1-world.ss",
+     "Final Fantasy I's world: the party picture is up: press to turn to the world map, again to come back (GEN-14)"
+    ],
+    "2": [
+     "us-ff2-world.ss",
+     "Final Fantasy II's world: the party picture is up: press to turn to the world map, again to come back (GEN-14)"
     ]
    }
   }
