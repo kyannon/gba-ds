@@ -436,9 +436,10 @@ static bool romCrcsDirty;
 static pthread_mutex_t crcLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t crcWake = PTHREAD_COND_INITIALIZER;
 static RomCrc crcWant; /* the next file to read (path "": none) */
-static char crcWantFiles[PATCH_ON_MAX + 1][1024]; /* and the patches to apply to it, in order (GEN-9) */
+static char crcBusy[1024]; /* the file the worker is reading (crcLock) */
+static PatchChoice crcWantChoice; /* and the patches switched on for it (GEN-9): the worker finds their files, not the list's thread */
+static char crcWantCode[16];
 static const Config* crcCfg;       /* (the settings, for the patches' folder: set by scan) */
-static int crcWantN;
 static bool crcThread;
 static unsigned crcGen; /* bumped as a checksum is worked out (crcLock) */
 
@@ -484,13 +485,19 @@ static void* rom_crc_worker(void* arg) {
 	for (;;) {
 		while (!crcWant.path[0]) pthread_cond_wait(&crcWake, &crcLock);
 		RomCrc c = crcWant;
-		char files[PATCH_ON_MAX + 1][1024];
-		int nf = crcWantN;
-		memcpy(files, crcWantFiles, sizeof(files));
+		snprintf(crcBusy, sizeof(crcBusy), "%s", c.path);
+		PatchChoice choice = crcWantChoice;
+		char code[16];
+		snprintf(code, sizeof(code), "%s", crcWantCode);
 		crcWant.path[0] = 0;
 		pthread_mutex_unlock(&crcLock);
+		/* (the patch files beside the ROM and in its folder: the list's own thread waited
+		 * on these stats behind the other reads of a busy SD card) */
+		char files[PATCH_ON_MAX + 1][1024];
+		int nf = crcCfg ? patch_plan(crcCfg, c.path, code, &choice, files, PATCH_ON_MAX + 1) : 0;
 		c.crc = rom_crc_read(c.path, files, nf, &c.patch);
 		pthread_mutex_lock(&crcLock);
+		crcBusy[0] = 0;
 		rom_crc_put(&c);
 	}
 	return NULL;
@@ -540,11 +547,12 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 		*crc = c->crc;
 		*patch = c->patch;
 	}
-	else if (strcmp(crcWant.path, g->path)) {
+	else if (strcmp(crcWant.path, g->path) && strcmp(crcBusy, g->path)) { /* (not asked for, and not being read right now) */
 		crcWant.size = g->size;
 		crcWant.mtime = g->mtime;
 		snprintf(crcWant.path, sizeof(crcWant.path), "%s", g->path);
-		crcWantN = crcCfg ? patch_plan(crcCfg, g->path, g->code, &g->patchOn, crcWantFiles, PATCH_ON_MAX + 1) : 0;
+		crcWantChoice = g->patchOn;
+		snprintf(crcWantCode, sizeof(crcWantCode), "%s", g->code);
 		if (!crcThread && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) {
 			pthread_t t;
 			crcThread = pthread_create(&t, NULL, rom_crc_worker, NULL) == 0;
@@ -556,7 +564,9 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 			RomCrc w = crcWant;
 			crcWant.path[0] = 0;
 			pthread_mutex_unlock(&crcLock);
-			w.crc = rom_crc_read(w.path, crcWantFiles, crcWantN, &w.patch);
+			char wf[PATCH_ON_MAX + 1][1024];
+			int wn = crcCfg ? patch_plan(crcCfg, w.path, crcWantCode, &crcWantChoice, wf, PATCH_ON_MAX + 1) : 0;
+			w.crc = rom_crc_read(w.path, wf, wn, &w.patch);
 			pthread_mutex_lock(&crcLock);
 			rom_crc_put(&w);
 			*crc = w.crc;
@@ -863,6 +873,13 @@ static void free_tiles(void) {
 	}
 }
 
+/* (a ROM file's checksum was worked out: only what has no logo yet needs asking again) */
+static void retry_tiles_without_logo(void) {
+	for (int i = 0; i < 256; ++i)
+		if (!tileLogo[i][0] && !tileLogo[i][1]) tileTried[i] = false;
+	if (!logoTex[0] && !logoTex[1]) thumbFor = -2;
+}
+
 static SDL_Rect settings_button(int scr) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
@@ -1059,7 +1076,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	}
 	int done, total;
 	logo_progress(&done, &total);
-	bool extracting = done < total;
+	bool extracting = done < total || ui_file_crc_pending(); /* (or a ROM's checksum, for its logo's name) */
 	for (int i = 0; i < nGames && i < 256; ++i) {
 		SDL_Rect t = tile_rect(&g, i, scroll);
 		if (t.y + t.h <= g.headerH || t.y >= r.h) continue;
@@ -2523,6 +2540,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 #ifdef __wasi__
 	int listFrames = 0;
 #endif
+	ui_file_crc_async(true); /* (no whole-ROM reads while the list draws) */
 	while (!quit && chosen < 0) {
 #ifdef __wasi__
 		if (listFrames++) logo_step(); /* (the web build: a logo a frame, from the list's second) */
@@ -2535,10 +2553,15 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				rom_crc_save(cfg);
 			}
 		}
+		static unsigned fileCrcSeen;
 		if (logo_generation() != logoGen) { /* a logo finished extracting */
 			logoGen = logo_generation();
+			fileCrcSeen = ui_file_crc_generation();
 			thumbFor = -2;
 			free_tiles();
+		} else if (ui_file_crc_generation() != fileCrcSeen) { /* a ROM file's checksum was worked out (its logo's name) */
+			fileCrcSeen = ui_file_crc_generation();
+			retry_tiles_without_logo();
 		}
 		if (!ui_events()) {
 			quit = true;
@@ -2818,6 +2841,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		ui_present();
 		SDL_Delay(15);
 	}
+	ui_file_crc_async(false);
 	free_thumbs();
 	free_brand();
 	free_tiles();
