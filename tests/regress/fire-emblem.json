@@ -1284,6 +1284,247 @@
      "match": "toggle: page 3"
     }
    ]
+  },
+  {
+   "id": "fe-us-toggle-btn-left",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "the button bottom left, in the margin under the picture: a tap turns the page",
+   "rules": [
+    "GEN-14",
+    "FE-3"
+   ],
+   "config": {
+    "toggle": "1",
+    "toggle_button": "left"
+   },
+   "input": [
+    [
+     100,
+     "TAP:0.113,0.978"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "after": 110
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a tap on the button turns the page",
+     "type": "log",
+     "match": "toggle: page 2 of 3"
+    }
+   ],
+   "golden": [
+    "before",
+    "after"
+   ]
+  },
+  {
+   "id": "fe-us-toggle-btn-center",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "the button in the centre of the margin",
+   "rules": [
+    "GEN-14",
+    "FE-3"
+   ],
+   "config": {
+    "toggle": "1",
+    "toggle_button": "center"
+   },
+   "input": [
+    [
+     100,
+     "TAP:0.5,0.978"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "after": 110
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a tap on the button turns the page",
+     "type": "log",
+     "match": "toggle: page 2 of 3"
+    }
+   ],
+   "golden": [
+    "before"
+   ]
+  },
+  {
+   "id": "fe-us-toggle-btn-right",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "the button at the right of the margin",
+   "rules": [
+    "GEN-14",
+    "FE-3"
+   ],
+   "config": {
+    "toggle": "1",
+    "toggle_button": "right"
+   },
+   "input": [
+    [
+     100,
+     "TAP:0.887,0.978"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "after": 110
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a tap on the button turns the page",
+     "type": "log",
+     "match": "toggle: page 2 of 3"
+    }
+   ],
+   "golden": [
+    "before"
+   ]
+  },
+  {
+   "id": "fe-us-toggle-btn-fit",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "Full Width, no margin: the button over the picture's lower edge",
+   "rules": [
+    "GEN-14",
+    "FE-3"
+   ],
+   "config": {
+    "toggle": "1",
+    "toggle_button": "left",
+    "map_scale": "fit"
+   },
+   "input": [
+    [
+     100,
+     "TAP:0.0875,0.935"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "after": 110
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a tap on the button turns the page",
+     "type": "log",
+     "match": "toggle: page 2 of 3"
+    }
+   ],
+   "golden": [
+    "before"
+   ]
+  },
+  {
+   "id": "fe-us-toggle-btn-off",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "Show toggle button off: nothing drawn there, the tap is the menu's",
+   "rules": [
+    "GEN-14",
+    "FE-3"
+   ],
+   "config": {
+    "toggle": "1",
+    "toggle_button": "off"
+   },
+   "input": [
+    [
+     100,
+     "TAP:0.113,0.978"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "after": 110
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "no button: the tap is not a turn",
+     "type": "no_log",
+     "match": "toggle: page"
+    }
+   ],
+   "golden": [
+    "before"
+   ]
+  },
+  {
+   "id": "fe-us-toggle-btn-wait",
+   "rom": "AE7E",
+   "state": "fire-emblem/us-hud.ss",
+   "desc": "a turn that waits: the button is dimmed (inactive) until the next picture is ready",
+   "rules": [
+    "GEN-14",
+    "FE-3"
+   ],
+   "config": {
+    "toggle": "1",
+    "toggle_button": "left"
+   },
+   "input": [
+    [
+     100,
+     "TAP:0.113,0.978"
+    ],
+    [
+     104,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 90,
+    "hold": 120,
+    "after": 300
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a tap on the button turns the page",
+     "type": "log",
+     "match": "toggle: page 2 of 3"
+    }
+   ],
+   "env": {
+    "GBADS_TOGGLE_WAIT": "60"
+   },
+   "golden": [
+    "before",
+    "hold"
+   ]
   }
  ]
 }

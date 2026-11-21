@@ -2732,12 +2732,15 @@ static int bar_button_at(int s, int x, int y) {
 static uint32_t barPx[GBA_W * GBA_H]; /* ABGR8888 */
 static SDL_Texture* barTex[2];
 static SDL_Renderer* barTexRen[2];
+/* the canvas cv_put draws on: the bar's, or the toggle button's (taller: the margin under the picture) */
+static uint32_t* cvBuf = barPx;
+static int cvRows = GBA_H;
 
 static uint32_t cv_rgba(SDL_Color c) {
 	return (uint32_t) c.a << 24 | (uint32_t) c.b << 16 | (uint32_t) c.g << 8 | c.r;
 }
 static void cv_put(int x, int y, SDL_Color c) {
-	if (x >= 0 && y >= 0 && x < GBA_W && y < GBA_H) barPx[y * GBA_W + x] = cv_rgba(c);
+	if (x >= 0 && y >= 0 && x < GBA_W && y < cvRows) cvBuf[y * GBA_W + x] = cv_rgba(c);
 }
 static void cv_rect(SDL_Rect r, SDL_Color c) {
 	for (int y = r.y; y < r.y + r.h; ++y)
@@ -7089,6 +7092,97 @@ static void toggle_step(void) {
 	}
 }
 
+/* ---- the toggle button (GEN-14): a key in the quick bar's look, drawn at
+ * the second screen's own pixel size on a canvas a little taller than the
+ * picture, so it can sit in the margin under it. Hotkey-only on a screen
+ * without touch. Hidden while the bar or a menu is up, and in games with
+ * nothing to turn. */
+#define TB_W 30
+#define TB_H 13
+#define TB_ROWS (GBA_H + 16)
+static uint32_t tbPx[GBA_W * TB_ROWS];
+static SDL_Texture* tbTex[2];
+static SDL_Renderer* tbTexRen[2];
+static bool tbDown; /* a finger is on it */
+static int tbGX, tbGY;
+static const char* const icon_toggle[] = {
+	"...X.......X...",
+	"..XX.......XX..",
+	".XXXXXXXXXXXXX.",
+	"..XX.......XX..",
+	"...X.......X...",
+	NULL,
+};
+
+/* the screen the button is on, or -1: the second screen, if it takes touch and the game has something to turn */
+static int toggle_btn_screen(void) {
+	if (!cfg->toggle || !strcmp(cfg->toggleButton, "off") || nScreens < 2 || !mc) return -1;
+	const MapProfile* hp = mapcap_profile(mc);
+	if (!hp || !hp->pages) return -1;
+	int s = 1 - game_screen();
+	if (s != ui_touch_screen() || !cfg->map) return -1;
+	return s;
+}
+
+/* where it is: the key in the canvas's pixels (kx, ky), the canvas's size on screen s, and the area a tap counts in (screen-local) */
+static void toggle_btn_geom(int s, SDL_Rect* key, SDL_Rect* canvas, SDL_Rect* tap) {
+	SDL_Rect pic = bar_pic_full(s);
+	float u = (float) pic.w / GBA_W;
+	int margin = (int) ((screens[s].rect.h - (pic.y + pic.h)) / u);
+	int x = !strcmp(cfg->toggleButton, "right") ? GBA_W - 6 - TB_W : !strcmp(cfg->toggleButton, "center") ? (GBA_W - TB_W) / 2 : 6;
+	int y = margin >= TB_H + 3 ? GBA_H + (SDL_min(margin, 16) - TB_H - 1) / 2 : GBA_H - 6 - TB_H - 1;
+	*key = (SDL_Rect) { x, y, TB_W, TB_H };
+	*canvas = (SDL_Rect) { pic.x, pic.y, pic.w, (int) (u * TB_ROWS + 0.5f) };
+	int cx = x + TB_W / 2, cy = y + TB_H / 2;
+	int tx = pic.x + (int) ((cx - 32) * u), ty = pic.y + (int) ((cy - 14) * u);
+	*tap = (SDL_Rect) { tx, ty, (int) (64 * u), (int) (28 * u) };
+	if (tap->x < 0) tap->w += tap->x, tap->x = 0;
+	if (tap->y + tap->h > screens[s].rect.h) tap->h = screens[s].rect.h - tap->y;
+	if (tap->x + tap->w > screens[s].rect.w) tap->w = screens[s].rect.w - tap->x;
+}
+
+static bool toggle_btn_visible(void) {
+	return toggle_btn_screen() >= 0 && !menuOpen && !barOpen && barShown <= 0;
+}
+
+static bool toggle_btn_hit(int screen, int x, int y) {
+	if (!toggle_btn_visible() || screen != toggle_btn_screen()) return false;
+	SDL_Rect key, canvas, tap;
+	toggle_btn_geom(screen, &key, &canvas, &tap);
+	SDL_Point pt = { x, y };
+	return SDL_PointInRect(&pt, &tap);
+}
+
+static void draw_toggle_btn(void) {
+	if (!toggle_btn_visible()) return;
+	int s = toggle_btn_screen();
+	SDL_Rect key, canvas, tap;
+	toggle_btn_geom(s, &key, &canvas, &tap);
+	bool ready = toggle_ready();
+	bool pressed = tbDown && ready;
+	cvBuf = tbPx, cvRows = TB_ROWS;
+	memset(tbPx, 0, sizeof(tbPx));
+	cv_key(key, pressed ? KEY_SEL : KEY_PLAIN);
+	cv_icon(icon_toggle, key.x + key.w / 2, key.y + key.h / 2, !ready ? G_DIS : pressed ? G_LIT : ui_key_ink());
+	cvBuf = barPx, cvRows = GBA_H;
+	for (int v = 0; v < nViews; ++v) {
+		if (tbTex[v] && tbTexRen[v] != views[v].ren) tbTex[v] = NULL;
+		if (!tbTex[v]) {
+			tbTex[v] = SDL_CreateTexture(views[v].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, TB_ROWS);
+			tbTexRen[v] = views[v].ren;
+			if (!tbTex[v]) continue;
+			SDL_SetTextureBlendMode(tbTex[v], SDL_BLENDMODE_BLEND);
+			SDL_SetTextureScaleMode(tbTex[v], SDL_ScaleModeNearest);
+		}
+		SDL_SetTextureAlphaMod(tbTex[v], ready ? 189 : 112); /* 74% (44% when there's nothing to turn right now) */
+		ui_update_texture_plain(tbTex[v], tbPx, GBA_W * 4);
+	}
+	SDL_Rect sr = screens[s].rect, clip = { sr.x, sr.y, sr.w, sr.h };
+	ui_clip(s, &clip);
+	ui_image(s, tbTex, GBA_W, TB_ROWS, "stretch", &canvas);
+	ui_clip(s, NULL);
+}
+
 static bool frame_is_dark(const uint32_t* fb) {
 	int bright = 0, total = 0;
 	for (int i = 0; i < GBA_W * GBA_H; i += 7) {
@@ -8627,6 +8721,26 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				 * finger lifts without having swiped) */
 				int ts = ui_touch_screen();
 				float u = ui_px(ts);
+				if (p.kind == 1 && toggle_btn_hit(p.screen, p.x, p.y)) {
+					/* the toggle button: its tap is its own, before "a tap opens the menu" */
+					tbDown = true, tbGX = p.x, tbGY = p.y;
+					barGesture = G_NONE;
+					continue;
+				}
+				if (tbDown) {
+					if (p.kind == 3 && p.screen == ts && p.y - tbGY <= -u * 10) {
+						/* a swipe up that began on it: the quick bar */
+						tbDown = false;
+						barOpen = true;
+						barSince = SDL_GetTicks();
+						barGesture = G_DONE;
+					} else if (p.kind == 2) {
+						bool in = toggle_btn_hit(p.screen, p.x, p.y);
+						tbDown = false;
+						if (in) toggle_press();
+					}
+					continue;
+				}
 				if (p.kind == 1) {
 					barGesture = G_NONE;
 					barDownOpen = barOpen;
@@ -9632,6 +9746,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			draw_rewind();
 			draw_hint(); /* (under the bar, as it comes up) */
 			draw_bar();
+			draw_toggle_btn();
 			/* (the keeper: the game and its sound go on if this is held up; not
 			 * for tests, whose frames are counted exactly) */
 			const bool keep = cfg->keepSound && audio && !ff && !rewinding && !noPace && !ui_scripted();
