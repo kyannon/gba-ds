@@ -439,6 +439,7 @@ static const KnownPatch knownPatches[] = {
 	{ "BZ6E", 0x452e75de, 1150, 0x00000000, 0x00000000, "colour", "Color restoration: monster (optional)", "", false },
 	{ "AB2E", 0x4da45fdb, 42201, 0x6f098da3, 0x00000000, "colour", "Palette fix v1.0 (gukid)", "Breath of Fire II (USA)", false },
 	{ "A2UJ", 0x4e04ba9e, 165587, 0x0a44569c, 0x00000000, "translation", "English v1.01", "Mother 1+2 (Japan)", false },
+	{ "BFTJ", 0x4eb16ff2, 246104, 0xdbdc71e3, 0x80366a0a, "translation", "English Patch 1.1 (F-Zero Climax Translation Project)", "F-Zero - Climax (Japan)", true },
 	{ "", 0x55811324, 721, 0x00000000, 0x00000000, "colour", "Color restoration: GBA-style player palettes (optional)", "", false },
 	{ "BZ6E", 0x563ccfa0, 29552, 0xd708f5ab, 0x00000000, "colour", "Color restoration v1.01", "Final Fantasy VI Advance (USA)", false },
 	{ "AZLP", 0x58129d2d, 3850, 0x5a164321, 0x72e519b7, "voice removal", "Voice removal v0.1", "Legend of Zelda, The - A Link to the Past & Four Swords (Europe) (En,Fr,De,Es,It)", true },
@@ -502,5 +503,4 @@ static const KnownPatch knownPatches[] = {
 	{ "A3AE", 0xee1f43b9, 43358, 0x40a48276, 0x6cda3e7d, "voice removal", "Voice removal v0.1", "Super Mario Advance 3 - Yoshi's Island (USA)", true },
 	{ "A3UJ", 0xf02e4122, 2336, 0x42ac9cb9, 0xb7faa37d, "audio", "HQ audio mix alternative (MusicTheorist)", "Mother 3 (Japan)", true },
 	{ "A2CE", 0xf3235cb8, 141702, 0x35536183, 0x00d0fddf, "colour", "Symphony of the Colors v1.0 (JonataGuitar)", "Castlevania - Aria of Sorrow (USA)", true },
-	{ "BFTJ", 0x4eb16ff2, 246104, 0xdbdc71e3, 0x80366a0a, "translation", "English Patch 1.1 (F-Zero Climax Translation Project)", "F-Zero - Climax (Japan)", true },
 };
