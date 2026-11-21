@@ -9933,9 +9933,6 @@ static const MapProfile profiles[] = {
 		 * SELECT goes on from it to the World map (Help, Area map, World map in turn) */
 		.skip = { { { 0x0203AD4C, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true } },
 		          { 0x0203ACCD, 0x0203ACE1, 0x0203ACF5, 0x0203AD09 }, 1, 4, 0x0004 },
-		/* the pause screen's fade to white and back (0x020229A1, 0xFD once done), and BLDY's as
-		 * SELECT turns its pages: the second screen fading with them */
-		.fade = { 0x020229A1, 0x1F, true, { { 0x0203AD4C, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true } }, true },
 		/* the prompts (BG1): the bottom row and the L / R tabs in the top
 		 * corners give way to the art, rooms and marker under them (KAM-3) */
 		.underRect = { { 0, 143, 239, 159 }, { 0, 0, 52, 16 }, { 188, 0, 239, 16 } }, .underLayers = 0x15,

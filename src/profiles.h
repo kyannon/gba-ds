@@ -433,10 +433,6 @@ typedef struct MapProfile {
 	 * matches, each byte holding `from` is set to `to` before the frame: the game then turns
 	 * on from there, past a page of its own pause screen (KAM-6) */
 	struct { MemProbe when[2]; uint32_t addr[6]; uint8_t from, to; uint16_t key; } skip;
-	/* While `when` matches, the second screen's picture fades with the game's own: by a
-	 * level byte from 0 to max (above max: none), and with `bldy` by its BLDY fade too;
-	 * toward black, or white with `white` */
-	struct { uint32_t addr; int max; bool white; MemProbe when[2]; bool bldy; } fade;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
