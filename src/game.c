@@ -6079,14 +6079,20 @@ static void state_rom_check(const char* path) {
 }
 
 static StateFileKind stateLoadKind; /* (what the last state_load found: why it failed) */
+static BiosRefusal stateLoadBios;   /* (and whether it was the GBA BIOS, issue #78) */
 static bool state_load(const char* path) {
 	bool fromGbads = false;
 	stateLoadKind = emu_state_file_kind(&emu, path, &fromGbads);
 	bool ok = emu_state_load_file(&emu, path);
+	stateLoadBios = ok ? BIOS_REFUSAL_NONE : emu_state_file_bios_refusal(&emu, path);
 	{
 		static const char* const kinds[] = { "no file", "GBA DS's / mGBA's", "RetroArch's", "another emulator's", "unreadable" };
 		fprintf(stderr, "load state: %s: %s (%s%s)\n", path, ok ? "loaded" : "not loaded", kinds[stateLoadKind],
 		        stateLoadKind == STATE_FILE_RETROARCH ? (fromGbads ? ", saved by GBA DS" : ", saved by RetroArch") : "");
+		if (stateLoadBios != BIOS_REFUSAL_NONE)
+			fprintf(stderr, "load state: refused by mGBA: %s\n", stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS
+			                                                         ? "saved inside the GBA BIOS, which this game isn't run with"
+			                                                         : "saved without the GBA BIOS, and this game runs with it");
 	}
 	stateWarned = false;
 	if (ok && !stateNoCheck) state_rom_check(path);
@@ -6114,6 +6120,11 @@ static bool state_load(const char* path) {
 	if (ok) mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
 	if (ok) hudOffLatch = false; /* (hud.offAfter: found again from the loaded game) */
 	return ok;
+}
+
+/* the quick bar's and the hotkey's word for a load that failed */
+static const char* load_failed_osd(void) {
+	return stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS ? "Saved with the GBA BIOS: can't load it." : "Load failed.";
 }
 
 #ifdef __wasi__
@@ -7965,6 +7976,9 @@ static bool activate(int item, enum GameExit* exitTo) {
 			snprintf(menuNote, sizeof(menuNote), tr("Saved by another emulator: can't load it"));
 		} else if (stateLoadKind == STATE_FILE_UNREADABLE) {
 			snprintf(menuNote, sizeof(menuNote), tr("This state can't be read"));
+		} else if (stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS) {
+			/* (a RetroArch state from its core with a BIOS file: issue #78) */
+			snprintf(menuNote, sizeof(menuNote), tr("Saved with the GBA BIOS: can't load it"));
 		} else {
 			snprintf(menuNote, sizeof(menuNote), tr("Load failed"));
 		}
@@ -8412,6 +8426,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		} else if (stateLoadKind == STATE_FILE_OTHER_CORE) {
 			/* (RetroArch's automatic state, from another of its GBA cores) */
 			ui_osd_long("Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.");
+		} else if (stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS) {
+			ui_osd_long("Not resumed: the automatic state was saved with the GBA BIOS (RetroArch's core had one), and GBA DS doesn't run games with it.");
 		}
 	} else {
 		ui_osd("Tap the screen or press HOME for the menu");
@@ -8640,7 +8656,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						} else if (bb == BB_LOAD) {
 							if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
 							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true, barLit = bb, barLitAt = barSince; }
-							else ui_osd("Load failed.");
+							else ui_osd(load_failed_osd());
 						} else if (bb == BB_SETTINGS) {
 							open_menu();
 							ignorePointerUp = false;
@@ -8953,7 +8969,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				case HK_LOAD:
 					if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
 					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true; }
-					else ui_osd("Load failed.");
+					else ui_osd(load_failed_osd());
 					break;
 				case HK_BAR: bar_toggle(); break;
 				case HK_SWAP: swap_screens(); break;

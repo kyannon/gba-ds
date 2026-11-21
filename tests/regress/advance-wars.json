@@ -1471,6 +1471,96 @@
    ]
   },
   {
+   "id": "aw-us-retroarch-bios",
+   "rom": "AWRE",
+   "state": "advance-wars/us-co-screen.ss",
+   "desc": "a state RetroArch's core saved with the GBA BIOS while the CPU was inside it (GEN-14): the pause menu's Load Slot 4 says it was saved with the GBA BIOS, not just \"Load failed\" (the clock's corner masked, it shows the real time)",
+   "rules": [
+    "GEN-14"
+   ],
+   "retroarch": {
+    "states": {
+     "mGBA/AWRE.state4": "advance-wars/us-retroarch-bios.state"
+    }
+   },
+   "shots": {
+    "refused-keys": 190
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: .*AWRE\\.state4: not loaded \\(RetroArch's",
+     "rule": "GEN-14",
+     "what": "the BIOS state is refused"
+    },
+    {
+     "type": "log",
+     "match": "load state: refused by mGBA: saved inside the GBA BIOS",
+     "rule": "GEN-14",
+     "what": "and the reason is told"
+    }
+   ],
+   "input": [
+    [
+     30,
+     "HOME"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     66,
+     "-"
+    ],
+    [
+     72,
+     "DOWN"
+    ],
+    [
+     78,
+     "-"
+    ],
+    [
+     140,
+     "UP"
+    ],
+    [
+     146,
+     "-"
+    ],
+    [
+     152,
+     "RIGHT"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     164,
+     "A"
+    ],
+    [
+     170,
+     "-"
+    ]
+   ],
+   "golden_frac": 0.001,
+   "golden_mask": [
+    [
+     0,
+     0,
+     200,
+     60
+    ]
+   ]
+  },
+  {
    "id": "aw-retroarch-settings",
    "kind": "library",
    "rom": "AWRE",

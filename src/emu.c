@@ -4,6 +4,8 @@
 #include <mgba/internal/gba/gba.h>
 #include <mgba/internal/gba/renderers/video-software.h>
 #include <mgba/internal/gba/cheats.h>
+#include <mgba/internal/gba/bios.h>
+#include <mgba/internal/gba/serialize.h>
 #undef GBA_H
 #include "emu.h"
 
@@ -19,6 +21,7 @@
 #include <mgba/core/log.h>
 #include "patch.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include <sys/stat.h>
 #include <pthread.h>
 #include <ctype.h>
@@ -744,6 +747,29 @@ StateFileKind emu_state_file_kind(Emu* e, const char* path, bool* fromGbads) {
 	}
 	free(b);
 	return kind;
+}
+
+/* mGBA's own rule (GBADeserialize, src/gba/serialize.c): a different BIOS checksum is
+ * only a warning, unless one side is the official BIOS and the saved program counter
+ * is inside the BIOS (from 0x20: past the reset vector): then the state is refused.
+ * (GBA DS's own states are made with mGBA's built-in BIOS, so those from RetroArch's
+ * core with a BIOS file are the ones that meet this.) */
+BiosRefusal emu_state_file_bios_refusal(Emu* e, const char* path) {
+	size_t n;
+	StateFileKind kind;
+	uint8_t* b = state_file_read(path, &n, &kind);
+	BiosRefusal r = BIOS_REFUSAL_NONE;
+	const size_t pcAt = offsetof(struct GBASerializedState, cpu.gprs) + ARM_PC * sizeof(int32_t);
+	if (b && (kind == STATE_FILE_MGBA || kind == STATE_FILE_RETROARCH) && n >= pcAt + 4 && e && e->core && e->core->board) {
+		uint32_t saved = le32(b + offsetof(struct GBASerializedState, biosChecksum)), pc = le32(b + pcAt);
+		uint32_t mine = ((struct GBA*) e->core->board)->biosChecksum;
+		if (saved != mine && pc < GBA_SIZE_BIOS && pc >= 0x20) {
+			if (saved == GBA_BIOS_CHECKSUM) r = BIOS_REFUSAL_STATE_HAS_BIOS;
+			else if (mine == GBA_BIOS_CHECKSUM) r = BIOS_REFUSAL_CORE_HAS_BIOS;
+		}
+	}
+	free(b);
+	return r;
 }
 
 bool emu_state_file_rom_crc(const char* path, uint32_t* crc) {
