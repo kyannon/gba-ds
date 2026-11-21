@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.7 (not yet released)
+## v1.5.7 (2026-11-21)
 
 ### New games
 - **Pokémon FireRed, LeafGreen, Ruby, Sapphire and Emerald**, in every language, and many romhacks of them (Radical Red, Unbound, Gaia, Saiph, Fuligin, Light Platinum, Flora Sky, Glazed, Theta Emerald EX, Super MarioMon, Emerald Rogue EX): the second screen shows the game's Party and its region map, turning every five seconds (only the Party in a battle), and the game's title logo before you have a Party. Known: Saiph and Super MarioMon show only the Party (no map); Gaia's Party screen has black bars of its own (not re-checked on the device); the map's marker can lag a few seconds; the Japanese Rev 1 releases, the Pokémon Box and debug dumps, the Switch Online dumps and Korean releases haven't been tried.
