@@ -24,8 +24,8 @@ extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid
 /* Hotkeys: the hotkey button held with an action's button does the action
  * (game.c). gba-ds.cfg: hotkey_<name> = a button (a, b, x, y, l, r, l2, r2,
  * select, start, l3, up, down, left, right) or none. */
-enum { HK_QUIT, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_COUNT };
-extern const char* const hotkeyNames[HK_COUNT]; /* quit, save_state, ... */
+enum { HK_QUIT, HK_GAME, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_COUNT };
+extern const char* const hotkeyNames[HK_COUNT]; /* quit (close the emulator), close_game, save_state, ... */
 
 /* custom_logos (GEN-11): the player's own and scraped logos shrunk to GBA
  * pixels, at full detail (the same size), or not used. */
