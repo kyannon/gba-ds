@@ -33,6 +33,8 @@ static const KnownDump knownDumps[] = {
 	{ "A4NE", 0x8e923168, true, false, "Harvest Moon - Friends of Mineral Town (USA)" },
 	{ "A4NJ", 0x09185657, true, false, "Bokujou Monogatari - Mineral Town no Nakama-tachi (Japan)" },
 	{ "A4NP", 0xf50f82ad, true, false, "Harvest Moon - Friends of Mineral Town (Europe)" },
+	{ "A7KE", 0x1af07ac8, false, false, "Kirby - Nightmare in Dream Land (USA) (Virtual Console)" },
+	{ "A7KE", 0x20ef3f64, true, false, "Kirby - Nightmare in Dream Land (USA)" },
 	{ "A88E", 0xe718d850, true, false, "Mario & Luigi - Superstar Saga (USA)" },
 	{ "A88E", 0xf87ea3c3, false, false, "Mario & Luigi - Superstar Saga (USA) (Virtual Console)" },
 	{ "A88J", 0x4ef93d41, true, false, "Mario & Luigi RPG (Japan)" },
