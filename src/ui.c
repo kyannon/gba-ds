@@ -18,6 +18,7 @@ void ui_stick_dpad(bool on) {
 #include "emu.h"
 #include "i18n.h"
 
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +27,9 @@ void ui_stick_dpad(bool on) {
 #include <unistd.h>
 #include <dirent.h>
 #include <strings.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <time.h>
 
 View views[2];
@@ -2230,6 +2233,9 @@ static FileCrc fileCrc[FILE_CRC_MAX];
 static int nFileCrc;
 static bool fileCrcLoaded;
 static char fileCrcPath[1200];
+static pthread_mutex_t fileCrcLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t fileCrcWake = PTHREAD_COND_INITIALIZER;
+/* (fileCrcLock held for all of these) */
 static void file_crc_load(const Config* c) {
 	if (fileCrcLoaded) return;
 	fileCrcLoaded = true;
@@ -2249,30 +2255,177 @@ static void file_crc_load(const Config* c) {
 	}
 	fclose(f);
 }
-static uint32_t rom_file_crc(const Config* c, const char* rom, bool compute) {
-	struct stat st;
-	if (!rom || !*rom || stat(rom, &st)) return 0;
-	file_crc_load(c);
+static const FileCrc* file_crc_find(const char* rom, const struct stat* st) {
 	for (int i = 0; i < nFileCrc; ++i)
-		if (fileCrc[i].size == st.st_size && fileCrc[i].mtime == st.st_mtime && !strcmp(fileCrc[i].path, rom)) return fileCrc[i].crc;
-	if (!compute) return 0;
-	size_t n = 0;
-	uint8_t* buf = emu_rom_read_all(rom, &n);
-	uint32_t crc = buf ? doCrc32(buf, n) : 0;
-	free(buf);
-	if (!crc) return 0;
-	FileCrc e = { .size = st.st_size, .mtime = st.st_mtime, .crc = crc };
+		if (fileCrc[i].size == st->st_size && fileCrc[i].mtime == st->st_mtime && !strcmp(fileCrc[i].path, rom)) return &fileCrc[i];
+	return NULL;
+}
+static bool fileCrcDirty;
+static void file_crc_put(const char* rom, const struct stat* st, uint32_t crc) {
+	FileCrc e = { .size = st->st_size, .mtime = st->st_mtime, .crc = crc };
 	snprintf(e.path, sizeof(e.path), "%s", rom);
 	int at = nFileCrc < FILE_CRC_MAX ? nFileCrc++ : 0; /* (full: the oldest slot) */
 	for (int i = 0; i < nFileCrc; ++i)
 		if (!strcmp(fileCrc[i].path, rom)) at = i; /* (the file changed: its entry again) */
 	fileCrc[at] = e;
-	FILE* f = fopen(fileCrcPath, "w");
-	if (f) {
-		for (int i = 0; i < nFileCrc; ++i) fprintf(f, "%lld %lld %08X %s\n", fileCrc[i].size, fileCrc[i].mtime, fileCrc[i].crc, fileCrc[i].path);
-		fclose(f);
+	if (crc) fileCrcDirty = true; /* (one that couldn't be read is remembered for this run only) */
+}
+/* The cache file, written with the lock NOT held: the list asks for checksums
+ * on the main thread, and a write to a busy SD card must not hold it up. */
+static pthread_mutex_t fileCrcWriteLock = PTHREAD_MUTEX_INITIALIZER;
+static void file_crc_flush(void) {
+	pthread_mutex_lock(&fileCrcWriteLock);
+	pthread_mutex_lock(&fileCrcLock);
+	char* text = NULL;
+	char path[sizeof(fileCrcPath)];
+	if (fileCrcDirty) {
+		fileCrcDirty = false;
+		snprintf(path, sizeof(path), "%s", fileCrcPath);
+		size_t cap = (size_t) nFileCrc * 1400 + 16, len = 0;
+		text = malloc(cap);
+		for (int i = 0; text && i < nFileCrc; ++i)
+			if (fileCrc[i].crc) len += (size_t) snprintf(text + len, cap - len, "%lld %lld %08X %s\n", fileCrc[i].size, fileCrc[i].mtime, fileCrc[i].crc, fileCrc[i].path);
+		if (text) text[len] = 0;
 	}
+	pthread_mutex_unlock(&fileCrcLock);
+	if (text) {
+		FILE* f = fopen(path, "w");
+		if (f) {
+			fputs(text, f);
+			fclose(f);
+		}
+		free(text);
+	}
+	pthread_mutex_unlock(&fileCrcWriteLock);
+}
+
+static uint32_t file_crc_read(const char* rom) {
+	size_t n = 0;
+	uint8_t* buf = emu_rom_read_all(rom, &n);
+	uint32_t crc = buf ? doCrc32(buf, n) : 0;
+	free(buf);
 	return crc;
+}
+
+/* In the game list (ui_file_crc_async) a checksum that isn't known yet is
+ * worked out on a thread of its own, the newest request first (the game under
+ * the cursor), and the list reloads its logos when one is done. Reading a
+ * 16 MB Pokemon ROM from the SD card on the main thread, as the first look at
+ * each file used to, stopped the list for a good part of a second. */
+#define FILE_CRC_QUEUE 64
+static char fileCrcQueue[FILE_CRC_QUEUE][1200];
+static int nFileCrcQueue;
+static char fileCrcBusy[1200];
+static bool fileCrcAsync, fileCrcThread;
+static volatile unsigned fileCrcGen;
+
+static void* file_crc_worker(void* arg) {
+	(void) arg;
+#ifndef __wasi__
+	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 10); /* (below the list, above the logo extraction's 19) */
+#endif
+	pthread_mutex_lock(&fileCrcLock);
+	for (;;) {
+		while (!nFileCrcQueue) pthread_cond_wait(&fileCrcWake, &fileCrcLock);
+		char rom[1200];
+		snprintf(rom, sizeof(rom), "%s", fileCrcQueue[--nFileCrcQueue]); /* (the newest) */
+		snprintf(fileCrcBusy, sizeof(fileCrcBusy), "%s", rom);
+		struct stat st;
+		bool ok = stat(rom, &st) == 0 && !file_crc_find(rom, &st);
+		pthread_mutex_unlock(&fileCrcLock);
+		uint32_t crc = ok ? file_crc_read(rom) : 0;
+		pthread_mutex_lock(&fileCrcLock);
+		if (ok) file_crc_put(rom, &st, crc);
+		fileCrcBusy[0] = 0;
+		++fileCrcGen;
+		pthread_mutex_unlock(&fileCrcLock);
+		file_crc_flush();
+		pthread_mutex_lock(&fileCrcLock);
+	}
+	return NULL;
+}
+
+void ui_file_crc_async(bool on) {
+#ifndef __wasi__
+	/* (not with GBADS_SYNC: the regression tests want it done there and then) */
+	fileCrcAsync = on && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")));
+#else
+	(void) on;
+#endif
+}
+
+uint32_t ui_file_crc_generation(void) {
+	return __atomic_load_n(&fileCrcGen, __ATOMIC_SEQ_CST);
+}
+
+bool ui_file_crc_pending(void) {
+	pthread_mutex_lock(&fileCrcLock);
+	bool p = nFileCrcQueue > 0 || fileCrcBusy[0];
+	pthread_mutex_unlock(&fileCrcLock);
+	return p;
+}
+
+/* 0 if it isn't known (compute false), or can't be read. *pending: it's being
+ * worked out (the list asked for it: ask again when ui_file_crc_generation moves). */
+static uint32_t rom_file_crc_ex(const Config* c, const char* rom, bool compute, bool* pending) {
+	struct stat st;
+	if (pending) *pending = false;
+	if (!rom || !*rom || stat(rom, &st)) return 0;
+	pthread_mutex_lock(&fileCrcLock);
+	file_crc_load(c);
+	const FileCrc* hit = file_crc_find(rom, &st);
+	if (hit) {
+		uint32_t crc = hit->crc;
+		pthread_mutex_unlock(&fileCrcLock);
+		return crc;
+	}
+	if (!compute) {
+		pthread_mutex_unlock(&fileCrcLock);
+		return 0;
+	}
+	if (fileCrcAsync) {
+		bool queued = !strcmp(fileCrcBusy, rom);
+		for (int i = 0; i < nFileCrcQueue && !queued; ++i) queued = !strcmp(fileCrcQueue[i], rom);
+		if (!queued) {
+			if (nFileCrcQueue == FILE_CRC_QUEUE) { /* (full: the oldest goes) */
+				memmove(fileCrcQueue[0], fileCrcQueue[1], sizeof(fileCrcQueue[0]) * (FILE_CRC_QUEUE - 1));
+				--nFileCrcQueue;
+			}
+			snprintf(fileCrcQueue[nFileCrcQueue++], sizeof(fileCrcQueue[0]), "%s", rom);
+		} else {
+			/* asked for again: the one under the cursor is first */
+			for (int i = 0; i < nFileCrcQueue; ++i) {
+				if (strcmp(fileCrcQueue[i], rom)) continue;
+				char tmp[1200];
+				snprintf(tmp, sizeof(tmp), "%s", fileCrcQueue[i]);
+				memmove(fileCrcQueue[i], fileCrcQueue[i + 1], sizeof(fileCrcQueue[0]) * (nFileCrcQueue - i - 1));
+				snprintf(fileCrcQueue[nFileCrcQueue - 1], sizeof(fileCrcQueue[0]), "%s", tmp);
+				break;
+			}
+		}
+		if (!fileCrcThread) {
+			pthread_t t;
+			fileCrcThread = pthread_create(&t, NULL, file_crc_worker, NULL) == 0;
+			if (fileCrcThread) pthread_detach(t);
+		}
+		if (fileCrcThread) {
+			pthread_cond_signal(&fileCrcWake);
+			pthread_mutex_unlock(&fileCrcLock);
+			if (pending) *pending = true;
+			return 0;
+		}
+		/* (no thread: now, below) */
+	}
+	pthread_mutex_unlock(&fileCrcLock);
+	uint32_t crc = file_crc_read(rom);
+	pthread_mutex_lock(&fileCrcLock);
+	if (crc) file_crc_put(rom, &st, crc);
+	pthread_mutex_unlock(&fileCrcLock);
+	file_crc_flush();
+	return crc;
+}
+static uint32_t rom_file_crc(const Config* c, const char* rom, bool compute) {
+	return rom_file_crc_ex(c, rom, compute, NULL);
 }
 
 /* The extracted logo's file (whether it exists yet or not): per code, or
@@ -2283,10 +2436,15 @@ static uint32_t rom_file_crc(const Config* c, const char* rom, bool compute) {
 static bool extracted_path_for(const Config* c, const char* rom, const char* code, char* path, size_t n, bool compute) {
 	const MapProfile* prof = profile_find(code);
 	if (prof && prof->logoPerRom) {
-		uint32_t crc = rom_file_crc(c, rom, compute);
+		bool pending;
+		uint32_t crc = rom_file_crc_ex(c, rom, compute, &pending);
 		if (crc) {
 			snprintf(path, n, "%s/logos/%.4s-%08X.png", c->stateDir, code, crc);
 			return true;
+		}
+		if (pending) { /* (the game list: the checksum's being worked out; no path yet) */
+			path[0] = 0;
+			return false;
 		}
 		if (!compute) return false;
 	}
@@ -2659,6 +2817,10 @@ bool ui_load_logo(const Config* c, const char* rom, const char* code, SDL_Textur
 	mkdirs(path);
 	char ext[1200];
 	extracted_path(c, rom, code, ext, sizeof(ext));
+	if (!ext[0]) { /* (its ROM's checksum is still being worked out: asked again when it's known) */
+		*pixelArt = true;
+		return false;
+	}
 	/* the player's own logo, else a scraped one: sized from the extracted
 	 * one (made if missing) */
 	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {

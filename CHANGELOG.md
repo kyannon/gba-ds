@@ -8,6 +8,7 @@
 ### Interface
 - A game with RetroAchievements waits for its achievements behind a "Loading achievements..." screen instead of freezing for a second or two a moment into play.
 - The first start of a game whose logo is taken from its own ROM shows an "Initializing game..." screen while the ROM is read once, instead of freezing for a few seconds.
+- Scrolling the game list over a lot of new ROMs (Pokémon and its romhacks especially) no longer stalls the first time through.
 
 ### New games
 - **The Legend of Zelda: The Minish Cap** (USA, Europe, Japan): the second screen shows the game's own Map tab, taken from a hidden copy as you play: the map of Hyrule with the region you are in marked and named, in the open and under a roof, and in a dungeon the dungeon's map with its floors, chests and boss mark, without the page arrows and the "Choose" prompt. Link's head stays on instead of blinking. Before you have the map it shows the game's Quest Status tab instead, without its cursor, the SLEEP and SAVE buttons or the name bar. On the title, the file screen, after a game over and in the credits it shows the logo; in conversations and cutscenes, where the game's menu won't open, the last picture stays. Tried on the device from states late in the game (USA and Europe from end-game saves, Japan from a new game with that save's data copied in); the first hours of a new game and the Minish world haven't been looked at yet.
