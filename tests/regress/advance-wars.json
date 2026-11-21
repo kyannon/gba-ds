@@ -1763,6 +1763,109 @@
      750
     ]
    ]
+  },
+  {
+   "id": "aw-bios-settings-on",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "Settings > System, GBA BIOS with the real BIOS file in the bios folder: switched on it says so and the row reads Your Own",
+   "rules": [
+    "GEN-15"
+   ],
+   "input": [
+    [
+     30,
+     "SELECT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     44,
+     "DOWN"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     52,
+     "DOWN"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     74,
+     "-"
+    ],
+    [
+     78,
+     "DOWN"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     86,
+     "DOWN"
+    ],
+    [
+     90,
+     "-"
+    ],
+    [
+     94,
+     "DOWN"
+    ],
+    [
+     98,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ]
+   ],
+   "shots": {
+    "system-bios-on": 150
+   },
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ]
+   ],
+   "bios": "gba_bios.bin",
+   "checks": [
+    {
+     "type": "log",
+     "match": "library: GBA BIOS on",
+     "rule": "GEN-15",
+     "what": "switched on with a usable file"
+    }
+   ]
   }
  ]
 }
