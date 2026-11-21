@@ -1163,6 +1163,388 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "tmc-us-warp-cof-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-cof-no-map.ss",
+   "desc": "The Cave of Flames without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-cof-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-cof-map.ss",
+   "desc": "The Cave of Flames with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-fow-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-fow-no-map.ss",
+   "desc": "The Fortress of Winds without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-fow-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-fow-map.ss",
+   "desc": "The Fortress of Winds with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-tod-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-tod-no-map.ss",
+   "desc": "The Temple of Droplets without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-tod-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-tod-map.ss",
+   "desc": "The Temple of Droplets with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-pow-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-pow-no-map.ss",
+   "desc": "The Palace of Winds without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-pow-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-pow-map.ss",
+   "desc": "The Palace of Winds with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-dhc-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-dhc-no-map.ss",
+   "desc": "Dark Hyrule Castle without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-dhc-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-dhc-map.ss",
+   "desc": "Dark Hyrule Castle with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-deepwood-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-deepwood-no-map.ss",
+   "desc": "Deepwood Shrine before its map: the rooms Link has been in (the owner's device state)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-crypt",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-crypt.ss",
+   "desc": "the Royal Crypt, entered from the Royal Valley (a room without enemies): it has no dungeon map, so the map of Hyrule, the Royal Valley marked (a state made by warping Link from North Hyrule Field: not a played game's progress)",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-dhc-grounds",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-dhc-grounds.ss",
+   "desc": "Dark Hyrule Castle's grounds, entered from the Castle Garden once Vaati has taken the castle (its story flags set) (a state made by warping Link from North Hyrule Field: not a played game's progress)",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-dark-town",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-dark-town.ss",
+   "desc": "Hyrule Town once Vaati has taken the castle, its people turned to stone (its story flags set) (a state made by warping Link from North Hyrule Field: not a played game's progress)",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-minish-woods",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-minish-woods.ss",
+   "desc": "Link as a Minish in the Minish Woods: the map of Hyrule (the owner's device state)",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-ezlo-talking",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-north-field.ss",
+   "desc": "North Hyrule Field's map, then Ezlo talking in the Minish Woods, where the menu won't open: the last picture stays (the owner's device states)",
+   "rules": [
+    "TMC-8"
+   ],
+   "shots": {
+    "map": 380,
+    "talking": 640
+   },
+   "golden": [
+    "talking"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:zelda-the-minish-cap/us-ezlo-talking.ss"
+    ]
+   ]
   }
  ]
 }
