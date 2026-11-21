@@ -712,6 +712,188 @@
      "The title of a first start: the logo, the title's lettering (YWC-5, YWC-7)."
     ]
    }
+  },
+  "pokemon": {
+   "Pokemon - FireRed Version (USA, Europe)": {
+    "1": ["mid/BPRE.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/BPRE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["fr-us-nopokemon.ss", "No Pokémon yet: the game's title logo, no Party or map (PK-1)"],
+    "4": ["fr-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - FireRed Version (USA, Europe) (Rev 1)": {
+    "1": ["mid/BPRE+rev1.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Feuerrote Edition (Germany)": {
+    "1": ["mid/BPRD.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["fr-de-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Rouge Feu (France)": {
+    "1": ["mid/BPRF.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Rosso Fuoco (Italy)": {
+    "1": ["mid/BPRI.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Rojo Fuego (Spain)": {
+    "1": ["mid/BPRS.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - FireRed (Japan)": {
+    "1": ["mid/BPRJ.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - LeafGreen Version (USA, Europe)": {
+    "1": ["mid/BPGE.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/BPGE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["lg-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - LeafGreen Version (USA, Europe) (Rev 1)": {
+    "1": ["mid/BPGE+rev1.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["lg-center-no-map.ss", "Early game in a Pokémon Center, no Town Map yet: the Party only (PK-2, PK-6)"],
+    "3": ["lg-given-map.ss", "The Town Map being handed over: the Party, then the map (PK-2, PK-3, PK-4)"],
+    "4": ["lg-with-map.ss", "Outside with the Town Map: the map comes up (PK-3, PK-4)"]
+   },
+   "Pokemon - Blattgruene Edition (Germany)": {
+    "1": ["mid/BPGD.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Vert Feuille (France)": {
+    "1": ["mid/BPGF.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Verde Foglia (Italy)": {
+    "1": ["mid/BPGI.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Verde Hoja (Spain)": {
+    "1": ["mid/BPGS.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - LeafGreen (Japan)": {
+    "1": ["mid/BPGJ.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Rubin-Edition (Germany)": {
+    "1": ["mid/AXVD.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Rubin-Edition (Germany) (Rev 1)": {
+    "1": ["mid/AXVD+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Ruby Version (USA, Europe)": {
+    "1": ["mid/AXVE.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/AXVE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["ruby-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Ruby Version (USA, Europe) (Rev 1)": {
+    "1": ["mid/AXVE+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Ruby Version (USA, Europe) (Rev 2)": {
+    "1": ["mid/AXVE+rev2.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Rubis (France) (Rev 1)": {
+    "1": ["mid/AXVF+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Rubino (Italy)": {
+    "1": ["mid/AXVI.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Rubino (Italy) (Rev 1)": {
+    "1": ["mid/AXVI+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - Ruby (Japan)": {
+    "1": ["mid/AXVJ.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["ruby-jp-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Rubi (Spain)": {
+    "1": ["mid/AXVS.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Rubi (Spain) (Rev 1)": {
+    "1": ["mid/AXVS+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Saphir-Edition (Germany)": {
+    "1": ["mid/AXPD.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Saphir-Edition (Germany) (Rev 1)": {
+    "1": ["mid/AXPD+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Sapphire Version (USA, Europe)": {
+    "1": ["mid/AXPE.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/AXPE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["sapphire-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Sapphire Version (USA, Europe) (Rev 1)": {
+    "1": ["mid/AXPE+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Sapphire Version (USA, Europe) (Rev 2)": {
+    "1": ["mid/AXPE+rev2.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Saphir (France)": {
+    "1": ["mid/AXPF.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Saphir (France) (Rev 1)": {
+    "1": ["mid/AXPF+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Zaffiro (Italy)": {
+    "1": ["mid/AXPI.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Zaffiro (Italy) (Rev 1)": {
+    "1": ["mid/AXPI+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - Sapphire (Japan)": {
+    "1": ["mid/AXPJ.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Zafiro (Spain)": {
+    "1": ["mid/AXPS.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Zafiro (Spain) (Rev 1)": {
+    "1": ["mid/AXPS+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Smaragd-Edition (Germany)": {
+    "1": ["mid/BPED.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Emerald Version (USA, Europe)": {
+    "1": ["mid/BPEE.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/BPEE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["emerald-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Emeraude (France)": {
+    "1": ["mid/BPEF.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Smeraldo (Italy)": {
+    "1": ["mid/BPEI.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - Emerald (Japan)": {
+    "1": ["mid/BPEJ.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Esmeralda (Spain)": {
+    "1": ["mid/BPES.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   }
+  },
+  "breath-of-fire-ii": {
+   "Breath of Fire II (USA)": {
+    "1": ["us-field.ss", "Walking about in a town: the party overview (zenny, levels, HP, AP, experience) (BOF2-3)"],
+    "2": ["us-dialogue.ss", "A conversation up: the party overview stays (BOF2-3, BOF2-5)"],
+    "3": ["us-menu.ss", "The camp menu open on the game screen: the party overview, once (BOF2-6)"],
+    "4": ["us-menuitem.ss", "A menu page open (Item): the party overview, not the page (BOF2-6)"],
+    "5": ["us-battle.ss", "A battle loaded straight in: the logo. Load slot 1 first, wait for the overview, then this one: the overview stays (BOF2-4)"],
+    "6": ["us-title.ss", "The title: the logo (BOF2-1, BOF2-2)"],
+    "7": ["us-filemenu.ss", "The file menu: the logo (BOF2-2, BOF2-5)"],
+    "8": ["us-world.ss", "The overworld: the world map with the marker (BOF2-3)"],
+    "9": ["us-worldmap.ss", "START's world map open on the game screen: the second screen shows the same map as walking about (BOF2-5)"]
+   },
+   "Breath of Fire II (Europe)": {
+    "1": ["eu-field.ss", "Walking about in a town: the party overview (zenny, levels, HP, AP, experience) (BOF2-3)"],
+    "2": ["eu-dialogue.ss", "A conversation up: the party overview stays (BOF2-3, BOF2-5)"],
+    "3": ["eu-menu.ss", "The camp menu open on the game screen: the party overview, once (BOF2-6)"],
+    "4": ["eu-menuitem.ss", "A menu page open (Item): the party overview, not the page (BOF2-6)"],
+    "5": ["eu-battle.ss", "A battle loaded straight in: the logo. Load slot 1 first, wait for the overview, then this one: the overview stays (BOF2-4)"],
+    "6": ["eu-title.ss", "The title: the logo (BOF2-1, BOF2-2)"],
+    "7": ["eu-filemenu.ss", "The file menu: the logo (BOF2-2, BOF2-5)"],
+    "8": ["eu-world.ss", "The overworld: the world map with the marker (BOF2-3)"],
+    "9": ["eu-worldmap.ss", "START's world map open on the game screen: the second screen shows the same map as walking about (BOF2-5)"]
+   },
+   "Breath of Fire II - Shimei no Ko (Japan)": {
+    "1": ["jp-field.ss", "Walking about in a town: the party overview (zenny, levels, HP, AP, experience) (BOF2-3)"],
+    "2": ["jp-dialogue.ss", "A conversation up: the party overview stays (BOF2-3, BOF2-5)"],
+    "3": ["jp-menu.ss", "The camp menu open on the game screen: the party overview, once (BOF2-6)"],
+    "4": ["jp-menuitem.ss", "A menu page open (Item): the party overview, not the page (BOF2-6)"],
+    "5": ["jp-battle.ss", "A battle loaded straight in: the logo. Load slot 1 first, wait for the overview, then this one: the overview stays (BOF2-4)"],
+    "6": ["jp-title.ss", "The title: the logo (BOF2-1, BOF2-2)"],
+    "7": ["jp-filemenu.ss", "The file menu: the logo (BOF2-2, BOF2-5)"],
+    "8": ["jp-world.ss", "The overworld: the world map with the marker (BOF2-3)"],
+    "9": ["jp-worldmap.ss", "START's world map open on the game screen: the second screen shows the same map as walking about (BOF2-5)"]
+   }
   }
  }
 }
