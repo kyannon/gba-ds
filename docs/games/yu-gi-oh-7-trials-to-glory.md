@@ -6,7 +6,7 @@
 | Dumps | `BY7E` cartridge `584db6a6` (tested) · `BYIJ` cartridge `6dcfb879` (tested) |
 | Profile | `src/profiles.c`: the `BY7E` entry (yw_compose_for, yw_virt_for, ywUS); the `BYIJ` variant (ywc_jpn, ywJP) |
 | Tests | `tests/regress/yu-gi-oh-7-trials-to-glory.json` (`tools/regress.py yu-gi-oh-7-trials-to-glory`) |
-| Status | USA and Japan: Card View on the second screen |
+| Status | USA and Japan: Card View on the second screen; tried on the device (the owner, Nov 21, 2026) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them. Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused.
 

@@ -2671,13 +2671,14 @@ static const char* const icon_exit[] = {
  * GBA pixels (the *_g functions: 240x160, the second screen's picture), drawn
  * into a canvas of that size (below) and scaled up with the picture. */
 enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 24, BAR_MSG_H = 19, BAR_PICK_H = 24 };
+static bool sunHere; /* the cartridge has a sun sensor: the Sun row stands in the Controls row's place */
 static int bar_pick_h(void) {
-	return ctlProf ? BAR_PICK_H : 0;
+	return ctlProf || sunHere ? BAR_PICK_H : 0;
 }
 /* the row of time, FPS and battery: without the Controls row above it, tall enough that the pin
  * (2 px down, 12 high, its edge a row more) has a clear pixel row before the buttons */
 static int bar_status_h(void) {
-	return ctlProf ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
+	return ctlProf || sunHere ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
 }
 static int game_screen(void);
 
@@ -2924,6 +2925,8 @@ static void cv_message(SDL_Rect area, const char* msg, SDL_Color c) {
 
 static void ctl_draw(void);
 static bool ctl_tap(int s, int x, int y);
+static void sun_draw(void);
+static bool sun_tap(int s, int x, int y);
 static void save_prefs(void);
 
 static const char* const icon_pin[] = {
@@ -3078,6 +3081,7 @@ static void draw_bar(void) {
 		cv_label(c.x + c.w / 2, c.y + c.h / 2, true, buf[i], G_TEXT, c.w - 2);
 	}
 	if (ctlProf) ctl_draw();
+	else if (sunHere) sun_draw();
 	static const char* const* const art[BB_COUNT] = { icon_save, icon_load, icon_gear, icon_bug, icon_exit };
 	bool lit = barLit >= 0 && SDL_GetTicks() - barLitAt < 1500;
 	for (int i = 0; i < BB_COUNT; ++i) {
@@ -5777,6 +5781,93 @@ static bool ctl_tap(int s, int x, int y) {
 	return true;
 }
 
+
+/* ------------------------------------------------------------------- the sun
+ * Cartridges with a sun sensor (Boktai 1, 2 and 3) have a Sun row in the quick
+ * bar, where Controls is in other games: Dark (0), - and + (one step, as
+ * RetroArch's darken / brighten sensor buttons), the level between them, and
+ * Full (10). The level is each core's sunlight (emu_solar_level), kept per game
+ * in <state_dir>/<game>.sun and starting from the solar_level setting. */
+enum { SUN_DARK, SUN_DOWN, SUN_LEVEL, SUN_UP, SUN_FULL, SUN_TILES };
+static int sunLevel;
+static char sunPath[1400];
+
+static void sun_set(int v) {
+	sunLevel = v < 0 ? 0 : v > 10 ? 10 : v;
+	emu_solar_level = sunLevel;
+}
+
+static void sun_save(void) {
+	FILE* f = fopen(sunPath, "w");
+	if (!f) return;
+	fprintf(f, "%d\n", sunLevel);
+	fclose(f);
+}
+
+static void sun_load(void) {
+	sunHere = emu_has_solar(&emu);
+	if (!sunHere) return;
+	snprintf(sunPath, sizeof(sunPath), "%s/%s.sun", cfg->stateDir, gp.base);
+	int v = cfg->solarLevel;
+	FILE* f = fopen(sunPath, "r");
+	if (f) {
+		int n;
+		if (fscanf(f, "%d", &n) == 1) v = n;
+		fclose(f);
+	}
+	sun_set(v);
+	fprintf(stderr, "sun: level %d\n", sunLevel);
+}
+
+static SDL_Rect sun_tile_g(int i, int* labelX, int* labelY) {
+	SDL_Rect b = bar_rect_g();
+	int t = BAR_PICK_H - 4, tw = 30, gap = 3;
+	char ca[64];
+	const char* st = tr("Sun");
+	int lw = cv_ascii(st, ca, sizeof(ca)) && pixfont_has(&pixfont_small, ca) ? pixfont_width(&pixfont_large, ca) : tf_width(TF_BOLD, pixfont_large.cap, st);
+	int total = lw + gap * 3 + tw * SUN_TILES + gap * (SUN_TILES - 1);
+	int x = b.x + (b.w - total) / 2, y = b.y + 4;
+	if (labelX) *labelX = x + lw / 2;
+	if (labelY) *labelY = y + t / 2;
+	x += lw + gap * 3;
+	return (SDL_Rect) { x + i * (tw + gap), y, tw, t };
+}
+
+static void sun_draw(void) {
+	int lx, ly;
+	sun_tile_g(0, &lx, &ly);
+	cv_label(lx, ly, true, "Sun", G_TEXT, 0);
+	for (int i = 0; i < SUN_TILES; ++i) {
+		SDL_Rect t = sun_tile_g(i, NULL, NULL);
+		bool lvl = i == SUN_LEVEL;
+		cv_key(t, lvl ? KEY_LIT : KEY_PLAIN);
+		SDL_Color ink = lvl ? (SDL_Color) { 20, 16, 36, 255 } : ui_key_ink();
+		char b[8];
+		const char* txt = i == SUN_DARK ? "Dark" : i == SUN_DOWN ? "-" : i == SUN_UP ? "+" : i == SUN_FULL ? "Full" : (snprintf(b, sizeof(b), "%d", sunLevel), b);
+		cv_label(t.x + t.w / 2, t.y + t.h / 2, true, txt, ink, t.w - 4);
+	}
+}
+
+/* A tap on the Sun row: true if it was there (it then doesn't open the menu). */
+static bool sun_tap(int s, int x, int y) {
+	if (!sunHere || ctlProf || !barOpen || s != ui_touch_screen()) return false;
+	SDL_Point pt = { x, y };
+	SDL_Rect br = bar_rect_g();
+	SDL_Rect all = bar_to_screen(s, (SDL_Rect) { br.x, br.y + 3, br.w - 14, BAR_PICK_H - 2 }); /* (the pin is in the corner) */
+	if (!SDL_PointInRect(&pt, &all)) return false;
+	for (int i = 0; i < SUN_TILES; ++i) {
+		SDL_Rect t = bar_to_screen(s, sun_tile_g(i, NULL, NULL));
+		if (i == SUN_LEVEL || !SDL_PointInRect(&pt, &t)) continue;
+		int was = sunLevel;
+		sun_set(i == SUN_DARK ? 0 : i == SUN_FULL ? 10 : sunLevel + (i == SUN_UP ? 1 : -1));
+		if (sunLevel != was) {
+			sun_save();
+			if (debug) fprintf(stderr, "frame %llu: sun %d\n", (unsigned long long) frameCount, sunLevel);
+		}
+	}
+	return true;
+}
+
 static void save_thumbs(void) {
 	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormatFrom(emu.fb, GBA_W, GBA_H, 32, GBA_W * 4, SDL_PIXELFORMAT_XBGR8888);
 	if (s) {
@@ -6333,6 +6424,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	}
 	text_add(t, "Controls: %s. Cheats on: %d. RetroAchievements: %s\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats),
 	         ra_enabled() ? "signed in" : "off");
+	if (sunHere) text_add(t, "Sun: %d of 10\n", sunLevel);
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
 	/* (issue #39: slots 0-9 and the resume point shared with RetroArch, and where) */
 	if (gp.raDir[0])
@@ -8215,6 +8307,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		ui_osd("Couldn't load the game");
 		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;
 	}
+	sun_load();
 	profile_set_rom(emu.gameCode, emu.romCrc); /* (a known colour patch: the profile's colours as it draws them) */
 	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
 	{
@@ -8544,7 +8637,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						SDL_Point pt = { p.x, p.y };
 						barSince = SDL_GetTicks();
 						barBtn = bar_button_at(ts, p.x, p.y);
-						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : ctl_tap(ts, p.x, p.y) ? G_DONE : G_TRACK;
+						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : (ctl_tap(ts, p.x, p.y) || sun_tap(ts, p.x, p.y)) ? G_DONE : G_TRACK;
 						barGX = p.x, barGY = p.y;
 						continue;
 					}
