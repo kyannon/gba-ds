@@ -1,4 +1,5 @@
 #include "logo.h"
+#include <time.h>
 #include "emu.h"
 #include "profiles.h"
 #ifdef __ANDROID__
@@ -365,7 +366,12 @@ static bool exists(const char* p) {
 
 static void do_job(Job* j) {
 	if (!exists(j->out)) {
+		struct timespec t0, t1;
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		logo_extract(j->rom, j->code, j->out);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		fprintf(stderr, "perf: logo extraction: %s %s %.0f ms\n", j->code, strrchr(j->rom, '/') ? strrchr(j->rom, '/') + 1 : j->rom,
+			(t1.tv_sec - t0.tv_sec) * 1000.0 + (t1.tv_nsec - t0.tv_nsec) / 1e6);
 	}
 	free(j);
 	__atomic_add_fetch(&generation, 1, __ATOMIC_SEQ_CST);

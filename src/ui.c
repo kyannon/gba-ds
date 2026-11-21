@@ -2233,6 +2233,27 @@ static FileCrc fileCrc[FILE_CRC_MAX];
 static int nFileCrc;
 static bool fileCrcLoaded;
 static char fileCrcPath[1200];
+/* Timing lines for the game list ("perf: ..." in gba-ds.log): what stalls it, when. */
+double ui_perf_ms(void) {
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return ts.tv_sec * 1000.0 + ts.tv_nsec / 1e6;
+}
+void ui_perf(const char* fmt, ...) {
+	static double t0;
+	if (!t0) t0 = ui_perf_ms();
+	char buf[600];
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, ap);
+	va_end(ap);
+	fprintf(stderr, "perf: +%.0f ms %s\n", ui_perf_ms() - t0, buf);
+}
+static const char* perf_base(const char* path) {
+	const char* b = strrchr(path, '/');
+	return b ? b + 1 : path;
+}
+
 static pthread_mutex_t fileCrcLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t fileCrcWake = PTHREAD_COND_INITIALIZER;
 /* (fileCrcLock held for all of these) */
@@ -2260,6 +2281,7 @@ static const FileCrc* file_crc_find(const char* rom, const struct stat* st) {
 		if (fileCrc[i].size == st->st_size && fileCrc[i].mtime == st->st_mtime && !strcmp(fileCrc[i].path, rom)) return &fileCrc[i];
 	return NULL;
 }
+static bool fileCrcDirty;
 static void file_crc_put(const char* rom, const struct stat* st, uint32_t crc) {
 	FileCrc e = { .size = st->st_size, .mtime = st->st_mtime, .crc = crc };
 	snprintf(e.path, sizeof(e.path), "%s", rom);
@@ -2267,13 +2289,38 @@ static void file_crc_put(const char* rom, const struct stat* st, uint32_t crc) {
 	for (int i = 0; i < nFileCrc; ++i)
 		if (!strcmp(fileCrc[i].path, rom)) at = i; /* (the file changed: its entry again) */
 	fileCrc[at] = e;
-	if (!crc) return; /* (one that couldn't be read is remembered for this run only) */
-	FILE* f = fopen(fileCrcPath, "w");
-	if (f) {
-		for (int i = 0; i < nFileCrc; ++i)
-			if (fileCrc[i].crc) fprintf(f, "%lld %lld %08X %s\n", fileCrc[i].size, fileCrc[i].mtime, fileCrc[i].crc, fileCrc[i].path);
-		fclose(f);
+	if (crc) fileCrcDirty = true; /* (one that couldn't be read is remembered for this run only) */
+}
+/* The cache file, written with the lock NOT held: the list asks for checksums
+ * on the main thread, and a write to a busy SD card must not hold it up. */
+static pthread_mutex_t fileCrcWriteLock = PTHREAD_MUTEX_INITIALIZER;
+static void file_crc_flush(void) {
+	pthread_mutex_lock(&fileCrcWriteLock);
+	pthread_mutex_lock(&fileCrcLock);
+	char* text = NULL;
+	char path[sizeof(fileCrcPath)];
+	if (fileCrcDirty) {
+		fileCrcDirty = false;
+		snprintf(path, sizeof(path), "%s", fileCrcPath);
+		size_t cap = (size_t) nFileCrc * 1400 + 16, len = 0;
+		text = malloc(cap);
+		for (int i = 0; text && i < nFileCrc; ++i)
+			if (fileCrc[i].crc) len += (size_t) snprintf(text + len, cap - len, "%lld %lld %08X %s\n", fileCrc[i].size, fileCrc[i].mtime, fileCrc[i].crc, fileCrc[i].path);
+		if (text) text[len] = 0;
 	}
+	pthread_mutex_unlock(&fileCrcLock);
+	if (text) {
+		double t0 = ui_perf_ms();
+		FILE* f = fopen(path, "w");
+		if (f) {
+			fputs(text, f);
+			fclose(f);
+		}
+		double ms = ui_perf_ms() - t0;
+		if (ms > 5) ui_perf("romcrc.cache written: %.0f ms", ms);
+		free(text);
+	}
+	pthread_mutex_unlock(&fileCrcWriteLock);
 }
 
 static uint32_t file_crc_read(const char* rom) {
@@ -2310,11 +2357,17 @@ static void* file_crc_worker(void* arg) {
 		struct stat st;
 		bool ok = stat(rom, &st) == 0 && !file_crc_find(rom, &st);
 		pthread_mutex_unlock(&fileCrcLock);
+		double t0 = ui_perf_ms();
 		uint32_t crc = ok ? file_crc_read(rom) : 0;
+		double ms = ui_perf_ms() - t0;
 		pthread_mutex_lock(&fileCrcLock);
 		if (ok) file_crc_put(rom, &st, crc);
 		fileCrcBusy[0] = 0;
 		++fileCrcGen;
+		pthread_mutex_unlock(&fileCrcLock);
+		if (ok) ui_perf("file checksum done: %s %.0f ms read (%lld KB file), crc %08X", perf_base(rom), ms, (long long) (st.st_size / 1024), crc);
+		file_crc_flush();
+		pthread_mutex_lock(&fileCrcLock);
 	}
 	return NULL;
 }
@@ -2345,7 +2398,10 @@ static uint32_t rom_file_crc_ex(const Config* c, const char* rom, bool compute, 
 	struct stat st;
 	if (pending) *pending = false;
 	if (!rom || !*rom || stat(rom, &st)) return 0;
+	double lw0 = ui_perf_ms();
 	pthread_mutex_lock(&fileCrcLock);
+	double lw = ui_perf_ms() - lw0;
+	if (lw > 5) ui_perf("checksum lock waited %.0f ms (for %s)", lw, perf_base(rom));
 	file_crc_load(c);
 	const FileCrc* hit = file_crc_find(rom, &st);
 	if (hit) {
@@ -2361,6 +2417,7 @@ static uint32_t rom_file_crc_ex(const Config* c, const char* rom, bool compute, 
 		bool queued = !strcmp(fileCrcBusy, rom);
 		for (int i = 0; i < nFileCrcQueue && !queued; ++i) queued = !strcmp(fileCrcQueue[i], rom);
 		if (!queued) {
+			ui_perf("file checksum asked for: %s (%d waiting)", perf_base(rom), nFileCrcQueue);
 			if (nFileCrcQueue == FILE_CRC_QUEUE) { /* (full: the oldest goes) */
 				memmove(fileCrcQueue[0], fileCrcQueue[1], sizeof(fileCrcQueue[0]) * (FILE_CRC_QUEUE - 1));
 				--nFileCrcQueue;
@@ -2391,10 +2448,13 @@ static uint32_t rom_file_crc_ex(const Config* c, const char* rom, bool compute, 
 		/* (no thread: now, below) */
 	}
 	pthread_mutex_unlock(&fileCrcLock);
+	double t0 = ui_perf_ms();
 	uint32_t crc = file_crc_read(rom);
+	ui_perf("file checksum read inline: %s %.0f ms", perf_base(rom), ui_perf_ms() - t0);
 	pthread_mutex_lock(&fileCrcLock);
 	if (crc) file_crc_put(rom, &st, crc);
 	pthread_mutex_unlock(&fileCrcLock);
+	file_crc_flush();
 	return crc;
 }
 static uint32_t rom_file_crc(const Config* c, const char* rom, bool compute) {
