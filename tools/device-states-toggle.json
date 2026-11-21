@@ -1,0 +1,281 @@
+{
+ "_about": "States for the contextual toggle's test builds (issue #37), made by tools/make_device_states.py --manifest tools/device-states-toggle.json. Slot 1 of each game turns pages or views; turn Settings > Second screen > Contextual toggle on first.",
+ "games": {
+  "fire-emblem": {
+   "Fire Emblem (USA, Australia)": {
+    "1": [
+     "us-hud.ss",
+     "a unit's status: tap the button or HOME + A to turn its page (FE-3)"
+    ]
+   },
+   "Fire Emblem (Europe) (En,Es,It)": {
+    "1": [
+     "eu-y-prologue-unit.ss",
+     "a unit's status: tap the button or HOME + A to turn its page (FE-3)"
+    ]
+   },
+   "Fire Emblem (Europe) (En,Fr,De)": {
+    "1": [
+     "eu-x-prologue-unit.ss",
+     "a unit's status: tap the button or HOME + A to turn its page (FE-3)"
+    ]
+   },
+   "Fire Emblem - Rekka no Ken (Japan)": {
+    "1": [
+     "jp-prologue-unit.ss",
+     "a unit's status: tap the button or HOME + A to turn its page (FE-3)"
+    ]
+   }
+  },
+  "fire-emblem-fuuin-no-tsurugi": {
+   "Fire Emblem - Fuuin no Tsurugi (Japan)": {
+    "1": [
+     "jp-roy.ss",
+     "a unit's status: turn its page (FE6-2)"
+    ]
+   }
+  },
+  "fire-emblem-sacred-stones": {
+   "Fire Emblem - The Sacred Stones (Europe) (En,Fr,De,Es,It)": {
+    "1": [
+     "eu-map.ss",
+     "a unit's status: turn its page (FE8-2)"
+    ]
+   },
+   "Fire Emblem - Seima no Kouseki (Japan)": {
+    "1": [
+     "jp-map.ss",
+     "a unit's status: turn its page (FE8-2)"
+    ]
+   }
+  },
+  "final-fantasy-tactics-advance": {
+   "Final Fantasy Tactics Advance (USA)": {
+    "1": [
+     "us-cursor-other-unit.ss",
+     "a unit's Status: turn its page (FT-8)"
+    ]
+   },
+   "Final Fantasy Tactics Advance (Europe) (En,Fr,De,Es,It)": {
+    "1": [
+     "eu-snowball-fight.ss",
+     "a unit's Status: turn its page (FT-8)"
+    ]
+   },
+   "Final Fantasy Tactics Advance (Japan)": {
+    "1": [
+     "jp-bangaa-end.ss",
+     "a unit's Status: turn its page (FT-8)"
+    ]
+   }
+  },
+  "golden-sun": {
+   "Golden Sun (USA, Europe)": {
+    "1": [
+     "us-field.ss",
+     "the party: turn to the next member (GS-2)"
+    ]
+   }
+  },
+  "golden-sun-2": {
+   "Golden Sun - The Lost Age (USA, Europe)": {
+    "1": [
+     "us-field.ss",
+     "the party: turn to the next member (GS2-2)"
+    ]
+   },
+   "Golden Sun - Die Vergessene Epoche (Germany)": {
+    "1": [
+     "de-field.ss",
+     "the party: turn to the next member (GS2-2)"
+    ]
+   },
+   "Golden Sun - L'Age Perdu (France)": {
+    "1": [
+     "fr-field.ss",
+     "the party: turn to the next member (GS2-2)"
+    ]
+   },
+   "Golden Sun - L'Era Perduta (Italy)": {
+    "1": [
+     "it-field.ss",
+     "the party: turn to the next member (GS2-2)"
+    ]
+   },
+   "Golden Sun - La Edad Perdida (Spain)": {
+    "1": [
+     "es-field.ss",
+     "the party: turn to the next member (GS2-2)"
+    ]
+   },
+   "Ougon no Taiyou - Ushinawareshi Toki (Japan)": {
+    "1": [
+     "jp-field.ss",
+     "the party: turn to the next member (GS2-2)"
+    ]
+   }
+  },
+  "summon-night-swordcraft-story": {
+   "Summon Night - Swordcraft Story (USA)": {
+    "1": [
+     "us-two-characters.ss",
+     "the characters' Status: turn to the next (SN-5)"
+    ]
+   }
+  },
+  "summon-night-swordcraft-story-2": {
+   "Summon Night - Swordcraft Story 2 (USA)": {
+    "1": [
+     "us-two-characters.ss",
+     "the characters' Status: turn to the next (SN2-5)"
+    ]
+   }
+  },
+  "banjo-kazooie-gruntys-revenge": {
+   "Banjo-Kazooie - Grunty's Revenge (USA, Europe)": {
+    "1": [
+     "us-spiral-rise.ss",
+     "health and totals: turn the page (BK-2)"
+    ]
+   },
+   "Banjo-Kazooie - Grunty's Revenge (Europe) (En,Fr,De)": {
+    "1": [
+     "eu-spiral-rise-french.ss",
+     "health and totals: turn the page (BK-2)"
+    ]
+   },
+   "Banjo-Kazooie - La Vendetta di Grunty (Italy)": {
+    "1": [
+     "it-new-game.ss",
+     "health and totals: turn the page (BK-2)"
+    ]
+   },
+   "Banjo-Kazooie - La Venganza de Grunty (Spain)": {
+    "1": [
+     "es-new-game.ss",
+     "health and totals: turn the page (BK-2)"
+    ]
+   }
+  },
+  "tactics-ogre": {
+   "Tactics Ogre - The Knight of Lodis (USA)": {
+    "1": [
+     "us-field.ss",
+     "a unit's details: turn its page (TO-8)"
+    ]
+   },
+   "Tactics Ogre Gaiden - The Knight of Lodis (Japan)": {
+    "1": [
+     "jp-field.ss",
+     "a unit's details: turn its page (TO-8)"
+    ]
+   }
+  },
+  "rebelstar-tactical-command": {
+   "Rebelstar - Tactical Command (USA)": {
+    "1": [
+     "us-skirmish-field.ss",
+     "a soldier's pages: turn (RS-3)"
+    ]
+   },
+   "Rebelstar - Tactical Command (Europe) (En,Fr,De,Es,It)": {
+    "1": [
+     "eu-skirmish-field.ss",
+     "a soldier's pages: turn (RS-3)"
+    ]
+   }
+  },
+  "mother-3": {
+   "Mother 3 (Japan)": {
+    "1": [
+     "jp-porky.ss",
+     "the party's Status: turn to the next member (M3-3)"
+    ]
+   }
+  },
+  "pokemon": {
+   "Pokemon - FireRed Version (USA, Europe) (Rev 1)": {
+    "1": [
+     "fr-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - LeafGreen Version (USA, Europe)": {
+    "1": [
+     "lg-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - Ruby Version (USA, Europe) (Rev 1)": {
+    "1": [
+     "ruby-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - Sapphire Version (USA, Europe)": {
+    "1": [
+     "sapphire-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - Emerald Version (USA, Europe)": {
+    "1": [
+     "emerald-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - FireRed Version (USA, Europe)": {
+    "1": [
+     "fr-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - LeafGreen Version (USA, Europe) (Rev 1)": {
+    "1": [
+     "lg-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - Ruby Version (USA, Europe) (Rev 2)": {
+    "1": [
+     "ruby-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - Ruby Version (USA, Europe)": {
+    "1": [
+     "ruby-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - Sapphire Version (USA, Europe) (Rev 2)": {
+    "1": [
+     "sapphire-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   },
+   "Pokemon - Sapphire Version (USA, Europe) (Rev 1)": {
+    "1": [
+     "sapphire-us-party.ss",
+     "Party and Map: turn between them (PK-4)"
+    ]
+   }
+  },
+  "final-fantasy-iv-advance": {
+   "Final Fantasy IV Advance (USA)": {
+    "1": [
+     "us-overworld.ss",
+     "On the world map: the map shows; tap the button / HOME + A: the party screen; again: the map (FF4-8, FF4-3, GEN-14)"
+    ],
+    "2": [
+     "us-cave.ss",
+     "A cave: only the party screen, so the button is dim and does nothing (GEN-14)"
+    ],
+    "3": [
+     "us-moon.ss",
+     "The Moon's surface: its map; the button turns to the party screen (FF4-8)"
+    ]
+   }
+  }
+ }
+}
