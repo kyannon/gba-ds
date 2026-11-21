@@ -6820,7 +6820,17 @@ static const char* ff_world(Emu* s, int game, uint32_t* out, int w, int h) {
 	return NULL;
 }
 
+/* HELD views (GEN-14): a game's picture is the map when it has one, and the
+ * party screen it keeps for battles is the other view, handed over beside it
+ * for the toggle. views_put: a GBA-sized picture into a crop-sized one */
+static void views_put(uint32_t* out, int w, int h, const uint32_t* pic) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+}
+static bool ffMapShown;
 static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	ffMapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -6867,7 +6877,11 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 			if (game == 2) ffMapParty = ff_party_id(s, game);
 			if (!ff_settle_right(s, 120)) return "the map didn't settle";
 			if (emu_cancelled(s)) return "called off";
-			return ff_world(s, game, out, w, h);
+			{
+				const char* werr = ff_world(s, game, out, w, h);
+				ffMapShown = !werr;
+				return werr;
+			}
 		}
 		if (emu_cancelled(s)) return "called off";
 	}
@@ -6881,6 +6895,13 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffParty[y * GBA_W + x] : 0xFF000000;
 	}
 	return NULL;
+}
+
+static const char* ff_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = ff_compose(s, state, out[0], w, h);
+	if (!err && ffMapShown && ffPartyOk) views_put(out[1], w, h, ffParty), *n = 2;
+	return err;
 }
 
 /* ---------------------------------------------------------------- Final Fantasy IV Advance
@@ -7209,7 +7230,9 @@ static void ffv_show(uint32_t* out, int w, int h, const uint32_t* pic) {
 	}
 }
 
+static bool ffvMapShown;
 static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	ffvMapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -7258,7 +7281,14 @@ static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	}
 	++ffvTakes;
 	ffv_show(out, w, h, map ? ffvMap : ffvParty);
+	ffvMapShown = map;
 	return NULL;
+}
+static const char* ffv_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = ffv_compose(s, state, out[0], w, h);
+	if (!err && ffvMapShown && ffvPartyOk) ffv_show(out[1], w, h, ffvParty), *n = 2; /* (HELD view: the party kept for battles) */
+	return err;
 }
 
 /* ------------------------------------------------- Final Fantasy VI Advance
@@ -7472,7 +7502,9 @@ static void ff6_party_out(uint32_t* out, int w, int h) {
 	}
 }
 
+static bool ff6MapShown;
 static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	ff6MapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -7497,6 +7529,7 @@ static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, 
 				ff6WorldTakes = 0;
 				ff6_party_take(s, state); /* (a failure keeps the one before) */
 			}
+			ff6MapShown = !emu_cancelled(s);
 			return emu_cancelled(s) ? "called off" : NULL;
 		}
 		if (emu_cancelled(s)) return "called off";
@@ -7505,6 +7538,12 @@ static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	if (perr) return perr;
 	ff6_party_out(out, w, h);
 	return NULL;
+}
+static const char* ff6_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = ff6_compose(s, state, out[0], w, h);
+	if (!err && ff6MapShown && ff6PartyOk) ff6_party_out(out[1], w, h), *n = 2; /* (HELD view: the party kept for battles) */
+	return err;
 }
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
@@ -9314,7 +9353,9 @@ static const char* bof_party(Emu* s, bool menuOpen, uint32_t* out, int w, int h)
 }
 
 
+static bool bofMapShown;
 static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	bofMapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -9360,11 +9401,18 @@ static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, 
 				aw_run(s, 0, 10);
 				bof_party(s, false, scratch, w, h);
 			}
+			bofMapShown = !emu_cancelled(s);
 			return NULL;
 		}
 	}
 	if (emu_cancelled(s)) return "called off";
 	return bof_party(s, menuOpen, out, w, h);
+}
+static const char* bof_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = bof_compose(s, state, out[0], w, h);
+	if (!err && bofMapShown && bofKept.ok && bofKept.w == w && bofKept.h == h) memcpy(out[1], bofKept.px, (size_t) w * h * sizeof(uint32_t)), *n = 2; /* (HELD view: the overview kept for battles) */
+	return err;
 }
 
 /* ---------------------------------------------------------------- Breath of Fire II
@@ -9530,7 +9578,9 @@ static const char* bof2_party(Emu* s, bool menuOpen, uint32_t* out, int w, int h
 	return NULL;
 }
 
+static bool bof2MapShown;
 static const char* bof2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	bof2MapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -9581,11 +9631,18 @@ static const char* bof2_compose(Emu* s, const void* state, uint32_t* out, int w,
 				aw_run(s, 0, 10);
 				bof2_party(s, false, scratch, w, h);
 			}
+			bof2MapShown = !emu_cancelled(s);
 			return NULL;
 		}
 		if (emu_cancelled(s)) return "called off";
 	}
 	return bof2_party(s, bg0 == BOF2_BG0_MENU, out, w, h);
+}
+static const char* bof2_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = bof2_compose(s, state, out[0], w, h);
+	if (!err && bof2MapShown && bof2Kept.ok && bof2Kept.w == w && bof2Kept.h == h) memcpy(out[1], bof2Kept.px, (size_t) w * h * sizeof(uint32_t)), *n = 2; /* (HELD view: the overview kept for battles) */
+	return err;
 }
 
 /* ------------------------------------------- The Legend of Zelda: The Minish Cap
@@ -12233,7 +12290,8 @@ static const MapProfile profiles[] = {
 		 * screen: see ff6_compose (docs/games/final-fantasy-vi-advance.md) */
 		.codes = { "BZ6E" },
 		.title = "Final Fantasy VI Advance",
-		.compose = ff6_compose,
+		.composePages = ff6_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = ff6_virt,
 		/* the corner minimap isn't drawn on the game screen: it's on the
 		 * second (FF6-10, FF6-11) */
@@ -12423,7 +12481,8 @@ static const MapProfile profiles[] = {
 		 * menu: see ff_compose */
 		.codes = { "BFFE" },
 		.title = "Final Fantasy I & II: Dawn of Souls",
-		.compose = ff_compose,
+		.composePages = ff_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = ff_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12459,7 +12518,8 @@ static const MapProfile profiles[] = {
 		 * (docs/games/final-fantasy-v-advance.md) */
 		.codes = { "BZ5E" },
 		.title = "Final Fantasy V Advance",
-		.compose = ffv_compose,
+		.composePages = ffv_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = ffv_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12558,7 +12618,8 @@ static const MapProfile profiles[] = {
 		 * (docs/games/breath-of-fire.md) */
 		.codes = { "ABFE", "ABFP", "ABFJ" },
 		.title = "Breath of Fire",
-		.compose = bof_compose,
+		.composePages = bof_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = bof_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12577,7 +12638,8 @@ static const MapProfile profiles[] = {
 		 * from SELECT's menu: see bof2_compose (docs/games/breath-of-fire-ii.md) */
 		.codes = { "AB2E", "AB2P" },
 		.title = "Breath of Fire II",
-		.compose = bof2_compose,
+		.composePages = bof2_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = bof2_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
