@@ -75,6 +75,8 @@ void emu_frame(Emu* e, uint32_t keys);
 /* The same without drawing it (e->fb keeps the last picture): for waits on
  * a hidden copy. */
 void emu_frame_blind(Emu* e, uint32_t keys);
+/* the cartridge has a sun sensor (Boktai) */
+bool emu_has_solar(Emu* e);
 /* true while this core's capture has been called off (Emu.cancel) */
 bool emu_cancelled(const Emu* e);
 void emu_reset(Emu* e);

@@ -330,7 +330,14 @@ static void rtc_pin(Emu* e) {
 	e->core->rtc.value = atoll(t) * 1000;
 }
 
-static struct GBALuminanceSource luxSource = { .sample = lux_sample, .readLuminance = lux_read };
+/* Does the cartridge have a sun sensor (Boktai 1, 2 and 3)? mGBA sets the flag from its
+ * game database (or the header's GPIO probe) when the ROM loads. */
+bool emu_has_solar(Emu* e) {
+	struct GBA* gba = e->core->board;
+	return gba && (gba->memory.hw.devices & HW_LIGHT_SENSOR) != 0;
+}
+
+static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
