@@ -2402,6 +2402,10 @@ static bool khc_wait(Emu* s, bool (*up)(Emu*), int n) {
 	for (int f = 0; f < n && !up(s); ++f) emu_frame(s, 0);
 	return up(s);
 }
+static bool khc_alt_here(Emu* live) {
+	(void) live;
+	return false;
+}
 static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	emu_hide_sprites(s, khcHide, 1);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -3616,7 +3620,8 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	*step = 300;
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	bool luigi = emu_read8(s, ML_LEAD) == 1;
+	/* the brother in front's page; the toggle's other view (GEN-14) is the other brother's */
+	const bool luigi = (emu_read8(s, ML_LEAD) == 1) != mapcap_alt_view();
 	int at = ml_screen(s);
 	if (at == ML_FIELD) {
 		aw_tap(s, K_SELECT, 1);
@@ -11611,6 +11616,7 @@ static const MapProfile profiles[] = {
 		.codes = { "A88E" },
 		.title = "Mario & Luigi: Superstar Saga",
 		.composePages = ml_compose,
+		.onPress = true, /* the other brother's page, captured on a press (GEN-14) */
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -11987,6 +11993,8 @@ static const MapProfile profiles[] = {
 		.codes = { "B8CE" },
 		.title = "Kingdom Hearts: Chain of Memories",
 		.compose = khc_compose,
+		.onPress = true, /* the toggle's other view isn't chosen yet: never ready, so the button stays inactive (GEN-14) */
+		.altHere = khc_alt_here,
 		.virt = khc_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,

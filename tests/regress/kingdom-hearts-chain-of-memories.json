@@ -1650,6 +1650,46 @@
      "match": "fight on"
     }
    ]
+  },
+  {
+   "id": "khc-toggle-inactive",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-world-map.ss",
+   "desc": "the toggle on, on the World Map: HOME + A is ignored (its other view isn't chosen yet), no view is asked for",
+   "rules": [
+    "GEN-14",
+    "KHC-1"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "after": 260
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "the press was ignored",
+     "type": "log",
+     "match": "toggle: not ready, ignored"
+    },
+    {
+     "rule": "GEN-14",
+     "what": "no view asked for",
+     "type": "no_log",
+     "match": "toggle: view"
+    }
+   ]
   }
  ]
 }
