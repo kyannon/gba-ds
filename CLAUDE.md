@@ -499,7 +499,8 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `split off` and `hudshot NAME`.
   State files (issue #39): loading (and `emu_state_file_kind` /
   `_rom_crc` / `_get_extra`) takes mGBA's own files and RetroArch's /
-  BananaFront's (`RASTATE`, RZIP-compressed or not, its mGBA core's bytes in
+  BananaFront's (`RASTATE`, RZIP-compressed (zlib, or zstd since issue #78: the
+  vendored decoder `third_party/rzstd`) or not, its mGBA core's bytes in
   the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
   second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
   shared with RetroArch (`state_folder = retroarch`, game list Settings >

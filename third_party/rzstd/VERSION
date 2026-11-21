@@ -1,0 +1,7 @@
+libretro-common 52781c4 (github.com/libretro/libretro-common, Nov 9, 2026): rzstd, a Zstandard decoder (RFC 8878), for
+RetroArch's RZIP version 2 save states (issue #78). MIT (LICENSE.txt).
+Chosen over zstd's own decoder (BSD-3, one file of 19,000 lines) because it is half the size (about 66 KB against 131 KB
+compiled at -O2) and decodes a GBA save state's chunks as fast (about 2 GB/s on both, measured).
+Verbatim: src/encoding_rzstd.c, src/encoding_xxh64.c, include/encodings/{rzstd,xxh64}.h, include/compat/intrinsics.h,
+include/retro_{inline,common_api,endianness}.h. Not verbatim: include/retro_atomic.h, a GBA DS stand-in (the original is
+2400 lines for the one int the decoder keeps). Decoder only is used (rzstd_decode); the encoder is in the file and unused.

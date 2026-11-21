@@ -519,11 +519,15 @@ size_t emu_rewind_count(void) {
  * checked byte for byte), ACHV RetroAchievements progress, RPLY a replay.
  * Usually compressed (savestate_file_compression, on by default):
  * "#RZIPv" 1 "#", u32 chunk size, u64 size, then each chunk as a u32 size
- * and zlib's data. (RZIP version 2, zstd, isn't read.) Loading takes any
- * of these; saving writes the format asked for. All numbers little-endian. */
+ * and zlib's data; version 2 (RetroArch 1.21 on, when its Save State
+ * Compression is set to zstd; issue #78) the same with a zstd frame for each
+ * chunk. Loading takes any of these; saving writes the format asked for
+ * (zlib's version 1, which every RetroArch reads). All numbers little-endian. */
 
 /* (in mGBA's subsystem range, which it doesn't use for the GBA) */
 #define EXTDATA_GBADS ((enum mStateExtdataTag) (EXTDATA_SUBSYSTEM_START + 0x3D))
+
+#include <encodings/rzstd.h> /* (RZIP version 2's zstd: third_party/rzstd) */
 
 #ifdef USE_ZLIB
 /* (zlib's, linked with libmgba; its header isn't on every build's include path) */
@@ -572,24 +576,38 @@ static uint8_t* state_file_read(const char* path, size_t* n, StateFileKind* kind
 	if (bn >= 20 && !memcmp(b, RZIP_MAGIC, 6) && b[7] == '#') {
 		uint8_t* out = NULL;
 		size_t got = 0;
-#ifdef USE_ZLIB
 		uint32_t chunk = le32(b + 8);
 		uint64_t total = (uint64_t) le32(b + 12) | (uint64_t) le32(b + 16) << 32;
-		if (b[6] == 1 && chunk && total && total <= STATE_FILE_MAX) out = malloc((size_t) total);
+		uint8_t version = b[6];
+#ifndef USE_ZLIB
+		if (version == 1) total = 0; /* (no zlib in this build) */
+#endif
+		if ((version == 1 || version == 2) && chunk && total && total <= STATE_FILE_MAX) out = malloc((size_t) total);
 		size_t at = 20;
 		while (out && got < total) {
-			unsigned long dl = (unsigned long) (total - got < chunk ? total - got : chunk);
+			size_t dl = (size_t) (total - got < chunk ? total - got : chunk), made = 0;
 			uint32_t zn = at + 4 <= bn ? le32(b + at) : 0;
-			if (!zn || zn > bn - at - 4 || uncompress(out + got, &dl, b + at + 4, zn) != 0 || !dl) {
+			bool ok = zn && zn <= bn - at - 4;
+			if (ok && version == 2) {
+				/* (one zstd frame a chunk, the chunk's size known: rzstd_decode fails rather than write past it) */
+				ok = rzstd_decode(out + got, dl, b + at + 4, zn, &made) == RZSTD_PROCESS_END;
+			}
+#ifdef USE_ZLIB
+			else if (ok) {
+				unsigned long ul = (unsigned long) dl;
+				ok = uncompress(out + got, &ul, b + at + 4, zn) == 0;
+				made = ul;
+			}
+#endif
+			if (!ok || !made) {
 				free(out);
 				out = NULL;
 				break;
 			}
-			got += dl, at += 4 + zn;
+			got += made, at += 4 + zn;
 		}
-#endif
 		free(b);
-		if (!out) return NULL; /* (zstd, damaged, or no zlib in this build) */
+		if (!out) return NULL; /* (damaged, or an RZIP version GBA DS doesn't know) */
 		b = out;
 		bn = got;
 		wrapped = true;

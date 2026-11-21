@@ -1241,6 +1241,33 @@
    ]
   },
   {
+   "id": "aw-us-retroarch-zstd-resume",
+   "rom": "AWRE",
+   "desc": "save states shared with RetroArch: GBA DS resumes from RetroArch's automatic state when RetroArch compresses its states with zstd (RZIP version 2, RetroArch 1.21 on): the same moment, the same picture as aw-us-retroarch-resume's (GEN-15)",
+   "rules": [
+    "GEN-15"
+   ],
+   "config": {
+    "auto_load": 1
+   },
+   "retroarch": {
+    "states": {
+     "mGBA/AWRE.state.auto": "advance-wars/us-retroarch-zstd.state"
+    }
+   },
+   "shots": {
+    "resumed": 60
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: .*AWRE\\.state\\.auto: loaded \\(RetroArch's, saved by RetroArch\\)",
+     "rule": "GEN-15",
+     "what": "resumed from a zstd-compressed automatic state"
+    }
+   ]
+  },
+  {
    "id": "aw-us-retroarch-save",
    "rom": "AWRE",
    "state": "advance-wars/us-co-screen.ss",
@@ -1474,9 +1501,9 @@
    "id": "aw-us-retroarch-bios",
    "rom": "AWRE",
    "state": "advance-wars/us-co-screen.ss",
-   "desc": "a state RetroArch's core saved with the GBA BIOS while the CPU was inside it (GEN-14): the pause menu's Load Slot 4 says it was saved with the GBA BIOS, not just \"Load failed\" (the clock's corner masked, it shows the real time)",
+   "desc": "a state RetroArch's core saved with the GBA BIOS while the CPU was inside it (GEN-15): the pause menu's Load Slot 4 says it was saved with the GBA BIOS, not just \"Load failed\" (the clock's corner masked, it shows the real time)",
    "rules": [
-    "GEN-14"
+    "GEN-15"
    ],
    "retroarch": {
     "states": {
@@ -1490,13 +1517,13 @@
     {
      "type": "log",
      "match": "load state: .*AWRE\\.state4: not loaded \\(RetroArch's",
-     "rule": "GEN-14",
+     "rule": "GEN-15",
      "what": "the BIOS state is refused"
     },
     {
      "type": "log",
      "match": "load state: refused by mGBA: saved inside the GBA BIOS",
-     "rule": "GEN-14",
+     "rule": "GEN-15",
      "what": "and the reason is told"
     }
    ],
