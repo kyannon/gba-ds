@@ -7,6 +7,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Castlevania: Aria of Sorrow](castlevania-aria-of-sorrow.md) | CVA | `A2CE` + 2 |
 | [Castlevania: Harmony of Dissonance](castlevania-harmony-of-dissonance.md) | CVH | `ACHE` + 2 |
 | [Castlevania: Circle of the Moon](castlevania-circle-of-the-moon.md) | CVC | `AAME` + 2 |
+| [Kirby & The Amazing Mirror](kirby-and-the-amazing-mirror.md) | KAM | `B8KE` |
 | [Metroid: Zero Mission](metroid-zero-mission.md) | MZM | `BMXE` + 2 |
 | [Metroid Fusion](metroid-fusion.md) | MF | `AMTE` + 2 |
 | [The Legend of Zelda: A Link to the Past & Four Swords](zelda-a-link-to-the-past.md) | LTTP | `AZLE` + 2 |
