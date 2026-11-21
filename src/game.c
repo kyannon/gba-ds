@@ -1075,7 +1075,11 @@ static uint64_t mapAnimStart;
  * state: the pages start again at the first) */
 static int pageOffset;
 static int fadeLevel = 256;
+static bool fadeUpload; /* the picture is uploaded again this frame for the fade, one picture or not */
 static bool capSubject;
+/* ONPRESS views (GEN-14): the other view is up (viewAlt), a capture of the view wanted is to be asked for now (pressCap), how many captures have come in (capDone), and which one the press waits for (tgCapWant; 0: not asked for yet) */
+static bool viewAlt, pressCap, viewWait;
+static unsigned capDone, tgCapWant;
 /* which of the second screen's pictures shows now: the map's frames turn
  * every frameStep frames from mapAnimStart (a marker's blinking, or pages:
  * mapRes.pages); never out of range, even with mapAnimStart ahead of
@@ -7115,13 +7119,24 @@ static bool liveOn;
 enum { TG_IDLE, TG_FADE_OUT, TG_HOLD, TG_FADE_IN };
 #define TG_FADE_FRAMES 5
 #define TG_HOLD_MAX 120
+#define TG_HOLD_PRESS_MAX 600 /* (capture on press: a capture can take seconds) */
 static int tgState, tgFrames, tgTarget, tgWait = -1;
+
+/* a press turns the view (captured on the press) rather than a page: the profile's views, unless its picture is pages (Mother 3's Status where there's no map) and the other view isn't up */
+static bool tg_view_mode(const MapProfile* hp) {
+	return hp && hp->onPress && (viewAlt || !(mapRes.pages && mapRes.nFrames >= 2));
+}
 
 static bool toggle_ready(void) {
 	if (!cfg->toggle || tgState != TG_IDLE) return false;
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	if (tg_view_mode(hp)) {
+		/* the other view is captured on the press: ready when there is one here (or this is it, and the game's own is to come back), a picture is up and the hidden copy is free */
+		if (mapShownIdx < 0 || logoForced || liveOn || mapInactive || pressCap || mapcap_busy(mc)) return false;
+		return viewAlt || !hp->altHere || hp->altHere(&emu);
+	}
 	if (!mapRes.pages || mapRes.nFrames < 2 || mapShownIdx < 0 || !map_anim()) return false; /* (one picture, the logo, Map Animations off) */
 	if (logoForced || liveOn || mapInactive) return false;
-	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
 	if (hp && hp->holdPage && hp->holdPage(&emu) >= 0) return false; /* (a page kept up: Pokémon's Party in a battle) */
 	if (capSubject && mapcap_busy(mc)) return false; /* (the next subject's pictures aren't here yet: GEN-6) */
 	return true;
@@ -7144,6 +7159,14 @@ static void toggle_press(void) {
 		const char* e = getenv("GBADS_TOGGLE_WAIT");
 		tgWait = e ? SDL_max(0, atoi(e)) : 0;
 	}
+	const MapProfile* pp = mc ? mapcap_profile(mc) : NULL;
+	if (tg_view_mode(pp)) {
+		/* capture on press: the other view is asked for now; the picture fades out, stays black until it is here (or it isn't, in time: the old one comes back) */
+		viewAlt = !viewAlt, viewWait = true, tgCapWant = 0;
+		tgState = TG_FADE_OUT, tgFrames = 0, tgTarget = -1;
+		if (debug) fprintf(stderr, "frame %llu: toggle: view %s asked for\n", (unsigned long long) frameCount, viewAlt ? "2" : "1");
+		return;
+	}
 	int next = (second_page() + 1) % mapRes.nFrames;
 	if (tgWait > 0) tgState = TG_FADE_OUT, tgFrames = 0, tgTarget = next;
 	else toggle_apply(next);
@@ -7161,16 +7184,30 @@ static void toggle_new_subject(void) {
 
 /* each frame */
 static void toggle_step(void) {
+	if (!cfg->toggle && viewAlt) viewAlt = false, pressCap = true; /* (switched off while the other view was up: the game's own comes back) */
 	if (!cfg->toggle && tgState != TG_IDLE) tgState = TG_IDLE, fadeLevel = 256, overDirty = true; /* (switched off meanwhile) */
 	if (tgState == TG_IDLE) return;
-	overDirty = true; /* (the picture is drawn again each frame of a turn) */
+	overDirty = true, fadeUpload = true; /* (the picture is drawn again each frame of a turn) */
 	++tgFrames;
 	switch (tgState) {
 	case TG_FADE_OUT:
 		fadeLevel = 256 * (TG_FADE_FRAMES - tgFrames) / TG_FADE_FRAMES;
-		if (tgFrames >= TG_FADE_FRAMES) tgState = TG_HOLD, tgFrames = 0, fadeLevel = 0;
+		if (tgFrames >= TG_FADE_FRAMES) tgState = TG_HOLD, tgFrames = 0, fadeLevel = 0, pressCap = viewWait; /* (capture on press: asked for now that the old view is dark) */
 		break;
 	case TG_HOLD:
+		if (tgTarget < 0) {
+			/* (capture on press) the view is in: fade up; not in time: the old one stays, and the capture is called off */
+			if (tgCapWant && capDone >= tgCapWant) {
+				tgState = TG_FADE_IN, tgFrames = 0, viewWait = false;
+				if (debug) fprintf(stderr, "frame %llu: toggle: view %s\n", (unsigned long long) frameCount, viewAlt ? "2" : "1");
+			} else if (tgFrames >= TG_HOLD_PRESS_MAX) {
+				viewAlt = !viewAlt, pressCap = false, viewWait = false, tgCapWant = 0;
+				if (mc && mapcap_busy(mc)) mapcap_cancel(mc);
+				tgState = TG_FADE_IN, tgFrames = 0;
+				if (debug) fprintf(stderr, "frame %llu: toggle: the view didn't come in time, the old one stays\n", (unsigned long long) frameCount);
+			}
+			break;
+		}
 		if (tgFrames >= tgWait) {
 			toggle_apply(tgTarget);
 			tgState = TG_FADE_IN, tgFrames = 0;
@@ -7211,7 +7248,7 @@ static const char* const icon_toggle[] = {
 static int toggle_btn_screen(void) {
 	if (!cfg->toggle || !strcmp(cfg->toggleButton, "off") || nScreens < 2 || !mc) return -1;
 	const MapProfile* hp = mapcap_profile(mc);
-	if (!hp || !(hp->pages || hp->views)) return -1;
+	if (!hp || !(hp->pages || hp->views || hp->onPress)) return -1;
 	int s = 1 - game_screen();
 	if (s != ui_touch_screen() || !cfg->map) return -1;
 	return s;
@@ -9725,14 +9762,18 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			int interval = cheapFail ? every : every << SDL_min(fails, 3);
 			/* after failures, a room change still triggers a try, but no more
 			 * often than the normal interval */
-			bool due = sinceMapRequest >= interval ||
+			bool due = sinceMapRequest >= interval || pressCap ||
 			           ((forceMap || roomChanged) && (!fails || sinceMapRequest >= every));
-			if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu)) {
+			if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu) && !(viewWait && tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
+				/* a new subject (a room, a loaded state) shows the game's own view again */
+				if (roomChanged || forceMap) viewAlt = false;
+				mapcap_set_alt(viewAlt && cfg->toggle);
 				if (mapcap_request(mc, &emu)) {
 					sinceMapRequest = 0;
 					lastRoomKey = rk;
 					capSubject = roomChanged || forceMap; /* (not a refresh of the same subject) */
 					forceMap = false;
+					if (pressCap) pressCap = false, tgCapWant = capDone + 1;
 				}
 			}
 			toggle_step();
@@ -9741,8 +9782,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				/* a capture that finished after quitting to the title: drop it */
 			} else if (fresh) {
 				map_show_new(true);
-			} else if (map_anim() && mapRes.nFrames > 1 && mapShownIdx >= 0) {
+				++capDone;
+			} else if (((map_anim() && mapRes.nFrames > 1) || fadeUpload) && mapShownIdx >= 0) {
 				int idx = second_page();
+				fadeUpload = false;
 				upload_map_frame(idx);
 			}
 			/* a profile's own live picture (Mega Man Battle Network's maps on

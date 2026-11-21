@@ -6209,6 +6209,12 @@ static void m3_no_help(uint32_t* px, int w) {
 	}
 }
 
+/* the last first view found a map: the Status is then the toggle's other view (GEN-14) */
+static volatile bool m3HasMap;
+static bool m3_alt_here(Emu* live) {
+	(void) live;
+	return m3HasMap;
+}
 static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[M3_PAGES][GBA_W * GBA_H];
 	int max = *nOut < M3_PAGES ? *nOut : M3_PAGES;
@@ -6228,9 +6234,11 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 	m3_settle_mode(s, 60);
 	if (emu_read8(s, M3_MODE) != 0) return "not walking about"; /* (M3-5) */
 
-	/* the area's map (M3-2): R, where there's one */
-	aw_run(s, K_R, 4);
-	if (m3_wait_mode(s, 0x0D, 90)) {
+	/* the area's map (M3-2): R, where there's one; not for the toggle's other view, the Status (GEN-14) */
+	const bool wantStatus = mapcap_alt_view();
+	if (!wantStatus) aw_run(s, K_R, 4);
+	if (!wantStatus && m3_wait_mode(s, 0x0D, 90)) {
+		m3HasMap = true;
 		emu_hide_sprites(s, &m3MapArrows, 1);
 		aw_run(s, 0, 30);
 		/* the frame with the most of its marks shown (its marker blinks) */
@@ -6249,6 +6257,7 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 		return NULL;
 	}
 	if (emu_read8(s, M3_MODE) != 0) return "not walking about";
+	if (!wantStatus) m3HasMap = false; /* (no map here: the Status is the picture already) */
 
 	/* no map here: START, Status, A (M3-3) */
 	/* (waits generous: with the HQ audio mix the game lags, M3-9) */
@@ -9769,7 +9778,7 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	emu_frame(s, 0);
 	if (emu_read8(s, TMC_TASK) != 2 || emu_read8(s, TMC_SUB) != 2) return "map button did nothing";
 	/* no Map tab without the map: Quest Status instead (TMC-4) */
-	const bool quest = ((emu_read8(s, TMC_ITEM_MAP) >> 6) & 3) == 0;
+	const bool quest = ((emu_read8(s, TMC_ITEM_MAP) >> 6) & 3) == 0 || mapcap_alt_view(); /* (or the toggle's other view, TMC-4) */
 	/* START, until the menu is up: it isn't taken during a fade or a
 	 * message, which may pass in a few frames */
 	for (int tries = 0; tries < 4 && !tmc_tab_up(s, quest); ++tries) {
@@ -9806,6 +9815,11 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	if (emu_cancelled(s)) return "called off";
 	if (!animated) *nOut = 1;
 	return NULL;
+}
+
+/* the toggle's other view (Quest Status) is there when the map is: without the Map tab Quest Status is the picture already */
+static bool tmc_alt_here(Emu* live) {
+	return ((emu_read8(live, TMC_ITEM_MAP) >> 6) & 3) != 0;
 }
 
 /* The Minish Cap in Japan: the lettering runs lower (the subtitle is
@@ -10018,6 +10032,8 @@ static const MapProfile profiles[] = {
 		.codes = { "BZME" },
 		.title = "The Legend of Zelda: The Minish Cap",
 		.composePages = tmc_compose,
+		.onPress = true, /* the map and Quest Status: the other is captured on a press (GEN-14, TMC-4) */
+		.altHere = tmc_alt_here,
 		.virt = tmc_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12435,6 +12451,8 @@ static const MapProfile profiles[] = {
 		.title = "MOTHER 3",
 		.composePages = m3_compose,
 		.pages = true, /* (its pages turn: Toggle `pages`) */
+		.onPress = true, /* the area's map and the Status: the other is captured on a press (GEN-14, M3-2, M3-3) */
+		.altHere = m3_alt_here,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
 		.virt = m3_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */

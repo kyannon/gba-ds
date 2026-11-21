@@ -1036,6 +1036,10 @@ int mapcap_web_serve(const char* romPath, const char* code, bool tight) {
 }
 #endif
 
+static volatile int altViewWanted;
+void mapcap_set_alt(int on) { altViewWanted = on; }
+int mapcap_alt_view(void) { return altViewWanted; }
+
 bool mapcap_request(MapCapture* mc, Emu* live) {
 #ifdef __wasi__
 	/* (the page asks for it from the start with GBADS_CAPTURE_OFFLOAD=1: a game

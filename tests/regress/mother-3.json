@@ -2450,6 +2450,165 @@
      "frac": 0.001
     }
    ]
+  },
+  {
+   "id": "m3-jp-toggle-view",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-tazmily.ss",
+   "desc": "the toggle on, in Tazmily: HOME + A fades to black while the hidden copy takes the Status, then shows it; again, back to the map",
+   "rules": [
+    "GEN-14",
+    "M3-2",
+    "M3-3"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     300,
+     "HOME+A"
+    ],
+    [
+     304,
+     "-"
+    ],
+    [
+     900,
+     "HOME+A"
+    ],
+    [
+     904,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 290,
+    "after": 800,
+    "back": 1400
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "the other view: the Status, not the map",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a second press brings the map back",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the first press asks for the view",
+     "type": "log",
+     "match": "toggle: view 2 asked for"
+    },
+    {
+     "rule": "GEN-14",
+     "what": "and it came",
+     "type": "log",
+     "match": "toggle: view 2$"
+    }
+   ]
+  },
+  {
+   "id": "m3-jp-toggle-nomap",
+   "rom": "A3UJ",
+   "state": "mother-3/jp-porky.ss",
+   "desc": "the toggle on, in the Porky Building (no map): HOME + A turns to the next party member, as the pages turn",
+   "rules": [
+    "GEN-14",
+    "M3-3"
+   ],
+   "config": {
+    "toggle": "1",
+    "auto_rotate": "0"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "after": 260
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "the next member",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a page turn, not a view",
+     "type": "no_log",
+     "match": "toggle: view"
+    }
+   ]
   }
  ]
 }

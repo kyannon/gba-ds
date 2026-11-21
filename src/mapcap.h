@@ -40,6 +40,10 @@ MapResult mapcap_capture_sync(MapCapture* mc, Emu* live);
  * the newest successful result into *out (caller-owned buffers are managed
  * internally) and returns true if it is newer than lastSerial. */
 bool mapcap_request(MapCapture* mc, Emu* live);
+/* ONPRESS views (GEN-14): the next capture takes the game's other view (a
+ * profile's compose reads it); set before mapcap_request */
+void mapcap_set_alt(int on);
+int mapcap_alt_view(void);
 bool mapcap_busy(MapCapture* mc);
 /* Calls off the capture running, if any (the game moved on: a newer one's
  * wanted): it stops at once and publishes nothing; mapcap_busy is false

@@ -837,6 +837,12 @@ typedef struct MapProfile {
 	 * to the next until the subject changes. Held: both come from the one
 	 * capture. Set for every game whose Toggle row says `views`, `HELD`. */
 	bool views;
+	/* GEN-14, ONPRESS: the other view isn't kept: a press makes the hidden copy
+	 * capture it (compose reads mapcap_alt_view()), the picture fading to black
+	 * while the game finds it. A press turns back the same way. altHere (optional):
+	 * whether the live game has another view right now (else always). */
+	bool onPress;
+	bool (*altHere)(Emu* live);
 	/* Values computed from the game's memory, read by MemProbes at
 	 * addresses from 0xF0000000 (memprobe_virtual, mapcap.h): Fire
 	 * Emblem's processes, which move between slots. */
