@@ -1089,6 +1089,7 @@ static int second_page(void) {
 		int hold = hp->holdPage(&emu); /* (a page kept up: Pokémon's Party in a battle) */
 		if (hold >= 0 && hold < mapRes.nFrames) return hold;
 	}
+	if (hp && hp->views) return cfg->toggle ? pageOffset % mapRes.nFrames : 0; /* (views: the first until the toggle turns to another; no timer) */
 	bool by_hand = cfg->toggle && mapRes.pages;
 	if (by_hand && !cfg->autoRotate) return pageOffset % mapRes.nFrames; /* (auto-rotate off: a page stays until you press) */
 	return (int) ((((frameCount - mapAnimStart) / (uint64_t) SDL_max(1, mapRes.frameStep)) + (uint64_t) (by_hand ? pageOffset : 0)) % (uint64_t) mapRes.nFrames);
@@ -5900,7 +5901,7 @@ static uint32_t rd32(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v;
  * frames are (a state keeps the frames and their pace, not what they are) */
 static bool state_pages(int nFrames) {
 	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
-	return nFrames > 1 && hp && hp->pages;
+	return nFrames > 1 && hp && (hp->pages || hp->views);
 }
 /* (at the start of a frame, everything set up) */
 static void screen_restore_apply(void) {
@@ -7118,7 +7119,7 @@ static const char* const icon_toggle[] = {
 static int toggle_btn_screen(void) {
 	if (!cfg->toggle || !strcmp(cfg->toggleButton, "off") || nScreens < 2 || !mc) return -1;
 	const MapProfile* hp = mapcap_profile(mc);
-	if (!hp || !hp->pages) return -1;
+	if (!hp || !(hp->pages || hp->views)) return -1;
 	int s = 1 - game_screen();
 	if (s != ui_touch_screen() || !cfg->map) return -1;
 	return s;

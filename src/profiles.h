@@ -832,6 +832,11 @@ typedef struct MapProfile {
 	 * capture). Set for every game whose rules file has Toggle `pages`
 	 * (GEN-14): what the toggle turns by hand. */
 	bool pages;
+	/* composePages' pictures are views (the world map and the party screen):
+	 * the first shows, and stays, as it always did; the toggle (GEN-14) turns
+	 * to the next until the subject changes. Held: both come from the one
+	 * capture. Set for every game whose Toggle row says `views`, `HELD`. */
+	bool views;
 	/* Values computed from the game's memory, read by MemProbes at
 	 * addresses from 0xF0000000 (memprobe_virtual, mapcap.h): Fire
 	 * Emblem's processes, which move between slots. */

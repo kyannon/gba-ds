@@ -555,7 +555,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   gate, `toggle_press()` / `toggle_step()` the state machine (a turn that waits
   fades the picture: `fadeLevel`), `toggle_new_subject()` starts the pages again
   at the first when a capture was for a new subject (`capSubject`), `second_page()`
-  says which page is up. The button: `toggle_btn_screen()` / `toggle_btn_geom()` / `draw_toggle_btn()` (its own 240x176 canvas, so it can sit in the margin under the picture; `cv_put` draws on `cvBuf`), the tap claimed in the pointer loop before "a tap opens the menu". Tests: `GBADS_TOGGLE_WAIT=N` (a case's `env`) forces a wait.
+  says which page is up. The button: `toggle_btn_screen()` / `toggle_btn_geom()` / `draw_toggle_btn()` (its own 240x176 canvas, so it can sit in the margin under the picture; `cv_put` draws on `cvBuf`), the tap claimed in the pointer loop before "a tap opens the menu". Views (Step 4): a profile with `views` (FF4 first) gives `composePages` pictures the toggle turns to, the first being what shows (no timer); `second_page()` returns `pageOffset` for them. Tests: `GBADS_TOGGLE_WAIT=N` (a case's `env`) forces a wait.
 - `ra.c` RetroAchievements (casual only) via rcheevos' rc_client, vendored in
   `third_party/rcheevos` (v12.5.0, trimmed: no hashing beyond md5.c, no
   libretro/RAIntegration). Server calls run the system `curl` in a worker

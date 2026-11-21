@@ -7020,8 +7020,12 @@ static void ff4_put_party(uint32_t* out, int w, int h, const uint32_t* pic) {
 	}
 }
 
-static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+/* the pictures (GEN-14, HELD views): the world map first when the overworld
+ * gives it (FF4-8), the party screen (FF4-3) beside it for the toggle; else
+ * the party screen alone */
+static const char* ff4_compose(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
 	static uint32_t pic[GBA_W * GBA_H];
+	*step = 1;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -7029,7 +7033,8 @@ static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	/* a battle: the party from before it (FF4-4) */
 	if (ff_probes(s, ff4Battle, sizeof(ff4Battle) / sizeof(*ff4Battle))) {
 		if (!ff4HaveParty) return "a battle";
-		ff4_put_party(out, w, h, ff4Party);
+		ff4_put_party(out[0], w, h, ff4Party);
+		*n = 1;
 		return NULL;
 	}
 	const char* err = ff4_open_menu(s);
@@ -7048,13 +7053,17 @@ static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
 				int mx = x - (w - 128) / 2, my = y - (h - 128) / 2;
-				out[y * w + x] = mx >= 0 && mx < 128 && my >= 0 && my < 128 ? (map[my * 128 + mx] | 0xFF000000) : 0xFF000000;
+				out[0][y * w + x] = mx >= 0 && mx < 128 && my >= 0 && my < 128 ? (map[my * 128 + mx] | 0xFF000000) : 0xFF000000;
 			}
 		}
+		/* the party screen beside it, for the toggle */
+		ff4_put_party(out[1], w, h, pic);
+		*n = 2;
 		return NULL;
 	}
 	if (emu_cancelled(s)) return "called off";
-	ff4_put_party(out, w, h, pic);
+	ff4_put_party(out[0], w, h, pic);
+	*n = 1;
 	return NULL;
 }
 
@@ -12432,7 +12441,8 @@ static const MapProfile profiles[] = {
 		 * as a party screen: see ff4_compose */
 		.codes = { "BZ4E" },
 		.title = "Final Fantasy IV Advance",
-		.compose = ff4_compose,
+		.composePages = ff4_compose,
+		.views = true, /* the map and the party screen: the toggle turns to the other (GEN-14, HELD) */
 		.virt = ff4_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,

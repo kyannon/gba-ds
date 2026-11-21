@@ -517,7 +517,7 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 		const char* err = p->composePages(s, state, mc->work, &n, &step, mc->cw, mc->ch);
 		mc->workFrames = err ? 0 : n < 1 ? 1 : n > MAP_MAX_FRAMES ? MAP_MAX_FRAMES : n;
 		mc->workStep = step < 1 ? 1 : step;
-		mc->workPages = p->pages && mc->workFrames > 1;
+		mc->workPages = (p->pages || p->views) && mc->workFrames > 1;
 		return err;
 	}
 	if (p->compose) {
@@ -963,7 +963,7 @@ __attribute__((export_name("web_capture_deliver"))) void web_capture_deliver(uin
 	for (int i = 0; i < frames; ++i) memcpy(mc->work[i], px + n * i, n * sizeof(uint32_t));
 	mc->workFrames = frames;
 	mc->workStep = step < 1 ? 1 : step;
-	mc->workPages = mc->prof && mc->prof->pages && frames > 1;
+	mc->workPages = mc->prof && (mc->prof->pages || mc->prof->views) && frames > 1;
 	mc->tileValid = tileValid && !failed;
 	if (mc->tileValid) memcpy(mc->tile, px + n * frames, sizeof(mc->tile));
 	const char* err = NULL;
