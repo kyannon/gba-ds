@@ -429,6 +429,10 @@ typedef struct MapProfile {
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
 	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
 	bool logoIfLast;
+	/* On the game itself (not the hidden copy), as `key` (GBA keys) is pressed while `when`
+	 * matches, each byte holding `from` is set to `to` before the frame: the game then turns
+	 * on from there, past a page of its own pause screen (KAM-6) */
+	struct { MemProbe when[2]; uint32_t addr[6]; uint8_t from, to; uint16_t key; } skip;
 	/* While `when` matches, the second screen's picture fades with the game's own: by a
 	 * level byte from 0 to max (above max: none), and with `bldy` by its BLDY fade too;
 	 * toward black, or white with `white` */
