@@ -1668,6 +1668,101 @@
      750
     ]
    ]
+  },
+  {
+   "id": "aw-bios-settings",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "the game list's Settings > System, GBA BIOS row: Built-in and its note; switched on with no gba_bios.bin in the bios folder it stays Built-in and says where to put the file (the BIOS is never looked for by itself)",
+   "rules": [
+    "GEN-15"
+   ],
+   "input": [
+    [
+     30,
+     "SELECT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     44,
+     "DOWN"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     52,
+     "DOWN"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     74,
+     "-"
+    ],
+    [
+     78,
+     "DOWN"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     86,
+     "DOWN"
+    ],
+    [
+     90,
+     "-"
+    ],
+    [
+     94,
+     "DOWN"
+    ],
+    [
+     98,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ]
+   ],
+   "shots": {
+    "system-bios": 120,
+    "system-bios-missing": 150
+   },
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ]
+   ]
   }
  ]
 }

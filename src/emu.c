@@ -340,6 +340,48 @@ bool emu_has_solar(Emu* e) {
 	return gba && (gba->memory.hw.devices & HW_LIGHT_SENSOR) != 0;
 }
 
+char emu_bios_path[512];
+
+/* The BIOS file read once (16 KB) and kept for the run: each core maps it, so it must stay. */
+static uint8_t* biosData;
+static char biosDataPath[512];
+static pthread_mutex_t biosLock = PTHREAD_MUTEX_INITIALIZER;
+
+static uint8_t* bios_read(const char* path, BiosFile* why) {
+	*why = BIOS_FILE_MISSING;
+	FILE* f = fopen(path, "rb");
+	if (!f) return NULL;
+	uint8_t* buf = malloc(GBA_SIZE_BIOS + 1);
+	size_t n = buf ? fread(buf, 1, GBA_SIZE_BIOS + 1, f) : 0;
+	fclose(f);
+	if (n != GBA_SIZE_BIOS) {
+		free(buf);
+		*why = BIOS_FILE_SIZE;
+		return NULL;
+	}
+	struct VFile* vf = VFileFromConstMemory(buf, GBA_SIZE_BIOS);
+	bool ok = vf && GBAIsBIOS(vf);
+	if (vf) vf->close(vf);
+	if (!ok) {
+		free(buf);
+		*why = BIOS_FILE_NOT_BIOS;
+		return NULL;
+	}
+	if (GBAChecksum((uint32_t*) buf, GBA_SIZE_BIOS) == GBA_DEBUG_BIOS_CHECKSUM) { /* (mGBA refuses it) */
+		free(buf);
+		*why = BIOS_FILE_BROKEN;
+		return NULL;
+	}
+	*why = BIOS_FILE_OK;
+	return buf;
+}
+
+BiosFile emu_bios_check(const char* path) {
+	BiosFile why;
+	free(bios_read(path, &why));
+	return why;
+}
+
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
@@ -394,6 +436,25 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 			e->core->loadSave(e->core, vf);
 		} else {
 			fprintf(stderr, "warning: cannot open save file %s\n", savePath);
+		}
+	}
+	if (emu_bios_path[0]) { /* the player's own BIOS (issue #78), started past its logo as the built-in one is */
+		pthread_mutex_lock(&biosLock);
+		if (!biosData || strcmp(biosDataPath, emu_bios_path)) {
+			BiosFile why;
+			uint8_t* b = bios_read(emu_bios_path, &why);
+			if (b) { /* (an earlier one stays mapped by cores still open: kept, not freed) */
+				biosData = b;
+				snprintf(biosDataPath, sizeof(biosDataPath), "%s", emu_bios_path);
+			} else {
+				fprintf(stderr, "GBA BIOS %s: not used (%d)\n", emu_bios_path, (int) why);
+			}
+		}
+		struct VFile* bvf = biosData && !strcmp(biosDataPath, emu_bios_path) ? VFileFromConstMemory(biosData, GBA_SIZE_BIOS) : NULL;
+		pthread_mutex_unlock(&biosLock);
+		if (bvf) {
+			e->core->opts.skipBios = true;
+			e->core->loadBIOS(e->core, bvf, 0);
 		}
 	}
 	e->core->reset(e->core);

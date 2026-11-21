@@ -6124,7 +6124,9 @@ static bool state_load(const char* path) {
 
 /* the quick bar's and the hotkey's word for a load that failed */
 static const char* load_failed_osd(void) {
-	return stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS ? "Saved with the GBA BIOS: can't load it." : "Load failed.";
+	if (stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS) return "Saved with a GBA BIOS: see Settings > System > GBA BIOS.";
+	if (stateLoadBios == BIOS_REFUSAL_CORE_HAS_BIOS) return "Saved without a GBA BIOS: switch yours off in Settings > System.";
+	return "Load failed.";
 }
 
 #ifdef __wasi__
@@ -7977,8 +7979,10 @@ static bool activate(int item, enum GameExit* exitTo) {
 		} else if (stateLoadKind == STATE_FILE_UNREADABLE) {
 			snprintf(menuNote, sizeof(menuNote), tr("This state can't be read"));
 		} else if (stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS) {
-			/* (a RetroArch state from its core with a BIOS file: issue #78) */
-			snprintf(menuNote, sizeof(menuNote), tr("Saved with the GBA BIOS: can't load it"));
+			/* (a RetroArch state from its core with a BIOS file: issue #78; Settings > System has the option) */
+			snprintf(menuNote, sizeof(menuNote), tr("Saved with a GBA BIOS: see Settings > System"));
+		} else if (stateLoadBios == BIOS_REFUSAL_CORE_HAS_BIOS) {
+			snprintf(menuNote, sizeof(menuNote), tr("Saved without a GBA BIOS: see Settings > System"));
 		} else {
 			snprintf(menuNote, sizeof(menuNote), tr("Load failed"));
 		}
@@ -8427,7 +8431,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			/* (RetroArch's automatic state, from another of its GBA cores) */
 			ui_osd_long("Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.");
 		} else if (stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS) {
-			ui_osd_long("Not resumed: the automatic state was saved with the GBA BIOS (RetroArch's core had one), and GBA DS doesn't run games with it.");
+			ui_osd_long("Not resumed: the automatic state was saved with a GBA BIOS (RetroArch's core had one). To use your own, see Settings > System > GBA BIOS.");
+		} else if (stateLoadBios == BIOS_REFUSAL_CORE_HAS_BIOS) {
+			ui_osd_long("Not resumed: the automatic state was saved without a GBA BIOS, and GBA DS is set to use yours. Switch it off in Settings > System > GBA BIOS.");
 		}
 	} else {
 		ui_osd("Tap the screen or press HOME for the menu");

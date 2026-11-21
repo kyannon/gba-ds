@@ -28,6 +28,12 @@ struct mCore;
 /* the sunlight a cartridge's sun sensor reads (0-10; Boktai) */
 extern int emu_solar_level;
 
+/* The player's own GBA BIOS (issue #78; off unless Settings > System turns it on): the file's
+ * path, or "" to run games with mGBA's built-in one, as always. emu_open gives it to every core. */
+extern char emu_bios_path[512];
+typedef enum { BIOS_FILE_OK, BIOS_FILE_MISSING, BIOS_FILE_SIZE, BIOS_FILE_NOT_BIOS, BIOS_FILE_BROKEN } BiosFile;
+BiosFile emu_bios_check(const char* path);
+
 /* A sprite to leave out when drawing (e.g. a HUD mini-map): matches when its
  * top-left corner is inside x0..x1 / y0..y1 (y may be negative), its tile
  * number is within tileMin..tileMax and its priority equals prio. */
