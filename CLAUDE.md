@@ -533,7 +533,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `hud.freeze` (the HUD picture held as it is while they match: SMA4's
   status bar sliding off), `hud.offAfter` (the HUD off from when they match
   until `on[0]` stops: Superstar Saga's results and level-ups, to the
-  battle's end). Adding a game mostly means a profile.
+  battle's end). A profile whose `composePages` gives pages that turn on a timer (a status screen's three pages, the party's members) sets `pages` (not a marker's blinking frames: they restart with each capture, pages keep their place); it is also what a Toggle row `pages` means (GEN-14), and game.c's `second_page()` is the one place that says which page is up. Adding a game mostly means a profile.
 - `mapcap.c` map capture on a hidden second core in a background thread.
   A `room` key change starts one once it has held 3 frames (game.c), calling
   off one still running (`mapcap_cancel`: the shadow's frames stop running,

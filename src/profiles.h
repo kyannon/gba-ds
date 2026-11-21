@@ -826,6 +826,12 @@ typedef struct MapProfile {
 	/* Instead of compose: several pictures (pages shown in turn, `*step`
 	 * emulated frames each); out[0..*n) on return, *n the most on the way in */
 	const char* (*composePages)(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h);
+	/* composePages' pictures are pages (a status screen's three pages, the
+	 * party's members), which keep turning at their pace through new
+	 * captures, and not a marker's blinking frames (those restart with each
+	 * capture). Set for every game whose rules file has Toggle `pages`
+	 * (GEN-14): what the toggle turns by hand. */
+	bool pages;
 	/* Values computed from the game's memory, read by MemProbes at
 	 * addresses from 0xF0000000 (memprobe_virtual, mapcap.h): Fire
 	 * Emblem's processes, which move between slots. */

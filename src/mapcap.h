@@ -20,6 +20,7 @@ typedef struct MapResult {
 	int w, h;
 	int nFrames;                 /* >1 when the map has an animated marker */
 	int frameStep;               /* emulated frames between animation frames */
+	bool pages;                  /* the frames are pages, a few seconds each (MapProfile.pages), not a marker's blinking */
 	uint32_t* pixels;            /* == frames[0] */
 	uint32_t* frames[MAP_MAX_FRAMES];
 	uint32_t serial;             /* increments with each successful capture */

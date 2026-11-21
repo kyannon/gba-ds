@@ -39,6 +39,7 @@ struct MapCapture {
 	bool underValid;
 	int workFrames;
 	int workStep;     /* emulated frames between work[] frames */
+	bool workPages;   /* work[] are pages (MapProfile.pages), not blinking frames */
 	volatile bool still; /* "Map Animations: Off": record the whole loop (animCycle) */
 
 	/* async machinery */
@@ -55,6 +56,7 @@ struct MapCapture {
 	uint32_t* published[MAP_MAX_FRAMES];
 	int pubFrames;
 	int pubStep;
+	bool pubPages;
 	uint32_t serial;
 	const char* lastError;
 #ifdef __wasi__
@@ -507,6 +509,7 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 	Emu* s = &mc->shadow;
 	size_t n = mc->cropPixels;
 	mc->workFrames = 0;
+	mc->workPages = false;
 	mc->tileValid = false;
 	mc->underValid = false;
 	if (p->composePages) {
@@ -514,12 +517,14 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 		const char* err = p->composePages(s, state, mc->work, &n, &step, mc->cw, mc->ch);
 		mc->workFrames = err ? 0 : n < 1 ? 1 : n > MAP_MAX_FRAMES ? MAP_MAX_FRAMES : n;
 		mc->workStep = step < 1 ? 1 : step;
+		mc->workPages = p->pages && mc->workFrames > 1;
 		return err;
 	}
 	if (p->compose) {
 		const char* err = p->compose(s, state, mc->work[0], mc->cw, mc->ch);
 		mc->workFrames = err ? 0 : 1;
 		mc->workStep = 1;
+		mc->workPages = false;
 		return err;
 	}
 	if (!emu_state_load(s, state)) {
@@ -601,6 +606,7 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 		step = (p->animCycle + want - 1) / want;
 	}
 	mc->workStep = step;
+	mc->workPages = false; /* (blinking markers) */
 	bool animated = false;
 	for (int i = 1; i < want; ++i) {
 		for (int k = 0; k < step; ++k) {
@@ -769,6 +775,7 @@ static void publish(MapCapture* mc, const char* err) {
 	}
 	mc->pubFrames = mc->workFrames;
 	mc->pubStep = mc->workStep;
+	mc->pubPages = mc->workPages;
 	++mc->serial;
 }
 
@@ -891,6 +898,7 @@ MapResult mapcap_capture_sync(MapCapture* mc, Emu* live) {
 	r.h = mc->ch;
 	r.nFrames = mc->workFrames;
 	r.frameStep = mc->workStep;
+	r.pages = mc->workPages;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 		r.frames[i] = mc->work[i];
 	}
@@ -955,6 +963,7 @@ __attribute__((export_name("web_capture_deliver"))) void web_capture_deliver(uin
 	for (int i = 0; i < frames; ++i) memcpy(mc->work[i], px + n * i, n * sizeof(uint32_t));
 	mc->workFrames = frames;
 	mc->workStep = step < 1 ? 1 : step;
+	mc->workPages = mc->prof && mc->prof->pages && frames > 1;
 	mc->tileValid = tileValid && !failed;
 	if (mc->tileValid) memcpy(mc->tile, px + n * frames, sizeof(mc->tile));
 	const char* err = NULL;
@@ -1108,6 +1117,7 @@ bool mapcap_poll(MapCapture* mc, uint32_t lastSerial, MapResult* out) {
 		out->h = mc->ch;
 		out->nFrames = mc->pubFrames;
 		out->frameStep = mc->pubStep;
+		out->pages = mc->pubPages;
 		for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 			if (!out->frames[i]) {
 				out->frames[i] = malloc(n * sizeof(uint32_t));

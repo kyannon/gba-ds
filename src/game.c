@@ -1068,10 +1068,13 @@ static int snapShow, snapRevert;   /* consecutive frames matching show / a rever
 static uint32_t snapShown[GBA_W * GBA_H]; /* the copy on the second screen (kept with save states) */
 
 static uint64_t mapAnimStart;
-/* which of the map's frames shows now (they turn every frameStep frames
- * from mapAnimStart); never out of range, even with mapAnimStart ahead of
- * frameCount (it once came from the game played before: frames[-1]) */
-static int map_anim_index(void) {
+/* which of the second screen's pictures shows now: the map's frames turn
+ * every frameStep frames from mapAnimStart (a marker's blinking, or pages:
+ * mapRes.pages); never out of range, even with mapAnimStart ahead of
+ * frameCount (it once came from the game played before: frames[-1]).
+ * The one place that says which page is up (the toggle, GEN-14, changes
+ * it from here). */
+static int second_page(void) {
 	if (mapRes.nFrames < 1 || frameCount < mapAnimStart) return 0;
 	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
 	if (hp && hp->holdPage) {
@@ -5879,6 +5882,12 @@ static const uint8_t* blob_find(const uint8_t* b, size_t n, const char* tag, uin
 	return NULL;
 }
 static uint32_t rd32(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v; }
+/* a loaded state's frames are pages when this game's profile says its
+ * frames are (a state keeps the frames and their pace, not what they are) */
+static bool state_pages(int nFrames) {
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	return nFrames > 1 && hp && hp->pages;
+}
 /* (at the start of a frame, everything set up) */
 static void screen_restore_apply(void) {
 	if (!screenRestorePending) return;
@@ -5904,7 +5913,7 @@ static void screen_restore_apply(void) {
 		/* (only at the size this game's captures are: frames are that big) */
 		if (mapRes.frames[0] && w == mapRes.w && h == mapRes.h && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
 			for (int i = 0; i < nf; ++i) memcpy(mapRes.frames[i], d + 16 + px * i, px);
-			mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
+			mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.pages = state_pages(nf), mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
 			map_show_new(false);
 		} else if (!mapRes.frames[0] && w > 0 && h > 0 && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
 			/* (no capture yet this session: the frames made here, as mapcap_poll does) */
@@ -5913,7 +5922,7 @@ static void screen_restore_apply(void) {
 			for (int i = 0; i < MAP_MAX_FRAMES; ++i) ok = ok && mapRes.frames[i];
 			if (ok) {
 				for (int i = 0; i < nf; ++i) memcpy(mapRes.frames[i], d + 16 + px * i, px);
-				mapRes.w = w, mapRes.h = h, mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
+				mapRes.w = w, mapRes.h = h, mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.pages = state_pages(nf), mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
 				map_show_new(false);
 			}
 		}
@@ -6951,14 +6960,14 @@ static void map_show_new(bool fresh) {
 	mapShownIdx = -1;
 	/* (pages, a few seconds each: Fire Emblem's unit status; they
 	 * keep turning at their pace through new captures) */
-	bool pages = mapRes.nFrames > 1 && mapRes.frameStep >= 60;
+	bool pages = mapRes.pages;
 	if (!pages) mapAnimStart = frameCount;
 	/* the still (each marker frozen) is only shown with map animations
 	 * off, and building it is real work: only then */
 	bool stillChanged = false;
 	stillStale = map_anim();
 	if (!stillStale) stillChanged = update_still();
-	int first = pages ? map_anim_index() : 0;
+	int first = pages ? second_page() : 0;
 	upload_map_frame(map_anim() ? first : STILL_IDX);
 	if (debug) fprintf(stderr, "frame %llu: map %s (%d frame(s) %d apart%s)\n", (unsigned long long) frameCount, fresh ? "updated" : "from the save state",
 	                   mapRes.nFrames, mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
@@ -9406,7 +9415,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			} else if (fresh) {
 				map_show_new(true);
 			} else if (map_anim() && mapRes.nFrames > 1 && mapShownIdx >= 0) {
-				int idx = map_anim_index();
+				int idx = second_page();
 				upload_map_frame(idx);
 			}
 			/* a profile's own live picture (Mega Man Battle Network's maps on
