@@ -235,8 +235,6 @@ bool ui_logo_custom(const Config* c, const char* rom, const char* code);
 void ui_logo_queue(const Config* c, const char* rom, const char* code);
 /* The game list: a ROM file's checksum (for logos made per file) not known yet is worked out on a
  * thread, not while the list draws; ui_file_crc_generation moves as each is done. */
-double ui_perf_ms(void);
-void ui_perf(const char* fmt, ...) __attribute__((format(printf, 1, 2))); /* "perf: ..." line in the log */
 void ui_file_crc_async(bool on);
 uint32_t ui_file_crc_generation(void);
 bool ui_file_crc_pending(void);

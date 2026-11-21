@@ -2233,27 +2233,6 @@ static FileCrc fileCrc[FILE_CRC_MAX];
 static int nFileCrc;
 static bool fileCrcLoaded;
 static char fileCrcPath[1200];
-/* Timing lines for the game list ("perf: ..." in gba-ds.log): what stalls it, when. */
-double ui_perf_ms(void) {
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return ts.tv_sec * 1000.0 + ts.tv_nsec / 1e6;
-}
-void ui_perf(const char* fmt, ...) {
-	static double t0;
-	if (!t0) t0 = ui_perf_ms();
-	char buf[600];
-	va_list ap;
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	va_end(ap);
-	fprintf(stderr, "perf: +%.0f ms %s\n", ui_perf_ms() - t0, buf);
-}
-static const char* perf_base(const char* path) {
-	const char* b = strrchr(path, '/');
-	return b ? b + 1 : path;
-}
-
 static pthread_mutex_t fileCrcLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t fileCrcWake = PTHREAD_COND_INITIALIZER;
 /* (fileCrcLock held for all of these) */
@@ -2310,14 +2289,11 @@ static void file_crc_flush(void) {
 	}
 	pthread_mutex_unlock(&fileCrcLock);
 	if (text) {
-		double t0 = ui_perf_ms();
 		FILE* f = fopen(path, "w");
 		if (f) {
 			fputs(text, f);
 			fclose(f);
 		}
-		double ms = ui_perf_ms() - t0;
-		if (ms > 5) ui_perf("romcrc.cache written: %.0f ms", ms);
 		free(text);
 	}
 	pthread_mutex_unlock(&fileCrcWriteLock);
@@ -2357,15 +2333,12 @@ static void* file_crc_worker(void* arg) {
 		struct stat st;
 		bool ok = stat(rom, &st) == 0 && !file_crc_find(rom, &st);
 		pthread_mutex_unlock(&fileCrcLock);
-		double t0 = ui_perf_ms();
 		uint32_t crc = ok ? file_crc_read(rom) : 0;
-		double ms = ui_perf_ms() - t0;
 		pthread_mutex_lock(&fileCrcLock);
 		if (ok) file_crc_put(rom, &st, crc);
 		fileCrcBusy[0] = 0;
 		++fileCrcGen;
 		pthread_mutex_unlock(&fileCrcLock);
-		if (ok) ui_perf("file checksum done: %s %.0f ms read (%lld KB file), crc %08X", perf_base(rom), ms, (long long) (st.st_size / 1024), crc);
 		file_crc_flush();
 		pthread_mutex_lock(&fileCrcLock);
 	}
@@ -2398,10 +2371,7 @@ static uint32_t rom_file_crc_ex(const Config* c, const char* rom, bool compute, 
 	struct stat st;
 	if (pending) *pending = false;
 	if (!rom || !*rom || stat(rom, &st)) return 0;
-	double lw0 = ui_perf_ms();
 	pthread_mutex_lock(&fileCrcLock);
-	double lw = ui_perf_ms() - lw0;
-	if (lw > 5) ui_perf("checksum lock waited %.0f ms (for %s)", lw, perf_base(rom));
 	file_crc_load(c);
 	const FileCrc* hit = file_crc_find(rom, &st);
 	if (hit) {
@@ -2417,7 +2387,6 @@ static uint32_t rom_file_crc_ex(const Config* c, const char* rom, bool compute, 
 		bool queued = !strcmp(fileCrcBusy, rom);
 		for (int i = 0; i < nFileCrcQueue && !queued; ++i) queued = !strcmp(fileCrcQueue[i], rom);
 		if (!queued) {
-			ui_perf("file checksum asked for: %s (%d waiting)", perf_base(rom), nFileCrcQueue);
 			if (nFileCrcQueue == FILE_CRC_QUEUE) { /* (full: the oldest goes) */
 				memmove(fileCrcQueue[0], fileCrcQueue[1], sizeof(fileCrcQueue[0]) * (FILE_CRC_QUEUE - 1));
 				--nFileCrcQueue;
@@ -2448,9 +2417,7 @@ static uint32_t rom_file_crc_ex(const Config* c, const char* rom, bool compute, 
 		/* (no thread: now, below) */
 	}
 	pthread_mutex_unlock(&fileCrcLock);
-	double t0 = ui_perf_ms();
 	uint32_t crc = file_crc_read(rom);
-	ui_perf("file checksum read inline: %s %.0f ms", perf_base(rom), ui_perf_ms() - t0);
 	pthread_mutex_lock(&fileCrcLock);
 	if (crc) file_crc_put(rom, &st, crc);
 	pthread_mutex_unlock(&fileCrcLock);

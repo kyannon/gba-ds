@@ -491,13 +491,11 @@ static void* rom_crc_worker(void* arg) {
 		snprintf(code, sizeof(code), "%s", crcWantCode);
 		crcWant.path[0] = 0;
 		pthread_mutex_unlock(&crcLock);
-		/* (the patch files beside the ROM and in its folder: stats that the list's thread
-		 * waited seconds-fractions for behind the other reads of a busy SD card) */
+		/* (the patch files beside the ROM and in its folder: the list's own thread waited
+		 * on these stats behind the other reads of a busy SD card) */
 		char files[PATCH_ON_MAX + 1][1024];
 		int nf = crcCfg ? patch_plan(crcCfg, c.path, code, &choice, files, PATCH_ON_MAX + 1) : 0;
-		double t0 = ui_perf_ms();
 		c.crc = rom_crc_read(c.path, files, nf, &c.patch);
-		ui_perf("game checksum done: %s %.0f ms read (%d patch file(s))", c.path[0] ? (strrchr(c.path, '/') ? strrchr(c.path, '/') + 1 : c.path) : "?", ui_perf_ms() - t0, nf);
 		pthread_mutex_lock(&crcLock);
 		crcBusy[0] = 0;
 		rom_crc_put(&c);
@@ -542,9 +540,7 @@ static void rom_crc_save(const Config* cfg) {
  * games: the others have no list of dumps to check it against). */
 static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 	if (!g->supported) return false;
-	double lw0 = ui_perf_ms();
 	pthread_mutex_lock(&crcLock);
-	if (ui_perf_ms() - lw0 > 5) ui_perf("game checksum lock waited %.0f ms", ui_perf_ms() - lw0);
 	RomCrc* c = rom_crc_find(g->path, g->size, g->mtime);
 	bool have = c != NULL;
 	if (have) {
@@ -708,13 +704,9 @@ static void load_thumbs(Config* cfg, int idx) {
 	thumbFor = idx;
 	free_thumbs();
 	if (idx < 0 || idx >= nGames) return;
-	double lt0 = ui_perf_ms();
 	GamePaths gp;
 	game_paths(cfg, games[idx].path, &gp);
-	double lt1 = ui_perf_ms();
-	bool logoOk = ui_load_logo(cfg, games[idx].path, games[idx].code, logoTex, &logoW, &logoH, &logoPixel);
-	double lt2 = ui_perf_ms();
-	if (logoOk) {
+	if (ui_load_logo(cfg, games[idx].path, games[idx].code, logoTex, &logoW, &logoH, &logoPixel)) {
 		/* drawn at a fixed height rather than a whole-number scale, so filter it */
 		for (int v = 0; v < 2; ++v) {
 			if (logoTex[v]) SDL_SetTextureScaleMode(logoTex[v], SDL_ScaleModeLinear);
@@ -725,8 +717,6 @@ static void load_thumbs(Config* cfg, int idx) {
 		for (int v = 0; v < nViews; ++v) thumbTex[v] = SDL_CreateTextureFromSurface(views[v].ren, s);
 		SDL_FreeSurface(s);
 	}
-	double lt3 = ui_perf_ms();
-	if (lt3 - lt0 > 5) ui_perf("preview of %s %s took %.0f ms (paths %.0f, logo %.0f %s, resume picture %.0f %s)", games[idx].code, games[idx].name, lt3 - lt0, lt1 - lt0, lt2 - lt1, logoOk ? "ok" : "none", lt3 - lt2, s ? "found" : "none");
 }
 
 static void draw_preview(Config* cfg, int scr, int sel) {
@@ -1071,8 +1061,6 @@ static void storage_check(const Config* cfg) {
 	snprintf(storageMsg, sizeof(storageMsg), tr("Can't save files here: no states, logos or screenshots"));
 }
 
-static double perfTileMs; /* (logo loads in the frame being drawn) */
-static int perfTileLoads;
 static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
@@ -1118,10 +1106,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		if (!tileTried[i]) {
 			tileTried[i] = true;
 			bool pixelArt;
-			double tl0 = ui_perf_ms();
-			bool tileOk = ui_load_logo(cfg, games[i].path, games[i].code, tileLogo[i], &tileLogoW[i], &tileLogoH[i], &pixelArt);
-			perfTileMs += ui_perf_ms() - tl0, ++perfTileLoads;
-			if (tileOk) {
+			if (ui_load_logo(cfg, games[i].path, games[i].code, tileLogo[i], &tileLogoW[i], &tileLogoH[i], &pixelArt)) {
 				for (int v = 0; v < 2; ++v) {
 					if (tileLogo[i][v]) SDL_SetTextureScaleMode(tileLogo[i][v], SDL_ScaleModeLinear);
 				}
@@ -2556,22 +2541,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	int listFrames = 0;
 #endif
 	ui_file_crc_async(true); /* (no whole-ROM reads while the list draws) */
-	{
-		char la[64] = "";
-		FILE* lf = fopen("/proc/loadavg", "r");
-		if (lf) {
-			if (!fgets(la, sizeof(la), lf)) la[0] = 0;
-			fclose(lf);
-			la[strcspn(la, "\n")] = 0;
-		}
-		ui_perf("game list timing on: %d game(s), %d CPU(s), load %s, view %d", nGames, (int) sysconf(_SC_NPROCESSORS_ONLN), la, viewCols);
-	}
-	double perfPrevEnd = 0;
-	int perfLastSel = -1;
 	while (!quit && chosen < 0) {
-		double pf0 = ui_perf_ms();
-		double pfGap = perfPrevEnd ? pf0 - perfPrevEnd : 0; /* (since the last frame ended: its 15 ms wait and the rest) */
-		perfTileMs = 0, perfTileLoads = 0;
 #ifdef __wasi__
 		if (listFrames++) logo_step(); /* (the web build: a logo a frame, from the list's second) */
 #endif
@@ -2580,10 +2550,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			unsigned cg = rom_crc_generation();
 			if (cg != crcSeen) { /* a ROM's checksum worked out (GEN-8) */
 				crcSeen = cg;
-				double t0 = ui_perf_ms();
 				rom_crc_save(cfg);
-				double ms = ui_perf_ms() - t0;
-				if (ms > 3) ui_perf("roms.cache saved on the list's thread: %.0f ms", ms);
 			}
 		}
 		static unsigned fileCrcSeen;
@@ -2868,23 +2835,11 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			if (logo_busy(games[chosen].code) || logo_busy(NULL)) waiting = chosen, chosen = -1;
 		}
 
-		double pf1 = ui_perf_ms();
 		ui_clear();
 		draw_list(cfg, ls, sel, scroll);
-		double pf2 = ui_perf_ms();
 		if (nScreens > 1) draw_preview(cfg, ui_other_screen(), sel);
-		double pf3 = ui_perf_ms();
 		ui_present();
-		double pf4 = ui_perf_ms();
-		if (sel != perfLastSel && sel >= 0 && sel < nGames) {
-			ui_perf("selected %d/%d: %s %s", sel + 1, nGames, games[sel].code, games[sel].name);
-			perfLastSel = sel;
-		}
-		if (pf4 - pf0 > 80 || pfGap > 120)
-			ui_perf("slow frame %.0f ms (events+input %.0f, list %.0f of which %d logo load(s) %.0f, preview %.0f, present %.0f), %.0f ms since the last frame ended; sel %d, checksums pending %d",
-				pf4 - pf0, pf1 - pf0, pf2 - pf1, perfTileLoads, perfTileMs, pf3 - pf2, pf4 - pf3, pfGap, sel, ui_file_crc_pending() ? 1 : 0);
 		SDL_Delay(15);
-		perfPrevEnd = ui_perf_ms();
 	}
 	ui_file_crc_async(false);
 	free_thumbs();
