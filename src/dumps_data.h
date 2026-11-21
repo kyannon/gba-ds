@@ -251,6 +251,8 @@ static const KnownDump knownDumps[] = {
 	{ "BFFJ", 0x0f3bd723, true, false, "Final Fantasy I, II Advance (Japan) (Rev 1)" },
 	{ "BFFJ", 0x2c58c9c1, false, false, "Final Fantasy I, II Advance (Japan) (Rev 1) (Virtual Console)" },
 	{ "BFFP", 0x7c9854c6, true, false, "Final Fantasy I & II - Dawn of Souls (Europe) (En,Fr,De,Es,It)" },
+	{ "BFTJ", 0x13e65eb4, false, false, "F-Zero - Climax (Japan) (Virtual Console)" },
+	{ "BFTJ", 0xdbdc71e3, true, false, "F-Zero - Climax (Japan)" },
 	{ "BFZE", 0x781aab58, true, false, "F-Zero - GP Legend (USA)" },
 	{ "BFZE", 0x9075c6fd, false, false, "F-Zero - GP Legend (USA) (Virtual Console)" },
 	{ "BFZJ", 0x2446b920, true, false, "F-Zero - Falcon Densetsu (Japan)" },
@@ -392,6 +394,7 @@ static const KnownDump knownDumps[] = {
 	{ "AXVE", 0x41d07817, true, true, "Light Platinum" },
 	{ "AZLE", 0xabd1a38b, true, true, "Voice removal v0.1" },
 	{ "AZLP", 0x72e519b7, true, true, "Voice removal v0.1" },
+	{ "BFTJ", 0x80366a0a, true, true, "F-Zero Climax English Patch 1.1" },
 	{ "BMXE", 0x4c0e3216, true, true, "Color improvement v2" },
 	{ "BMXE", 0x70409097, true, true, "Color improvement v1" },
 	{ "BPEE", 0x0aa91114, true, true, "Super MarioMon 1.5.1" },
@@ -499,4 +502,5 @@ static const KnownPatch knownPatches[] = {
 	{ "A3AE", 0xee1f43b9, 43358, 0x40a48276, 0x6cda3e7d, "voice removal", "Voice removal v0.1", "Super Mario Advance 3 - Yoshi's Island (USA)", true },
 	{ "A3UJ", 0xf02e4122, 2336, 0x42ac9cb9, 0xb7faa37d, "audio", "HQ audio mix alternative (MusicTheorist)", "Mother 3 (Japan)", true },
 	{ "A2CE", 0xf3235cb8, 141702, 0x35536183, 0x00d0fddf, "colour", "Symphony of the Colors v1.0 (JonataGuitar)", "Castlevania - Aria of Sorrow (USA)", true },
+	{ "BFTJ", 0x4eb16ff2, 246104, 0xdbdc71e3, 0x80366a0a, "translation", "English Patch 1.1 (F-Zero Climax Translation Project)", "F-Zero - Climax (Japan)", true },
 };
