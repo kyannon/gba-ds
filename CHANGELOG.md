@@ -2,6 +2,10 @@
 
 ## v1.5.8 (not yet released)
 
+### Interface
+- **RetroArch's zstd save states load** (issue #78). States RetroArch 1.21 and later compress with zstd (RZIP version 2) now load, shared or from its folder; GBA DS still saves RetroArch's zlib ones, which every RetroArch reads.
+- **A state saved with a GBA BIOS says so, and there's an option for it** (issue #78). A state from RetroArch's mGBA core with a BIOS file set, saved while the game was inside the BIOS, couldn't load and said only "Load failed". It now says "Saved with a GBA BIOS". New, and off by default: Settings > System > **GBA BIOS** (Linux and Android) runs games with your own BIOS, a file you put in the `bios` folder of GBA DS's data folder as `gba_bios.bin` (GBA DS has none and never looks for one itself). Known: with it on, states saved without a BIOS may not load, and a BIOS applies to games started after switching it.
+
 ## v1.5.7 (2026-11-21)
 
 ### New games
