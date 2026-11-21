@@ -1073,6 +1073,11 @@ static uint64_t mapAnimStart;
  * frameCount (it once came from the game played before: frames[-1]) */
 static int map_anim_index(void) {
 	if (mapRes.nFrames < 1 || frameCount < mapAnimStart) return 0;
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	if (hp && hp->holdPage) {
+		int hold = hp->holdPage(&emu); /* (a page kept up: Pokémon's Party in a battle) */
+		if (hold >= 0 && hold < mapRes.nFrames) return hold;
+	}
 	return (int) (((frameCount - mapAnimStart) / (uint64_t) SDL_max(1, mapRes.frameStep)) % (uint64_t) mapRes.nFrames);
 }
 static bool singleShowsMap;
@@ -8190,6 +8195,18 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
 	} else {
 		ra_game_start(&emu, rom);
+		if (ra_loading()) {
+			/* The server's answers for a game with a big set are parsed on this thread
+			 * (a second or two of CPU on the device): behind a screen, not a second into play. */
+			ui_notice("Loading achievements...", tr("A few seconds"));
+			Uint32 t0 = SDL_GetTicks();
+			while (ra_loading() && SDL_GetTicks() - t0 < 12000) {
+				ui_events();
+				ra_idle();
+				SDL_Delay(20);
+			}
+			fprintf(stderr, "ra: waited %u ms for the achievements before starting\n", (unsigned) (SDL_GetTicks() - t0));
+		}
 	}
 	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
@@ -9367,7 +9384,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			}
 			/* quick "no map here" failures (A Link to the Past indoors) cost little
 			 * and are expected, so they don't back off */
-			bool cheapFail = why && !strcmp(why, "map button did nothing");
+			bool cheapFail = why && !strncmp(why, "map button did nothing", 22); /* (Pokémon's menu failures say why in brackets) */
 			/* (a profile's own interval, when it's quicker: Swordcraft Story) */
 			const MapProfile* ip = mapcap_profile(mc);
 			int every = ip && ip->interval > 0 && ip->interval < cfg->mapInterval ? ip->interval : cfg->mapInterval;

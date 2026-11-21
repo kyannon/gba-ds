@@ -1,0 +1,3676 @@
+{
+ "game": "Pokemon FireRed, LeafGreen, Ruby, Sapphire and Emerald",
+ "rules": "docs/games/pokemon.md",
+ "cases": [
+  {
+   "id": "pk-fr-us",
+   "rom": "BPRE",
+   "state": "pokemon/fr-us-party.ss",
+   "desc": "FireRed (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-lg-us",
+   "rom": "BPGE",
+   "state": "pokemon/lg-us-party.ss",
+   "desc": "LeafGreen (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-ruby-us",
+   "rom": "AXVE",
+   "state": "pokemon/ruby-us-party.ss",
+   "desc": "Ruby (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-sapphire-us",
+   "rom": "AXPE",
+   "state": "pokemon/sapphire-us-party.ss",
+   "desc": "Sapphire (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-emerald-us",
+   "rom": "BPEE",
+   "state": "pokemon/emerald-us-party.ss",
+   "desc": "Emerald (USA): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-fr-de",
+   "rom": "BPRD",
+   "state": "pokemon/fr-de-party.ss",
+   "desc": "Feuerrote Edition (German): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-ruby-jp",
+   "rom": "AXVJ",
+   "state": "pokemon/ruby-jp-party.ss",
+   "desc": "Ruby (Japan): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-fr-radicalred",
+   "rom": "BPRE+radicalred",
+   "state": "pokemon/fr-radicalred-party.ss",
+   "desc": "Radical Red 4.1, a romhack of FireRed on a ROM of its own: the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-fr-us-nopokemon",
+   "rom": "BPRE",
+   "state": "pokemon/fr-us-nopokemon.ss",
+   "desc": "FireRed (USA), no Pokémon yet: the logo",
+   "rules": [
+    "PK-1"
+   ],
+   "shots": {
+    "start": 200,
+    "end": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-1",
+     "what": "no Party taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-title",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-title.ss",
+   "desc": "Super MarioMon: the title, the logo",
+   "rules": [
+    "PK-1",
+    "PK-8"
+   ],
+   "shots": {
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-bedroom",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-bedroom.ss",
+   "desc": "Super MarioMon: first control, in the bedroom: the logo",
+   "rules": [
+    "PK-1",
+    "PK-8"
+   ],
+   "shots": {
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-tutorial-battle",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-tutorial-battle.ss",
+   "desc": "Super MarioMon: the tutorial battle: the logo",
+   "rules": [
+    "PK-1",
+    "PK-4",
+    "PK-8"
+   ],
+   "shots": {
+    "end": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-first-capture",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-first-capture.ss",
+   "desc": "Super MarioMon: first control with a capture: the Party",
+   "rules": [
+    "PK-2",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-capture-menu",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-capture-menu.ss",
+   "desc": "Super MarioMon: the Captures screen up on the game screen: the Party, taken after backing out of it",
+   "rules": [
+    "PK-2",
+    "PK-6",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-6",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-capture-menu-after",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-capture-menu-after.ss",
+   "desc": "Super MarioMon: the Captures screen, a moment later: the Party kept",
+   "rules": [
+    "PK-2",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mm-wild-battle",
+   "rom": "BPEE+mariomon",
+   "state": "pokemon/mm-wild-battle.ss",
+   "desc": "Super MarioMon: a wild battle: the Party stays up (PK-4)",
+   "rules": [
+    "PK-1",
+    "PK-4",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-rogueex-party-up",
+   "rom": "BPEE+rogueex",
+   "state": "pokemon/rogueex-party-up.ss",
+   "desc": "Emerald Rogue EX: the Party screen up on the game screen: the Party, no map",
+   "rules": [
+    "PK-2",
+    "PK-6",
+    "PK-8"
+   ],
+   "shots": {
+    "party": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-6",
+     "what": "a Party picture, not the logo",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-rogueex-dialogue",
+   "rom": "BPEE+rogueex",
+   "state": "pokemon/rogueex-dialogue.ss",
+   "desc": "Emerald Rogue EX: in a conversation before any Party picture: the logo",
+   "rules": [
+    "PK-1",
+    "PK-8"
+   ],
+   "shots": {
+    "end": 300
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-lg-rev1-center-no-map",
+   "rom": "BPGE+rev1",
+   "state": "pokemon/lg-center-no-map.ss",
+   "desc": "LeafGreen (Rev 1), early game in a Pokémon Center, no Town Map yet: the Party, kept fresh, no long map search again and again",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-6"
+   ],
+   "shots": {
+    "party": 300,
+    "later": 1500
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "the Party, still",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the long search for a Town Map runs once, not every few seconds",
+     "type": "no_log",
+     "match": "(?s)capture: \\d+ ms, (?:[3-9]\\d{3}|\\d{5,}) frames.*capture: \\d+ ms, (?:[3-9]\\d{3}|\\d{5,}) frames"
+    }
+   ]
+  },
+  {
+   "id": "pk-lg-rev1-map-given",
+   "rom": "BPGE+rev1",
+   "state": "pokemon/lg-given-map.ss",
+   "desc": "LeafGreen (Rev 1), the Town Map being handed over: the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 400
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-lg-rev1-with-map",
+   "rom": "BPGE+rev1",
+   "state": "pokemon/lg-with-map.ss",
+   "desc": "LeafGreen (Rev 1), outside with the Town Map: the map is up within seconds",
+   "rules": [
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 400
+   },
+   "checks": [
+    {
+     "rule": "PK-3",
+     "what": "the map",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpre",
+   "rom": "BPRE",
+   "state": "pokemon/mid/BPRE.ss",
+   "desc": "FireRed (USA, Europe): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpre-rev1",
+   "rom": "BPRE+rev1",
+   "state": "pokemon/mid/BPRE+rev1.ss",
+   "desc": "FireRed (USA, Europe) Rev 1: a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bprd",
+   "rom": "BPRD",
+   "state": "pokemon/mid/BPRD.ss",
+   "desc": "FireRed (Germany): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bprf",
+   "rom": "BPRF",
+   "state": "pokemon/mid/BPRF.ss",
+   "desc": "FireRed (France): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpri",
+   "rom": "BPRI",
+   "state": "pokemon/mid/BPRI.ss",
+   "desc": "FireRed (Italy): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bprs",
+   "rom": "BPRS",
+   "state": "pokemon/mid/BPRS.ss",
+   "desc": "FireRed (Spain): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bprj",
+   "rom": "BPRJ",
+   "state": "pokemon/mid/BPRJ.ss",
+   "desc": "FireRed (Japan): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpge",
+   "rom": "BPGE",
+   "state": "pokemon/mid/BPGE.ss",
+   "desc": "LeafGreen (USA, Europe): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpge-rev1",
+   "rom": "BPGE+rev1",
+   "state": "pokemon/mid/BPGE+rev1.ss",
+   "desc": "LeafGreen (USA, Europe) Rev 1: a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpgd",
+   "rom": "BPGD",
+   "state": "pokemon/mid/BPGD.ss",
+   "desc": "LeafGreen (Germany): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpgf",
+   "rom": "BPGF",
+   "state": "pokemon/mid/BPGF.ss",
+   "desc": "LeafGreen (France): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpgi",
+   "rom": "BPGI",
+   "state": "pokemon/mid/BPGI.ss",
+   "desc": "LeafGreen (Italy): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpgs",
+   "rom": "BPGS",
+   "state": "pokemon/mid/BPGS.ss",
+   "desc": "LeafGreen (Spain): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpgj",
+   "rom": "BPGJ",
+   "state": "pokemon/mid/BPGJ.ss",
+   "desc": "LeafGreen (Japan): a real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axvd",
+   "rom": "AXVD",
+   "state": "pokemon/mid/AXVD.ss",
+   "desc": "Ruby (Germany): a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axvd-rev1",
+   "rom": "AXVD+rev1",
+   "state": "pokemon/mid/AXVD+rev1.ss",
+   "desc": "Ruby (Germany) Rev 1: a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axve",
+   "rom": "AXVE",
+   "state": "pokemon/mid/AXVE.ss",
+   "desc": "Ruby (USA, Europe): a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axve-rev1",
+   "rom": "AXVE+rev1",
+   "state": "pokemon/mid/AXVE+rev1.ss",
+   "desc": "Ruby (USA, Europe) Rev 1: a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axve-rev2",
+   "rom": "AXVE+rev2",
+   "state": "pokemon/mid/AXVE+rev2.ss",
+   "desc": "Ruby (USA, Europe) Rev 2: a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axvf-rev1",
+   "rom": "AXVF+rev1",
+   "state": "pokemon/mid/AXVF+rev1.ss",
+   "desc": "Ruby (France) Rev 1: a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axvi",
+   "rom": "AXVI",
+   "state": "pokemon/mid/AXVI.ss",
+   "desc": "Ruby (Italy): a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axvi-rev1",
+   "rom": "AXVI+rev1",
+   "state": "pokemon/mid/AXVI+rev1.ss",
+   "desc": "Ruby (Italy) Rev 1: a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axvj",
+   "rom": "AXVJ",
+   "state": "pokemon/mid/AXVJ.ss",
+   "desc": "Ruby (Japan): a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axvs",
+   "rom": "AXVS",
+   "state": "pokemon/mid/AXVS.ss",
+   "desc": "Ruby (Spain): a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axvs-rev1",
+   "rom": "AXVS+rev1",
+   "state": "pokemon/mid/AXVS+rev1.ss",
+   "desc": "Ruby (Spain) Rev 1: a real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpd",
+   "rom": "AXPD",
+   "state": "pokemon/mid/AXPD.ss",
+   "desc": "Sapphire (Germany): a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpd-rev1",
+   "rom": "AXPD+rev1",
+   "state": "pokemon/mid/AXPD+rev1.ss",
+   "desc": "Sapphire (Germany) Rev 1: a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpe",
+   "rom": "AXPE",
+   "state": "pokemon/mid/AXPE.ss",
+   "desc": "Sapphire (USA, Europe): a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpe-rev1",
+   "rom": "AXPE+rev1",
+   "state": "pokemon/mid/AXPE+rev1.ss",
+   "desc": "Sapphire (USA, Europe) Rev 1: a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpe-rev2",
+   "rom": "AXPE+rev2",
+   "state": "pokemon/mid/AXPE+rev2.ss",
+   "desc": "Sapphire (USA, Europe) Rev 2: a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpf",
+   "rom": "AXPF",
+   "state": "pokemon/mid/AXPF.ss",
+   "desc": "Sapphire (France): a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpf-rev1",
+   "rom": "AXPF+rev1",
+   "state": "pokemon/mid/AXPF+rev1.ss",
+   "desc": "Sapphire (France) Rev 1: a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpi",
+   "rom": "AXPI",
+   "state": "pokemon/mid/AXPI.ss",
+   "desc": "Sapphire (Italy): a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpi-rev1",
+   "rom": "AXPI+rev1",
+   "state": "pokemon/mid/AXPI+rev1.ss",
+   "desc": "Sapphire (Italy) Rev 1: a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axpj",
+   "rom": "AXPJ",
+   "state": "pokemon/mid/AXPJ.ss",
+   "desc": "Sapphire (Japan): a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axps",
+   "rom": "AXPS",
+   "state": "pokemon/mid/AXPS.ss",
+   "desc": "Sapphire (Spain): a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-axps-rev1",
+   "rom": "AXPS+rev1",
+   "state": "pokemon/mid/AXPS+rev1.ss",
+   "desc": "Sapphire (Spain) Rev 1: a real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bped",
+   "rom": "BPED",
+   "state": "pokemon/mid/BPED.ss",
+   "desc": "Emerald (Germany): a real mid-game save (Route 117, Pokénav map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpee",
+   "rom": "BPEE",
+   "state": "pokemon/mid/BPEE.ss",
+   "desc": "Emerald (USA, Europe): a real mid-game save (Route 117, Pokénav map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpef",
+   "rom": "BPEF",
+   "state": "pokemon/mid/BPEF.ss",
+   "desc": "Emerald (France): a real mid-game save (Route 117, Pokénav map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpei",
+   "rom": "BPEI",
+   "state": "pokemon/mid/BPEI.ss",
+   "desc": "Emerald (Italy): a real mid-game save (Route 117, Pokénav map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpej",
+   "rom": "BPEJ",
+   "state": "pokemon/mid/BPEJ.ss",
+   "desc": "Emerald (Japan): a real mid-game save (Route 117, Pokénav map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-mid-bpes",
+   "rom": "BPES",
+   "state": "pokemon/mid/BPES.ss",
+   "desc": "Emerald (Spain): a real mid-game save (Route 117, Pokénav map in full view): the Party, then the map",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-bpee",
+   "rom": "BPEE",
+   "state": "pokemon/battle/BPEE.ss",
+   "desc": "Emerald (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-bpre",
+   "rom": "BPRE",
+   "state": "pokemon/battle/BPRE.ss",
+   "desc": "FireRed (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-bpge",
+   "rom": "BPGE",
+   "state": "pokemon/battle/BPGE.ss",
+   "desc": "LeafGreen (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-axve",
+   "rom": "AXVE",
+   "state": "pokemon/battle/AXVE.ss",
+   "desc": "Ruby (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-battle-axpe",
+   "rom": "AXPE",
+   "state": "pokemon/battle/AXPE.ss",
+   "desc": "Sapphire (USA, Europe): a wild battle from the owner's own save (device bug report, Nov 20, 2026): the Party stays on the second screen, never the map",
+   "rules": [
+    "PK-2",
+    "PK-4"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 600
+   },
+   "checks": [
+    {
+     "rule": "PK-4",
+     "what": "the Party on the second screen at the battle's start (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-4",
+     "what": "still the Party 500 frames later (it doesn't turn to the map)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-glazed",
+   "rom": "BPEE+glazed",
+   "state": "pokemon/mods/BPEE+glazed.ss",
+   "desc": "Pokémon Glazed 9.1.0: the owner's own play state from the device (Nov 20, 2026), early in the game (no Town Map yet): the Party, and still only the Party 700 frames later (PK-3: no map before the player has it)",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "still the Party, not the logo's grey, once the pages would have turned (no map yet)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-theta",
+   "rom": "BPEE+theta",
+   "state": "pokemon/mods/BPEE+theta.ss",
+   "desc": "Pokémon Theta Emerald EX: the owner's auto state from the device (Nov 20, 2026), in the intro (Birch's speech, before the first Pokémon): the logo",
+   "rules": [
+    "PK-1",
+    "PK-7"
+   ],
+   "shots": {
+    "end": 420
+   },
+   "checks": [
+    {
+     "rule": "PK-1",
+     "what": "the logo on dark grey",
+     "type": "uniform",
+     "shot": "end",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "pk-unbound",
+   "rom": "BPRE+unbound",
+   "state": "pokemon/mods/BPRE+unbound.ss",
+   "desc": "Pokémon Unbound 2.1.1.1: the owner's own play state from the device (Nov 20, 2026), early in the game (no Town Map yet): the Party, and still only the Party 700 frames later (PK-3: no map before the player has it)",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "still the Party, not the logo's grey, once the pages would have turned (no map yet)",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-fuligin",
+   "rom": "BPRE+fuligin",
+   "state": "pokemon/mods/BPRE+fuligin.ss",
+   "desc": "Pokémon Fuligin: the owner's own play state from the device (Nov 20, 2026): the Party on the second screen, still there 700 frames later (the state has no Town Map to show)",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "still the Party, not the logo's grey, once the pages would have turned",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-saiph",
+   "rom": "BPRE+saiph",
+   "state": "pokemon/mods/BPRE+saiph.ss",
+   "desc": "Pokémon Saiph: the owner's own play state from the device (Nov 19, 2026): the Party, and only the Party 700 frames later (a known issue: no map for this hack)",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "still the Party, not the logo's grey, once the pages would have turned",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "pk-florasky",
+   "rom": "BPEE+florasky",
+   "state": "pokemon/mods/BPEE+florasky.ss",
+   "desc": "Pokémon Flora Sky: a mid-game state made from the owner's save: the Party, still there 700 frames later",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "later": 800
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "still the Party, not the logo's grey, once the pages would have turned",
+     "type": "not_uniform",
+     "shot": "later",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  }
+ ]
+}
