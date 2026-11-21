@@ -437,9 +437,9 @@ static pthread_mutex_t crcLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t crcWake = PTHREAD_COND_INITIALIZER;
 static RomCrc crcWant; /* the next file to read (path "": none) */
 static char crcBusy[1024]; /* the file the worker is reading (crcLock) */
-static char crcWantFiles[PATCH_ON_MAX + 1][1024]; /* and the patches to apply to it, in order (GEN-9) */
+static PatchChoice crcWantChoice; /* and the patches switched on for it (GEN-9): the worker finds their files, not the list's thread */
+static char crcWantCode[16];
 static const Config* crcCfg;       /* (the settings, for the patches' folder: set by scan) */
-static int crcWantN;
 static bool crcThread;
 static unsigned crcGen; /* bumped as a checksum is worked out (crcLock) */
 
@@ -486,11 +486,15 @@ static void* rom_crc_worker(void* arg) {
 		while (!crcWant.path[0]) pthread_cond_wait(&crcWake, &crcLock);
 		RomCrc c = crcWant;
 		snprintf(crcBusy, sizeof(crcBusy), "%s", c.path);
-		char files[PATCH_ON_MAX + 1][1024];
-		int nf = crcWantN;
-		memcpy(files, crcWantFiles, sizeof(files));
+		PatchChoice choice = crcWantChoice;
+		char code[16];
+		snprintf(code, sizeof(code), "%s", crcWantCode);
 		crcWant.path[0] = 0;
 		pthread_mutex_unlock(&crcLock);
+		/* (the patch files beside the ROM and in its folder: stats that the list's thread
+		 * waited seconds-fractions for behind the other reads of a busy SD card) */
+		char files[PATCH_ON_MAX + 1][1024];
+		int nf = crcCfg ? patch_plan(crcCfg, c.path, code, &choice, files, PATCH_ON_MAX + 1) : 0;
 		double t0 = ui_perf_ms();
 		c.crc = rom_crc_read(c.path, files, nf, &c.patch);
 		ui_perf("game checksum done: %s %.0f ms read (%d patch file(s))", c.path[0] ? (strrchr(c.path, '/') ? strrchr(c.path, '/') + 1 : c.path) : "?", ui_perf_ms() - t0, nf);
@@ -538,7 +542,9 @@ static void rom_crc_save(const Config* cfg) {
  * games: the others have no list of dumps to check it against). */
 static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 	if (!g->supported) return false;
+	double lw0 = ui_perf_ms();
 	pthread_mutex_lock(&crcLock);
+	if (ui_perf_ms() - lw0 > 5) ui_perf("game checksum lock waited %.0f ms", ui_perf_ms() - lw0);
 	RomCrc* c = rom_crc_find(g->path, g->size, g->mtime);
 	bool have = c != NULL;
 	if (have) {
@@ -549,7 +555,8 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 		crcWant.size = g->size;
 		crcWant.mtime = g->mtime;
 		snprintf(crcWant.path, sizeof(crcWant.path), "%s", g->path);
-		crcWantN = crcCfg ? patch_plan(crcCfg, g->path, g->code, &g->patchOn, crcWantFiles, PATCH_ON_MAX + 1) : 0;
+		crcWantChoice = g->patchOn;
+		snprintf(crcWantCode, sizeof(crcWantCode), "%s", g->code);
 		if (!crcThread && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) {
 			pthread_t t;
 			crcThread = pthread_create(&t, NULL, rom_crc_worker, NULL) == 0;
@@ -561,7 +568,9 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 			RomCrc w = crcWant;
 			crcWant.path[0] = 0;
 			pthread_mutex_unlock(&crcLock);
-			w.crc = rom_crc_read(w.path, crcWantFiles, crcWantN, &w.patch);
+			char wf[PATCH_ON_MAX + 1][1024];
+			int wn = crcCfg ? patch_plan(crcCfg, w.path, crcWantCode, &crcWantChoice, wf, PATCH_ON_MAX + 1) : 0;
+			w.crc = rom_crc_read(w.path, wf, wn, &w.patch);
 			pthread_mutex_lock(&crcLock);
 			rom_crc_put(&w);
 			*crc = w.crc;
@@ -872,6 +881,13 @@ static void free_tiles(void) {
 		ui_free_image(tileLogo[i]);
 		tileTried[i] = false;
 	}
+}
+
+/* (a ROM file's checksum was worked out: only what has no logo yet needs asking again) */
+static void retry_tiles_without_logo(void) {
+	for (int i = 0; i < 256; ++i)
+		if (!tileLogo[i][0] && !tileLogo[i][1]) tileTried[i] = false;
+	if (!logoTex[0] && !logoTex[1]) thumbFor = -2;
 }
 
 static SDL_Rect settings_button(int scr) {
@@ -2571,11 +2587,14 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			}
 		}
 		static unsigned fileCrcSeen;
-		if (logo_generation() != logoGen || ui_file_crc_generation() != fileCrcSeen) { /* a logo finished extracting, or a ROM file's checksum was worked out (its logo's name) */
+		if (logo_generation() != logoGen) { /* a logo finished extracting */
 			logoGen = logo_generation();
 			fileCrcSeen = ui_file_crc_generation();
 			thumbFor = -2;
 			free_tiles();
+		} else if (ui_file_crc_generation() != fileCrcSeen) { /* a ROM file's checksum was worked out (its logo's name) */
+			fileCrcSeen = ui_file_crc_generation();
+			retry_tiles_without_logo();
 		}
 		if (!ui_events()) {
 			quit = true;
