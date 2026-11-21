@@ -6002,6 +6002,7 @@ static void screen_restore_apply(void) {
 	mapTitleN = 0, hudLogoBelowDone = false;
 	heldN = 0, heldNumW = 0, heldArmed = true;
 	logoForced = false, logoHolding = 0;
+	ssFade = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
 		return;
@@ -8061,6 +8062,7 @@ static void ss_setup(const char* rom, const char* code) {
 	tallLive = false;
 	hudProf = NULL;
 	hudOn = false;
+	ssFade = 0;
 	{
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
@@ -8190,6 +8192,7 @@ static void ss_switch(const char* rom, const char* code) {
 	hideWhenProf = NULL;
 	mapcap_destroy(mc);
 	mc = NULL;
+	ssFade = 0;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 		free(mapRes.frames[i]);
 		mapRes.frames[i] = NULL;
