@@ -34,6 +34,7 @@ Every game also follows the [general rules](README.md#general-rules). The game d
 
 ## Not covered yet
 
+- BT-9 (the Sun row) was tried on the device for the USA release (the owner, Nov 21, 2026); it is to be tried again on Boktai 2 and 3 once they have app support (they have no profile yet, so the row is untried there).
 - Europe's and Japan's walking about: they share the USA release's addresses (checked: the Map opens, the logos extract); only their logos have cases until a state from each arrives.
 - Bosses, the Solar Station and the World map: not reached; the Map is only taken where SELECT opens it, and BT-3 covers the rest.
 - A fixed area key for refreshing the moment the area changes: none found, so BT-1 refreshes about once a second.

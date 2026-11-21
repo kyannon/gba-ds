@@ -6,7 +6,7 @@
 | Dumps | `BYWE` cartridge `69b6f229` (tested) · `BYWP` cartridge `3c42e84c` (tested) · `BY3J` cartridge `7ab1ec04` (tested) |
 | Profile | `src/profiles.c`: the `BYWE` entry (wct_compose, wct_virt); variants `BYWP` (wct_eur) and `BY3J` (wct_jpn): the same screens and addresses, their own titles |
 | Tests | `tests/regress/yu-gi-oh-world-championship-tournament-2004.json` (`tools/regress.py yu-gi-oh-world-championship-tournament-2004`) |
-| Status | ready to try on the device (branch `game/yu-gi-oh-world-championship-tournament-2004`) |
+| Status | tried on the device (all six languages and all three releases, Nov 19, 2026) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list yu-gi-oh-world-championship-tournament-2004`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
