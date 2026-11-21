@@ -129,7 +129,7 @@ The USA, European and Japanese (Bokura no Taiyou) releases.
 - **While you walk about,** the second screen shows the game's **Map** (the SELECT menu's Map page, without its title bar and button prompts), following Django. It is taken from a hidden copy of the game about once a second.
 - **At the top** it has the game's own **clock** (top left) and the **sunrise** and **sunset** times (top right), the lines the ITEM page shows (START there switches between them), looked at about every 30 seconds, so they can lag a little behind the game.
 - In conversations, scenes and the menus, the last Map stays. At the title, on the file menu and at the first start's set-up screens the second screen shows the logo: the title's lettering.
-- **The sun sensor:** the cartridge's solar sensor reads a fixed level, 6 of 10, so the sun gauge isn't empty. `solar_level` in `gba-ds.cfg` sets it from 0 (dark) to 10.
+- **The sun sensor:** the cartridge's solar sensor reads 6 of 10 to begin with, so the sun gauge isn't empty (`solar_level` in `gba-ds.cfg` sets that, from 0 to 10). Swipe up from the bottom of the touchscreen for the quick bar: its **Sun** row has **Dark**, **-**, **+** and **Full** to change the sunlight while you play, as RetroArch's sun sensor buttons do (for the ice dungeons, where shading the sensor keeps the ice from melting). The level is kept for the game.
 - Known: the Europe and Japan releases were checked on their logos and by start-up only. Not tried yet: bosses, the Solar Station and the World map.
 
 ## Breath of Fire
