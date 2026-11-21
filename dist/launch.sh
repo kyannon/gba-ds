@@ -221,7 +221,8 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 	fi
 	# the touchscreen read straight from its device (weston gives GBA DS no
 	# touches there)
-	TS=${ARMADA_TS:-$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null))
+	TS=$ARMADA_TS
+	[ -z "$TS" ] && TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
 	[ -n "$TS" ] && [ -z "$(cfgval touch_device)" ] && O+=("--touch-device=/dev/input/$TS")
 	# The RG DS Plus's Stock Linux OS keeps its touchscreen off outside its DS
 	# emulator (anbernic_misc/tpctrl 1; the emulator's launch.sh writes 0):
