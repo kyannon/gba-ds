@@ -11491,9 +11491,6 @@ static const MapProfile profiles[] = {
 		/* the game's own pause page open: the logo, not the same page twice (KND-5) */
 		.logoIfOr = { { 0x030023C0, 0xFF, 8, 1 }, { 0x04000000, 0x1000, 0, 2 } },
 		.logoIfLast = true,
-		/* its fade to white and back (0x1F) as the pause page opens and closes, the second
-		 * screen fading with it (the byte also moves for the copy pose, a flash elsewhere) */
-		.fade = { 0x03000FB8, 0x1F, true, { { 0x030023C0, 0xFF, 8, 1 } } },
 		/* the lettering (BG1) over its swoosh (BG2), above the PRESS START sprites */
 		.logo = { .wait = 800, .layers = 0x6, .maxY = 116 },
 	},

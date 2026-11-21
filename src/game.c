@@ -1031,25 +1031,6 @@ static bool logoForced;
  * a new picture to show (a HUD picture drawn, a map picture taken), at
  * most a second; not the last picture from before for a frame (SM4-11) */
 static int logoHolding;
-static int ssFade; /* profile fade: how far the second screen's picture has faded (0-255), and to white */
-static bool ssFadeWhite;
-
-static int ss_fade(const MapProfile* p, bool* white) {
-	*white = p->fade.white;
-	int a = 0;
-	if (p->fade.addr) {
-		int lv = emu_read8(&emu, p->fade.addr);
-		a = lv > p->fade.max ? 0 : lv * 255 / p->fade.max;
-	}
-	/* (measured on the game screen: a palette fade moves its picture about as the square of its level) */
-	a = 255 - (255 - a) * (255 - a) / 255;
-	if (p->fade.bldy) {
-		int bld = emu_read16(&emu, 0x04000050), eff = (bld >> 6) & 3,
-		    b = SDL_min(emu_read16(&emu, 0x04000054) & 31, 16) * 255 / 16;
-		if ((eff == 2 || eff == 3) && (bld & 0x0F) == 0x0F && b > a) a = b, *white = eff == 2;
-	}
-	return a;
-}
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
 static bool overOn, overDirty;
@@ -6002,7 +5983,6 @@ static void screen_restore_apply(void) {
 	mapTitleN = 0, hudLogoBelowDone = false;
 	heldN = 0, heldNumW = 0, heldArmed = true;
 	logoForced = false, logoHolding = 0;
-	ssFade = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
 		return;
@@ -7684,12 +7664,6 @@ static void draw_game(void) {
 			area = (SDL_Rect) { area.x + in, area.y + in, area.w - in * 2, area.h - in * 2 };
 			if (tp) ui_title_block(s, area, tp->title, (int) (ui_px(s) * 14), (SDL_Color) { 236, 236, 244, 255 });
 		}
-		if (ssFade) {
-			bool map = mapShownIdx >= 0 && !logoForced && !hudShown;
-			Uint8 c = ssFadeWhite ? 255 : 0;
-			ui_fill(s, ui_image_rect(s, map ? mapW : GBA_W, map ? mapH : GBA_H, cfg->mapScale),
-			        (SDL_Color) { c, c, c, (Uint8) ssFade });
-		}
 		/* whatever this screen shows: map, HUD, logo or nothing */
 		if (overlay_on(s)) draw_overlay(s, 1);
 		if (!hudShown && mapShownIdx >= 0 && mapInactive && !logoForced) {
@@ -8062,7 +8036,6 @@ static void ss_setup(const char* rom, const char* code) {
 	tallLive = false;
 	hudProf = NULL;
 	hudOn = false;
-	ssFade = 0;
 	{
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
@@ -8192,7 +8165,6 @@ static void ss_switch(const char* rom, const char* code) {
 	hideWhenProf = NULL;
 	mapcap_destroy(mc);
 	mc = NULL;
-	ssFade = 0;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 		free(mapRes.frames[i]);
 		mapRes.frames[i] = NULL;
@@ -9458,9 +9430,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
 				if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
 				else if (logoHolding > 0) --logoHolding;
-				bool fading = lp && (lp->fade.addr || lp->fade.bldy) &&
-				              (!lp->fade.when[0].addr || memprobes_match(lp->fade.when, 2, &emu));
-				ssFade = fading ? ss_fade(lp, &ssFadeWhite) : 0;
 				lf = lf || logoHolding > 0;
 				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
 				logoForced = lf;

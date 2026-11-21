@@ -24,7 +24,7 @@ The game has no map. Its pause screen is a page about the copy ability Kirby has
 
 **KND-4. Logo elsewhere.** The second screen shows the logo at half strength before the first page and wherever Kirby isn't in a level: the title, the file and game select, the opening, a level's title card and the hubs of doors between levels. Back in a level, the last page comes back until a new one is taken.
 
-**KND-5. The game's own pause screen.** While the game's pause page is open on the game screen, the second screen shows the logo at half strength, so the same page is never on both (as Muppet Pinball Mayhem's pause, MPM-4). The second screen fades with the game: as the level fades to white, the page below fades with it, and the logo comes in from white as the pause page does; closing, the logo fades to white with the pause page, and the last page comes back from white as the level does.
+**KND-5. The game's own pause screen.** While the game's pause page is open on the game screen, the second screen shows the logo at half strength, so the same page is never on both (as Muppet Pinball Mayhem's pause, MPM-4). The second screen does not fade: while the game screen fades to white and back as the pause page opens and closes, the second screen changes at once, the logo in as the page opens and the last page back as it closes.
 
 ## Not covered yet
 
@@ -47,7 +47,7 @@ The game has no map. Its pause screen is a page about the copy ability Kirby has
 
 ## For the merge
 
-- Shared code: `logoIfLast` (when `logoIf` stops matching, the last picture at once rather than the logo until a new one) and the profile `fade` (the second screen's picture fading with the game's own fade), `tools/regress.py --changed` to run.
+- Shared code: `logoIfLast` (when `logoIf` stops matching, the last picture at once rather than the logo until a new one), `tools/regress.py --changed` to run.
 - Changelog (New games): Kirby: Nightmare in Dream Land (USA): in a level, the pause page for Kirby's copy ability, kept up to date.
 - Supported games table: `| Kirby: Nightmare in Dream Land | `A7KE` | in a level: the pause page for Kirby's copy ability | |`
 - Supported games section: the USA release, checked in Vegetable Valley (being filled in).

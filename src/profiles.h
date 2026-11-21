@@ -426,10 +426,6 @@ typedef struct MapProfile {
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
 	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
 	bool logoIfLast;
-	/* While `when` matches, the second screen's picture fades with the game's own: by a
-	 * level byte from 0 to max (above max: none), and with `bldy` by its BLDY fade too;
-	 * toward black, or white with `white` */
-	struct { uint32_t addr; int max; bool white; MemProbe when[2]; bool bldy; } fade;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
