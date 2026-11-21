@@ -3,100 +3,896 @@
  "games": {
   "final-fantasy-iv-advance": {
    "Final Fantasy IV Advance (USA)": {
-    "1": ["us-field.ss", "World map, two characters (hacked save, no Sight caster): the Sight map, as in Japan (FF4-8)"],
-    "2": ["us-overworld.ss", "World map with Rosa in the party: the Sight map, black either side (FF4-8)"],
-    "3": ["us-moon.ss", "The Moon's surface: its map from Sight (FF4-8)"],
-    "4": ["us-cave.ss", "A cave where Sight can't be cast: party screen (FF4-3)"],
-    "5": ["us-lunar.ss", "Lunar Subterrane, five characters, green window colour: party screen in the game's colour (FF4-3)"],
-    "6": ["us-menu.ss", "START's menu open on the game screen: second screen shows the same as walking about (FF4-6)"],
-    "7": ["us-battle.ss", "A battle loaded straight in: logo. Load slot 1 first, wait for the party, then load this: the party stays (FF4-4)"],
-    "8": ["us-title.ss", "Title menu: logo, nothing captured (FF4-2)"]
+    "1": [
+     "us-field.ss",
+     "World map, two characters (hacked save, no Sight caster): the Sight map, as in Japan (FF4-8)"
+    ],
+    "2": [
+     "us-overworld.ss",
+     "World map with Rosa in the party: the Sight map, black either side (FF4-8)"
+    ],
+    "3": [
+     "us-moon.ss",
+     "The Moon's surface: its map from Sight (FF4-8)"
+    ],
+    "4": [
+     "us-cave.ss",
+     "A cave where Sight can't be cast: party screen (FF4-3)"
+    ],
+    "5": [
+     "us-lunar.ss",
+     "Lunar Subterrane, five characters, green window colour: party screen in the game's colour (FF4-3)"
+    ],
+    "6": [
+     "us-menu.ss",
+     "START's menu open on the game screen: second screen shows the same as walking about (FF4-6)"
+    ],
+    "7": [
+     "us-battle.ss",
+     "A battle loaded straight in: logo. Load slot 1 first, wait for the party, then load this: the party stays (FF4-4)"
+    ],
+    "8": [
+     "us-title.ss",
+     "Title menu: logo, nothing captured (FF4-2)"
+    ]
    },
    "Final Fantasy IV Advance (Europe) (En,Fr,De,Es,It)": {
-    "1": ["eu-late.ss", "Lunar Subterrane B7, five characters at level 99: party screen (FF4-3)"],
-    "2": ["eu-late-menu.ss", "START's menu open: party screen (FF4-6)"],
-    "3": ["eu-battle.ss", "Gold Dragon battle loaded straight in: logo; after slot 1, the party stays (FF4-4)"],
-    "4": ["eu-dialogue.ss", "Save point's message box: logo; after slot 1, the party stays (FF4-5)"],
-    "5": ["eu-defeated.ss", "Everyone down, after slot 1: party through the defeat message, logo at the title (FF4-4, FF4-2; known issue)"],
-    "6": ["eu-title.ss", "Title menu: logo (FF4-2)"]
+    "1": [
+     "eu-late.ss",
+     "Lunar Subterrane B7, five characters at level 99: party screen (FF4-3)"
+    ],
+    "2": [
+     "eu-late-menu.ss",
+     "START's menu open: party screen (FF4-6)"
+    ],
+    "3": [
+     "eu-battle.ss",
+     "Gold Dragon battle loaded straight in: logo; after slot 1, the party stays (FF4-4)"
+    ],
+    "4": [
+     "eu-dialogue.ss",
+     "Save point's message box: logo; after slot 1, the party stays (FF4-5)"
+    ],
+    "5": [
+     "eu-defeated.ss",
+     "Everyone down, after slot 1: party through the defeat message, logo at the title (FF4-4, FF4-2; known issue)"
+    ],
+    "6": [
+     "eu-title.ss",
+     "Title menu: logo (FF4-2)"
+    ]
    },
    "Final Fantasy IV Advance (Japan)": {
-    "1": ["jp-field.ss", "World map, Kain and Cecil, in Japanese: the Sight map (FF4-8)"],
-    "2": ["jp-menu.ss", "START's menu open on the world map: the map, as walking about (FF4-6, FF4-8)"],
-    "3": ["jp-battle.ss", "Battle loaded straight in: logo; after slot 1, the party stays (FF4-4)"],
-    "4": ["jp-late.ss", "Five characters at level 99 in Japanese: party screen (FF4-3)"],
-    "5": ["jp-title.ss", "Title menu: logo, with the katakana line left out (FF4-1, FF4-2)"]
+    "1": [
+     "jp-field.ss",
+     "World map, Kain and Cecil, in Japanese: the Sight map (FF4-8)"
+    ],
+    "2": [
+     "jp-menu.ss",
+     "START's menu open on the world map: the map, as walking about (FF4-6, FF4-8)"
+    ],
+    "3": [
+     "jp-battle.ss",
+     "Battle loaded straight in: logo; after slot 1, the party stays (FF4-4)"
+    ],
+    "4": [
+     "jp-late.ss",
+     "Five characters at level 99 in Japanese: party screen (FF4-3)"
+    ],
+    "5": [
+     "jp-title.ss",
+     "Title menu: logo, with the katakana line left out (FF4-1, FF4-2)"
+    ]
    },
    "Final Fantasy IV Advance (Japan) (Rev 1)": {
-    "1": ["jr-late.ss", "Rev 1, five characters at level 99: party screen (FF4-3)"],
-    "2": ["jr-late-menu.ss", "START's menu open: party screen (FF4-6)"],
-    "3": ["jr-title.ss", "Title menu: logo (FF4-2)"]
+    "1": [
+     "jr-late.ss",
+     "Rev 1, five characters at level 99: party screen (FF4-3)"
+    ],
+    "2": [
+     "jr-late-menu.ss",
+     "START's menu open: party screen (FF4-6)"
+    ],
+    "3": [
+     "jr-title.ss",
+     "Title menu: logo (FF4-2)"
+    ]
    }
   },
   "final-fantasy-v-advance": {
    "Final Fantasy V Advance (USA)": {
-    "1": ["us-world.ss", "World map: the game's own world map (R opened on the hidden copy) (FV-3)"],
-    "2": ["us-lethe.ss", "Lethe Court, where R opens nothing: party screen, big window going on across the top right (FV-10)"],
-    "3": ["us-menu.ss", "START's menu open on the world map: the world map as walking about (FV-4)"],
-    "4": ["us-battle.ss", "Battle loaded straight in: logo; after slot 1, the party screen is kept (FV-6, FV-7)"],
-    "5": ["us-defeat.ss", "Everyone at 0 HP in a battle, after slot 1: logo from the defeat on (FV-8)"],
-    "6": ["us-title.ss", "Title: logo, nothing captured (FV-2)"],
-    "7": ["us-loadmenu.ss", "Load Game screen: logo (FV-2)"],
-    "8": ["us-newgame.ss", "A new game's opening scene: logo stays (FV-2, FV-5)"]
+    "1": [
+     "us-world.ss",
+     "World map: the game's own world map (R opened on the hidden copy) (FV-3)"
+    ],
+    "2": [
+     "us-lethe.ss",
+     "Lethe Court, where R opens nothing: party screen, big window going on across the top right (FV-10)"
+    ],
+    "3": [
+     "us-menu.ss",
+     "START's menu open on the world map: the world map as walking about (FV-4)"
+    ],
+    "4": [
+     "us-battle.ss",
+     "Battle loaded straight in: logo; after slot 1, the party screen is kept (FV-6, FV-7)"
+    ],
+    "5": [
+     "us-defeat.ss",
+     "Everyone at 0 HP in a battle, after slot 1: logo from the defeat on (FV-8)"
+    ],
+    "6": [
+     "us-title.ss",
+     "Title: logo, nothing captured (FV-2)"
+    ],
+    "7": [
+     "us-loadmenu.ss",
+     "Load Game screen: logo (FV-2)"
+    ],
+    "8": [
+     "us-newgame.ss",
+     "A new game's opening scene: logo stays (FV-2, FV-5)"
+    ]
    },
    "Final Fantasy V Advance (Europe) (En,Fr,De,Es,It)": {
-    "1": ["eu-rift.ss", "The Rift (R opens nothing): party screen (FV-10)"],
-    "2": ["eu-battle.ss", "Battle loaded straight in: logo; after slot 1, the party is kept (FV-6)"],
-    "3": ["eu-defeat.ss", "Everyone at 0 HP, after slot 1: logo (FV-8)"]
+    "1": [
+     "eu-rift.ss",
+     "The Rift (R opens nothing): party screen (FV-10)"
+    ],
+    "2": [
+     "eu-battle.ss",
+     "Battle loaded straight in: logo; after slot 1, the party is kept (FV-6)"
+    ],
+    "3": [
+     "eu-defeat.ss",
+     "Everyone at 0 HP, after slot 1: logo (FV-8)"
+    ]
    },
    "Final Fantasy V Advance (Japan)": {
-    "1": ["jp-airship.ss", "On the airship: the game's world map (FV-3)"],
-    "2": ["jp-battle.ss", "Battle loaded straight in: logo; after slot 1, the party is kept (FV-6)"],
-    "3": ["jp-defeat.ss", "Everyone at 0 HP, after slot 1: logo (FV-8)"]
+    "1": [
+     "jp-airship.ss",
+     "On the airship: the game's world map (FV-3)"
+    ],
+    "2": [
+     "jp-battle.ss",
+     "Battle loaded straight in: logo; after slot 1, the party is kept (FV-6)"
+    ],
+    "3": [
+     "jp-defeat.ss",
+     "Everyone at 0 HP, after slot 1: logo (FV-8)"
+    ]
    }
   },
   "final-fantasy-vi-advance": {
    "Final Fantasy VI Advance (USA)": {
-    "1": ["us-wob.ss", "World of Balance, corner minimap on: the minimap twice as big on the second screen, none in the game screen's corner (FF6-10, FF6-11)"],
-    "2": ["us-wob-minimap-off.ss", "Same with the corner minimap switched off with SELECT: still shown on the second screen (FF6-10)"],
-    "3": ["us-wob-menu.ss", "START's menu open on the world map: the minimap (FF6-5)"],
-    "4": ["us-wob-items.ss", "Items screen open on the world map: the minimap (FF6-5)"],
-    "5": ["us-wob-battle.ss", "Battle loaded straight in: logo; after slot 1, the party screen is kept; load slot 1 again: the minimap is back (FF6-7)"],
-    "6": ["us-wob-victory.ss", "A won battle's results, after slot 1: party kept; press A through, the minimap returns (FF6-7)"],
-    "7": ["us-wob-wiped.ss", "Everyone at 0 HP, after slot 1: logo (FF6-9)"],
-    "8": ["us-title.ss", "Title: logo (FF6-2)"],
-    "9": ["us-opening-dialogue.ss", "A new game's opening conversation: logo stays (FF6-3, FF6-6)"]
+    "1": [
+     "us-wob.ss",
+     "World of Balance, corner minimap on: the minimap twice as big on the second screen, none in the game screen's corner (FF6-10, FF6-11)"
+    ],
+    "2": [
+     "us-wob-minimap-off.ss",
+     "Same with the corner minimap switched off with SELECT: still shown on the second screen (FF6-10)"
+    ],
+    "3": [
+     "us-wob-menu.ss",
+     "START's menu open on the world map: the minimap (FF6-5)"
+    ],
+    "4": [
+     "us-wob-items.ss",
+     "Items screen open on the world map: the minimap (FF6-5)"
+    ],
+    "5": [
+     "us-wob-battle.ss",
+     "Battle loaded straight in: logo; after slot 1, the party screen is kept; load slot 1 again: the minimap is back (FF6-7)"
+    ],
+    "6": [
+     "us-wob-victory.ss",
+     "A won battle's results, after slot 1: party kept; press A through, the minimap returns (FF6-7)"
+    ],
+    "7": [
+     "us-wob-wiped.ss",
+     "Everyone at 0 HP, after slot 1: logo (FF6-9)"
+    ],
+    "8": [
+     "us-title.ss",
+     "Title: logo (FF6-2)"
+    ],
+    "9": [
+     "us-opening-dialogue.ss",
+     "A new game's opening conversation: logo stays (FF6-3, FF6-6)"
+    ]
    },
    "Final Fantasy VI Advance (Europe) (En,Fr,De,Es,It)": {
-    "1": ["eu-kefka-tower.ss", "Kefka's Tower, four characters at level 99: party screen (FF6-4)"],
-    "2": ["eu-kefka-tower-battle.ss", "Battle loaded straight in: logo; after slot 1, the party is kept (FF6-7)"]
+    "1": [
+     "eu-kefka-tower.ss",
+     "Kefka's Tower, four characters at level 99: party screen (FF6-4)"
+    ],
+    "2": [
+     "eu-kefka-tower-battle.ss",
+     "Battle loaded straight in: logo; after slot 1, the party is kept (FF6-7)"
+    ]
    },
    "Final Fantasy VI Advance (Japan)": {
-    "1": ["jp-narshe-mines.ss", "Narshe mines, Terra and two soldiers, Japanese menu: party screen (FF6-4)"],
-    "2": ["jp-narshe-mines-battle.ss", "Battle loaded straight in: logo; after slot 1, the party is kept (FF6-7)"]
+    "1": [
+     "jp-narshe-mines.ss",
+     "Narshe mines, Terra and two soldiers, Japanese menu: party screen (FF6-4)"
+    ],
+    "2": [
+     "jp-narshe-mines-battle.ss",
+     "Battle loaded straight in: logo; after slot 1, the party is kept (FF6-7)"
+    ]
    }
   },
   "boktai-the-sun-is-in-your-hand": {
    "Boktai - The Sun Is in Your Hand (USA)": {
-    "1": ["us-castle.ss", "Walking about in a castle: the Map, with the clock top left and sunrise / sunset top right (BT-1, BT-2, BT-8)"],
-    "2": ["us-forest.ss", "A forest, where the Map's tabs sit elsewhere (BT-1, BT-2)"],
-    "3": ["us-castle-map-open.ss", "The Map open on the game screen: second screen keeps its last Map (BT-3)"],
-    "4": ["us-opening-dialogue.ss", "A conversation in the opening: logo / last Map stays (BT-3)"],
-    "5": ["us-title.ss", "Title: logo (BT-4)"],
-    "6": ["us-file-select.ss", "File menu: logo (BT-4)"]
+    "1": [
+     "us-castle.ss",
+     "Walking about in a castle: the Map, with the clock top left and sunrise / sunset top right (BT-1, BT-2, BT-8)"
+    ],
+    "2": [
+     "us-forest.ss",
+     "A forest, where the Map's tabs sit elsewhere (BT-1, BT-2)"
+    ],
+    "3": [
+     "us-castle-map-open.ss",
+     "The Map open on the game screen: second screen keeps its last Map (BT-3)"
+    ],
+    "4": [
+     "us-opening-dialogue.ss",
+     "A conversation in the opening: logo / last Map stays (BT-3)"
+    ],
+    "5": [
+     "us-title.ss",
+     "Title: logo (BT-4)"
+    ],
+    "6": [
+     "us-file-select.ss",
+     "File menu: logo (BT-4)"
+    ]
    }
   },
   "shin-megami-tensei": {
    "Shin Megami Tensei (Japan)": {
-    "1": ["jp-cathedral.ss", "Cathedral of Shadows 1F: the automap with compass and floor name, 240x160 (SMT-2, SMT-8)"],
-    "2": ["jp-shibuya.ss", "Shibuya building 1F: the automap; press UP to step and watch the arrow follow (SMT-2, SMT-3)"],
-    "3": ["jp-shinagawa.ss", "Shinagawa 1F: the automap (SMT-2)"],
-    "4": ["jp-battle.ss", "A fight, after slot 2: the map stays, the fight is on the game screen only (SMT-4)"],
-    "5": ["jp-bar.ss", "The command bar over the view, after slot 1: the map stays (SMT-4)"],
-    "6": ["jp-start.ss", "START menu over the view, after slot 1: the map stays (SMT-4)"],
-    "7": ["en-cathedral.ss", "Saved on Gymzatan's English v1.3b: turn that patch on in Extras > Patches first, then the same map (SMT-7)"],
-    "8": ["en-shibuya.ss", "English v1.3b, Shibuya (SMT-7)"],
-    "9": ["fh-cathedral.ss", "English v1.3b with the font hack (BPS then IPS both on in Patches) (SMT-7)"]
+    "1": [
+     "jp-cathedral.ss",
+     "Cathedral of Shadows 1F: the automap with compass and floor name, 240x160 (SMT-2, SMT-8)"
+    ],
+    "2": [
+     "jp-shibuya.ss",
+     "Shibuya building 1F: the automap; press UP to step and watch the arrow follow (SMT-2, SMT-3)"
+    ],
+    "3": [
+     "jp-shinagawa.ss",
+     "Shinagawa 1F: the automap (SMT-2)"
+    ],
+    "4": [
+     "jp-battle.ss",
+     "A fight, after slot 2: the map stays, the fight is on the game screen only (SMT-4)"
+    ],
+    "5": [
+     "jp-bar.ss",
+     "The command bar over the view, after slot 1: the map stays (SMT-4)"
+    ],
+    "6": [
+     "jp-start.ss",
+     "START menu over the view, after slot 1: the map stays (SMT-4)"
+    ],
+    "7": [
+     "en-cathedral.ss",
+     "Saved on Gymzatan's English v1.3b: turn that patch on in Extras > Patches first, then the same map (SMT-7)"
+    ],
+    "8": [
+     "en-shibuya.ss",
+     "English v1.3b, Shibuya (SMT-7)"
+    ],
+    "9": [
+     "fh-cathedral.ss",
+     "English v1.3b with the font hack (BPS then IPS both on in Patches) (SMT-7)"
+    ]
+   }
+  },
+  "zelda-the-minish-cap": {
+   "Legend of Zelda, The - The Minish Cap (USA)": {
+    "1": [
+     "us-town.ss",
+     "Hyrule Town, with the Map: the map of Hyrule, the red marks round the town, its name in the bar; no L/R arrows, no \"Choose\" (TMC-1, TMC-5)"
+    ],
+    "2": [
+     "us-dungeon.ss",
+     "Deepwood Shrine: the dungeon map with floors, Link's head, icons (TMC-2)"
+    ],
+    "3": [
+     "us-no-map.ss",
+     "Hyrule Town before the Map item: Quest Status, no cursor, no SLEEP or SAVE (TMC-4, TMC-5)"
+    ],
+    "4": [
+     "us-no-map-dungeon.ss",
+     "Deepwood Shrine before the Map item: Quest Status (TMC-4)"
+    ],
+    "5": [
+     "us-last-tab-map.ss",
+     "Hyrule Town, the Map was the menu's last tab: the map, and START on the game screen opens the game's own menu as usual (TMC-3)"
+    ],
+    "6": [
+     "us-items-menu.ss",
+     "The game's Items tab open: nothing is taken, the logo (or the last picture) stays (TMC-8)"
+    ],
+    "7": [
+     "us-title.ss",
+     "The title screen: the logo (TMC-9)"
+    ],
+    "8": [
+     "us-file-select.ss",
+     "The file select: the logo (TMC-9)"
+    ]
+   },
+   "Legend of Zelda, The - The Minish Cap (Europe) (En,Fr,De,Es,It)": {
+    "1": [
+     "eu-town.ss",
+     "Europe, with the Map: the map of Hyrule (TMC-1)"
+    ],
+    "2": [
+     "eu-dungeon.ss",
+     "Europe, Deepwood Shrine: the dungeon map (TMC-2)"
+    ],
+    "3": [
+     "eu-no-map.ss",
+     "Europe before the Map item: Quest Status (TMC-4)"
+    ],
+    "4": [
+     "eu-no-map-dungeon.ss",
+     "Europe, a dungeon before the Map item: Quest Status (TMC-4)"
+    ]
+   },
+   "Zelda no Densetsu - Fushigi no Boushi (Japan)": {
+    "1": [
+     "jp-town.ss",
+     "Japan, with the Map: the map of Hyrule, in Japanese (TMC-1)"
+    ],
+    "2": [
+     "jp-dungeon.ss",
+     "Japan, Deepwood Shrine: the dungeon map (TMC-2)"
+    ],
+    "3": [
+     "jp-no-map.ss",
+     "Japan before the Map item: Quest Status (コレクト) (TMC-4)"
+    ],
+    "4": [
+     "jp-no-map-dungeon.ss",
+     "Japan, a dungeon before the Map item: Quest Status (TMC-4)"
+    ],
+    "5": [
+     "jp-early-house.ss",
+     "Japan, Link's house at the start of a new game: the menu won't open yet, the logo stays (TMC-8)"
+    ],
+    "6": [
+     "jp-title.ss",
+     "Japan's title screen: the logo with ゼルダの伝説 and ふしぎのぼうし (TMC-9, TMC-10)"
+    ],
+    "7": [
+     "jp-file-select.ss",
+     "Japan's file select: the logo (TMC-9)"
+    ]
+   }
+  },
+  "breath-of-fire": {
+   "Breath of Fire (USA)": {
+    "1": [
+     "us-overworld.ss",
+     "Overworld, the party has the Map: START's world map with the cyan marker (BOF-3). Wait for the map, then load slot 6: the battle shows the party overview, not the map (BOF-5)"
+    ],
+    "2": [
+     "us-map-open.ss",
+     "START's map open on the game screen: the party overview, not the map twice (BOF-7)"
+    ],
+    "3": [
+     "us-town.ss",
+     "In a town, eight characters: the party overview (BOF-4)"
+    ],
+    "4": [
+     "us-cave.ss",
+     "In a cave: the party overview (BOF-4)"
+    ],
+    "5": [
+     "us-menu.ss",
+     "SELECT's menu open on the game screen: the party overview (BOF-7)"
+    ],
+    "6": [
+     "us-battle.ss",
+     "A battle: the party overview from before. Load slot 3 first (or slot 1, once the map is up), wait, then load this (BOF-5); on its own, with nothing taken yet: logo"
+    ],
+    "7": [
+     "us-title.ss",
+     "Title: the logo (BOF-1, BOF-2)"
+    ]
+   },
+   "Breath of Fire (Europe)": {
+    "1": [
+     "eu-overworld-map.ss",
+     "Overworld with the Map, level 99 party: the world map (BOF-3)"
+    ],
+    "2": [
+     "eu-overworld.ss",
+     "Overworld before the party has the Map: the party overview instead (BOF-3)"
+    ],
+    "3": [
+     "eu-town.ss",
+     "In a town: the party overview (BOF-4)"
+    ],
+    "4": [
+     "eu-battle.ss",
+     "Battle: logo; load slot 3 first and the overview stays (BOF-5)"
+    ]
+   },
+   "Breath of Fire - Ryuu no Senshi (Japan)": {
+    "1": [
+     "jp-overworld.ss",
+     "Overworld with the Map: the world map (BOF-3)"
+    ],
+    "2": [
+     "jp-town.ss",
+     "In a town: the party overview (BOF-4)"
+    ],
+    "3": [
+     "jp-battle.ss",
+     "Battle: logo; load slot 2 first and the overview stays (BOF-5)"
+    ]
+   },
+   "Breath of Fire (Europe) (En,Fr,De)": {
+    "1": [
+     "fx-title.ss",
+     "Title (this release's saves don't fit, so only the logo is tested): the logo (BOF-1)"
+    ]
+   }
+  },
+  "yu-gi-oh-ultimate-masters-world-championship-tournament-2006": {
+   "Yu-Gi-Oh! - Ultimate Masters - World Championship Tournament 2006 (USA) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "us-main-menu.ss",
+     "Main menu, the cursor on Deck Edit: the logo, idle (UM6-4, UM6-6). Same for the title screen; the Europe release asks for a language first"
+    ],
+    "2": [
+     "us-draw-phase.ss",
+     "A duel's first turn, Draw Phase, the cursor on your Deck with the Draw prompt: the logo, idle, nothing to show yet (UM6-3, UM6-5). Press A to draw: the cursor goes to a card in your hand and its Card View comes up (UM6-1)"
+    ],
+    "3": [
+     "us-hand.ss",
+     "A duel, your Main Phase, the cursor free on a card in your hand: its Card View. Move LEFT / RIGHT along the hand: it follows (UM6-1)"
+    ],
+    "4": [
+     "us-monster.ss",
+     "The cursor on your face-up monster: its Card View. Press UP into an empty zone: the last Card View stays; press RIGHT along the row (UM6-1, UM6-3)"
+    ],
+    "5": [
+     "us-set-card.ss",
+     "The cursor on a card you set in your Magic and Trap row: its Card View, face-down card too (UM6-1)"
+    ],
+    "6": [
+     "us-phase-menu.ss",
+     "The phase menu open (B): the last Card View stays, no prompt copied (UM6-3). Pick End Phase / EP: the End Phase banner, the last Card View stays, then the opponent's turn (UM6-3, UM6-5)"
+    ],
+    "7": [
+     "us-opp-turn.ss",
+     "The opponent's turn under way: the logo, idle; the cursor isn't yours. Wait for your Draw Phase: the logo until the cursor is on a card (UM6-5)"
+    ],
+    "8": [
+     "us-duel-over.ss",
+     "Load slot 3, then this: the opponent's life points are 0 (the duel is won): the logo, idle, the last Card View forgotten (UM6-4). Let the game carry on to the Duel Results: still the logo"
+    ],
+    "9": [
+     "us-deck-grid.ss",
+     "Deck Edit, the card grid, the cursor on a card: its Card View (UM6-2). SELECT: the list, still a Card View. UP onto the top bar's tabs: the last Card View stays (UM6-3). A, A on a card: the game's Card View, taken as it is (UM6-2)"
+    ]
+   },
+   "Yu-Gi-Oh! - Ultimate Masters Edition - World Championship Tournament 2006 (Europe) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "eu-dev-main-menu.ss",
+     "Main menu, the cursor on Deck Edit: the logo, idle (UM6-4, UM6-6). Same for the title screen; the Europe release asks for a language first"
+    ],
+    "2": [
+     "eu-dev-draw-phase.ss",
+     "A duel's first turn, Draw Phase, the game's own Card View of the drawn card open: that Card View as it is (UM6-1, UM6-3). B, then the cursor on your hand: it follows (UM6-1)"
+    ],
+    "3": [
+     "eu-dev-hand.ss",
+     "A duel, your Main Phase, the cursor free on a card in your hand: its Card View. Move LEFT / RIGHT along the hand: it follows (UM6-1)"
+    ],
+    "4": [
+     "eu-dev-monster.ss",
+     "The cursor on your face-up monster: its Card View. Press UP into an empty zone: the last Card View stays; press RIGHT along the row (UM6-1, UM6-3)"
+    ],
+    "5": [
+     "eu-dev-set-card.ss",
+     "The cursor on a card you set in your Magic and Trap row: its Card View, face-down card too (UM6-1)"
+    ],
+    "6": [
+     "eu-dev-phase-menu.ss",
+     "The phase menu open (B): the last Card View stays, no prompt copied (UM6-3). Pick End Phase / EP: the End Phase banner, the last Card View stays, then the opponent's turn (UM6-3, UM6-5)"
+    ],
+    "7": [
+     "eu-dev-opp-turn.ss",
+     "The opponent's turn under way: the logo, idle; the cursor isn't yours. Wait for your Draw Phase: the logo until the cursor is on a card (UM6-5)"
+    ],
+    "8": [
+     "eu-dev-duel-over.ss",
+     "Load slot 3, then this: the opponent's life points are 0 (the duel is won): the logo, idle, the last Card View forgotten (UM6-4). Let the game carry on to the Duel Results: still the logo"
+    ],
+    "9": [
+     "eu-dev-deck-grid.ss",
+     "Deck Edit, the card grid, the cursor on a card: its Card View (UM6-2). SELECT: the list, still a Card View. UP onto the top bar's tabs: the last Card View stays (UM6-3). A, A on a card: the game's Card View, taken as it is (UM6-2)"
+    ]
+   }
+  },
+  "yu-gi-oh-world-championship-tournament-2004": {
+   "Yu-Gi-Oh! - World Championship Tournament 2004 (USA) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "us-hand.ss",
+     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (UM6-1, WCT-5, WCT-8)"
+    ],
+    "2": [
+     "us-graveyard.ss",
+     "Your Graveyard's list open (one card, Pot of Greed): its Card View (UM6-2). B closes it: the last card stays (UM6-5)"
+    ],
+    "3": [
+     "us-deck-edit.ss",
+     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (UM6-3)"
+    ],
+    "4": [
+     "us-booster-packs.ss",
+     "You Win, booster pack choice: the logo at half strength, no card (UM6-6)"
+    ],
+    "5": [
+     "us-cards-won.ss",
+     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (UM6-4)"
+    ],
+    "6": [
+     "us-hand.ss",
+     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (UM6-9)"
+    ],
+    "7": [
+     "us-title.ss",
+     "Title screen: this release's own logo, at half strength (UM6-6, WCT-7)"
+    ]
+   },
+   "Yu-Gi-Oh! - World Championship Tournament 2004 (Europe) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "eu-hand.ss",
+     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (UM6-1, WCT-5, WCT-8)"
+    ],
+    "2": [
+     "eu-graveyard.ss",
+     "Your Graveyard's list open (one card, Pot of Greed): its Card View (UM6-2). B closes it: the last card stays (UM6-5)"
+    ],
+    "3": [
+     "eu-deck-edit.ss",
+     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (UM6-3)"
+    ],
+    "4": [
+     "eu-booster-packs.ss",
+     "You Win, booster pack choice: the logo at half strength, no card (UM6-6)"
+    ],
+    "5": [
+     "eu-cards-won.ss",
+     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (UM6-4)"
+    ],
+    "6": [
+     "eu-hand.ss",
+     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (UM6-9)"
+    ],
+    "7": [
+     "eu-title.ss",
+     "Title screen: this release's own logo, at half strength (UM6-6, WCT-7)"
+    ]
+   },
+   "Yu-Gi-Oh! Duel Monsters Expert 3 (Japan) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "jp-hand.ss",
+     "Duel, main phase, cursor on a hand card: its Card View. LEFT / RIGHT: another card. UP to the Magic & Trap row and the monster rows, over empty zones, then the Deck pile: the last card stays (UM6-1, WCT-5, WCT-8)"
+    ],
+    "2": [
+     "jp-graveyard.ss",
+     "Your Graveyard's list open (one card, Pot of Greed): its Card View (UM6-2). B closes it: the last card stays (UM6-5)"
+    ],
+    "3": [
+     "jp-deck-edit.ss",
+     "Deck Edit, list open on a card: Card View. UP / DOWN: another card each time. Don't press L / R (they change the deck) (UM6-3)"
+    ],
+    "4": [
+     "jp-booster-packs.ss",
+     "You Win, booster pack choice: the logo at half strength, no card (UM6-6)"
+    ],
+    "5": [
+     "jp-cards-won.ss",
+     "Cards won list: Card View of the card under the cursor. UP / DOWN: another card (UM6-4)"
+    ],
+    "6": [
+     "jp-hand.ss",
+     "The same duel as slot 1, for the turn handover: press B, then YES. The logo from the question until the opponent's turn is over and your cursor is back on a card (UM6-9)"
+    ],
+    "7": [
+     "jp-title.ss",
+     "Title screen: this release's own logo, at half strength (UM6-6, WCT-7)"
+    ]
+   }
+  },
+  "duel-masters-kaijudo-showdown": {
+   "Duel Masters - Kaijudo Showdown (USA)": {
+    "1": ["us-title.ss", "Title menu (New Game, Continue...): the logo alone on the second screen, nothing else (DMK-4, DMK-5)"],
+    "2": ["us-hand-zyler.ss", "Practice duel, your turn, cursor on Brawler Zyler in the hand: its Card Details, no 'B Exit' prompt (DMK-1)"],
+    "3": ["us-hand-rothus.ss", "Same duel, cursor on Rothus, the Traveler: a different card (DMK-1); then move the cursor and the card follows within a second"],
+    "4": ["us-decklist.ss", "Deck Management's card list, cursor on Roaring Great-Horn: its Card Details (DMK-2); then move down the list"],
+    "5": ["us-game-card-details.ss", "The game's own Card Details open on its screen: the second screen keeps its picture, nothing twice (DMK-3, DMK-6)"]
+   },
+   "Duel Masters - Kaijudo Showdown (Europe) (En,Fr,De,Es,It)": {
+    "1": ["eu-title-languages.ss", "Title with the five language flags, English selected: the logo (DMK-5, DMK-7)"],
+    "2": ["eu-title-menu.ss", "Title menu after choosing English: the logo (DMK-4, DMK-7)"],
+    "3": ["eu-hand-rothus.ss", "Practice duel in English, cursor on Rothus, the Traveler: its Card Details (DMK-1, DMK-7)"],
+    "4": ["eu-hand-stonesaur.ss", "Same duel, cursor on Stonesaur: a different card (DMK-1); move the cursor and it follows"],
+    "5": ["eu-decklist-beetle.ss", "Deck Management's list in English, cursor on Deathblade Beetle (DMK-2, DMK-7)"],
+    "6": ["eu-decklist-great-horn.ss", "The list with the cursor on Roaring Great-Horn (DMK-2); move up and down"],
+    "7": ["eu-game-card-details.ss", "The game's own Card Details open (English): the second screen keeps its picture (DMK-3, DMK-7)"],
+    "8": ["eu-es-hand-rothus.ss", "Practice duel with the game set to Spanish, cursor on Rothus: Card Details in Spanish (DMK-1, DMK-7)"],
+    "9": ["eu-es-hand-piedrasaurio.ss", "Spanish, cursor on Piedrasaurio (Stonesaur): another Spanish card (DMK-1, DMK-7)"]
+   }
+  },
+  "yu-gi-oh-7-trials-to-glory": {
+   "Yu-Gi-Oh! - 7 Trials to Glory - World Championship Tournament 2005 (USA) (En,Ja,Fr,De,Es,It)": {
+    "1": [
+     "us-hand.ss",
+     "Your turn, cursor on a hand card (Autonomous Action Unit): its Card View within about a second (YWC-1). Move to other hand cards: the page follows."
+    ],
+    "2": [
+     "us-commands.ss",
+     "The hand card's commands already open (Set / Card View): the Card View is shown (YWC-1)."
+    ],
+    "3": [
+     "us-empty-zone.ss",
+     "Cursor on an empty field zone, no card looked at yet: the logo (YWC-3). Move onto a card: its Card View; back to the empty zone: that card stays."
+    ],
+    "4": [
+     "us-end-menu.ss",
+     "'End your turn?' up: the second screen doesn't change (logo here, YWC-3). Answer YES: the logo through the opponent's whole turn, whatever card it shows or attacks with (YWC-8); when your turn comes round the logo stays through the Draw Phase, and after you draw the card's Card View returns (YWC-1)."
+    ],
+    "5": [
+     "us-draw-hand.ss",
+     "Draw Phase before drawing, the cursor already on a hand card (Fissure): its Card View (YWC-1). Move it to the Deck: the card stays; A on the Deck draws; the drawn card's Card View follows when the cursor is on it."
+    ],
+    "6": [
+     "us-deck-mode.ss",
+     "Edit Deck's Deck mode, cursor on Blue-Eyes White Dragon: its Detail (YWC-2). Move the cursor down: each card's Detail follows."
+    ],
+    "7": [
+     "us-deck-select.ss",
+     "Deck select list: the logo (YWC-3/4; A, A opens Deck mode on the hidden copy, nothing taken). Press A, A yourself to reach Deck mode (as slot 6)."
+    ],
+    "8": [
+     "us-title.ss",
+     "The title screen: the logo, the same picture as the title's lettering (YWC-4, YWC-5)."
+    ],
+    "9": [
+     "us-opp-turn.ss",
+     "In the opponent's turn (its Goblin Attack Force is named in the info bar): the logo, not that card (YWC-8). Let it play on, then your turn: the logo until you draw and the cursor is on a card."
+    ]
+   },
+   "Yu-Gi-Oh! Duel Monsters International 2 (Japan) (En,Ja)": {
+    "1": [
+     "jp-opp-turn.ss",
+     "The opponent's turn (the game itself shows its summoned card large): the logo on the second screen (YWC-8). Let it play on to your turn: the logo until the cursor is on a card."
+    ],
+    "2": [
+     "jp-binder.ss",
+     "The card binder (Volume.1): another screen, the logo (YWC-4)."
+    ],
+    "3": [
+     "jp-deck-select.ss",
+     "Deck select, the deck list: the logo (YWC-4). Move into the cards (right) and A, A: their Detail, as slot 4."
+    ],
+    "4": [
+     "jp-deck-select-cards.ss",
+     "Deck select with the cursor in a deck's cards (Deck mode): the Detail of the card under it (YWC-2). Move the cursor: the page follows."
+    ],
+    "5": [
+     "jp-hand-predraw.ss",
+     "Draw Phase before drawing, the cursor on a hand card: its Card View (YWC-1). Move to the Deck: the card stays; A on the Deck draws."
+    ],
+    "6": [
+     "jp-commands.ss",
+     "A hand card's commands open (詳細表示): its Card View (YWC-1)."
+    ],
+    "7": [
+     "jp-end-menu.ss",
+     "'End your turn?' up: the second screen doesn't change (logo here). Answer はい: the logo through the opponent's turn (YWC-8)."
+    ],
+    "8": [
+     "jp-duel-start.ss",
+     "The duel field arriving, nothing named: the logo (YWC-3)."
+    ],
+    "9": [
+     "jp-title.ss",
+     "The title of a first start: the logo, the title's lettering (YWC-5, YWC-7)."
+    ]
+   }
+  },
+  "pokemon": {
+   "Pokemon - FireRed Version (USA, Europe)": {
+    "1": ["mid/BPRE.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/BPRE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["fr-us-nopokemon.ss", "No Pokémon yet: the game's title logo, no Party or map (PK-1)"],
+    "4": ["fr-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - FireRed Version (USA, Europe) (Rev 1)": {
+    "1": ["mid/BPRE+rev1.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Feuerrote Edition (Germany)": {
+    "1": ["mid/BPRD.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["fr-de-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Rouge Feu (France)": {
+    "1": ["mid/BPRF.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Rosso Fuoco (Italy)": {
+    "1": ["mid/BPRI.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Rojo Fuego (Spain)": {
+    "1": ["mid/BPRS.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - FireRed (Japan)": {
+    "1": ["mid/BPRJ.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - LeafGreen Version (USA, Europe)": {
+    "1": ["mid/BPGE.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/BPGE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["lg-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - LeafGreen Version (USA, Europe) (Rev 1)": {
+    "1": ["mid/BPGE+rev1.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["lg-center-no-map.ss", "Early game in a Pokémon Center, no Town Map yet: the Party only (PK-2, PK-6)"],
+    "3": ["lg-given-map.ss", "The Town Map being handed over: the Party, then the map (PK-2, PK-3, PK-4)"],
+    "4": ["lg-with-map.ss", "Outside with the Town Map: the map comes up (PK-3, PK-4)"]
+   },
+   "Pokemon - Blattgruene Edition (Germany)": {
+    "1": ["mid/BPGD.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Vert Feuille (France)": {
+    "1": ["mid/BPGF.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Verde Foglia (Italy)": {
+    "1": ["mid/BPGI.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Verde Hoja (Spain)": {
+    "1": ["mid/BPGS.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - LeafGreen (Japan)": {
+    "1": ["mid/BPGJ.ss", "A real mid-game save (Cinnabar Island with the Town Map deep in the Key Items list): the Par): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Rubin-Edition (Germany)": {
+    "1": ["mid/AXVD.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Rubin-Edition (Germany) (Rev 1)": {
+    "1": ["mid/AXVD+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Ruby Version (USA, Europe)": {
+    "1": ["mid/AXVE.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/AXVE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["ruby-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Ruby Version (USA, Europe) (Rev 1)": {
+    "1": ["mid/AXVE+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Ruby Version (USA, Europe) (Rev 2)": {
+    "1": ["mid/AXVE+rev2.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Rubis (France) (Rev 1)": {
+    "1": ["mid/AXVF+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Rubino (Italy)": {
+    "1": ["mid/AXVI.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Rubino (Italy) (Rev 1)": {
+    "1": ["mid/AXVI+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - Ruby (Japan)": {
+    "1": ["mid/AXVJ.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["ruby-jp-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Rubi (Spain)": {
+    "1": ["mid/AXVS.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Rubi (Spain) (Rev 1)": {
+    "1": ["mid/AXVS+rev1.ss", "A real mid-game save (a Pokémon Center in Ever Grande City, Pokénav's map in full view): the): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Saphir-Edition (Germany)": {
+    "1": ["mid/AXPD.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Saphir-Edition (Germany) (Rev 1)": {
+    "1": ["mid/AXPD+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Sapphire Version (USA, Europe)": {
+    "1": ["mid/AXPE.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/AXPE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["sapphire-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Sapphire Version (USA, Europe) (Rev 1)": {
+    "1": ["mid/AXPE+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Sapphire Version (USA, Europe) (Rev 2)": {
+    "1": ["mid/AXPE+rev2.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Saphir (France)": {
+    "1": ["mid/AXPF.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Saphir (France) (Rev 1)": {
+    "1": ["mid/AXPF+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Zaffiro (Italy)": {
+    "1": ["mid/AXPI.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Zaffiro (Italy) (Rev 1)": {
+    "1": ["mid/AXPI+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - Sapphire (Japan)": {
+    "1": ["mid/AXPJ.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Zafiro (Spain)": {
+    "1": ["mid/AXPS.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Zafiro (Spain) (Rev 1)": {
+    "1": ["mid/AXPS+rev1.ss", "A real mid-game save (the Oldale Town Pokémon Center, Pokénav's map in zoom view): the Party): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Smaragd-Edition (Germany)": {
+    "1": ["mid/BPED.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Emerald Version (USA, Europe)": {
+    "1": ["mid/BPEE.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"],
+    "2": ["battle/BPEE.ss", "A wild battle from the owner's own save: the Party stays up through the battle, no map (PK-4)"],
+    "3": ["emerald-us-party.ss", "The Party, then the map (PK-2, PK-3)"]
+   },
+   "Pokemon - Version Emeraude (France)": {
+    "1": ["mid/BPEF.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Versione Smeraldo (Italy)": {
+    "1": ["mid/BPEI.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pocket Monsters - Emerald (Japan)": {
+    "1": ["mid/BPEJ.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   },
+   "Pokemon - Edicion Esmeralda (Spain)": {
+    "1": ["mid/BPES.ss", "A real mid-game save (Route 117, Pokénav map in full view): the Party, then the map): the Party, then the game's region map after about five seconds, turning every five (PK-2, PK-3)"]
+   }
+  },
+  "breath-of-fire-ii": {
+   "Breath of Fire II (USA)": {
+    "1": ["us-field.ss", "Walking about in a town: the party overview (zenny, levels, HP, AP, experience) (BOF2-3)"],
+    "2": ["us-dialogue.ss", "A conversation up: the party overview stays (BOF2-3, BOF2-5)"],
+    "3": ["us-menu.ss", "The camp menu open on the game screen: the party overview, once (BOF2-6)"],
+    "4": ["us-menuitem.ss", "A menu page open (Item): the party overview, not the page (BOF2-6)"],
+    "5": ["us-battle.ss", "A battle loaded straight in: the logo. Load slot 1 first, wait for the overview, then this one: the overview stays (BOF2-4)"],
+    "6": ["us-title.ss", "The title: the logo (BOF2-1, BOF2-2)"],
+    "7": ["us-filemenu.ss", "The file menu: the logo (BOF2-2, BOF2-5)"],
+    "8": ["us-world.ss", "The overworld: the world map with the marker (BOF2-3)"],
+    "9": ["us-worldmap.ss", "START's world map open on the game screen: the second screen shows the same map as walking about (BOF2-5)"]
+   },
+   "Breath of Fire II (Europe)": {
+    "1": ["eu-field.ss", "Walking about in a town: the party overview (zenny, levels, HP, AP, experience) (BOF2-3)"],
+    "2": ["eu-dialogue.ss", "A conversation up: the party overview stays (BOF2-3, BOF2-5)"],
+    "3": ["eu-menu.ss", "The camp menu open on the game screen: the party overview, once (BOF2-6)"],
+    "4": ["eu-menuitem.ss", "A menu page open (Item): the party overview, not the page (BOF2-6)"],
+    "5": ["eu-battle.ss", "A battle loaded straight in: the logo. Load slot 1 first, wait for the overview, then this one: the overview stays (BOF2-4)"],
+    "6": ["eu-title.ss", "The title: the logo (BOF2-1, BOF2-2)"],
+    "7": ["eu-filemenu.ss", "The file menu: the logo (BOF2-2, BOF2-5)"],
+    "8": ["eu-world.ss", "The overworld: the world map with the marker (BOF2-3)"],
+    "9": ["eu-worldmap.ss", "START's world map open on the game screen: the second screen shows the same map as walking about (BOF2-5)"]
+   },
+   "Breath of Fire II - Shimei no Ko (Japan)": {
+    "1": ["jp-field.ss", "Walking about in a town: the party overview (zenny, levels, HP, AP, experience) (BOF2-3)"],
+    "2": ["jp-dialogue.ss", "A conversation up: the party overview stays (BOF2-3, BOF2-5)"],
+    "3": ["jp-menu.ss", "The camp menu open on the game screen: the party overview, once (BOF2-6)"],
+    "4": ["jp-menuitem.ss", "A menu page open (Item): the party overview, not the page (BOF2-6)"],
+    "5": ["jp-battle.ss", "A battle loaded straight in: the logo. Load slot 1 first, wait for the overview, then this one: the overview stays (BOF2-4)"],
+    "6": ["jp-title.ss", "The title: the logo (BOF2-1, BOF2-2)"],
+    "7": ["jp-filemenu.ss", "The file menu: the logo (BOF2-2, BOF2-5)"],
+    "8": ["jp-world.ss", "The overworld: the world map with the marker (BOF2-3)"],
+    "9": ["jp-worldmap.ss", "START's world map open on the game screen: the second screen shows the same map as walking about (BOF2-5)"]
    }
   }
  }

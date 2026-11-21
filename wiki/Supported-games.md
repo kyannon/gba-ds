@@ -7,6 +7,8 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Baldur's Gate: Dark Alliance | `BGDE` `BGDP` | the area's map (made from the game's own screens), a red X where you are | |
 | Banjo-Kazooie: Grunty's Revenge | `BKZE` (USA and Europe) `BKZX` `BKZI` `BKZS` (no Japanese release) | the pause screen and the world's Totals, in turn, Banjo's health on both | |
 | Boktai: The Sun Is in Your Hand (Bokura no Taiyou in Japan) | `U3IE` `U3IP` `U3IJ` | the game's Map, with its clock and the sunrise and sunset times | |
+| Breath of Fire (Ryuu no Senshi in Japan) | `ABFE` `ABFP` `ABFJ` `ABFX` (Europe's English, French and German release) | the world map on the overworld, the party overview elsewhere and in battles | |
+| Breath of Fire II (Shimei no Ko in Japan) | `AB2E` `AB2P` `AB2J` | the world map on the overworld, the party overview elsewhere and in battles | |
 | Castlevania: Aria of Sorrow | `A2CE` `A2CP` `A2CJ` | map | JonataGuitar's Recolor v1.02 and Symphony of the Colors (USA) |
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
@@ -14,6 +16,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
+| Duel Masters: Kaijudo Showdown | `BD6E` `BD6P` | Card Details of the card under the cursor | |
 | Eragon | `BENE` `BENP` (no Japanese release) | the Party screen, every card lit; the map where L opens one; in battles, the party's HP bars | |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big | |
@@ -33,6 +36,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo | |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen | |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | Voice removal (USA, Europe) |
+| The Legend of Zelda: The Minish Cap | `BZME` `BZMP` `BZMJ` | the map of Hyrule and dungeon maps (Quest Status before you have the map) | |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
 | Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
@@ -43,6 +47,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | MOTHER 3 | `A3UJ` (Japan only) | walking about: the area map where R opens one, else the Status screen, each party member in turn | Translations into English (v1.3, v1.3a), Brazilian Portuguese, Italian, German, Simplified Chinese, Polish, French, Catalan (v1.0, v1.0.2) and Dutch; MusicTheorist's HQ audio mix (Japanese and English) |
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
+| Pokémon FireRed, LeafGreen, Ruby, Sapphire and Emerald (every language) | `BPRE` `BPGE` `BPRJ` `BPGJ` `BPRD` `BPGD` `BPRF` `BPGF` `BPRI` `BPGI` `BPRS` `BPGS` (FireRed, LeafGreen) · `AXVE` `AXPE` `AXVJ` `AXPJ` `AXVD` `AXPD` `AXVF` `AXPF` `AXVI` `AXPI` `AXVS` `AXPS` (Ruby, Sapphire) · `BPEE` `BPEJ` `BPED` `BPEF` `BPEI` `BPES` (Emerald) | the Party and the region map, in turn; only the Party in a battle | Radical Red 4.1, Unbound 2.1.1.1, Gaia, Saiph, Fuligin, Light Platinum, Flora Sky, Glazed 9.1.0, Theta Emerald EX 1; Super MarioMon 1.5.1 and Emerald Rogue EX 2.1.1 (their own ROMs, not patches) |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
@@ -65,6 +70,9 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | V-Rally 3 | `AVRE` `AVRP` `AVRJ` | the stage's HUD, with the course map twice as big | |
 | Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | Color palette enhancement 1.1 (USA and Europe) |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor | |
+| Yu-Gi-Oh! World Championship Tournament 2004 (Yu-Gi-Oh! Duel Monsters Expert 3 in Japan) | `BYWE` `BYWP` `BY3J` | Card View of the card under the cursor | |
+| Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006 | `BY6E` `BY6P` | Card View of the card under the cursor | |
+| Yu-Gi-Oh! 7 Trials to Glory: World Championship Tournament 2005 (Yu-Gi-Oh! Duel Monsters International 2 in Japan) | `BY7E` `BYIJ` | Card View of the card under the cursor | |
 | Zoids: Legacy (Zoids Saga II in Japan) | `AZ2E` `AZ2J` (no European release) | the map screen; in battles, the Status of the Zoid choosing | |
 
 The codes are what `<CODE>` means in logo and overlay file names (see [Playing](Playing#logos) and [[Overlays]]).
@@ -121,8 +129,27 @@ The USA, European and Japanese (Bokura no Taiyou) releases.
 - **While you walk about,** the second screen shows the game's **Map** (the SELECT menu's Map page, without its title bar and button prompts), following Django. It is taken from a hidden copy of the game about once a second.
 - **At the top** it has the game's own **clock** (top left) and the **sunrise** and **sunset** times (top right), the lines the ITEM page shows (START there switches between them), looked at about every 30 seconds, so they can lag a little behind the game.
 - In conversations, scenes and the menus, the last Map stays. At the title, on the file menu and at the first start's set-up screens the second screen shows the logo: the title's lettering.
-- **The sun sensor:** the cartridge's solar sensor reads a fixed level, 6 of 10, so the sun gauge isn't empty. `solar_level` in `gba-ds.cfg` sets it from 0 (dark) to 10.
+- **The sun sensor:** the cartridge's solar sensor reads 6 of 10 to begin with, so the sun gauge isn't empty (`solar_level` in `gba-ds.cfg` sets that, from 0 to 10). Swipe up from the bottom of the touchscreen for the quick bar: its **Sun** row has **Dark**, **-**, **+** and **Full** to change the sunlight while you play, as RetroArch's sun sensor buttons do (for the ice dungeons, where shading the sensor keeps the ice from melting). The level is kept for the game.
 - Known: the Europe and Japan releases were checked on their logos and by start-up only. Not tried yet: bosses, the Solar Station and the World map.
+
+## Breath of Fire
+
+The USA, European and Japanese (Ryuu no Senshi) releases, and Europe's English, French and German release.
+
+- **On the overworld** the second screen is the **world map** START opens (the cyan marker is where the party is), once the party has the Map item; it is taken from a hidden copy of the game about once a second, so your game isn't touched. Until the party has the Map, it shows the party overview instead.
+- **Everywhere else** (towns, caves, castles) it shows the first page of SELECT's menu as a **party overview**: the place, the gold, and each character's level, HP and AP, without the command list.
+- **In a battle** it shows the party overview from before the fight, also when the map was up as it began; the numbers on it are those from before the battle (the battle's own boxes on the game screen are live). This is one of the exceptions on the [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy) page.
+- With the menu, one of its pages or the map open on the game screen, the second screen shows the overview, not the same thing twice. On the title it shows the logo: the title's lettering. In conversations and shops the last picture stays.
+- Known: Europe's English, French and German release was tried at its title only (its saves are of another kind than the ones tested); cutscenes that share the title's screen mode may show the logo until they end; the battle's HP and AP boxes stay on the game screen.
+
+## Breath of Fire II
+
+The USA, European and Japanese (Shimei no Ko) releases.
+
+- **On the overworld** the second screen is the **world map** START opens (the dark disc is where the party is); it is taken from a hidden copy of the game about once a second, so your game isn't touched.
+- **Everywhere else** (towns, dungeons, castles) it shows the first page of SELECT's menu as a **party overview**: the place's name and the zenny, and each fighter's level, HP, AP and experience, without the command list.
+- **In a battle** it shows the party overview from before the fight, also when the map was up as it began; the numbers on it are those from before the battle (the battle's own boxes on the game screen are live). This is one of the exceptions on the [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy) page.
+- With the menu, one of its pages or the map open on the game screen, the second screen shows the overview, not the same thing twice. On the title and file menu it shows the logo: the title's lettering. In conversations and shops the last picture stays.
 
 ## Castlevania: Aria of Sorrow, Harmony of Dissonance, Circle of the Moon
 
@@ -175,6 +202,16 @@ The USA, European and Japanese (International) releases.
 - The HP and EP bars stay on the game screen.
 - In conversations, at save points, and in the game's own pause menu, map and Dragon Radar, the second screen keeps its picture. On the title and menus it shows the logo.
 - Not tried yet: boss fights, the Hyperbolic Time Chamber, the Cell Games and the ending.
+
+## Duel Masters: Kaijudo Showdown
+
+The USA release and the European one (English, French, German, Spanish, Italian). Tried in the practice duel and in Deck Management, in English and Spanish; the Duel Room and the tournaments' duels weren't reached.
+
+- **In a duel,** the second screen shows the **Card Details** of the card under your cursor, the page the game opens with SELECT: its picture, race, power, cost, rarity and text, in its civilization's colours. Your hand, your mana and battle zones, a graveyard and the opponent's face-up cards; it follows the cursor within a second. The page's "B Exit" prompt is left out, as there's nothing to press there.
+- **In Deck Management,** the same: the card under the cursor in the list.
+- Where there's nothing to look at (an empty slot, the opponent's hidden cards, the opponent's turn, an attack playing out), the last card stays. With the game's own Card Details open on the game screen, the second screen keeps the card it had instead of showing the page twice.
+- On the title screen, in the menus, the conversations and the overworld, and from the moment a duel ends, the second screen shows the logo: the title's DUEL MASTERS lettering with its KAIJUDO SHOWDOWN line.
+- Known issues: the duel's other views (the field in 3D, the opponent's zones) show the last card, not a view of their own; link battles and trading haven't been tried, and Trade's and the shops' card lists aren't followed.
 
 ## Eragon
 
@@ -346,6 +383,12 @@ The USA and European releases (one each, in English, French, German, Spanish, It
 - Where L does nothing (houses, caves, dungeons without their map), the last map stays up, dimmed.
 - After Save and Quit, the second screen goes back to the logo.
 
+## The Legend of Zelda: The Minish Cap
+
+- The second screen is the game's own Map tab: the map of Hyrule with your region marked and named, in the open and under a roof; in a dungeon, the dungeon's map. It's taken from a hidden copy of the game each time you change region, room or floor and about every few seconds, so the game you play isn't touched.
+- The page arrows and the "Choose" prompt (which warps to a Wind Crest) aren't on it. The red marks round your region blink as in the game; Link's head stays on.
+- Until you have the map, it shows the game's Quest Status tab instead, without its cursor, the SLEEP and SAVE buttons or the name bar. On the title and file screens, after a game over and in the credits, it shows the logo. Where the game's menu won't open (conversations, cutscenes, boss entrances), the last picture stays.
+
 ## Mario Kart: Super Circuit
 
 <p>
@@ -457,6 +500,22 @@ The game has no status screen of its own, so in a stage its HUD is moved off the
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 
 Known issues: the end of a stage (the red door), a boss's defeat, a mission's end and the ending haven't been tried yet.
+
+## Pokémon FireRed, LeafGreen, Ruby, Sapphire and Emerald
+
+Every release in every language (English, Japanese, German, French, Italian and Spanish), with their revisions, and the romhacks in the table above. A save from one language works on every other language of the same game; see the save notes below.
+
+- **The Party.** With Pokémon in your party, the second screen shows the game's own Party screen, filling the screen: all six Pokémon with their HP bars, levels, status and held items, with no Pokémon lit and without the game's prompt and CANCEL button. It is taken again within a second or two of anything changing (HP, status, level), and it stays through scenes and fights.
+- **The map.** After the Party it shows the region map the game draws: the Town Map in FireRed and LeafGreen, the Pokénav's map in Ruby, Sapphire and Emerald, always the full view, with your place marked. It appears once you have it (the Town Map or the Pokénav), within seconds of getting it, and is taken again about every 15 seconds, so the marker can lag behind when you've just walked into a new town.
+- **Turning pages.** With both, the screen turns between them every 5 seconds. **In a battle it stays on the Party.**
+- **The logo.** On the title, in a new game before your first Pokémon and in the intro, the second screen shows the game's title logo (taken from your own ROM file's title screen, so a romhack has its own).
+- Your game screen is never touched: the START menu, the Bag, scenes and fights stay where the game draws them.
+- **Each game has its own map.** Starting another Pokémon game, or loading its save state, never shows the map of the game you played before.
+- **Romhacks** built on these games show the Party and the map the same way, as ROMs of their own or as patches (Extras > Patches). Super MarioMon and Emerald Rogue EX are rebuilt from Emerald's source: the Party and, in Rogue EX, its map; Super MarioMon shows only the Party.
+- **The first start of a ROM file** may show an "Initializing game..." screen for a second while its checksum is read and its logo made. A game with RetroAchievements shows "Loading achievements..." for a few seconds first.
+- Known issues: **Saiph and Super MarioMon show only the Party, no map.** Gaia's Party screen has black bars of its own (seen on a PC, not re-checked on the device). The map's marker can lag a few seconds. A battle's own party screen isn't shown (the Party stays as it was before the battle).
+- **Saves:** a Ruby save works on Sapphire and the other way round, and so do FireRed and LeafGreen; an Emerald save doesn't work on Ruby or Sapphire. Japanese FireRed and LeafGreen need a Japanese-format save to load one made elsewhere. Romhacks take the saves of the game they are built on (Fuligin: FireRed or LeafGreen saves; Flora Sky: Emerald saves).
+- Not tried yet: the Japanese Rev 1 FireRed and LeafGreen releases, the Pokémon Box and debug dumps, the Switch Online dumps and any Korean release.
 
 ## Pokémon Pinball: Ruby & Sapphire
 
@@ -661,6 +720,38 @@ The USA release and the Japanese original (Yu-Gi-Oh! Duel Monsters 5 Expert 1, w
 - Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a card a Magic or Trap card asks you to choose), the last card stays.
 - **When you end your turn,** the second screen shows the logo, through the opponent's turn, until your cursor is on a card again.
 - On the title screen, the menus, the conversations and the other screens, and from the moment a duel is won or lost, the second screen shows the logo.
+
+## Yu-Gi-Oh! World Championship Tournament 2004
+
+The USA and Europe releases and the Japanese one (Yu-Gi-Oh! Duel Monsters Expert 3). Tried in all six of the cartridge's languages, in Campaign duels, Deck Edit, the Graveyard and the cards won after a duel; Link Duel hasn't been tried.
+
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game draws it. Your hand, your monsters and Magic and Trap cards, and the opponent's face-up cards; it follows the cursor. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In the Graveyard and other card lists, Deck Edit, Card Trade's choice of a card and the list of cards you've won,** the same: the card under the cursor.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's), the last card stays. While you choose which monster to attack, the last card stays too.
+- **When you end your turn,** the second screen shows the logo, through the opponent's turn, until your cursor is on a card again.
+- On the title screen, the menus, and from the moment a duel is won or lost, the second screen shows the logo.
+
+## Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006
+
+The USA and Europe releases. Tried on the device in both releases, in Free Duel and Campaign duels and in Deck Edit; Link Battle hasn't been tried.
+
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game shows it when you choose Card View. Your hand, your cards on the field and the opponent's face-up cards; it follows the cursor as you move it, in every phase of your turn. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In Deck Edit,** the same: the card under the cursor.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a phase or an attack playing out, a question the game asks), the last card stays.
+- **When the opponent's turn begins,** the second screen shows the logo, through their turn, until your cursor is on a card again.
+- On the title screen, the menus and the conversations, and from the moment a duel is won or lost, the second screen shows the logo.
+- Known issues: a duel's card lists (the Graveyard...) keep the last card; the Japanese release isn't supported yet.
+
+## Yu-Gi-Oh! 7 Trials to Glory: World Championship Tournament 2005
+
+The USA release and the Japanese one (Yu-Gi-Oh! Duel Monsters International 2). Tried in Campaign duels, Deck Edit and the Deck select list in both; the Europe release isn't supported, and the banlist screen and Link Duel haven't been tried.
+
+- **In a duel,** the second screen shows the **Card View** of the card under your cursor: its picture, name, type and text, as the game draws it. Your hand (also in the Draw Phase, before you draw), your monsters and Magic and Trap cards, and the opponent's face-up cards; it follows the cursor. It's brought up in the background on a silent copy of the game; your game is never paused or touched.
+- **In Deck Edit** (Deck mode), the same: the Detail page of the card under the cursor.
+- Where there's nothing to look at (an empty zone, a pile, a face-down card of the opponent's, a phase or an attack playing out, "End your turn?"), the last card stays.
+- **When you end your turn,** the second screen shows the logo, through the opponent's turn, until your cursor is on a card again.
+- On the title screen, the menus, the Deck select list and the other screens, the second screen shows the logo.
+- Known issues: a duel's end, your Battle Phase and the pile lists (the Graveyard...) haven't been tried.
 
 ## Zoids: Legacy
 

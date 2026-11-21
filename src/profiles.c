@@ -2737,6 +2737,586 @@ static const char* eds_compose_jp(Emu* s, const void* state, uint32_t* out, int 
 	return eds_compose_for(&edsJP, s, state, out, w, h);
 }
 
+/* ---------------------------------------------------------- Yu-Gi-Oh! World Championship Tournament 2004
+ *
+ * The second screen (WCT-1 to WCT-5, WCT-9): the Card View of the card
+ * under the player's cursor, the game's own full-screen page for a card,
+ * opened on the shadow core from the live state at every capture, as in
+ * The Eternal Duelist Soul (the same engine; its code above is the model,
+ * with this game's own registers, pixels and addresses, all three releases
+ * alike): on the duel field A (the card's commands, Card View first and
+ * chosen) then A; in a list A (a bar of commands, Detail first) then A; in
+ * the cards won A alone. With Card View already open in the game, it's
+ * taken as it is. It's checked by its fixed pixels and taken once it has
+ * faded in and held still.
+ *
+ * Which screen is up is told by BG0CNT and BG1CNT (each screen sets them
+ * once and keeps them; DISPCNT where two share them):
+ *   field  0x0007 0x8106     list  0x1F09 0x1E80 (Deck Edit, Card Trade's
+ *   view   0x0087 0x0104           choice, a duel's piles), won 0x0004
+ *                                  0x1E0D with DISPCNT 0x1B40
+ * Addresses: the life points 0x0201BFB4 (the player's) and 0x0201D378
+ * (the opponent's: 0 out of a duel when it's the loser's), the duel's step
+ * 0x020154F0 (3 to 5 in the player's turn, 6 from the end of turn, 7, 8
+ * the opponent's), the field cursor 0x03006594 its side, 0x03006598 its
+ * zone (0 monsters, 5 Magic & Trap, 0x0B the hand), 0x0300659C its column,
+ * 0x03006578 bit 3 while the player moves it freely; Deck Edit's row
+ * 0x0203123A; the cards won's 0x0202463A. */
+#define WCT_V_LIVE 0xF00000E0 /* a card's under a cursor (or in Card View): taken */
+#define WCT_V_IDLE 0xF00000E1 /* out of the duels and the card screens, or the opponent's turn: the logo */
+#define WCT_V_ROOM 0xF00000E2 /* the screen and where its cursor is */
+enum { WCT_NONE, WCT_FIELD, WCT_LIST, WCT_VIEW, WCT_WON };
+/* the name bar along the bottom (the name never reaches its right end),
+ * the darker text panel, and the black between the card and its text and
+ * at the card's left: the same for every kind of card */
+static const Probe wctView[8] = {
+	{ 239, 159, 0x0000FF }, { 239, 150, 0x0000FF }, { 200, 159, 0x0000FF }, { 239, 100, 0x000084 },
+	{ 239, 60, 0x000084 }, { 102, 60, 0x000000 }, { 103, 100, 0x000000 }, { 1, 20, 0x000000 }
+};
+static int wct_screen(Emu* e) {
+	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A), disp = emu_io16(e, 0x00);
+	if (bg0 == 0x0007 && bg1 == 0x8106) return WCT_FIELD;
+	if (bg0 == 0x0087 && bg1 == 0x0104 && disp == 0x0F00) return WCT_VIEW;
+	if (bg0 == 0x1F09 && bg1 == 0x1E80) return WCT_LIST;
+	if (bg0 == 0x0004 && bg1 == 0x1E0D && disp == 0x1B40) return WCT_WON;
+	return WCT_NONE;
+}
+static bool wct_view(Emu* s) {
+	return wct_screen(s) == WCT_VIEW && som_probes(s, wctView, 8, 8, 8);
+}
+/* the field's info bar names a card: white pixels along its bottom rows */
+static bool wct_named(Emu* e) {
+	int white = 0;
+	for (int y = 151; y < 159; ++y)
+		for (int x = 2; x < 120; ++x) white += (e->fb[y * GBA_W + x] & 0xFFFFFF) == 0xFFFFFF;
+	return white >= 12;
+}
+/* in a duel: both players' life points (0 out of a duel for the one that
+ * lost, and for both before the first duel) */
+static bool wct_in_duel(Emu* e) {
+	return emu_read16(e, 0x0201BFB4) && emu_read16(e, 0x0201D378);
+}
+/* in a duel, the player's turn over (WCT-9): the step 6 from the end of
+ * turn, 7 handing over, 8 the opponent's turn */
+static bool wct_turn_over(Emu* e) {
+	if (!wct_in_duel(e)) return false;
+	uint8_t step = emu_read8(e, 0x020154F0);
+	return step >= 6 && step <= 8;
+}
+static uint32_t wct_virt(Emu* e, uint32_t addr) {
+	int sc = wct_screen(e);
+	if (addr == WCT_V_LIVE) {
+		if (sc != WCT_FIELD) return sc != WCT_NONE;
+		if (!wct_in_duel(e) || !(emu_read8(e, 0x03006578) & 0x08) || !wct_named(e)) return 0;
+		/* a monster, a Magic or Trap card or a card in the hand (not the
+		 * opponent's hand); not a pile (A opens its list, or draws) */
+		uint8_t side = emu_read8(e, 0x03006594), zone = emu_read8(e, 0x03006598);
+		return zone == 0 || zone == 5 || (zone == 0x0B && side == 0);
+	}
+	/* (the field too, once its duel is decided: WCT-6); and from the end of
+	 * the player's turn on anything but a Card View opened in it (WCT-9) */
+	if (addr == WCT_V_IDLE)
+		return ((sc == WCT_NONE || sc == WCT_FIELD) && !wct_in_duel(e)) || (sc != WCT_VIEW && wct_turn_over(e));
+	if (addr == WCT_V_ROOM) {
+		uint32_t k = (uint32_t) sc << 28;
+		if (sc == WCT_FIELD)
+			k |= (uint32_t) emu_read8(e, 0x03006594) << 16 | emu_read8(e, 0x03006598) << 8 | emu_read8(e, 0x0300659C);
+		else if (sc == WCT_LIST) k |= emu_read16(e, 0x0203123A);
+		else if (sc == WCT_WON) k |= emu_read8(e, 0x0202463A);
+		return k;
+	}
+	return 0;
+}
+/* On the field: runs frames until the card's commands are up with Card View
+ * chosen (its magnifier, a 16x16 sprite of tile 324, with the chosen
+ * command's name under it, a 64x32 sprite of tile 376, 16 pixels left of
+ * the icon); false if they don't come (A chose a target: an attack's) */
+static bool wct_wait_commands(Emu* s, int max) {
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		int glass = -1, name = -99;
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a1 = emu_read16(s, 0x07000002 + i * 8),
+			         a2 = emu_read16(s, 0x07000004 + i * 8);
+			if ((a0 & 0x0300) == 0x0200) continue; /* hidden */
+			if ((a2 & 0x3FF) == 324) glass = a1 & 0x1FF;
+			else if ((a2 & 0x3FF) == 376) name = a1 & 0x1FF;
+		}
+		if (glass >= 0 && name - glass == -16) return true;
+	}
+	return false;
+}
+/* runs frames until Card View is up and has held still for 3 (its fade-in
+ * done) */
+static bool wct_wait_view(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		if (!wct_view(s)) {
+			still = 0;
+			continue;
+		}
+		still = still && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 1;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+/* a list after A: runs frames until its screen gives way to another it
+ * knows; true if to Card View (false: elsewhere, A chose the card; or
+ * still the list after max frames). The frames between, blanked for the
+ * fade, aren't a screen yet. */
+static bool wct_wait_leave(Emu* s, int sc, int max) {
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame_blind(s, 0);
+		int now = wct_screen(s);
+		if (now != sc && now != WCT_NONE) return now == WCT_VIEW;
+	}
+	return false;
+}
+static const char* wct_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int sc = wct_screen(s);
+	if (sc == WCT_NONE) return "not a card screen";
+	if (sc != WCT_VIEW) {
+		/* (after a moment: the cursor glides to its place, and A on the
+		 * way does nothing) */
+		aw_run(s, 0, 12);
+		if (sc == WCT_FIELD) {
+			/* the info bar names the cursor's card once it's there: none, an
+			 * empty zone, a pile or a face-down card of the opponent's;
+			 * nothing taken, and no slowing down of the next tries */
+			if (!wct_named(s)) return "map button did nothing";
+			/* A: the card's commands, Card View first and chosen, told by
+			 * their sprites. Where none come, A chose a target (an attack's,
+			 * a card effect's) or it isn't a card (a pile's list): nothing
+			 * taken, cheaply (WCT-5). */
+			aw_tap(s, K_A, 1);
+			if (!wct_wait_commands(s, 20)) return "map button did nothing";
+			/* the commands take a press only a little after they are drawn */
+			aw_run(s, 0, 12);
+			aw_tap(s, K_A, 1);
+		} else if (sc == WCT_LIST) {
+			/* a bar of commands, Detail chosen, then A (where there's none,
+			 * A chose the card: a Designation list; nothing taken, WCT-5) */
+			aw_tap(s, K_A, 1);
+			aw_run(s, 0, 8);
+			if (wct_screen(s) != sc) return "A did something else";
+			aw_tap(s, K_A, 1);
+		} else {
+			/* the cards won: A opens Card View */
+			aw_tap(s, K_A, 1);
+			if (!wct_wait_leave(s, sc, 48)) return "map button did nothing";
+		}
+	}
+	if (!wct_view(s) && !wct_wait_view(s, 60)) return "Card View didn't open";
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
+/* ------------------------------ Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006
+ *
+ * The second screen (UM6-1 to UM6-5): the Card View of the card under the
+ * player's cursor, as for The Eternal Duelist Soul (eds_compose above): the
+ * game's own full-screen page for a card, opened on the shadow core from the
+ * live state at every capture. On the duel field A (the card's commands, Card
+ * View first and chosen) then A; in Deck Edit A (its command bar, Detail
+ * first) then A. With Card View already open in the game it's taken as it is.
+ * It's checked by its fixed pixels and taken once it has faded in and held
+ * still.
+ *
+ * Which screen is up: BG0CNT and BG1CNT (the duel field 0x1F08 0x1E09; Deck
+ * Edit's grid, list, command bar and Card View 0x1C0A 0x1D09), Card View by
+ * its pixels (the dark olive text panel and the black round the card:
+ * um6View), wherever it's opened. In a duel: the life points 0x0201C4E0
+ * (the player's) and 0x0201CD48 (the opponent's) are both non-zero; the
+ * opponent's turn 0x0201BCC1 bit 7; the field cursor 0x02023340 (zone, bit 7
+ * the opponent's side) and 0x02023341 (column); the field's info bar names
+ * the card under the cursor in blue (the player's) or red (the opponent's).
+ * Deck Edit's cursor is a sprite (palette 10, tile 924): at y 44 and below on
+ * a card, above it on the tabs. */
+#define UM6_V_LIVE 0xF0000050 /* a card's under a cursor (or in Card View): taken */
+#define UM6_V_IDLE 0xF0000051 /* out of the duels and Deck Edit, or the opponent's turn: the logo */
+#define UM6_V_ROOM 0xF0000052 /* the screen and where its cursor is */
+enum { UM6_NONE, UM6_FIELD, UM6_DECK, UM6_VIEW };
+static const Probe um6View[8] = {
+	/* the text panel's dark olive (the same for every kind of card), the black
+	 * left of the card's frame and between the card and its text */
+	{ 239, 60, 0x423918 }, { 239, 80, 0x423918 }, { 239, 100, 0x423918 }, { 239, 120, 0x423918 },
+	{ 0, 143, 0x000000 }, { 110, 24, 0x000000 }, { 0, 30, 0x000000 }, { 2, 45, 0x000000 }
+};
+static int um6_screen(Emu* e) {
+	if (som_probes(e, um6View, 8, 8, 8)) return UM6_VIEW;
+	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A);
+	if (bg0 == 0x1F08 && bg1 == 0x1E09) return UM6_FIELD;
+	if (bg0 == 0x1C0A && bg1 == 0x1D09) return UM6_DECK;
+	return UM6_NONE;
+}
+static bool um6_in_duel(Emu* e) {
+	return emu_read16(e, 0x0201C4E0) && emu_read16(e, 0x0201CD48);
+}
+static bool um6_opp_turn(Emu* e) {
+	return um6_in_duel(e) && (emu_read8(e, 0x0201BCC1) & 0x80);
+}
+/* the field's info bar names a card (not a pile: its count is cyan; not an
+ * empty zone or a face-down card of the opponent's: nothing) */
+static bool um6_named(Emu* e) {
+	int n = 0;
+	for (int y = 146; y < 160; ++y)
+		for (int x = 0; x < GBA_W; ++x) {
+			uint32_t c = e->fb[y * GBA_W + x] & 0xFFFFFF;
+			n += c == 0xFF0000 || c == 0x0000FF; /* (the fb is ABGR: red and blue swap, both are counted) */
+		}
+	return n >= 20;
+}
+/* Deck Edit's cursor: its y (0 when none is up); a sprite of palette 10 and
+ * tile 924, 32x32 over a card, 16x16 on the tabs. Its place goes with its x. */
+static int um6_deck_cursor(Emu* e, int* x) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a1 = emu_read16(e, 0x07000002 + i * 8),
+		         a2 = emu_read16(e, 0x07000004 + i * 8);
+		if ((a0 & 0x0300) == 0x0200) continue; /* hidden */
+		if ((a2 & 0x3FF) == 924 && (a2 >> 12) == 10) {
+			if (x) *x = a1 & 0x1FF;
+			return (a0 & 0xFF) ? (a0 & 0xFF) : 1;
+		}
+	}
+	return 0;
+}
+static uint32_t um6_virt(Emu* e, uint32_t addr) {
+	int sc = um6_screen(e);
+	if (addr == UM6_V_LIVE) {
+		if (sc == UM6_VIEW) return 1;
+		if (sc == UM6_DECK) return um6_deck_cursor(e, NULL) >= 40;
+		if (sc != UM6_FIELD || !um6_in_duel(e) || um6_opp_turn(e) || !um6_named(e)) return 0;
+		/* a monster, a Magic or Trap card or a card in the hand (not the
+		 * opponent's hand); not a pile (A opens its list, or draws) */
+		uint8_t at = emu_read8(e, 0x02023340), zone = at & 0x7F;
+		return zone == 0 || zone == 5 || (zone == 0x0B && !(at & 0x80));
+	}
+	/* out of the duels and Deck Edit (the field too, once its duel is decided),
+	 * and through the opponent's turn: anything but a Card View opened in it
+	 * (UM6-4, UM6-5) */
+	if (addr == UM6_V_IDLE)
+		return ((sc == UM6_NONE || sc == UM6_FIELD) && !um6_in_duel(e)) || (sc != UM6_VIEW && um6_opp_turn(e));
+	if (addr == UM6_V_ROOM) {
+		uint32_t k = (uint32_t) sc << 28;
+		if (sc == UM6_FIELD) k |= (uint32_t) emu_read8(e, 0x02023340) << 8 | emu_read8(e, 0x02023341);
+		else if (sc == UM6_DECK) {
+			int x = 0, y = um6_deck_cursor(e, &x);
+			k |= (uint32_t) y << 12 | (x & 0xFFF);
+		}
+		return k;
+	}
+	return 0;
+}
+/* On the field: runs frames until the card's commands are up (the magnifier,
+ * tile 448, with the chosen command's name's two sprites, tiles 520 and 524);
+ * false if they don't come (A chose a target, or the cursor isn't free) */
+static bool um6_wait_commands(Emu* s, int max) {
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		bool glass = false, name = false;
+		for (int i = 0; i < 128; ++i) {
+			uint16_t a0 = emu_read16(s, 0x07000000 + i * 8), a2 = emu_read16(s, 0x07000004 + i * 8);
+			if ((a0 & 0x0300) == 0x0200) continue; /* hidden */
+			glass |= (a2 & 0x3FF) == 448;
+			name |= (a2 & 0x3FF) == 520;
+		}
+		if (glass && name) return true;
+	}
+	return false;
+}
+/* runs frames until Card View is up and has held still for 3 (its fade-in
+ * done) */
+static bool um6_wait_view(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		if (um6_screen(s) != UM6_VIEW) {
+			still = 0;
+			continue;
+		}
+		still = still && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 1;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+static const char* um6_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int sc = um6_screen(s);
+	if (sc == UM6_NONE) return "not a card screen";
+	if (sc != UM6_VIEW) {
+		/* (after a moment: the cursor glides to its place, and A on the way
+		 * does nothing) */
+		aw_run(s, 0, 12);
+		if (sc == UM6_FIELD) {
+			/* the info bar names the cursor's card once it's there; none,
+			 * nothing taken, and no slowing down of the next tries */
+			if (!um6_named(s)) return "map button did nothing";
+			/* A: the card's commands, Card View first and chosen, told by their
+			 * sprites. Where none come, A chose a target or the cursor wasn't
+			 * free (a banner, a question): nothing taken (UM6-3). */
+			aw_tap(s, K_A, 1);
+			if (!um6_wait_commands(s, 20)) return "map button did nothing";
+			aw_run(s, 0, 16); /* (the bar takes a few frames to take A) */
+			aw_tap(s, K_A, 1);
+		} else {
+			/* Deck Edit: on a card A brings up the command bar, Detail chosen;
+			 * on a tab or a menu it brings up something else, and no Card View
+			 * follows */
+			if (um6_deck_cursor(s, NULL) < 40) return "map button did nothing";
+			aw_tap(s, K_A, 1);
+			aw_run(s, 0, 8);
+			if (um6_screen(s) == UM6_VIEW) return "A did something else";
+			aw_tap(s, K_A, 1);
+		}
+	}
+	if (um6_screen(s) != UM6_VIEW && !um6_wait_view(s, 120)) return "Card View didn't open";
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
+/* ---------------------------------------------------- Duel Masters: Kaijudo Showdown
+ *
+ * The second screen (DMK-1 to DMK-4): the game's own Card Details page for
+ * the card under the player's cursor, opened on the shadow core from the
+ * live state at every capture: SELECT in a duel (the zone views, the field
+ * while a creature is chosen), A in Deck Management's card list. It's
+ * checked by its fixed pixels (the black name, description and statistics
+ * panels) and taken once it has faded in and held still, with its "B Exit"
+ * prompt (a sprite) left out.
+ *
+ * Which screen is up is told by BG0CNT to BG3CNT (each screen sets them once):
+ *   duel   0x1F02 0x1E02 0x1D03 0x1C0B   zones, the field, Summon/Cast
+ *   view   0x1F03 0x1E02 0x1D01 0x1C02   Card Details, wherever it's opened
+ *   list   0x1F08 0x1E81 0x1D0A 0x1C0B   Deck Management (its deck choice too)
+ * Nothing else a duel can be in shares the duel's (the overworld has
+ * 0x1F00 0x1E01 0x1D0A 0x1C03, the coin flip 0x1F03 0x1E01 0x1D0A 0x1C03).
+ * The hand's cursor is 0x0300145A (the slot), which with the bar naming the
+ * card (the rows above the bottom line) is the room key. */
+#define DMK_V_LIVE 0xF0000050 /* a card may be under a cursor: taken */
+#define DMK_V_IDLE 0xF0000051 /* out of the duels and the card lists: the logo */
+#define DMK_V_ROOM 0xF0000052 /* the screen and where its cursor is */
+enum { DMK_NONE, DMK_DUEL, DMK_VIEW, DMK_LIST };
+static const Probe dmkView[8] = {
+	/* the black panels: the name box, the description box (right of its
+	 * text), the power and cost box, and the corner under the card */
+	{ 230, 17, 0x000000 }, { 80, 17, 0x000000 }, { 230, 45, 0x000000 }, { 230, 100, 0x000000 },
+	{ 230, 140, 0x000000 }, { 8, 90, 0x000000 }, { 100, 90, 0x000000 }, { 100, 136, 0x000000 },
+};
+static int dmk_screen(Emu* e) {
+	uint16_t b0 = emu_io16(e, 0x08), b1 = emu_io16(e, 0x0A), b2 = emu_io16(e, 0x0C), b3 = emu_io16(e, 0x0E);
+	if (b0 == 0x1F02 && b1 == 0x1E02 && b2 == 0x1D03 && b3 == 0x1C0B) return DMK_DUEL;
+	if (b0 == 0x1F03 && b1 == 0x1E02 && b2 == 0x1D01 && b3 == 0x1C02) return DMK_VIEW;
+	if (b0 == 0x1F08 && b1 == 0x1E81 && b2 == 0x1D0A && b3 == 0x1C0B) return DMK_LIST;
+	return DMK_NONE;
+}
+static bool dmk_view(Emu* s) {
+	if (dmk_screen(s) != DMK_VIEW || !som_probes(s, dmkView, 8, 8, 8)) return false;
+	/* not the black of a fade (the probes are black panels): the page's
+	 * background and card fill much of the rest */
+	int lit = 0;
+	for (int i = 0; i < GBA_W * GBA_H; ++i) lit += (s->fb[i] & 0xFFFFFF) != 0;
+	return lit >= 5000;
+}
+static uint32_t dmk_virt(Emu* e, uint32_t addr) {
+	int sc = dmk_screen(e);
+	/* a card may be under the cursor: a duel's views and the card list; the
+	 * page itself open in the game isn't taken again (DMK-3) */
+	if (addr == DMK_V_LIVE) return sc == DMK_DUEL || sc == DMK_LIST;
+	if (addr == DMK_V_IDLE) return sc == DMK_NONE;
+	if (addr == DMK_V_ROOM) {
+		uint32_t k = (uint32_t) sc << 28;
+		if (sc == DMK_DUEL) {
+			/* the cursor's slot and the name bar's pixels (the card under it) */
+			uint32_t h = 2166136261u;
+			for (int y = 128; y < 140; ++y)
+				for (int x = 8; x < 232; x += 2) h = (h ^ (e->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+			k |= (emu_read8(e, 0x0300145A) << 16) | (h & 0xFFFF);
+		}
+		return k;
+	}
+	return 0;
+}
+/* runs frames until Card Details is up and has held still for 3 (its
+ * fade-in done); false if the screen stays as it was (nothing opened) */
+static bool dmk_wait_view(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	static uint32_t first[GBA_W * GBA_H];
+	int still = 0;
+	bool moved = false;
+	memcpy(first, s->fb, sizeof(first));
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		if (!moved && f == 24 && !memcmp(first, s->fb, sizeof(first))) return false;
+		if (!dmk_view(s)) {
+			still = 0;
+			continue;
+		}
+		moved = true;
+		still = still && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 1;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+static const char* dmk_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int sc = dmk_screen(s);
+	if (sc != DMK_DUEL && sc != DMK_LIST) return "not a card screen";
+	/* (the cursor glides to its place, and a press on the way does nothing) */
+	aw_run(s, 0, 12);
+	aw_run(s, sc == DMK_DUEL ? K_SELECT : K_A, 3);
+	if (!dmk_wait_view(s, 180)) return "no Card Details";
+	/* the "B Exit" prompt: a 32x8 sprite at the bottom left */
+	static const SpriteRule exitPrompt = { 0, 142, 48, 156, 0, 1023, 0, 0, 0, 0 };
+	emu_hide_sprites(s, &exitPrompt, 1);
+	emu_frame(s, 0);
+	emu_frame(s, 0);
+	emu_hide_sprites(s, NULL, 0);
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+
+/* ---------------------------------------------------------- Yu-Gi-Oh! 7 Trials to Glory
+ *
+ * The second screen (YWC-1 to YWC-3): the Card View (Detail) of the card
+ * under the player's cursor, opened on the hidden copy as Eternal Duelist
+ * Soul's is (eds_compose_for), from BG0CNT / BG1CNT alone: the duel
+ * field 0x4007 0x4206, Card View 0x0087 0x4104, the lists (Deck select,
+ * Deck mode, the banlist) 0x0004 0x0105. 0x03000330's high byte is 0x35
+ * while the field is up (free, or a card's commands open) and 0x20 with
+ * "End your turn?"; the info bar (its bottom rows) names the card in
+ * white. Where the hidden copy's A does something else, nothing is taken. */
+#define YW_V_LIVE 0xF0000050
+#define YW_V_IDLE 0xF0000051
+#define YW_V_ROOM 0xF0000052
+enum { YW_NONE, YW_FIELD, YW_VIEW, YW_LIST };
+/* the two releases' addresses (the same engine, 0x10 apart: tools/romxref.py) */
+typedef struct {
+	uint32_t state; /* the duel's state byte */
+	uint32_t list;  /* the list's cursor row */
+} YwRelease;
+static const YwRelease ywUS = { 0x0201A460, 0x02026AB0 };
+static const YwRelease ywJP = { 0x0201A450, 0x02026AA0 };
+static int yw_screen(Emu* e) {
+	uint16_t bg0 = emu_io16(e, 0x08), bg1 = emu_io16(e, 0x0A);
+	if (bg0 == 0x4007 && bg1 == 0x4206) return YW_FIELD;
+	if (bg0 == 0x0087 && (bg1 == 0x4104 || bg1 == 0x0104)) return YW_VIEW; /* Japan's 0x0104 */
+	if (bg0 == 0x0004 && bg1 == 0x0105) return YW_LIST;
+	return YW_NONE;
+}
+static const Probe ywView[8] = {
+	{ 239, 30, 0x424242 }, { 239, 50, 0x424242 }, { 239, 70, 0x424242 }, { 239, 100, 0x424242 },
+	{ 239, 130, 0x424242 }, { 1, 20, 0x000000 }, { 1, 100, 0x000000 }, { 5, 159, 0xA5A5A5 },
+};
+static bool yw_view(Emu* s) {
+	return yw_screen(s) == YW_VIEW && som_probes(s, ywView, 8, 8, 8);
+}
+/* the info bar names a card: white pixels in its text */
+static bool yw_named(Emu* e) {
+	int white = 0;
+	for (int y = 151; y < 159; ++y)
+		for (int x = 2; x < 120; ++x) white += (e->fb[y * GBA_W + x] & 0xFFFFFF) == 0xFFFFFF;
+	return white >= 12;
+}
+/* the duel's state byte: 8 through the opponent's whole turn (YWC-8) */
+static bool yw_opp_turn(const YwRelease* r, Emu* e) {
+	return emu_read8(e, r->state) == 8;
+}
+/* not the player's free cursor: the turn being ended (6), the opponent's
+ * turn (8). The Draw Phase (2, 3) is free: the cursor can go to the hand */
+static bool yw_busy(const YwRelease* r, Emu* e) {
+	int v = emu_read8(e, r->state);
+	return v == 6 || v == 8;
+}
+static bool yw_field_up(Emu* e) {
+	return (emu_read16(e, 0x03000330) & 0xFF00) == 0x3500;
+}
+static uint32_t yw_virt_for(const YwRelease* r, Emu* e, uint32_t addr) {
+	int sc = yw_screen(e);
+	if (addr == YW_V_LIVE) {
+		if (sc == YW_FIELD) return !yw_busy(r, e) && yw_field_up(e) && yw_named(e);
+		return sc != YW_NONE;
+	}
+	if (addr == YW_V_IDLE) return sc == YW_NONE || (sc == YW_FIELD && yw_opp_turn(r, e));
+	if (addr == YW_V_ROOM) {
+		uint32_t k = (uint32_t) sc << 28;
+		if (sc == YW_FIELD) {
+			uint32_t h = 2166136261u;
+			for (int y = 151; y < 159; ++y)
+				for (int x = 2; x < 120; ++x) h = (h ^ (e->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+			h = (h ^ emu_read8(e, r->state)) * 16777619u; /* a capture again once the state settles */
+			k |= (h & 0x0FFFFFFF);
+		} else if (sc == YW_LIST) k |= emu_read8(e, r->list);
+		return k;
+	}
+	return 0;
+}
+static bool yw_wait_view(Emu* s, int max) {
+	static uint32_t prev[GBA_W * GBA_H];
+	int still = 0;
+	for (int f = 0; f < max && !emu_cancelled(s); ++f) {
+		emu_frame(s, 0);
+		if (!yw_view(s)) {
+			still = 0;
+			continue;
+		}
+		still = still && !memcmp(prev, s->fb, sizeof(prev)) ? still + 1 : 1;
+		if (still >= 3) return true;
+		memcpy(prev, s->fb, sizeof(prev));
+	}
+	return false;
+}
+static const char* yw_compose_for(const YwRelease* r, Emu* s, const void* state, uint32_t* out, int w, int h) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	int sc = yw_screen(s);
+	if (sc == YW_NONE) return "not a card screen";
+	if (sc != YW_VIEW) {
+		aw_run(s, 0, sc == YW_LIST ? 30 : 12); /* the cursor glides to its place (a list scrolls) */
+		if (sc == YW_FIELD && (yw_busy(r, s) || !yw_field_up(s) || !yw_named(s))) return "map button did nothing";
+		/* A: the card's commands (Card View chosen), or the list's command
+		 * bar (Detail chosen); with them already up, A opens the page. The
+		 * field's first A can be lost to a banner (the turn's "Main Phase"),
+		 * so up to four; a list's are exactly two (a third would go into
+		 * Deck mode's first card from Deck select). A press that leaves the
+		 * screen starts the page fading in, or is something else, which
+		 * yw_wait_view gives up on. */
+		for (int n = 0; n < (sc == YW_FIELD ? 4 : 2); ++n) {
+			aw_tap(s, K_A, 1);
+			aw_run(s, 0, sc == YW_LIST ? 30 : 12);
+			if (yw_screen(s) != sc) break;
+		}
+	}
+	if (!yw_view(s) && !yw_wait_view(s, 60)) return "Card View didn't open";
+	if (emu_cancelled(s)) return "called off";
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	return NULL;
+}
+static uint32_t yw_virt_us(Emu* e, uint32_t addr) {
+	return yw_virt_for(&ywUS, e, addr);
+}
+static uint32_t yw_virt_jp(Emu* e, uint32_t addr) {
+	return yw_virt_for(&ywJP, e, addr);
+}
+static const char* yw_compose_us(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return yw_compose_for(&ywUS, s, state, out, w, h);
+}
+static const char* yw_compose_jp(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return yw_compose_for(&ywJP, s, state, out, w, h);
+}
+
 /* ---------------------------------------------------------- Zoids: Legacy
  *
  * The second screen, from zl_compose on the hidden copy:
@@ -7431,6 +8011,570 @@ done:
 	return err;
 }
 
+/* ---------------------------------------------------------- Pokémon (preliminary: FireRed / LeafGreen, Ruby / Sapphire / Emerald)
+ *
+ * Experiment for the branch pokemon-preliminary (docs/pokemon-ideas.md). The
+ * second screen is the game's own Party screen and region map (the Pokénav's
+ * in Ruby / Sapphire / Emerald, the Town Map from the Bag in FireRed /
+ * LeafGreen), opened on the shadow core through the START menu and shown in
+ * turn. Nothing here is the game's data: no tables, no
+ * addresses of a particular ROM, so a romhack built on the same engine
+ * needs no work of its own.
+ *
+ *  - Where things are is found on the screen, not in memory: START is
+ *    pressed on the hidden copy and the menu's panel looked for; the START
+ *    menu remembers its cursor, so the cursor is first put on the first
+ *    entry (DOWN until it wraps to the top: a cursor that moves up the
+ *    panel's rows only changes pixels in two bands, far apart when it
+ *    wraps), then moved by counting: POKéMON is the first or second entry
+ *    (tried in turn; the screen that comes up is checked), BAG / POKéNAV
+ *    are found by trying each row (a romhack drops SAVE or EXIT). FireRed / LeafGreen's Town
+ *    Map is a key item whose row depends on what the player owns: each row
+ *    of the Key Items pocket is tried (USE) until the map's registers come
+ *    up, and the row that worked is tried first the next time.
+ *  - Which screen came up is told by the display registers (DISPCNT and
+ *    BG0-3CNT), which belong to the engine, not to a romhack's changes
+ *    (three engines: FireRed / LeafGreen, Ruby / Sapphire, Emerald).
+ *  - When to look again: pk_virt finds the party in RAM (records of 100
+ *    bytes whose checksum is right: nothing to configure) and gives a value
+ *    that changes with anyone's HP, status, level or species.
+ */
+typedef struct { uint16_t r[5]; } PkSig; /* DISPCNT, BG0CNT ... BG3CNT; r[0] 0: none */
+typedef struct {
+	PkSig party, nav, map, bag;
+	/* the Party's message box and CANCEL: rows from here down are the
+	 * background's, taken from the left edge */
+	/* the START menu's panel ends here (FireRed has a description box below it) */
+	int menuBottom;
+	int partyClean, partyFrom;
+	int partySide; /* a row above that where the box's bottom edge is: only the left of the boxes is cleaned (the stub of the message box), 0: none */
+	/* the map's button prompts: each is a box x0 to x1, y0 to y1, filled row
+	 * by row from the pixel at column fx of that row */
+	int mapClean[4][5];
+} PkFam;
+static const PkFam pkFrlg = {
+	.party = { { 0x1740, 0x1F01, 0x1E02, 0x5C00, 0x0000 } },
+	.bag = { { 0x3340, 0x1F00, 0x1E0D, 0x0000, 0x0000 } },
+	.map = { { 0x3B40, 0x1E02, 0x0F07, 0x0000, 0x1F0C } }, /* the Town Map */
+	.partyClean = 130, .partyFrom = 182, .menuBottom = 112,
+	.mapClean = { { 130, 239, 0, 10, 100 },     /* the move prompt on the blue strip (longer in other languages), and the end of its GUIDE text on the right */
+	              { 130, 205, 11, 14, 100 },
+	              { 206, 239, 11, 11, 100 },
+	              { 194, 214, 131, 149, 192 } }, /* the exit button */
+};
+static const PkFam pkRs = {
+	.party = { { 0x1F40, 0x1E06, 0x0703, 0x0F08, 0x0602 } },
+	.nav = { { 0x3F40, 0x1F01, 0x1B0C, 0x1D0A, 0x1C0B } },
+	.map = { { 0x1741, 0x1F01, 0x1B0C, 0xBC8A, 0x1C0B } },
+	.partyClean = 129, .partyFrom = 193, .partySide = 128, .menuBottom = 158,
+	.mapClean = { { 0, 118, 144, 159, 122 } },
+};
+/* Emerald: the Party is FireRed's screen, the Pokénav its own */
+static const PkFam pkEm = {
+	.party = { { 0x1740, 0x1F01, 0x1E02, 0x5C00, 0x0000 } },
+	.nav = { { 0x3F40, 0x0500, 0x0F05, 0x170A, 0x1F0F } },
+	.map = { { 0x1741, 0x0500, 0x1F05, 0xA68A, 0x1F0F } },
+	.partyClean = 128, .partyFrom = 183, .menuBottom = 158,
+	.mapClean = { { 0, 112, 144, 159, 118 } },
+};
+static const PkFam* pk_fam(const Emu* e) {
+	const char* c = e->gameCode;
+	if (!strncmp(c, "BPR", 3) || !strncmp(c, "BPG", 3)) return &pkFrlg;
+	if (!strncmp(c, "AXP", 3) || !strncmp(c, "AXV", 3)) return &pkRs;
+	if (!strncmp(c, "BPE", 3)) return &pkEm;
+	return NULL;
+}
+static bool pk_is(Emu* s, const PkSig* g) {
+	if (!g->r[0]) return false;
+	/* (DISPCNT without the window bits: the Town Map turns window 1 on for the
+	 * name of a place it labels, as Cinnabar's Pokémon Mansion) */
+	return (emu_io16(s, 0x00) & 0x1FFF) == (g->r[0] & 0x1FFF) && emu_io16(s, 0x08) == g->r[1] && emu_io16(s, 0x0A) == g->r[2] &&
+	       emu_io16(s, 0x0C) == g->r[3] && emu_io16(s, 0x0E) == g->r[4];
+}
+static bool pk_wait(Emu* s, const PkSig* g, int frames) {
+	for (int i = 0; i < frames; ++i) {
+		if (pk_is(s, g)) {
+			aw_run(s, 0, 2);
+			return true;
+		}
+		emu_frame_blind(s, 0);
+	}
+	return false;
+}
+/* the START menu's white panel (right side) is up: lots of white there and
+ * the picture differs from before */
+static bool pk_panel(Emu* s, const uint32_t* before) {
+	int white = 0, changed = 0;
+	for (int y = 4; y < 100; ++y) {
+		for (int x = 172; x < 236; ++x) {
+			uint32_t c = s->fb[y * GBA_W + x];
+			white += (c & 0xFF) >= 0xF0 && ((c >> 8) & 0xFF) >= 0xF0 && ((c >> 16) & 0xFF) >= 0xF0;
+			changed += c != before[y * GBA_W + x];
+		}
+	}
+	return white >= 1200 && changed >= 400;
+}
+/* After a DOWN on the menu: 0 nothing moved in the panel, 1 the cursor went
+ * down a row (its old and new places are bands side by side), 2 it went from
+ * the last entry to the first (bands far apart) */
+static int pk_moved(Emu* s, const uint32_t* before, int bottom) {
+	int first = -1, last = -1, gap = 0, run = 0;
+	for (int y = 0; y < bottom; ++y) {
+		bool ch = false;
+		for (int x = 172; x < 236 && !ch; ++x) ch = s->fb[y * GBA_W + x] != before[y * GBA_W + x];
+		if (ch) {
+			if (first < 0) first = y;
+			else if (run > gap) gap = run;
+			last = y;
+			run = 0;
+		} else if (first >= 0) {
+			++run;
+		}
+	}
+	if (first < 0) return 0;
+	(void) last;
+	return gap >= 18 ? 2 : 1;
+}
+/* The same for a bar of icons along the bottom (Unbound's START menu): RIGHT
+ * moves along it, the picture changes only in that strip; 2 when the cursor
+ * went from the last icon back to the first (the changes far apart) */
+static int pk_moved_h(Emu* s, const uint32_t* before) {
+	int first = -1, gap = 0, run = 0;
+	for (int x = 0; x < GBA_W; ++x) {
+		bool ch = false;
+		for (int y = 112; y < GBA_H && !ch; ++y) ch = s->fb[y * GBA_W + x] != before[y * GBA_W + x];
+		if (ch) {
+			if (first < 0) first = x;
+			else if (run > gap) gap = run;
+			run = 0;
+		} else if (first >= 0) {
+			++run;
+		}
+	}
+	if (first < 0) return 0;
+	return gap >= 100 ? 2 : 1;
+}
+static uint32_t pkNext = K_DOWN; /* the key to the next entry: DOWN, or RIGHT along a bar */
+/* a press these menus take every time: 3 frames down, 9 up (the last two drawn) */
+static void pk_tap(Emu* s, uint32_t key) {
+	aw_run(s, key, 3);
+	aw_run(s, 0, 9);
+}
+static void pk_keep(Emu* s, uint32_t* to) { memcpy(to, s->fb, GBA_W * GBA_H * sizeof(uint32_t)); }
+/* START pressed on the hidden copy, the menu up, its cursor on the first entry */
+static const char* pk_menu_try(Emu* s, const PkFam* f) {
+	static uint32_t before[GBA_W * GBA_H];
+	{ /* the player's START menu already up (its panel's white): B puts it away */
+		int white = 0;
+		for (int y = 4; y < 100; ++y)
+			for (int x = 172; x < 236; ++x) {
+				uint32_t c = s->fb[y * GBA_W + x];
+				white += (c & 0xFF) >= 0xF0 && ((c >> 8) & 0xFF) >= 0xF0 && ((c >> 16) & 0xFF) >= 0xF0;
+			}
+		if (white >= 1200) {
+			pk_tap(s, K_B);
+			aw_run(s, 0, 24);
+		}
+	}
+	pk_keep(s, before);
+	pk_tap(s, K_START);
+	bool up = false;
+	for (int i = 0; i < 24 && !(up = pk_panel(s, before)); ++i) emu_frame(s, 0);
+	bool bar = false;
+	if (!up) { /* a bar of icons along the bottom instead of a panel? */
+		int changed = 0;
+		for (int y = 112; y < GBA_H; ++y)
+			for (int x = 0; x < GBA_W; ++x) changed += s->fb[y * GBA_W + x] != before[y * GBA_W + x];
+		bar = changed >= 3000;
+	}
+	pkNext = bar ? K_RIGHT : K_DOWN;
+	if (!up && !bar) return "map button did nothing"; /* a scene, a conversation, a menu, a battle: quick */
+	aw_run(s, 0, 24); /* (the menu takes no input just as it opens) */
+	for (int i = 0; i < 12; ++i) {
+		pk_keep(s, before);
+		pk_tap(s, pkNext);
+		int m = bar ? pk_moved_h(s, before) : pk_moved(s, before, f->menuBottom);
+		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: next %d -> %d (io %04X %04X)\n", i, m, emu_io16(s, 0), emu_io16(s, 8));
+		if (m == 2) return NULL;
+		if (m == 0) return "map button did nothing (the menu's cursor didn't move)"; /* (quick to retry: game.c) */
+	}
+	return "map button did nothing (the menu's cursor never wrapped)";
+}
+/* the player's own Party screen or START menu may be up: the hidden copy
+ * backs out of it (B) and opens its own (PK-6) */
+static const char* pk_menu_top(Emu* s, const PkFam* f, const void* state) {
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	for (int i = 0; i < 4 && pk_is(s, &f->party); ++i) {
+		pk_tap(s, K_B);
+		aw_run(s, 0, 24);
+	}
+	const char* err = pk_menu_try(s, f);
+	if (err && strstr(err, "cursor didn't move")) {
+		/* (START closed a menu that was already up) */
+		for (int i = 0; i < 2; ++i) {
+			pk_tap(s, K_B);
+			aw_run(s, 0, 20);
+		}
+		err = pk_menu_try(s, f);
+	}
+	return err;
+}
+/* from the first entry: n entries down (n > 0), or from the end up (n < 0:
+ * -1 is the last) */
+static void pk_go(Emu* s, int n) {
+	for (int i = 0; i < (n < 0 ? -n : n); ++i) pk_tap(s, n < 0 ? K_UP : pkNext);
+}
+/* What the capture has learned about the game it is running (the START menu's
+ * rows, where the Town Map is, the last map taken). All of it belongs to one
+ * ROM: pk_pages starts it again when another game's capture arrives, or a
+ * map from the game played before would be shown (and a search that found no
+ * Town Map there would be believed here). */
+static struct {
+	uint32_t rom;
+	bool known;
+	int partyRow, navGood, first, goodBag, tick, wait;
+	bool noMapKnown, have, partySent;
+	uint32_t noMapHash;
+	uint32_t keep[GBA_W * GBA_H];
+} pkMem;
+static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	int* const prow = &pkMem.partyRow; /* POKéMON is the second entry once there's a Pokédex */
+	for (int t = 0; t < 2; ++t, *prow ^= 1) {
+		int row = *prow;
+		const char* err = pk_menu_top(s, f, state);
+		if (err) return err;
+		pk_go(s, row);
+		pk_tap(s, K_A);
+		if (!pk_wait(s, &f->party, 90)) continue;
+		aw_run(s, 0, 60); /* (the screen builds itself and takes no input for a while) */
+		/* UP from the first slot: the cursor goes to CANCEL (left out below),
+		 * no Pokémon is lit */
+		pk_tap(s, K_UP);
+		aw_run(s, 0, 8);
+		for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+		if (f->partySide) {
+			for (int x = 0; x < 80 && x < w; ++x) out[f->partySide * w + x] = s->fb[f->partySide * GBA_W + 40];
+		}
+		/* the message box and CANCEL: the background's, taken from beside them */
+		for (int y = f->partyClean; y < h && y < GBA_H; ++y) {
+			for (int x = 0; x < w && x < GBA_W; ++x) out[y * w + x] = s->fb[y * GBA_W + f->partyFrom];
+		}
+		return NULL;
+	}
+	return "the Party didn't open";
+}
+/* A menu entry that opens the screen `sig` (the Bag, the Pokénav): its row
+ * isn't counted from the end (a romhack drops SAVE or EXIT, adds a clock or
+ * its own entries), each row is tried from the top, the screen that comes up
+ * told by the registers, and the row that worked tried first next time.
+ * Returns the row, or -1 (err says why); the screen is up when it returns. */
+static int pk_open(Emu* s, const PkFam* f, const void* state, const PkSig* sig, int* good, int frames, const char** err) {
+	enum { ROWS = 9 };
+	for (int t = 0; t < ROWS; ++t) {
+		int k = (*good + t) % ROWS;
+		*err = pk_menu_top(s, f, state);
+		if (*err) return -1;
+		pk_go(s, k);
+		pk_tap(s, K_A);
+		if (pk_wait(s, sig, frames)) {
+			*good = k;
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: row %d opened the screen\n", k);
+			return k;
+		}
+		if (emu_cancelled(s)) break;
+	}
+	*err = "the menu has no such entry";
+	return -1;
+}
+/* the clean-ups, then the picture */
+static void pk_map_clean(Emu* s, const PkFam* f, uint32_t* out, int w, int h) {
+	for (int k = 0; k < 4; ++k) {
+		const int* c = f->mapClean[k];
+		for (int y = c[2]; y <= c[3] && y < h; ++y) {
+			for (int x = c[0]; x <= c[1] && x < w; ++x) out[y * w + x] = s->fb[y * GBA_W + c[4]];
+		}
+	}
+}
+static void pk_map_copy(Emu* s, const PkFam* f, uint32_t* out, int w, int h) {
+	for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+	pk_map_clean(s, f, out, w, h);
+}
+/* Ruby / Sapphire / Emerald: POKéNAV, whose first entry is the region map */
+static const char* pk_nav_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	int* const good = &pkMem.navGood;
+	const char* err;
+	if (pk_open(s, f, state, &f->nav, good, 60, &err) < 0) return err;
+	aw_run(s, 0, 30);
+	pk_tap(s, K_A); /* its first entry, the region map */
+	if (!pk_wait(s, &f->map, 120)) return "the map didn't open";
+	aw_run(s, 0, 40);
+	/* The map opens in the view the player left it in; the zoom view (BG2's
+	 * scale, 0x80 against the full view's 0x100) is switched to the full
+	 * view with A, which shows the whole region (PK-3). */
+	if (emu_io16(s, 0x20) < 0x100) {
+		pk_tap(s, K_A);
+		aw_run(s, 0, 60);
+		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: zoom view -> full view: scale %04X\n", emu_io16(s, 0x20));
+	}
+	pk_map_copy(s, f, out, w, h);
+	return NULL;
+}
+/* FireRed / LeafGreen: the Town Map is a key item. BAG (its row found by trying them),
+ * the Key Items pocket (the pockets are in a row: all the way left, then
+ * once right), the cursor to the top, then down row by row, USE on each
+ * until the map's registers come up (the copy is loaded afresh each time,
+ * so whatever another item does is gone). The row that worked is the first
+ * to try next time. */
+/* In a battle the game draws with the sprite window (DISPCNT bit 15), which
+ * nothing else in these games does: the Party stays up (PK-4) */
+static int pk_hold_page(Emu* live) {
+	return (emu_io16(live, 0) & 0x8000) ? 0 : -1;
+}
+/* a hash of the Bag's list (the right of the screen: the bag's own picture
+ * on the left moves) */
+static uint32_t pk_list_hash(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int y = 0; y < 120; ++y)
+		for (int x = 96; x < 232; ++x) h = (h ^ (s->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+	return h;
+}
+#define PK_KEY_ROWS 30 /* the Key Items pocket's most (FireRed, LeafGreen) */
+#define PK_MAP_EVERY 5 /* captures (about 15 s) between the map's */
+/* a hash of the Bag's description box (the bottom of the screen): it changes
+ * with the item the cursor is on */
+static uint32_t pk_desc_hash(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int y = 118; y < GBA_H; ++y)
+		for (int x = 0; x < GBA_W; ++x) h = (h ^ (s->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+	return h;
+}
+/* how many rows the Key Items list has: the cursor's moved down until the
+ * description stops changing (the list doesn't wrap). It's left on the last */
+static int pk_key_rows(Emu* s) {
+	int n = 1;
+	uint32_t prev = pk_desc_hash(s);
+	for (; n < PK_KEY_ROWS; ++n) {
+		pk_tap(s, K_DOWN);
+		uint32_t d = pk_desc_hash(s);
+		if (d == prev) break;
+		prev = d;
+	}
+	return n;
+}
+/* Where the Town Map is in the Key Items list, from the game's own memory
+ * rather than a row-by-row search of the Bag (seconds of frames on a slow
+ * device, and the second screen shows only the logo meanwhile): the pocket is
+ * 30 slots of (item, quantity) halfwords, the Town Map is item 361, and what
+ * follows it is the Poké Balls pocket. A guess only (a romhack may keep its
+ * Bag otherwise): the search starts at this row and goes on from there if the
+ * screen that opens isn't the map. -1: not found. */
+static uint32_t pk_rd32(const uint8_t* m, size_t i);
+static int pk_key_hint(Emu* s) {
+	size_t size = 0;
+	const uint8_t* m = emu_memory(s, 2, &size);
+	if (!m) return -1;
+	for (size_t i = 0; i + 4 <= size; i += 4) {
+		if ((pk_rd32(m, i) & 0xFFFF) != 361) continue; /* (the quantities are scrambled with a key: only the item ids are read) */
+		for (int k = 0; k < 30 && (size_t) k * 4 <= i; ++k) {
+			size_t base = i - (size_t) k * 4;
+			if (base + 43 * 4 > size) continue;
+			bool ok = true, gap = false;
+			for (int j = 0; j < 30 && ok; ++j) { /* a run of items, then empty slots */
+				unsigned id = pk_rd32(m, base + j * 4) & 0xFFFF;
+				if (!id) gap = true;
+				else if (gap || id > 0x1FF) ok = false;
+			}
+			bool gapB = false;
+			for (int j = 30; j < 43 && ok; ++j) { /* the Poké Balls: ids 1 to 12, then empty */
+				unsigned id = pk_rd32(m, base + j * 4) & 0xFFFF;
+				if (!id) gapB = true;
+				else if (gapB || id > 12) ok = false;
+			}
+			if (ok && (pk_rd32(m, base + k * 4) & 0xFFFF) == 361) return k;
+		}
+	}
+	return -1;
+}
+static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	uint32_t listHash = 0;
+	int rows = PK_KEY_ROWS;
+	int hint = pk_key_hint(s);
+	if (hint >= 0) pkMem.first = hint;
+	if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: Town Map row from memory: %d\n", hint);
+	for (int t = 0; t < rows; ++t) {
+		const char* err;
+		if (pk_open(s, f, state, &f->bag, &pkMem.goodBag, 60, &err) < 0) return err;
+		aw_run(s, 0, 90); /* (a romhack's Bag can take longer to take input) */
+		pk_tap(s, K_LEFT);
+		pk_tap(s, K_LEFT);
+		pk_tap(s, K_RIGHT);
+		aw_run(s, 0, 10);
+		for (int i = 0; i < (t == 0 ? PK_KEY_ROWS : rows) + 2; ++i) pk_tap(s, K_UP);
+		if (t == 0) {
+			/* the Key Items list as it is: the same as when no Town Map was
+			 * found last time means still none, without the row-by-row
+			 * search (seconds of frames, taken again and again until the
+			 * player has it) */
+			aw_run(s, 0, 20);
+			listHash = pk_list_hash(s);
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, pkMem.noMapKnown, pkMem.noMapHash);
+			if (pkMem.noMapKnown && listHash == pkMem.noMapHash) return "no Town Map in the Bag";
+			rows = pk_key_rows(s);
+			if (rows < 2) rows = 10; /* (no change seen: an empty pocket, or a Bag drawn another way: as before) */
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items: %d rows\n", rows);
+			for (int i = 0; i < rows + 1; ++i) pk_tap(s, K_UP);
+		}
+		int row = (pkMem.first + t) % rows;
+		for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
+		pk_tap(s, K_A); /* its menu: USE first */
+		aw_run(s, 0, 10);
+		pk_tap(s, K_A);
+		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key row %d, io %04X %04X %04X %04X %04X\n", row, emu_io16(s, 0), emu_io16(s, 8), emu_io16(s, 10), emu_io16(s, 12), emu_io16(s, 14));
+		if (!pk_wait(s, &f->map, 150)) continue;
+		aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
+		if (!pk_is(s, &f->map)) continue;
+		pkMem.first = row;
+		pkMem.noMapKnown = false;
+		pk_map_copy(s, f, out, w, h);
+		return NULL;
+	}
+	if (!emu_cancelled(s)) pkMem.noMapKnown = true, pkMem.noMapHash = listHash;
+	return "no Town Map in the Bag";
+}
+static const char* pk_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
+	return f->bag.r[0] ? pk_town_map(s, f, state, out, w, h) : pk_nav_map(s, f, state, out, w, h);
+}
+static const char* pk_pages(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	/* The Party is taken every time (it's what changes). The map costs a
+	 * menu's worth of frames or several (the Bag: a row at a time), so it's
+	 * kept and taken again only now and then (where the player is changes
+	 * slowly); when there's none (before the Pokénav or the Town Map, or a
+	 * game that has none) it's not tried for a while. */
+	const PkFam* f = pk_fam(s);
+	if (!f) return "not a Pokémon game this knows";
+	if (!pkMem.known || pkMem.rom != s->romCrc) {
+		memset(&pkMem, 0, sizeof(pkMem));
+		pkMem.partyRow = 1;
+		pkMem.known = true;
+		pkMem.rom = s->romCrc;
+	}
+	uint32_t* const keep = pkMem.keep;
+	bool* const have = &pkMem.have;
+	int* const tick = &pkMem.tick;
+	int* const wait = &pkMem.wait;
+	*step = 300; /* 5 seconds a page */
+	const char* err = pk_party(s, f, state, out[0], w, h);
+	if (err) return err; /* (no Party: no second screen to keep) */
+	int n = 1;
+	if (!pkMem.partySent) {
+		/* the Party first, at once: the map's first look can take a Bag's worth
+		 * of searching, and the second screen would be the logo till it's done */
+		pkMem.partySent = true;
+		*nOut = 1;
+		return NULL;
+	}
+	if ((*tick)++ % (*have ? PK_MAP_EVERY : 3) == 0) *wait = 0; /* (looking for one is cheap now: the Key Items list is compared first) */
+	if (!*wait && (*tick % PK_MAP_EVERY == 1 || !*have) && w == GBA_W && h == GBA_H) {
+		if (!pk_map(s, f, state, keep, GBA_W, GBA_H)) *have = true;
+		else if (!emu_cancelled(s)) *have = false, *wait = 1; /* (a capture called off says nothing about the map) */
+	}
+	if (*have && *nOut >= 2 && w == GBA_W && h == GBA_H) memcpy(out[n++], keep, sizeof(pkMem.keep));
+	*nOut = n;
+	return NULL;
+}
+
+/* Where the party is: 100-byte records (a Pokémon in a party: the personality
+ * value and trainer ID, 48 bytes of data encrypted with their xor and summed
+ * into a checksum) that check out, at 4-byte steps through EWRAM and IWRAM.
+ * Each Gen 3 game and romhack keeps its party somewhere (and the enemy's
+ * during a battle); the records are found whichever it is, once, and the
+ * value pk_virt returns changes when any of them changes (HP, status, level,
+ * species): the second screen's "look again". */
+#define PK_VIRT 0xF0000010
+#define PK_MAX 24
+static struct { uint32_t addr[PK_MAX]; int n; unsigned long scanned; bool have; } pkLoc;
+static uint32_t pk_rd32(const uint8_t* m, size_t i) { uint32_t v; memcpy(&v, m + i, 4); return v; }
+static bool pk_record(const uint8_t* r) {
+	uint32_t pers = pk_rd32(r, 0), key = pers ^ pk_rd32(r, 4);
+	if (!pers && !pk_rd32(r, 4)) return false;
+	unsigned sum = 0;
+	for (int i = 0; i < 12; ++i) {
+		uint32_t w = pk_rd32(r, 0x20 + i * 4) ^ key;
+		sum += (w & 0xFFFF) + (w >> 16);
+	}
+	if ((sum & 0xFFFF) != (unsigned) (r[0x1C] | r[0x1D] << 8)) return false;
+	unsigned lv = r[0x54], hp = r[0x56] | r[0x57] << 8, mhp = r[0x58] | r[0x59] << 8;
+	return lv >= 1 && lv <= 100 && mhp > 0 && mhp < 1000 && hp <= mhp;
+}
+static void pk_scan(Emu* e) {
+	pkLoc.n = 0;
+	for (int region = 2; region <= 3; ++region) {
+		size_t size = 0;
+		const uint8_t* m = emu_memory(e, region, &size);
+		if (!m) continue;
+		for (size_t i = 0; i + 100 <= size && pkLoc.n < PK_MAX; i += 4) {
+			if (pk_record(m + i)) pkLoc.addr[pkLoc.n++] = ((uint32_t) region << 24) + (uint32_t) i;
+		}
+	}
+	pkLoc.scanned = e->frames;
+	pkLoc.have = true;
+	if (getenv("GBADS_PKDBG")) {
+		fprintf(stderr, "pk: party scan found %d records:", pkLoc.n);
+		for (int i = 0; i < pkLoc.n; ++i) fprintf(stderr, " %08X", pkLoc.addr[i]);
+		fprintf(stderr, "\n");
+	}
+}
+static uint32_t pk_virt(Emu* e, uint32_t addr) {
+	if (addr != PK_VIRT) return 0;
+	static uint32_t locRom;
+	if (locRom != e->romCrc) memset(&pkLoc, 0, sizeof(pkLoc)), locRom = e->romCrc; /* (another game: its party is elsewhere) */
+	/* (a record that stops checking out, or none yet: look again, at most
+	 * once a second) */
+	bool ok = pkLoc.have && pkLoc.n > 0;
+	for (int i = 0; ok && i < pkLoc.n; ++i) {
+		size_t size = 0;
+		const uint8_t* m = emu_memory(e, pkLoc.addr[i] >> 24, &size);
+		ok = m && pk_record(m + (pkLoc.addr[i] & 0xFFFFFF));
+	}
+	if (!ok && (!pkLoc.have || e->frames - pkLoc.scanned >= 60)) pk_scan(e);
+	uint32_t h = 2166136261u;
+	for (int i = 0; i < pkLoc.n; ++i) {
+		size_t size = 0;
+		const uint8_t* m = emu_memory(e, pkLoc.addr[i] >> 24, &size);
+		if (!m) continue;
+		const uint8_t* r = m + (pkLoc.addr[i] & 0xFFFFFF);
+		/* species is encrypted; the party's stats outside it say as much */
+		for (int b = 0x50; b < 0x5A; ++b) h = (h ^ r[b]) * 16777619u;
+		h = (h ^ r[0x1C]) * 16777619u;
+		h = (h ^ r[0x1D]) * 16777619u;
+	}
+	return h;
+}
+
+/* The title screen's logo (every release and romhack has its own, so the
+ * logo is per ROM file: logoPerRom): START every 100 frames skips the intros
+ * (some titles need it a number of times), then the title is up and holds
+ * until START; the logo is BG0 in FireRed / LeafGreen (the version's name is
+ * in it), BG2 and the sprites above row 100 in Ruby / Sapphire / Emerald
+ * (the version's name is a sprite; PRESS START and the copyright line,
+ * below, are left out). A romhack with a title of its own way gets a line in
+ * pkLogos (by its ROM file's CRC32) */
+#define PK_S3 { { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 } }
+#define PK_S4 { { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 } }
+#define PK_LOGO_FRLG { .steps = PK_S3, .wait = 100, .layer = 0, .rev = 1 }
+#define PK_LOGO_RSE3 { .steps = PK_S3, .wait = 100, .layers = 0x14, .maxY = 100, .rev = 1 }
+#define PK_LOGO_RS4 { .steps = PK_S4, .wait = 100, .layers = 0x14, .maxY = 100, .rev = 1 }
+static const LogoFor pkLogos[] = {
+	/* Pokémon Emerald Rogue EX: a splash and a logo screen before its title (six STARTs) */
+	{ 0x4CC15B8D, "Pokemon Emerald Rogue EX v2.1.1", { .steps = { { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 }, { 0, 100 }, { K_START, 3 } }, .wait = 100, .layers = 0x14, .maxY = 100, .rev = 1 } },
+	/* Saiph: one START, then its title fades in for about 400 frames */
+	{ 0x32B2929C, "Pokemon Saiph", { .steps = { { 0, 100 }, { K_START, 3 } }, .wait = 450, .layer = 0, .rev = 1 } },
+	/* Light Platinum: its subtitle sits lower */
+	{ 0x41D07817, "Pokemon Light Platinum", { .steps = PK_S4, .wait = 100, .layers = 0x14, .maxY = 118, .rev = 1 } },
+};
+
+
 /* ---------------------------------------------- Boktai: The Sun Is in Your Hand
  *
  * Boktai's second screen (docs/games/boktai-the-sun-is-in-your-hand.md): the
@@ -8036,7 +9180,602 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	return err;
 }
 
+/* ---------------------------------------------------------------- Breath of Fire
+ *
+ * docs/games/breath-of-fire.md. On the overworld the second screen is the
+ * world map START opens there (BOF-3); everywhere else it's SELECT's menu
+ * as a party overview, without its command list (BOF-4); both opened on the
+ * hidden copy at every refresh. Battles, the title and its intro: the logo
+ * (BOF-2, BOF-5); where neither key opens anything the last picture stays
+ * (BOF-6). All four releases (ABFE, ABFP, ABFJ, ABFX) draw the same
+ * screens in the same places, so nothing here reads the game's memory:
+ * what the game is showing comes from the display's registers.
+ *   display (DISPCNT)  0x1200 the intro and title (BG1 and sprites), 0x1F00
+ *                      walking about and the menus, 0x3F00 a battle (window 0
+ *                      on too), 0x1401 the map (mode 1)
+ *   BG0CNT             0x4405 walking about, 0x0008 the menus (SELECT's
+ *                      pages, the file menu, shops)
+ */
+#define BOF_DISP_TITLE 0x1200
+#define BOF_DISP_FIELD 0x1F00
+#define BOF_DISP_BATTLE 0x3F00
+#define BOF_DISP_MAP 0x1401
+#define BOF_BG0_FIELD 0x4405
+#define BOF_BG0_MENU 0x0008
+/* 1 on the title and its intro and in a battle: the logo (BOF-2, BOF-5) */
+#define BOF_V_LOGO 0xF0000090
+/* which screen it is, for a quick refresh when it changes: 1 walking about,
+ * 2 a menu, 3 the map, 4 the title or a battle, 0 anything else (fades) */
+#define BOF_V_SCREEN 0xF0000091
+/* the party overview, faded in: the white of the frame between the place's
+ * window and the gold's (only the first page of SELECT's menu has it), and
+ * the frames of the command window and the top (x, y, 0xRRGGBB) */
+static const int bofParty[][3] = { { 160, 2, 0xFFF9E7 }, { 160, 4, 0xFFFFE7 }, { 160, 8, 0xFFFFEA },
+                                   { 159, 4, 0xF0D2AC }, { 48, 60, 0xFFF9E7 }, { 120, 0, 0xFFFFED } };
+/* the party window's left edge (the command list is to its left) */
+#define BOF_PARTY_X 47
+
+/* the last party overview taken (BOF-5): a battle shows it, as the overview can't
+ * be opened there, and the map's capture takes one too */
+static struct { uint32_t* px; int w, h; volatile bool ok; } bofKept;
+static void bof_keep(const uint32_t* out, int w, int h) {
+	if (!bofKept.px || bofKept.w != w || bofKept.h != h) {
+		bofKept.ok = false;
+		free(bofKept.px);
+		bofKept.px = malloc((size_t)w * h * sizeof(uint32_t));
+		bofKept.w = w, bofKept.h = h;
+	}
+	if (!bofKept.px) return;
+	memcpy(bofKept.px, out, (size_t)w * h * sizeof(uint32_t));
+	bofKept.ok = true;
+}
+
+static uint32_t bof_virt(Emu* e, uint32_t addr) {
+	uint16_t disp = emu_io16(e, 0x00);
+	/* the logo on the title, which also forgets the party overview kept for battles
+	 * (BOF-5); a battle is taken like the field (the kept overview) */
+	if (addr == BOF_V_LOGO) {
+		if (disp == BOF_DISP_TITLE) bofKept.ok = false;
+		return disp == BOF_DISP_TITLE;
+	}
+	if (addr != BOF_V_SCREEN) return 0;
+	if (disp == BOF_DISP_FIELD) return emu_io16(e, 0x08) == BOF_BG0_MENU ? 2 : emu_io16(e, 0x08) == BOF_BG0_FIELD ? 1 : 0;
+	return disp == BOF_DISP_MAP ? 3 : disp == BOF_DISP_TITLE || disp == BOF_DISP_BATTLE ? 4 : 0;
+}
+
+static bool bof_bright(Emu* s) {
+	for (int i = 0; i < GBA_W * GBA_H; ++i) {
+		uint32_t c = s->fb[i];
+		if ((c & 0xFF) > 0xC0 || ((c >> 8) & 0xFF) > 0xC0 || ((c >> 16) & 0xFF) > 0xC0) return true;
+	}
+	return false;
+}
+
+static bool bof_party_up(Emu* s) {
+	return emu_io16(s, 0x00) == BOF_DISP_FIELD && ff_probes(s, bofParty, sizeof(bofParty) / sizeof(*bofParty));
+}
+
+/* runs until the picture has been still for 3 looks 4 frames apart, up
+ * on the screen asked for (the map, or the party overview) and not black (the
+ * map fades out and in again as it opens); false if it never was */
+static bool bof_settled(Emu* s, bool map, int n) {
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < n && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s)) return false;
+		bool up = map ? emu_io16(s, 0x00) == BOF_DISP_MAP : bof_party_up(s);
+		still = up && !memcmp(last, s->fb, sizeof(last)) && bof_bright(s) ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	return still >= 3;
+}
+
+/* the party overview, from SELECT's menu (B first, as often as it takes to leave one
+ * of its pages or a conversation: BOF-6, BOF-7) */
+static const char* bof_party(Emu* s, bool menuOpen, uint32_t* out, int w, int h) {
+	bool up = bof_party_up(s);
+	if (!up && menuOpen) {
+		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof_party_up(s);
+	}
+	for (int tries = 0, n = menuOpen ? 3 : 2; tries < n && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			up = bof_party_up(s);
+			if (up) break;
+		}
+		aw_run(s, K_SELECT, 4);
+		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof_party_up(s);
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!up) return "the menu didn't open"; /* (BOF-6) */
+	if (!bof_settled(s, false, 120)) return "the menu didn't settle";
+	if (!bof_party_up(s)) return "the menu closed";
+	/* the party window alone (BOF-4), in the middle of the screen */
+	int cw = GBA_W - BOF_PARTY_X, left = (w - cw) / 2;
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			out[y * w + x] = y < GBA_H && x >= left && x < left + cw ? s->fb[y * GBA_W + BOF_PARTY_X + x - left] : 0xFF000000;
+		}
+	}
+	bof_keep(out, w, h);
+	return NULL;
+}
+
+
+static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint16_t disp = emu_io16(s, 0x00);
+	if (disp == BOF_DISP_TITLE) return "not walking about";
+	/* a battle: the overview kept from before it (BOF-5) */
+	if (disp == BOF_DISP_BATTLE) {
+		if (!bofKept.ok || bofKept.w != w || bofKept.h != h) return "no party overview yet";
+		memcpy(out, bofKept.px, (size_t)w * h * sizeof(uint32_t));
+		return NULL;
+	}
+	/* the map open in the game: back to the field with B (BOF-7), which
+	 * fades out and in again */
+	bool wasMap = disp == BOF_DISP_MAP;
+	if (wasMap) {
+		aw_run(s, K_B, 4);
+		for (int f = 0; f < 240 && !(emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_FIELD); f += 2) aw_run(s, 0, 2);
+		if (emu_io16(s, 0x00) != BOF_DISP_FIELD) return "the map didn't close";
+		aw_run(s, 0, 10);
+	}
+	bool menuOpen = emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_MENU;
+	/* the world map: START, on the overworld (BOF-3); not with the map or
+	 * a menu open in the game (BOF-7) */
+	if (!wasMap && !menuOpen) {
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 90 && emu_io16(s, 0x00) != BOF_DISP_MAP; f += 2) aw_run(s, 0, 2);
+		if (emu_io16(s, 0x00) == BOF_DISP_MAP) {
+			if (!bof_settled(s, true, 300)) return "the map didn't settle";
+			for (int y = 0; y < h && y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], (w < GBA_W ? w : GBA_W) * sizeof(uint32_t));
+			/* and the overview, for a battle that starts while the map is up
+			 * (BOF-5): B, then SELECT; the map stays as it is if it fails */
+			static uint32_t* scratch;
+			static int scratchN;
+			if (scratchN < w * h) {
+				free(scratch);
+				scratch = malloc((size_t)w * h * sizeof(uint32_t));
+				scratchN = scratch ? w * h : 0;
+			}
+			aw_run(s, K_B, 4);
+			for (int f = 0; f < 240 && !(emu_io16(s, 0x00) == BOF_DISP_FIELD && emu_io16(s, 0x08) == BOF_BG0_FIELD); f += 2) aw_run(s, 0, 2);
+			if (scratch && !emu_cancelled(s) && emu_io16(s, 0x00) == BOF_DISP_FIELD) {
+				aw_run(s, 0, 10);
+				bof_party(s, false, scratch, w, h);
+			}
+			return NULL;
+		}
+	}
+	if (emu_cancelled(s)) return "called off";
+	return bof_party(s, menuOpen, out, w, h);
+}
+
+/* ---------------------------------------------------------------- Breath of Fire II
+ *
+ * docs/games/breath-of-fire-ii.md. The second screen is SELECT's menu as a
+ * party overview, without its command list (BOF2-3), opened on the hidden copy at
+ * every refresh. Battles: the last overview taken (BOF2-4); the title and its intro:
+ * the logo (BOF2-2); where SELECT opens nothing the last picture stays (BOF2-5).
+ * The three releases (AB2E, AB2P, AB2J) draw the same screens in the same places,
+ * so nothing here reads the game's memory: what the game is showing comes from the
+ * background layers' control registers (the display register changes with the map).
+ *   BG0CNT  0x1C03 the title, its demo and the intro's story text, 0x4405 walking
+ *           about (and a conversation, and START's world map), 0x4205 the overworld, 0x0008 the camp menu and its pages (and
+ *           the file menu and the set-up screens), 0x020C a battle
+ */
+#define BOF2_BG0_TITLE 0x1C03
+#define BOF2_BG0_FIELD 0x4405
+/* the overworld: the same menu opens there (BOF2-3) */
+#define BOF2_BG0_WORLD 0x4205
+#define BOF2_BG0_MENU 0x0008
+#define BOF2_BG0_BATTLE 0x020C
+/* 1 on the title (BOF2-2) */
+/* BG3CNT: the world map START opens (BOF2-3); walking about has 0x4207 */
+#define BOF2_BG3_MAP 0x4204
+#define BOF2_V_LOGO 0xF0000090
+/* which screen it is, for a quick refresh when it changes: 1 walking about, 2 a menu,
+ * 3 a battle, 4 the title, 5 the overworld, 6 the world map
+ * open in the game, 0 anything else (fades, the intro) */
+#define BOF2_V_SCREEN 0xF0000091
+/* the party overview, faded in: the frame of the zenny's window at the top (x, y,
+ * 0xRRGGBB), which only the first page of the menu has */
+static const int bof2Party[][3] = { { 159, 4, 0xB7A5B9 }, { 159, 8, 0xD0B0B4 }, { 159, 12, 0xD0B0B4 },
+                                    { 160, 4, 0xF5F2F6 }, { 160, 8, 0xFFFEF5 }, { 160, 10, 0xFFFFFB } };
+/* the party window's left edge (the command list is to its left) */
+#define BOF2_PARTY_X 48
+
+/* the last party overview taken (BOF2-4): a battle shows it, as the overview can't be
+ * opened there */
+static struct { uint32_t* px; int w, h; volatile bool ok; } bof2Kept;
+static void bof2_keep(const uint32_t* out, int w, int h) {
+	if (!bof2Kept.px || bof2Kept.w != w || bof2Kept.h != h) {
+		bof2Kept.ok = false;
+		free(bof2Kept.px);
+		bof2Kept.px = malloc((size_t)w * h * sizeof(uint32_t));
+		bof2Kept.w = w, bof2Kept.h = h;
+	}
+	if (!bof2Kept.px) return;
+	memcpy(bof2Kept.px, out, (size_t)w * h * sizeof(uint32_t));
+	bof2Kept.ok = true;
+}
+
+static uint32_t bof2_virt(Emu* e, uint32_t addr) {
+	uint16_t bg0 = emu_io16(e, 0x08);
+	/* the logo on the title, which also forgets the party overview kept for battles
+	 * (BOF2-4) */
+	if (addr == BOF2_V_LOGO) {
+		if (bg0 == BOF2_BG0_TITLE) bof2Kept.ok = false;
+		return bg0 == BOF2_BG0_TITLE;
+	}
+	if (addr != BOF2_V_SCREEN) return 0;
+	if (bg0 == BOF2_BG0_FIELD) return emu_io16(e, 0x0E) == BOF2_BG3_MAP ? 6 : 1;
+	return bg0 == BOF2_BG0_WORLD ? 5 : bg0 == BOF2_BG0_MENU ? 2 : bg0 == BOF2_BG0_BATTLE ? 3 : bg0 == BOF2_BG0_TITLE ? 4 : 0;
+}
+
+static bool bof2_party_up(Emu* s) {
+	return emu_io16(s, 0x08) == BOF2_BG0_MENU && ff_probes(s, bof2Party, sizeof(bof2Party) / sizeof(*bof2Party));
+}
+
+/* runs until the picture has been still for 3 looks 4 frames apart, with the overview up
+ * and not black (the menu fades in); false if it never was */
+static bool bof2_settled(Emu* s, int n) {
+	/* only the party window is compared: the icon above the command list moves */
+	static uint32_t last[GBA_W * GBA_H];
+	int still = 0;
+	memset(last, 0, sizeof(last));
+	for (int f = 0; f < n && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s)) return false;
+		bool same = true;
+		for (int y = 0; y < GBA_H && same; ++y) same = !memcmp(last + y * GBA_W + BOF2_PARTY_X, s->fb + y * GBA_W + BOF2_PARTY_X, (GBA_W - BOF2_PARTY_X) * sizeof(uint32_t));
+		still = bof2_party_up(s) && same && bof_bright(s) ? still + 1 : 0;
+		memcpy(last, s->fb, sizeof(last));
+	}
+	return still >= 3;
+}
+
+/* the world map START opens on the overworld: up when BG3 has the map's setup; it fades in
+ * (the top left corner, sea, stops changing) and then only its marker pulses and the towns
+ * twinkle */
+static bool bof2_map_up(Emu* s) {
+	return emu_io16(s, 0x0E) == BOF2_BG3_MAP;
+}
+
+/* the marker (a dark disc) grows and shrinks over about 24 frames; its pixels are the
+ * darker ones the map otherwise has none of */
+static int bof2_dark(const uint32_t* fb) {
+	int n = 0;
+	for (int i = 0; i < GBA_W * GBA_H; ++i) {
+		uint32_t c = fb[i];
+		uint32_t a = c & 0xFF, b = (c >> 8) & 0xFF, d = (c >> 16) & 0xFF;
+		uint32_t mx = a > b ? a : b;
+		if (d > mx) mx = d;
+		n += mx < 0x80 && mx > 0x20;
+	}
+	return n;
+}
+
+/* the map once faded in, with the marker at its largest over a cycle (BOF2-3): into out
+ * (w by h, the game's 240 by 160); false if it never faded in */
+static bool bof2_map_take(Emu* s, uint32_t* out, int w, int h) {
+	static uint32_t best[GBA_W * GBA_H];
+	uint32_t corner = 0;
+	int still = 0;
+	for (int f = 0; f < 300 && still < 3; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s)) return false;
+		still = bof2_map_up(s) && s->fb[0] == corner && corner != 0xFF000000 ? still + 1 : 0;
+		corner = s->fb[0];
+	}
+	if (still < 3) return false;
+	int bestDark = -1;
+	for (int f = 0; f < 40; f += 4) {
+		aw_run(s, 0, 4);
+		if (emu_cancelled(s) || !bof2_map_up(s)) return false;
+		int d = bof2_dark(s->fb);
+		if (d > bestDark) bestDark = d, memcpy(best, s->fb, sizeof(best));
+	}
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? best[y * GBA_W + x] : 0xFF000000;
+	}
+	return true;
+}
+
+/* the party overview, from SELECT's menu (B first, as often as it takes to leave one of its
+ * pages or a conversation: BOF2-5, BOF2-6) */
+static const char* bof2_party(Emu* s, bool menuOpen, uint32_t* out, int w, int h) {
+	bool up = bof2_party_up(s);
+	if (!up && menuOpen) {
+		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof2_party_up(s);
+	}
+	for (int tries = 0, n = menuOpen ? 3 : 2; tries < n && !up; ++tries) {
+		if (tries) {
+			aw_run(s, K_B, 4);
+			aw_run(s, 0, 40);
+			up = bof2_party_up(s);
+			if (up) break;
+		}
+		aw_run(s, K_SELECT, 4);
+		for (int f = 0; f < 150 && !up; f += 2) aw_run(s, 0, 2), up = bof2_party_up(s);
+		if (emu_cancelled(s)) return "called off";
+	}
+	if (!up) return "the menu didn't open"; /* (BOF2-5) */
+	if (!bof2_settled(s, 120)) return "the menu didn't settle";
+	if (!bof2_party_up(s)) return "the menu closed";
+	/* the party window alone (BOF2-3), in the middle of the screen */
+	int cw = GBA_W - BOF2_PARTY_X, left = (w - cw) / 2;
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) {
+			out[y * w + x] = y < GBA_H && x >= left && x < left + cw ? s->fb[y * GBA_W + BOF2_PARTY_X + x - left] : 0xFF000000;
+		}
+	}
+	bof2_keep(out, w, h);
+	return NULL;
+}
+
+static const char* bof2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	uint16_t bg0 = emu_io16(s, 0x08);
+	/* a battle: the overview kept from before it (BOF2-4) */
+	if (bg0 == BOF2_BG0_BATTLE) {
+		if (!bof2Kept.ok || bof2Kept.w != w || bof2Kept.h != h) return "no party overview yet";
+		memcpy(out, bof2Kept.px, (size_t)w * h * sizeof(uint32_t));
+		return NULL;
+	}
+	/* the title, the intro and the like (BOF2-2) press nothing */
+	if (bg0 != BOF2_BG0_FIELD && bg0 != BOF2_BG0_WORLD && bg0 != BOF2_BG0_MENU) return "not walking about";
+	/* the world map open in the game: back to the field with B (BOF2-6), which fades out
+	 * and in again, then the overview as for a menu */
+	if (bg0 == BOF2_BG0_FIELD && bof2_map_up(s)) {
+		aw_run(s, K_B, 4);
+		for (int f = 0; f < 240 && bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+		if (bof2_map_up(s)) return "the map didn't close";
+		for (int f = 0; f < 240 && emu_io16(s, 0x08) != BOF2_BG0_FIELD && emu_io16(s, 0x08) != BOF2_BG0_WORLD; f += 2) aw_run(s, 0, 2);
+		aw_run(s, 0, 10);
+		bg0 = emu_io16(s, 0x08);
+		return bof2_party(s, false, out, w, h);
+	}
+	/* the overworld: the world map, START (BOF2-3), where the game opens it; where it opens
+	 * nothing, or in the camp menu, the overview */
+	if (bg0 == BOF2_BG0_WORLD) {
+		/* the game ignores START between two steps of the party's walk: the copy gets no
+		 * keys, so it finishes the step first */
+		aw_run(s, 0, 24);
+		aw_run(s, K_START, 4);
+		for (int f = 0; f < 150 && !bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+		if (bof2_map_up(s)) {
+			if (!bof2_map_take(s, out, w, h)) return emu_cancelled(s) ? "called off" : "the map didn't settle";
+			/* and the overview, for a battle that starts while the map is up (BOF2-4): B,
+			 * then SELECT; the map stays as it is if it fails */
+			static uint32_t* scratch;
+			static int scratchN;
+			if (scratchN < w * h) {
+				free(scratch);
+				scratch = malloc((size_t)w * h * sizeof(uint32_t));
+				scratchN = scratch ? w * h : 0;
+			}
+			aw_run(s, K_B, 4);
+			for (int f = 0; f < 240 && bof2_map_up(s); f += 2) aw_run(s, 0, 2);
+			for (int f = 0; f < 240 && emu_io16(s, 0x08) != BOF2_BG0_WORLD; f += 2) aw_run(s, 0, 2);
+			if (scratch && !emu_cancelled(s) && emu_io16(s, 0x08) == BOF2_BG0_WORLD) {
+				aw_run(s, 0, 10);
+				bof2_party(s, false, scratch, w, h);
+			}
+			return NULL;
+		}
+		if (emu_cancelled(s)) return "called off";
+	}
+	return bof2_party(s, bg0 == BOF2_BG0_MENU, out, w, h);
+}
+
+/* ------------------------------------------- The Legend of Zelda: The Minish Cap
+ *
+ * docs/games/zelda-the-minish-cap.md. The second screen is the game's Map
+ * tab (START's menu, R twice from Items): the map of Hyrule, or a dungeon's
+ * map in a dungeon (TMC-1, TMC-2). The same addresses in all three releases
+ * (the decompilation's linker script, github.com/zeldaret/tmc):
+ *   TMC_TASK  gMain's task: 0 the title, 1 the file select, 2 the game, 3 a
+ *             game over, 4 the credits
+ *   TMC_SUB   its substate in the game: 2 walking about, 7 a menu open (the
+ *             menu is a subtask), 1 a room being loaded
+ *   TMC_TAB   the menu's tab, the one last used (kept between openings, so
+ *             it's set to the map before START): 1 Items, 2 Quest Status,
+ *             4 the map of Hyrule, 5 a dungeon's map
+ *   TMC_STEP  the menu's step: 2 open and idle (its fade-in done)
+ *   TMC_META  the area's flags: bit 0 the overworld, bit 2 a dungeon
+ *   TMC_MAPX / TMC_MAPY  Link's place on the map of Hyrule (pixels), only
+ *             updated outdoors; the region the map marks is a box of
+ *             gOverworldLocations on x >> 4, y >> 4
+ *   TMC_ITEM_MAP  ITEM_MAP, bits 6-7 of this inventory byte: no Map tab
+ *             without it */
+#define TMC_TASK 0x03001002
+#define TMC_SUB 0x03001004
+#define TMC_TAB 0x02034491
+#define TMC_STEP 0x020344A1
+#define TMC_AREA 0x03000BF4 /* area, room (bytes) */
+#define TMC_META 0x02033A90
+#define TMC_MAPX 0x030010C0
+#define TMC_MAPY 0x030010C2
+#define TMC_ITEM_MAP 0x02002B43
+#define TMC_V_LOGO 0xF00000C0  /* not in the game: the title, the file select, a game over, the credits (TMC-9) */
+#define TMC_V_PLACE 0xF00000C1 /* the region of Hyrule, or a dungeon's room (TMC-6) */
+#define TMC_FRAMES 16 /* the loop of frames recorded (the longest blink cycle is ~60 frames) */
+#define TMC_FRAME_STEP 4
+
+/* gOverworldLocations: the 17 regions of the map (the game takes the first
+ * box a place is in; x and y in 16-pixel units) */
+static const struct { uint8_t x0, y0, x1, y1; } tmc_regions[17] = {
+	{ 0, 0, 62, 74 },    { 0, 75, 62, 104 },   { 0, 105, 62, 164 },  { 0, 165, 62, 197 },
+	{ 63, 0, 92, 74 },   { 63, 75, 92, 134 },  { 63, 135, 92, 197 },
+	{ 93, 0, 155, 44 },  { 93, 45, 155, 94 },  { 93, 95, 155, 154 }, { 93, 155, 155, 197 },
+	{ 156, 0, 185, 74 }, { 156, 75, 200, 134 }, { 156, 135, 185, 197 },
+	{ 186, 0, 248, 62 }, { 186, 63, 248, 134 }, { 186, 135, 248, 197 },
+};
+
+static uint32_t tmc_virt(Emu* e, uint32_t addr) {
+	if (addr == TMC_V_LOGO) return emu_read8(e, TMC_TASK) != 2;
+	if (addr != TMC_V_PLACE) return 0;
+	/* a dungeon: its room (the floors are rooms too) */
+	/* before the map (TMC-4) the key says so: getting it takes a new picture */
+	uint32_t noMap = ((emu_read8(e, TMC_ITEM_MAP) >> 6) & 3) == 0 ? 0x20000 : 0;
+	if (emu_read8(e, TMC_META) & 4) return noMap | 0x10000 | emu_read16(e, TMC_AREA);
+	unsigned x = emu_read16(e, TMC_MAPX) >> 4, y = emu_read16(e, TMC_MAPY) >> 4;
+	for (int i = 0; i < 17; ++i) {
+		if (x >= tmc_regions[i].x0 && x <= tmc_regions[i].x1 && y >= tmc_regions[i].y0 && y <= tmc_regions[i].y1) return noMap | (uint32_t) i;
+	}
+	return noMap | 0xFF;
+}
+
+/* the menu open on the wanted tab (a map's, or Quest Status before the
+ * map) and idle (its fade-in over) */
+static bool tmc_tab_up(Emu* s, bool quest) {
+	uint8_t tab = emu_read8(s, TMC_TAB);
+	return emu_read8(s, TMC_SUB) == 7 && emu_read8(s, TMC_STEP) == 2 && (quest ? tab == 2 : (tab == 4 || tab == 5));
+}
+
+/* Link's head on the map blinks in the game; on the second screen it stays on
+ * (TMC-7). The game builds its sprite table in RAM (0x03000020, 128 entries:
+ * the table the next frame is drawn from, one frame ahead of the hardware's
+ * OAM); the head is tile 576 on the map of Hyrule, 544 on a dungeon's, palette
+ * 7. Called with the table as it is: if the head is in it, remember it (its
+ * place in the table and its attributes); if it's out and was seen, put it
+ * back there, the entries after it moved down one. */
+#define TMC_OAM_BUF 0x03000020
+typedef struct { bool seen; int idx; uint16_t a[3]; } TmcHead;
+static bool tmc_head_fix(Emu* s, TmcHead* h) {
+	uint16_t e[3];
+	int last = -1;
+	for (int i = 0; i < 128; ++i) {
+		const uint32_t at = TMC_OAM_BUF + (uint32_t) i * 8;
+		e[0] = emu_read16(s, at);
+		e[1] = emu_read16(s, at + 2);
+		e[2] = emu_read16(s, at + 4);
+		const unsigned tile = e[2] & 0x3FF, pal = e[2] >> 12;
+		if ((e[0] & 0x300) != 0x200) last = i;
+		if ((tile == 576 || tile == 544) && pal == 7 && (e[0] & 0x300) != 0x200) {
+			h->seen = true; h->idx = i; memcpy(h->a, e, sizeof e);
+			return true;
+		}
+	}
+	if (!h->seen || last < 0 || last >= 127) return false;
+	for (int i = last; i >= h->idx; --i) { /* make room, from the end */
+		const uint32_t from = TMC_OAM_BUF + (uint32_t) i * 8;
+		for (int k = 0; k < 4; ++k) emu_write16(s, from + 8 + (uint32_t) k * 2, emu_read16(s, from + (uint32_t) k * 2));
+	}
+	const uint32_t at = TMC_OAM_BUF + (uint32_t) h->idx * 8;
+	for (int k = 0; k < 3; ++k) emu_write16(s, at + (uint32_t) k * 2, h->a[k]);
+	return true;
+}
+
+/* n frames, the last one drawn; on a map the head's put back before it */
+static void tmc_run(Emu* s, int n, bool map, TmcHead* h) {
+	if (n > 1) aw_run(s, 0, n - 1);
+	if (map) tmc_head_fix(s, h);
+	emu_frame(s, 0);
+}
+
+static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	/* L and R's arrows (tiles 32 and 16, priority 1, at the sides, around
+	 * y 56); "Choose" and its button (tiles 256-300, priority 0, top right) */
+	static const SpriteRule hide[] = {
+		{ 0, 48, 239, 72, 16, 32, 1 },
+		{ 160, -16, 239, 24, 250, 300, 0 }, /* it bobs, partly above the screen */
+		/* Quest Status only (TMC-4): the cursor's corners (tile 15) and
+		 * the SLEEP and SAVE buttons (tiles 704-752, along y 111) */
+		{ 30, 36, 80, 80, 15, 15, 2 },
+		{ 115, 108, 236, 134, 704, 752, 2 },
+	};
+	int max = *nOut < TMC_FRAMES ? *nOut : TMC_FRAMES;
+	*nOut = 1;
+	*step = TMC_FRAME_STEP;
+	if (!emu_state_load(s, state)) return "state load failed";
+	emu_frame(s, 0);
+	if (emu_read8(s, TMC_TASK) != 2 || emu_read8(s, TMC_SUB) != 2) return "map button did nothing";
+	/* no Map tab without the map: Quest Status instead (TMC-4) */
+	const bool quest = ((emu_read8(s, TMC_ITEM_MAP) >> 6) & 3) == 0;
+	/* START, until the menu is up: it isn't taken during a fade or a
+	 * message, which may pass in a few frames */
+	for (int tries = 0; tries < 4 && !tmc_tab_up(s, quest); ++tries) {
+		emu_write8(s, TMC_TAB, quest ? 2 : 4);
+		aw_run(s, K_START, 4);
+		aw_run(s, 0, 4);
+		for (int f = 0; f < 50 && !tmc_tab_up(s, quest); ++f) emu_frame_blind(s, 0);
+	}
+	if (!tmc_tab_up(s, quest)) return "map button did nothing";
+	if (emu_cancelled(s)) return "called off";
+	emu_hide_sprites(s, hide, quest ? 4 : 2);
+	/* Quest Status: BG0 holds only the name bar (of the item the cursor was
+	 * left on); without it the scroll drawn behind shows, whole (TMC-5) */
+	if (quest) emu_layers(s, 0x1E);
+	TmcHead head = { false, 0, { 0, 0, 0 } };
+	/* the head blinks: run until it's been seen, to know where it goes */
+	for (int f = 0; f < 90 && !quest && !head.seen; ++f) {
+		emu_frame_blind(s, 0);
+		tmc_head_fix(s, &head);
+	}
+	tmc_run(s, 4, !quest, &head);
+	int cw = w < GBA_W ? w : GBA_W, ch = h < GBA_H ? h : GBA_H;
+	for (int y = 0; y < ch; ++y) memcpy(&out[0][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
+	bool animated = false;
+	for (int i = 1; i < max; ++i) {
+		tmc_run(s, TMC_FRAME_STEP, !quest, &head);
+		if (!tmc_tab_up(s, quest)) break;
+		for (int y = 0; y < ch; ++y) memcpy(&out[i][y * w], &s->fb[y * GBA_W], (size_t) cw * 4);
+		if (memcmp(out[i], out[0], (size_t) w * h * 4)) animated = true;
+		*nOut = i + 1;
+	}
+	emu_hide_sprites(s, NULL, 0);
+	emu_layers(s, 0x1F);
+	if (emu_cancelled(s)) return "called off";
+	if (!animated) *nOut = 1;
+	return NULL;
+}
+
+/* The Minish Cap in Japan: the lettering runs lower (the subtitle is
+ * Japanese, under the title), and there's no sword's pommel to cut away */
+static void tmc_jpn(MapProfile* p) {
+	p->listName = "Zelda no Densetsu - Fushigi no Boushi (Japan)";
+	p->logo.layers = 0x12; /* the lettering is on BG1, the subtitle and the bird sprites */
+	p->logo.maxY = 122;
+}
+
 static const MapProfile profiles[] = {
+	/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md. One entry per engine (the USA and Europe releases) */
+#define PK_PROFILE(ENGINE_LOGO, TITLE, ...) \
+	{ \
+		.codes = { __VA_ARGS__ }, \
+		.title = TITLE, \
+		.composePages = pk_pages, \
+		.virt = pk_virt, \
+		.holdPage = pk_hold_page, \
+		.interval = 180, \
+		.room = { { PK_VIRT, 0xFFFFFFFF, 0, 4 } }, \
+		.crop_w = GBA_W, \
+		.crop_h = GBA_H, \
+		.logo = ENGINE_LOGO, \
+		.logoPerRom = true, \
+		.logoFor = pkLogos, \
+		.nLogoFor = (int) (sizeof(pkLogos) / sizeof(pkLogos[0])), \
+	},
+	PK_PROFILE(PK_LOGO_FRLG, "Pokemon FireRed / LeafGreen (preliminary)", "BPRE", "BPGE", "BPRJ", "BPGJ")
+	PK_PROFILE(PK_LOGO_FRLG, "Pokemon FireRed / LeafGreen (preliminary, German, French)", "BPRD", "BPGD", "BPRF", "BPGF")
+	PK_PROFILE(PK_LOGO_FRLG, "Pokemon FireRed / LeafGreen (preliminary, Italian, Spanish)", "BPRI", "BPGI", "BPRS", "BPGS")
+	PK_PROFILE(PK_LOGO_RS4, "Pokemon Ruby / Sapphire (preliminary)", "AXVE", "AXPE", "AXVJ", "AXPJ")
+	PK_PROFILE(PK_LOGO_RS4, "Pokemon Ruby / Sapphire (preliminary, German, French)", "AXVD", "AXPD", "AXVF", "AXPF")
+	PK_PROFILE(PK_LOGO_RS4, "Pokemon Ruby / Sapphire (preliminary, Italian, Spanish)", "AXVI", "AXPI", "AXVS", "AXPS")
+	PK_PROFILE(PK_LOGO_RSE3, "Pokemon Emerald (preliminary)", "BPEE", "BPEJ", "BPED", "BPEF")
+	PK_PROFILE(PK_LOGO_RSE3, "Pokemon Emerald (preliminary, Italian, Spanish)", "BPEI", "BPES")
 	{
 		.codes = { "A2CE" },
 		.title = "Castlevania: Aria of Sorrow",
@@ -8205,6 +9944,26 @@ static const MapProfile profiles[] = {
 		 * rates) in its frame where it shows most; the X marking the goal
 		 * fades red to white: at its reddest */
 		.animFrames = 8, .animStep = 4, .mapStill = true, .stillPick = STILL_RED,
+	},
+	{
+		/* the game's Map tab, taken from a hidden copy: the map of Hyrule, or
+		 * a dungeon's map; see tmc_compose (docs/games/zelda-the-minish-cap.md) */
+		.codes = { "BZME" },
+		.title = "The Legend of Zelda: The Minish Cap",
+		.composePages = tmc_compose,
+		.virt = tmc_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* captures only while Link is in play (not on the title, in his
+		 * menu or while a room loads); the title, the file select, a game
+		 * over and the credits: the logo, the map forgotten (TMC-8, TMC-9) */
+		.live = { { TMC_V_LOGO, 0xFF, 0, 4 }, { TMC_SUB, 0xFF, 2, 1 } },
+		.menu = { { TMC_V_LOGO, 0xFF, 1, 4 } },
+		/* another region of Hyrule, another dungeon room or floor (TMC-6) */
+		.room = { { TMC_V_PLACE, 0xFFFFFFFF, 0, 4 } },
+		/* the title's lettering (sprites), above PRESS START and the
+		 * copyright line: without the sword and ribbon (BG2) */
+		.logo = { .wait = 900, .layers = 0x10, .maxY = 96 },
 	},
 	{
 		.codes = { "AVSE" },
@@ -10168,6 +11927,86 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 900, .layers = 0x07, .maxY = 100 },
 	},
 	{
+		/* Yu-Gi-Oh! World Championship Tournament 2004 (USA; Europe, and
+		 * Japan's Duel Monsters Expert 3, the same screens and addresses):
+		 * the Card View of the card under the cursor, see wct_compose
+		 * (WCT-1 to WCT-5) */
+		.codes = { "BYWE" },
+		.title = "Yu-Gi-Oh! World Championship Tournament 2004",
+		.compose = wct_compose,
+		.virt = wct_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.live = { { WCT_V_LIVE, 0xFF, 1, 4 } },
+		/* out of the duels and the card screens, and through the
+		 * opponent's turn: the logo, the card forgotten (WCT-6, WCT-9) */
+		.menu = { { WCT_V_IDLE, 0xFF, 1, 4 } },
+		.room = { { WCT_V_ROOM, 0, 0, 4 } },
+		/* the title's YU-GI-OH! (BG2) over WORLD CHAMPIONSHIP TOURNAMENT 2004
+		 * (BG0), above Push Start (WCT-7), from a fresh start: past the
+		 * Konami screens, the language screen (A), then the title */
+		.logo = { .steps = { { 0, 700 }, { K_A, 4 }, { 0, 300 } }, .layers = 0x05, .maxY = 115 },
+	},
+	{
+		/* Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006
+		 * (USA; Europe, Ultimate Masters Edition): the Card View of the card
+		 * under the cursor, see um6_compose (UM6-1 to UM6-5) */
+		.codes = { "BY6E" },
+		.title = "Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006",
+		.compose = um6_compose,
+		.virt = um6_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.live = { { UM6_V_LIVE, 0xFF, 1, 4 } },
+		/* out of the duels and Deck Edit, and through the opponent's turn:
+		 * the logo, the card forgotten (UM6-4, UM6-5) */
+		.menu = { { UM6_V_IDLE, 0xFF, 1, 4 } },
+		.room = { { UM6_V_ROOM, 0, 0, 4 } },
+		/* the title's emblem (BG0), above New Game and the copyright line
+		 * (UM6-6) */
+		.logo = { .wait = 700, .layers = 0x01, .maxY = 120 },
+	},
+	{
+		/* Duel Masters: Kaijudo Showdown (USA; Europe): the Card Details of
+		 * the card under the cursor, see dmk_compose (DMK-1 to DMK-4) */
+		.codes = { "BD6E", "BD6P" },
+		.title = "Duel Masters: Kaijudo Showdown",
+		.compose = dmk_compose,
+		.virt = dmk_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		.live = { { DMK_V_LIVE, 0xFF, 1, 4 } },
+		/* out of the duels and the card lists: the logo, the card
+		 * forgotten (DMK-4) */
+		.menu = { { DMK_V_IDLE, 0xFF, 1, 4 } },
+		.room = { { DMK_V_ROOM, 0, 0, 4 } },
+		/* the title's DUEL MASTERS lettering (BG0) and its KAIJUDO SHOWDOWN
+		 * line (sprites above the menu), DMK-5 */
+		.logo = { .wait = 2300, .layers = 0x11, .maxY = 114, .minX = 12,
+			/* the lettering is BG0 and the subtitle sprites (palette 0); the
+			 * orb, the glint across the M and the translucent rays are
+			 * sprites of the other palettes (Europe also has its flags and PRESS START there) */
+			.hide = { { -64, -64, 304, 224, 0, 1023, -1, 0xFFFE, 0, 0 } }, .rev = 3 },
+	},
+	{
+		/* Yu-Gi-Oh! 7 Trials to Glory (USA): the Card View of the card under
+		 * the cursor, see yw_compose (YWC-1 to YWC-4) */
+		.codes = { "BY7E" },
+		.title = "Yu-Gi-Oh! 7 Trials to Glory",
+		.compose = yw_compose_us,
+		.virt = yw_virt_us,
+		.crop_w = GBA_W,
+		.crop_h = GBA_H,
+		.live = { { YW_V_LIVE, 0xFF, 1, 4 } },
+		.menu = { { YW_V_IDLE, 0xFF, 1, 4 } },
+		.room = { { YW_V_ROOM, 0, 0, 4 } },
+		/* the title's lettering and flame are sprites, over its hex-grid
+		 * background (BG layers 1 to 3), above New Game / Continue (BG0):
+		 * the sprites alone, once English is chosen on the Language
+		 * Selection of a first start (YWC-5) */
+		.logo = { .steps = { { 0, 700 }, { K_A, 4 }, { 0, 1100 } }, .layers = 0x10, .maxY = 112 },
+	},
+	{
 		/* Zoids: Legacy (USA; Japan, Zoids Saga II: its addresses in
 		 * zlRegions). Walking about, in a town, on the world or in a
 		 * dungeon, the map screen (ZL-1); battles and the past the logo
@@ -10686,6 +12525,46 @@ static const MapProfile profiles[] = {
 		                     { 0, 60 }, { K_START, 4 }, { 0, 200 } },
 		          .layer = 1, .maxY = 100 },
 	},
+	{
+		/* Breath of Fire (ABFE USA, ABFP Europe, ABFJ Japan, ABFX Europe in
+		 * English, French and German): the world map on the overworld, the
+		 * party overview elsewhere: see bof_compose
+		 * (docs/games/breath-of-fire.md) */
+		.codes = { "ABFE", "ABFP", "ABFJ" },
+		.title = "Breath of Fire",
+		.compose = bof_compose,
+		.virt = bof_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the title and its intro: the logo, the pictures dropped, no captures
+		 * (BOF-2); battles are taken like the rest: the overview kept (BOF-5) */
+		.live = { { BOF_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { BOF_V_LOGO, 0xFF, 1, 4 } },
+		/* another screen (the field back from a battle, a menu or the map
+		 * opened or left): taken again at once (BOF-5, BOF-7) */
+		.room = { { BOF_V_SCREEN, 0xFF, 0, 4 } },
+		/* the title's lettering, sprites above PRESS START (BOF-1) */
+		.logo = { .steps = { { 0, 1700 } }, .layers = 0x10, .maxY = 112 },
+	},
+	{
+		/* Breath of Fire II (AB2E USA, AB2P Europe, AB2J Japan): the party overview
+		 * from SELECT's menu: see bof2_compose (docs/games/breath-of-fire-ii.md) */
+		.codes = { "AB2E", "AB2P" },
+		.title = "Breath of Fire II",
+		.compose = bof2_compose,
+		.virt = bof2_virt,
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the title, its demo and the intro: the logo, the pictures dropped, no captures
+		 * (BOF2-2); battles are taken like the rest: the overview kept (BOF2-4) */
+		.live = { { BOF2_V_LOGO, 0xFF, 0, 4 } },
+		.menu = { { BOF2_V_LOGO, 0xFF, 1, 4 } },
+		/* another screen (the field back from a battle, a menu opened or left): taken again at
+		 * once (BOF2-4, BOF2-6) */
+		.room = { { BOF2_V_SCREEN, 0xFF, 0, 4 } },
+		/* the title's lettering, the sprites, above the copyright lines (BOF2-1) */
+		.logo = { .steps = { { 0, 1500 } }, .layers = 0x10, .maxY = 120 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -10726,6 +12605,24 @@ static void bk_lang(MapProfile* p) {
 	memset(p->logo.steps, 0, sizeof(p->logo.steps));
 	memcpy(p->logo.steps, steps, sizeof(steps));
 	bk_eu(p);
+}
+/* Breath of Fire in Europe's English, French and German release (ABFX): a
+ * language list (A: English) before the title, the same as the others (BOF-1) */
+static void bof_lang(MapProfile* p) {
+	/* the list takes no A until it has been up a while: press it a few times; then the
+	 * Ubi Soft and Capcom logos and the title's fade-in */
+	static const MacroStep steps[] = { { 0, 400 }, { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 25 },
+	                                   { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 25 }, { K_A, 3 }, { 0, 1500 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+/* Breath of Fire II in Japan: the story text first, the title only after it; its lettering
+ * is sprites and BG3 (the small BREATH OF FIRE and the (R)), above the copyright (BOF2-1) */
+static void bof2_jp(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 4100 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->logo.layers = 0x18;
 }
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
@@ -11044,6 +12941,25 @@ static void eds_jpn(MapProfile* p) {
 	p->logo = (typeof(p->logo)) { .steps = { { 0, 1440 }, { K_START, 4 }, { 0, 120 } }, .layer = 1, .maxY = 120 };
 }
 
+/* Yu-Gi-Oh! Duel Monsters Expert 3 (Japan), World Championship Tournament
+ * 2004's original: the same screens and addresses; its title's logo is
+ * the lettering of 遊戯王 デュエルモンスターズ (sprites) over エキスパート3 (BG2)
+ * and the EX, above Push Start (WCT-7) */
+static void wct_jpn(MapProfile* p) {
+	p->logo.layers = 0x14;
+	p->logo.objMaxY = 114;
+	p->logo.maxY = 114;
+}
+
+/* Yu-Gi-Oh! Duel Monsters International 2 (Japan): the same engine and
+ * screens, its own addresses (ywJP, YWC-7) and title (no Language Selection) */
+static void ywc_jpn(MapProfile* p) {
+	p->title = "Yu-Gi-Oh! Duel Monsters International 2";
+	p->compose = yw_compose_jp;
+	p->virt = yw_virt_jp;
+	p->logo = (typeof(p->logo)) { .wait = 1700, .layers = 0x10, .maxY = 112 };
+}
+
 /* Harvest Moon: Friends of Mineral Town in Japan (Bokujou Monogatari:
  * Mineral Town no Nakama-tachi): its own title sign, wider and lower, with
  * no rider beside it */
@@ -11138,7 +13054,19 @@ static void pp_eur(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
+/* Yu-Gi-Oh! Ultimate Masters in Europe (BY6P): the language menu first
+ * (A: English, once it is up, not before: the Konami logo takes no A), then
+ * the title as the USA release's. Its duel and Deck Edit screens are the
+ * same layout (UM6-6). */
+static void um6_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 620 }, { K_A, 4 }, { 0, 700 } };
+	p->logo.wait = 0;
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
 static const Variant variants[] = {
+	{ "BY6P", "BY6E", 0, um6_eur },
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */
 	{ "U3IP", "U3IE", 0, NULL },
@@ -11168,6 +13096,8 @@ static const Variant variants[] = {
 	{ "AMTJ", "AMTE", 0x34, NULL },
 	{ "AZLP", "AZLE", 0, zelda_eur },
 	{ "AZLJ", "AZLE", 0, zelda_jpn },
+	{ "BZMP", "BZME", 0, NULL },
+	{ "BZMJ", "BZME", 0, tmc_jpn },
 	{ "ATHJ", "ATHE", 0, thps2_jpn },
 	{ "AFXP", "AFXE", 0, ffta_eur },
 	{ "AFXJ", "AFXE", 0, ffta_jpn },
@@ -11183,6 +13113,10 @@ static const Variant variants[] = {
 	 * (bk_eu); Europe's English, French and German release asks for a
 	 * language first (BK-1) */
 	{ "BKZX", "BKZE", 0, bk_lang },
+	/* Breath of Fire: Europe's English, French and German release */
+	{ "ABFX", "ABFE", 0, bof_lang },
+	/* Breath of Fire II in Japan: a long story text before the title (BOF2-1) */
+	{ "AB2J", "AB2E", 0, bof2_jp },
 	{ "BKZI", "BKZE", 0, bk_eu },
 	{ "BKZS", "BKZE", 0, bk_eu },
 	{ "ANXP", "ANXE", 0, nfo_eur },
@@ -11214,6 +13148,11 @@ static const Variant variants[] = {
 	{ "B8CP", "B8CE", 0, khc_eur },
 	{ "B8CJ", "B8CE", 0, khc_jpn },
 	{ "AY5J", "AY5E", 0, eds_jpn },
+	{ "BYIJ", "BY7E", 0, ywc_jpn },
+	/* World Championship Tournament 2004: Europe (its title has the kanji above
+	 * YU-GI-OH!) and Japan's Duel Monsters Expert 3 (WCT-7) */
+	{ "BYWP", "BYWE", 0, NULL },
+	{ "BY3J", "BYWE", 0, wct_jpn },
 	/* (Zoids Saga II's addresses: ZlRegion) */
 	{ "AZ2J", "AZ2E", 0, NULL },
 	{ "A4NJ", "A4NE", 0, hm_jpn },
@@ -11374,6 +13313,12 @@ typedef struct {
 	const char* name;
 } KnownDump;
 #include "dumps_data.h"
+
+const LogoSpec* profile_logo_spec(const MapProfile* p, uint32_t fileCrc) {
+	for (int i = 0; p && i < p->nLogoFor; ++i)
+		if (p->logoFor[i].crc == fileCrc) return &p->logoFor[i].logo;
+	return p ? &p->logo : NULL;
+}
 
 DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
 	bool listed = false;

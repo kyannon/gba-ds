@@ -172,6 +172,101 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "bt-us-sun-row",
+   "rom": "U3IE",
+   "state": "boktai-the-sun-is-in-your-hand/us-forest.ss",
+   "desc": "the quick bar's Sun row: Dark empties the game's sun gauge, Full fills it",
+   "rules": [
+    "BT-9"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.293,0.775"
+    ],
+    [
+     310,
+     "TAP:0.806,0.775"
+    ]
+   ],
+   "shots": {
+    "before": 105,
+    "dark": 300,
+    "full": 500
+   },
+   "golden": [],
+   "checks": [
+    {
+     "rule": "BT-9",
+     "what": "Dark empties the gauge",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       640,
+       636,
+       900,
+       672
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "dark",
+      "rect": [
+       640,
+       636,
+       900,
+       672
+      ],
+      "screen": "game"
+     },
+     "frac": 0.1
+    },
+    {
+     "rule": "BT-9",
+     "what": "Full fills it past where it began",
+     "type": "differs",
+     "a": {
+      "shot": "dark",
+      "rect": [
+       640,
+       636,
+       900,
+       672
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "full",
+      "rect": [
+       640,
+       636,
+       900,
+       672
+      ],
+      "screen": "game"
+     },
+     "frac": 0.1
+    },
+    {
+     "rule": "BT-9",
+     "what": "Dark sets level 0",
+     "type": "log",
+     "match": "^frame \\d+: sun 0$"
+    },
+    {
+     "rule": "BT-9",
+     "what": "Full sets level 10",
+     "type": "log",
+     "match": "^frame \\d+: sun 10$"
+    }
+   ]
   }
  ]
 }

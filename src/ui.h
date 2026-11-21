@@ -140,6 +140,8 @@ void ui_clip(int screen, const SDL_Rect* clip);
 /* SDL_UpdateTexture (whole texture) that ui.c notices: use it for anything
  * drawn on the screens, so the second screen on Android redraws. */
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch);
+/* ui_update_texture for the interface's own pictures: not colour-corrected */
+void ui_update_texture_plain(SDL_Texture* t, const void* px, int pitch);
 /* Colour correction for everything given to ui_update_texture (the game's
  * pictures, ABGR8888): the GBA's own screen, as mGBA's GBA Color shader
  * (sRGB profile, Darken Screen 0.5) draws it. */
@@ -168,6 +170,7 @@ SDL_Color ui_accent_color(int role);
 void ui_brightness(int top, int bottom); /* each screen's brightness, 20..100: dims this app's picture only */
 bool ui_theme_light(void);
 SDL_Color ui_key_ink(void);          /* text and icons on a key */
+void ui_key_palette(int state, SDL_Color* border, SDL_Color* rim, SDL_Color* hi, SDL_Color* lo, SDL_Color* edge, SDL_Color* ring); /* a key's colours */
 SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */
 /* Text in Jost (textfont.h: TF_BOLD for labels and headings, TF_BODY for
  * longer text), any UTF-8 string, capitals capPx tall and centred on cy.
@@ -230,6 +233,13 @@ bool ui_logo_custom(const Config* c, const char* rom, const char* code);
 /* The extracted logo queued for extraction if it's needed and missing (a
  * scraped logo needs it too: it takes its size from it). */
 void ui_logo_queue(const Config* c, const char* rom, const char* code);
+/* The game list: a ROM file's checksum (for logos made per file) not known yet is worked out on a
+ * thread, not while the list draws; ui_file_crc_generation moves as each is done. */
+void ui_file_crc_async(bool on);
+uint32_t ui_file_crc_generation(void);
+bool ui_file_crc_pending(void);
+void ui_notice(const char* title, const char* line); /* a two-line screen on every screen, shown until the next frame is drawn */
+void ui_game_prepare(const Config* c, const char* rom); /* before a game starts: what would freeze its first frames (a screen says so) */
 /* An RGBA32 picture resampled to w x h (averaged down; nearest pixel up). */
 SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h);
 

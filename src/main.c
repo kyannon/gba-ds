@@ -217,11 +217,13 @@ int main(int argc, char** argv) {
 	if (cfg.inputScript[0]) ui_load_script(cfg.inputScript);
 
 	if (cfg.rom[0]) {
+		ui_game_prepare(&cfg, cfg.rom);
 		while (game_run(&cfg, cfg.rom, false) == GAME_RELOAD && !uiQuit) fprintf(stderr, "restarting %s\n", cfg.rom);
 	} else {
 		char rom[1024];
 		while (!uiQuit && library_run(&cfg, rom, sizeof(rom))) {
 			fprintf(stderr, "starting %s\n", rom);
+			ui_game_prepare(&cfg, rom);
 			enum GameExit x;
 			while ((x = game_run(&cfg, rom, true)) == GAME_RELOAD && !uiQuit) fprintf(stderr, "restarting %s\n", rom);
 			if (x == GAME_QUIT_APP) break;

@@ -2,7 +2,7 @@
 
 GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS Plus), with the selected game's logo and resume picture on the other screen.
 
-- **Two views:** a list of names (the default) or a two-column grid of the games' logos. Switch with **X** or the square button left of the **Supported** / **All** button; GBA DS remembers which you chose.
+- **Three views:** a list of names (the default), a two-column grid of the games' logos, or a three-column grid (smaller logos, more games on screen). Each press of **X** moves on to the next view, and so does the square button left of the **Supported** / **All** button, whose picture shows what the next press gives; GBA DS remembers which you chose.
 - **Names** come from the file names, without tags like `(USA)` or `(En,Fr,De)`. When you have more than one regional copy of a game, a flag tells them apart. `name_tags = 1` in `gba-ds.cfg` keeps the tags.
 - **Which games:** the button between the view button and **Settings** says **Supported** (only games with second-screen support, see [[Supported games]]) or **All** (every GBA ROM; the others play normally on one screen). Touch it to switch; GBA DS remembers it (`show_all`).
 - **The other screen** shows the selected game's logo, and the picture where it will resume once you've played it.
@@ -15,7 +15,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | L1 / R1 | Page up / down |
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
-| X, or tap the button left of Settings | Switch between list and grid |
+| X, or tap the button left of Settings | Next view: list, two columns, three columns |
 | SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder and Updates (Linux) or Folders, RetroAchievements sign-in and Updates (Android)) |
 | B or HOME | Back to EmulationStation / the launcher |
 
@@ -76,7 +76,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Screen Placement**: **Centered** (the default: each screen's picture in the middle of its screen) or **Closest to Gap** (the top screen's picture against its bottom edge and the bottom screen's against its top, so the two are as close together as they go, as on a DS; Pokémon Pinball's table then carries on across the hinge without a jump). It moves the picture only where it doesn't fill the screen's height: Pixel Perfect and Full Width. With Closest to Gap, the Generated bezel has no room for its logo by the hinge, so it's shown once, on the bottom screen below the picture. Greyed out with one screen. Remembered for next time.
 
 **Extras** (Swap Screens, Rewind, Fast Forward, Save on Quit and Auto-Load are remembered for next time)
-- **Swap Screens**: game and second screen trade places (also HOME + Y).
+- **Swap Screens**: game and second screen trade places (also HOME + D-pad up).
 - **Cheats**: see [below](#cheats).
 - **Patches**: romhacks and other patches for the game; see [below](#patches).
 - **Achievements**: when signed in to RetroAchievements; see [below](#retroachievements).
@@ -89,7 +89,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 
 ## The quick bar and bug reports
 
-Swipe up from the bottom edge of the touchscreen for the quick bar, or press **L3** (or HOME + X); press it again, or swipe down, to put it away. The game keeps running underneath it. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2 and 3), **Controls** is at its top: see [Buttons](#buttons). Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
+Swipe up from the bottom edge of the touchscreen for the quick bar, or press **L3** (or HOME + X); press it again, or swipe down, to put it away. The game keeps running underneath it. The bar is drawn inside the second screen's picture at the GBA's own resolution (240x160, scaled up with the picture, in pixel letters), in your menu **Color** with the same raised buttons as the menus. In games with another button layout (the Tony Hawk's games, Super Mario Advance 2 and 3), **Controls** is at its top: see [Buttons](#buttons). In the Boktai games the top row is **Sun** instead: **Dark**, **-**, **+** and **Full** set the sunlight the cartridge's sun sensor reads, 0 to 10, with the level between the buttons. Under that are the time, the frames per second (about 59.7 is full speed) and the battery level, then five buttons, and under them a line for messages (State saved. and the like):
 - **Save State** (floppy disk) and **Load State** (folder): the quick state, a slot of its own, apart from the pause menu's ten (Load is greyed out until you've saved one). HOME + R1 / L1 save and load it too.
 - **Settings** (gear): the pause menu.
 - **Bug Report** (bug): see below.
@@ -124,10 +124,11 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | L3 (press the left stick) | Quick bar (as swiping up; again to put it away) |
 | R2 (hold) | Fast-forward (default 3×; Fast Forward in Extras sets the speed or turns it off). HOME + R2 too |
 | HOME + R1 / L1 | Quick save / load state (the same state as the quick bar's buttons) |
-| HOME + Start | Quit |
+| HOME + Start | Close GBA DS |
+| HOME + B | Close the game (back to the game list) |
 | HOME + X | Quick bar (it shows the FPS too) |
-| HOME + Y | Swap screens |
-| HOME + B | Toggle the selected shader (off, and back on) |
+| HOME + D-pad up | Swap screens |
+| HOME + D-pad down | Toggle the selected shader (off, and back on) |
 
 If HOME doesn't open the menu on your device, see `home_button` in [[Settings]]; `menu_combo = select+start` also makes SELECT + START open it.
 
@@ -136,11 +137,11 @@ If HOME doesn't open the menu on your device, see `home_button` in [[Settings]];
 The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and open **Controls** and choose **Hotkeys** (under Map buttons):
 
 - **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
-- **Quit**, **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
+- **Close emulator** (closes GBA DS), **Close game** (back to the game list), **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
 
 Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, HOME is the BACK button (Android keeps HOME for itself), and Hotkeys calls it Back.
 
-With START as the hotkey, quitting is START + SELECT. With SELECT or START as the hotkey, the buttons you've given to shortcuts don't reach the game while the hotkey is held; the others do. If `menu_combo = select+start` is on too, SELECT + START opens the menu rather than doing a hotkey.
+When GBA DS was started straight into a game, by a launcher or a frontend such as EmulationStation, there is no game list to go back to: **Close game** then closes GBA DS too, so both shortcuts do the same. With START as the hotkey, closing GBA DS is START + SELECT. With SELECT or START as the hotkey, the buttons you've given to shortcuts don't reach the game while the hotkey is held; the others do. If `menu_combo = select+start` is on too, SELECT + START opens the menu rather than doing a hotkey.
 
 ## Performance
 

@@ -128,8 +128,10 @@ Games are never published: players bring their own.
   (`GBADS_WINDOW`, `GBADS_SCREENS`, `--screen_ppi`), so those restart it
   from the same moment (a state).
 - Kept between visits: everything under `/saves`, `/states` (with GBA DS's
-  `prefs.cfg`) and `/home`, synced to IndexedDB every 4 s, on pause and on
-  closing.
+  `prefs.cfg`) and `/home`, synced to IndexedDB every 4 s, on pause, when the
+  page is hidden or closed, and 150 ms after a setting is written (the app logs
+  `setting: ...` after writing it: a page reloaded right after a change used to
+  lose it, as the worker's answer to the page's sync request came too late).
 - **A folder of the player's** (the start screen's Your files box; File System Access:
   Chrome and Edge on computers, Chrome on Android 132+, not Firefox or
   Safari), as GBA DS's data folder on a handheld: `roms/`, `saves/`,
@@ -166,7 +168,12 @@ Games are never published: players bring their own.
   so the queue drains in real time and game.c's pacing keeps it near
   `audio_latency` unchanged. Pulled after each frame (from a microtask: the
   runtime takes no calls while the app is inside `web_sleep`). Without a
-  playing worklet (no click on the page yet), the worker drains by the clock.
+  playing worklet (no click on the page yet), the worker drains by the clock. The
+  worklet asks again after a second of not playing (`started` false), not only
+  when its ring is empty: playing stops with one frame left, so a ring that ran
+  dry while the quick menu paused the sound used to ask for nothing more, the
+  worker (hearing no ask) threw the sound away on resume, and it stayed silent
+  until the page was reloaded (issue #67).
   Chrome won't load a worklet for a page opened from disk, so there the same
   ring (`GbadsRing`) plays in a ScriptProcessorNode.
 - **Map captures in a worker of their own**: the web build has no threads,

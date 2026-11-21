@@ -436,9 +436,10 @@ static bool romCrcsDirty;
 static pthread_mutex_t crcLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t crcWake = PTHREAD_COND_INITIALIZER;
 static RomCrc crcWant; /* the next file to read (path "": none) */
-static char crcWantFiles[PATCH_ON_MAX + 1][1024]; /* and the patches to apply to it, in order (GEN-9) */
+static char crcBusy[1024]; /* the file the worker is reading (crcLock) */
+static PatchChoice crcWantChoice; /* and the patches switched on for it (GEN-9): the worker finds their files, not the list's thread */
+static char crcWantCode[16];
 static const Config* crcCfg;       /* (the settings, for the patches' folder: set by scan) */
-static int crcWantN;
 static bool crcThread;
 static unsigned crcGen; /* bumped as a checksum is worked out (crcLock) */
 
@@ -484,13 +485,19 @@ static void* rom_crc_worker(void* arg) {
 	for (;;) {
 		while (!crcWant.path[0]) pthread_cond_wait(&crcWake, &crcLock);
 		RomCrc c = crcWant;
-		char files[PATCH_ON_MAX + 1][1024];
-		int nf = crcWantN;
-		memcpy(files, crcWantFiles, sizeof(files));
+		snprintf(crcBusy, sizeof(crcBusy), "%s", c.path);
+		PatchChoice choice = crcWantChoice;
+		char code[16];
+		snprintf(code, sizeof(code), "%s", crcWantCode);
 		crcWant.path[0] = 0;
 		pthread_mutex_unlock(&crcLock);
+		/* (the patch files beside the ROM and in its folder: the list's own thread waited
+		 * on these stats behind the other reads of a busy SD card) */
+		char files[PATCH_ON_MAX + 1][1024];
+		int nf = crcCfg ? patch_plan(crcCfg, c.path, code, &choice, files, PATCH_ON_MAX + 1) : 0;
 		c.crc = rom_crc_read(c.path, files, nf, &c.patch);
 		pthread_mutex_lock(&crcLock);
+		crcBusy[0] = 0;
 		rom_crc_put(&c);
 	}
 	return NULL;
@@ -540,11 +547,12 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 		*crc = c->crc;
 		*patch = c->patch;
 	}
-	else if (strcmp(crcWant.path, g->path)) {
+	else if (strcmp(crcWant.path, g->path) && strcmp(crcBusy, g->path)) { /* (not asked for, and not being read right now) */
 		crcWant.size = g->size;
 		crcWant.mtime = g->mtime;
 		snprintf(crcWant.path, sizeof(crcWant.path), "%s", g->path);
-		crcWantN = crcCfg ? patch_plan(crcCfg, g->path, g->code, &g->patchOn, crcWantFiles, PATCH_ON_MAX + 1) : 0;
+		crcWantChoice = g->patchOn;
+		snprintf(crcWantCode, sizeof(crcWantCode), "%s", g->code);
 		if (!crcThread && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) {
 			pthread_t t;
 			crcThread = pthread_create(&t, NULL, rom_crc_worker, NULL) == 0;
@@ -556,7 +564,9 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 			RomCrc w = crcWant;
 			crcWant.path[0] = 0;
 			pthread_mutex_unlock(&crcLock);
-			w.crc = rom_crc_read(w.path, crcWantFiles, crcWantN, &w.patch);
+			char wf[PATCH_ON_MAX + 1][1024];
+			int wn = crcCfg ? patch_plan(crcCfg, w.path, crcWantCode, &crcWantChoice, wf, PATCH_ON_MAX + 1) : 0;
+			w.crc = rom_crc_read(w.path, wf, wn, &w.patch);
 			pthread_mutex_lock(&crcLock);
 			rom_crc_put(&w);
 			*crc = w.crc;
@@ -814,9 +824,11 @@ typedef struct {
 	int headerH, listH, m, gap, tileW, tileH, rowH, cols, visibleRows;
 } ListGeom;
 
-/* The game list as names (default) or a grid of logos: library_view in
- * <state_dir>/library.cfg, switched by the header button or X. */
-static bool listMode = true;
+/* The game list as names (default) or a grid of logos, two or three columns
+ * wide: library_view ("list", "grid", "grid3") in <state_dir>/library.cfg,
+ * switched by the header button or X (list, two columns, three, list...). */
+static int viewCols = 1; /* 1: the list; 2 or 3: that many columns of logos */
+#define listMode (viewCols == 1)
 
 static ListGeom list_geom(int scr) {
 	ListGeom g;
@@ -829,10 +841,14 @@ static ListGeom list_geom(int scr) {
 		g.gap = px * 2;
 		g.cols = 1;
 		g.tileH = px * 17;
-	} else { /* two columns of logos */
+	} else if (viewCols == 2) { /* two columns of logos */
 		g.gap = px * 4;
 		g.cols = 2;
 		g.tileH = px * 40;
+	} else { /* three columns: the same tile's shape, narrower */
+		g.gap = px * 4;
+		g.cols = 3;
+		g.tileH = px * 28;
 	}
 	g.tileW = (r.w - g.m * 2 - g.gap * (g.cols - 1)) / g.cols;
 	g.rowH = g.tileH + g.gap;
@@ -855,6 +871,13 @@ static void free_tiles(void) {
 		ui_free_image(tileLogo[i]);
 		tileTried[i] = false;
 	}
+}
+
+/* (a ROM file's checksum was worked out: only what has no logo yet needs asking again) */
+static void retry_tiles_without_logo(void) {
+	for (int i = 0; i < 256; ++i)
+		if (!tileLogo[i][0] && !tileLogo[i][1]) tileTried[i] = false;
+	if (!logoTex[0] && !logoTex[1]) thumbFor = -2;
 }
 
 static SDL_Rect settings_button(int scr) {
@@ -943,19 +966,28 @@ static void draw_games_button(const Config* cfg, int scr) {
 	label_fit(scr, b.x + b.w / 2, b.y + b.h / 2, px * 5, b.w - px * 2, b.h, cfg->showAll ? tr("All") : tr("Supported"));
 }
 
-/* Four squares (in the list: switch to the grid) or three lines (in the
- * grid: switch to the list). */
+/* What the button does next: four squares (in the list: switch to two
+ * columns), nine (in two columns: switch to three) or three lines (in three
+ * columns: switch to the list). */
 static void draw_view_button(int scr) {
 	SDL_Rect b = view_button(scr);
 	float px = ui_px(scr);
 	ui_key(scr, b, px * 3, KEY_PLAIN);
 	SDL_Color ink = ui_key_ink();
 	int cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-	if (listMode) {
+	if (viewCols == 1) {
 		int sq = b.h * 12 / 56, gap = b.h * 6 / 56;
 		for (int i = 0; i < 2; ++i) {
 			for (int j = 0; j < 2; ++j) {
 				SDL_Rect q = { cx - sq - gap / 2 + i * (sq + gap), cy - sq - gap / 2 + j * (sq + gap), sq, sq };
+				ui_fill_round(scr, q, ink, SDL_max(1, sq / 4));
+			}
+		}
+	} else if (viewCols == 2) {
+		int sq = b.h * 8 / 56, gap = b.h * 4 / 56;
+		for (int i = -1; i <= 1; ++i) {
+			for (int j = -1; j <= 1; ++j) {
+				SDL_Rect q = { cx + i * (sq + gap) - sq / 2, cy + j * (sq + gap) - sq / 2, sq, sq };
 				ui_fill_round(scr, q, ink, SDL_max(1, sq / 4));
 			}
 		}
@@ -968,6 +1000,10 @@ static void draw_view_button(int scr) {
 	}
 }
 
+static const char* view_name(void) {
+	return viewCols == 3 ? "grid3" : viewCols == 2 ? "grid" : "list";
+}
+
 /* library.cfg: the game list's own settings (and, on Android, the ROM and
  * save folders and the saves' type, from Settings > Folders). */
 static void save_library_cfg(const Config* cfg) {
@@ -975,7 +1011,7 @@ static void save_library_cfg(const Config* cfg) {
 	snprintf(file, sizeof(file), "%s/library.cfg", cfg->stateDir);
 	FILE* f = fopen(file, "w");
 	if (!f) return;
-	fprintf(f, "# written by the game list\nlibrary_view = %s\n", listMode ? "list" : "grid");
+	fprintf(f, "# written by the game list\nlibrary_view = %s\n", view_name());
 	/* (Settings > Save States: shared with RetroArch or not, issue #39) */
 	fprintf(f, "state_folder = %s\n", strcmp(cfg->stateFolder, "retroarch") ? "gbads" : "retroarch");
 	/* (Settings > RetroArch's Folder: one chosen by hand, or empty: found from RetroArch's settings) */
@@ -996,8 +1032,8 @@ static void toggle_theme(Config* cfg) {
 }
 
 static void toggle_view(Config* cfg) {
-	listMode = !listMode;
-	snprintf(cfg->libraryView, sizeof(cfg->libraryView), "%s", listMode ? "list" : "grid");
+	viewCols = viewCols % 3 + 1;
+	snprintf(cfg->libraryView, sizeof(cfg->libraryView), "%s", view_name());
 	save_library_cfg(cfg);
 }
 
@@ -1040,7 +1076,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	}
 	int done, total;
 	logo_progress(&done, &total);
-	bool extracting = done < total;
+	bool extracting = done < total || ui_file_crc_pending(); /* (or a ROM's checksum, for its logo's name) */
 	for (int i = 0; i < nGames && i < 256; ++i) {
 		SDL_Rect t = tile_rect(&g, i, scroll);
 		if (t.y + t.h <= g.headerH || t.y >= r.h) continue;
@@ -1078,7 +1114,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		}
 		if (tileLogo[i][0] || tileLogo[i][1]) {
 			/* the logo, as large as fits with some padding, keeping its shape */
-			int pad = px * 5;
+			int pad = viewCols == 3 ? px * 4 : px * 5;
 			int aw = t.w - pad * 2, ah = t.h - pad * 2;
 			int w = aw, h = tileLogoH[i] * aw / tileLogoW[i];
 			if (h > ah) h = ah, w = tileLogoW[i] * ah / tileLogoH[i];
@@ -2481,7 +2517,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	for (int i = 0; i < nGames; ++i) {
 		if (!strcmp(games[i].path, last)) sel = i;
 	}
-	listMode = strcmp(cfg->libraryView, "grid") != 0;
+	viewCols = !strcmp(cfg->libraryView, "grid3") ? 3 : !strcmp(cfg->libraryView, "grid") ? 2 : 1;
 	int ls = ui_touch_screen();
 	int scroll = sel > 0 ? keep_visible(ls, sel, 0) : 0;
 	bool dragging = false, pressed = false;
@@ -2504,6 +2540,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 #ifdef __wasi__
 	int listFrames = 0;
 #endif
+	ui_file_crc_async(true); /* (no whole-ROM reads while the list draws) */
 	while (!quit && chosen < 0) {
 #ifdef __wasi__
 		if (listFrames++) logo_step(); /* (the web build: a logo a frame, from the list's second) */
@@ -2516,10 +2553,15 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				rom_crc_save(cfg);
 			}
 		}
+		static unsigned fileCrcSeen;
 		if (logo_generation() != logoGen) { /* a logo finished extracting */
 			logoGen = logo_generation();
+			fileCrcSeen = ui_file_crc_generation();
 			thumbFor = -2;
 			free_tiles();
+		} else if (ui_file_crc_generation() != fileCrcSeen) { /* a ROM file's checksum was worked out (its logo's name) */
+			fileCrcSeen = ui_file_crc_generation();
+			retry_tiles_without_logo();
 		}
 		if (!ui_events()) {
 			quit = true;
@@ -2799,6 +2841,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		ui_present();
 		SDL_Delay(15);
 	}
+	ui_file_crc_async(false);
 	free_thumbs();
 	free_brand();
 	free_tiles();

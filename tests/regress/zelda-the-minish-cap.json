@@ -1,0 +1,1550 @@
+{
+ "game": "The Legend of Zelda: The Minish Cap",
+ "rules": "docs/games/zelda-the-minish-cap.md",
+ "cases": [
+  {
+   "id": "tmc-us-town",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-town.ss",
+   "desc": "Link in Hyrule Town: the map of Hyrule, the marks of the region",
+   "rules": [
+    "TMC-1",
+    "TMC-5",
+    "TMC-7"
+   ],
+   "shots": {
+    "a": 300,
+    "b": 308,
+    "c": 316,
+    "d": 324,
+    "e": 332,
+    "f": 340,
+    "g": 348,
+    "h": 356,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-7",
+     "what": "the marks blink as the game's do",
+     "type": "differs",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0005
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "d",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "e",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "f",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "g",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "b": {
+      "shot": "h",
+      "rect": [
+       409,
+       294,
+       427,
+       363
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-dungeon",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-dungeon.ss",
+   "desc": "Deepwood Shrine: the dungeon map",
+   "rules": [
+    "TMC-2",
+    "TMC-5",
+    "TMC-7"
+   ],
+   "shots": {
+    "a": 300,
+    "b": 308,
+    "c": 316,
+    "d": 324,
+    "e": 332,
+    "f": 340,
+    "g": 348,
+    "h": 356,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-7",
+     "what": "the marks blink as the game's do",
+     "type": "differs",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0005
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "d",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "e",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "f",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "g",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-7",
+     "what": "Link's head stays on in every frame",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "b": {
+      "shot": "h",
+      "rect": [
+       102,
+       264,
+       171,
+       333
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-map-open",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-map-open.ss",
+   "desc": "the game's own Map tab open: the last picture stays (the game's own screen is never the second one)",
+   "rules": [
+    "TMC-8",
+    "TMC-11"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   }
+  },
+  {
+   "id": "tmc-us-items-menu",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-items-menu.ss",
+   "desc": "the Items tab open when the state was saved: nothing is captured while the game's menu is up, the logo stays",
+   "rules": [
+    "TMC-8"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-8",
+     "what": "no capture while the game's menu is open",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-last-tab-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-last-tab-map.ss",
+   "desc": "in play with the Map as the tab last used: the map is still taken from the Map tab, and the game's menu never opens on the player's screen",
+   "rules": [
+    "TMC-3",
+    "TMC-11"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-3",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-no-map.ss",
+   "desc": "before the Map item: Quest Status (no cursor, no SLEEP or SAVE)",
+   "rules": [
+    "TMC-4",
+    "TMC-5"
+   ],
+   "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-no-map-dungeon",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-no-map-dungeon.ss",
+   "desc": "Deepwood Shrine before the Map item: Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-title",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-title.ss",
+   "desc": "the title screen: the logo",
+   "rules": [
+    "TMC-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-9",
+     "what": "no map captured on the title",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-file-select",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-file-select.ss",
+   "desc": "the file select: the logo",
+   "rules": [
+    "TMC-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-9",
+     "what": "no map captured at the file select",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-eu-town",
+   "rom": "BZMP",
+   "state": "zelda-the-minish-cap/eu-town.ss",
+   "desc": "Europe: Link in the overworld, the map of Hyrule",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-eu-dungeon",
+   "rom": "BZMP",
+   "state": "zelda-the-minish-cap/eu-dungeon.ss",
+   "desc": "Europe: Deepwood Shrine's map",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-eu-no-map",
+   "rom": "BZMP",
+   "state": "zelda-the-minish-cap/eu-no-map.ss",
+   "desc": "Europe: before the Map item, Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "tmc-eu-no-map-dungeon",
+   "rom": "BZMP",
+   "state": "zelda-the-minish-cap/eu-no-map-dungeon.ss",
+   "desc": "Europe: a dungeon before the Map item, Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-town",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-town.ss",
+   "desc": "Japan: Hyrule Town, the map of Hyrule in Japanese",
+   "rules": [
+    "TMC-1",
+    "TMC-5"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-dungeon",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-dungeon.ss",
+   "desc": "Japan: Deepwood Shrine, the dungeon's map",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-no-map",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-no-map.ss",
+   "desc": "Japan: before the Map item, Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-no-map-dungeon",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-no-map-dungeon.ss",
+   "desc": "Japan: a dungeon before the Map item, Quest Status",
+   "rules": [
+    "TMC-4"
+   ],
+   "shots": {
+    "a": 150,
+    "b": 250,
+    "c": 350,
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-4",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    },
+    {
+     "rule": "TMC-5",
+     "what": "Quest Status holds still (no prompt flickering at the top right)",
+     "type": "same",
+     "a": {
+      "shot": "a",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "c",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.0
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-early-house",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-early-house.ss",
+   "desc": "Japan: a new game's first minutes, Link's house: the menu won't open yet, the logo stays",
+   "rules": [
+    "TMC-8"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-8",
+     "what": "nothing captured where the menu won't open",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-title",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-title.ss",
+   "desc": "Japan: the title screen, the logo",
+   "rules": [
+    "TMC-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-9",
+     "what": "no map captured on the title",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-jp-file-select",
+   "rom": "BZMJ",
+   "state": "zelda-the-minish-cap/jp-file-select.ss",
+   "desc": "Japan: the file select, the logo",
+   "rules": [
+    "TMC-9"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "checks": [
+    {
+     "rule": "TMC-9",
+     "what": "no map captured at the file select",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-logo-bzme",
+   "kind": "logo",
+   "rom": "BZME",
+   "desc": "BZME logo extraction",
+   "rules": [
+    "TMC-10"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "tmc-logo-bzmp",
+   "kind": "logo",
+   "rom": "BZMP",
+   "desc": "BZMP logo extraction",
+   "rules": [
+    "TMC-10"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "tmc-logo-bzmj",
+   "kind": "logo",
+   "rom": "BZMJ",
+   "desc": "BZMJ logo extraction",
+   "rules": [
+    "TMC-10"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "tmc-us-warp-cof-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-cof-no-map.ss",
+   "desc": "The Cave of Flames without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-cof-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-cof-map.ss",
+   "desc": "The Cave of Flames with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-fow-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-fow-no-map.ss",
+   "desc": "The Fortress of Winds without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-fow-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-fow-map.ss",
+   "desc": "The Fortress of Winds with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-tod-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-tod-no-map.ss",
+   "desc": "The Temple of Droplets without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-tod-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-tod-map.ss",
+   "desc": "The Temple of Droplets with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-pow-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-pow-no-map.ss",
+   "desc": "The Palace of Winds without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-pow-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-pow-map.ss",
+   "desc": "The Palace of Winds with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-dhc-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-dhc-no-map.ss",
+   "desc": "Dark Hyrule Castle without its map: the rooms Link has been in (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-dhc-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-dhc-map.ss",
+   "desc": "Dark Hyrule Castle with its map: the whole floor (a state made by warping Link from Deepwood Shrine: not a played game's progress)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-deepwood-no-map",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-deepwood-no-map.ss",
+   "desc": "Deepwood Shrine before its map: the rooms Link has been in (the owner's device state)",
+   "rules": [
+    "TMC-2"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-2",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-crypt",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-crypt.ss",
+   "desc": "the Royal Crypt, entered from the Royal Valley (a room without enemies): it has no dungeon map, so the map of Hyrule, the Royal Valley marked (a state made by warping Link from North Hyrule Field: not a played game's progress)",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-dhc-grounds",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-dhc-grounds.ss",
+   "desc": "Dark Hyrule Castle's grounds, entered from the Castle Garden once Vaati has taken the castle (its story flags set) (a state made by warping Link from North Hyrule Field: not a played game's progress)",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-warp-dark-town",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-warp-dark-town.ss",
+   "desc": "Hyrule Town once Vaati has taken the castle, its people turned to stone (its story flags set) (a state made by warping Link from North Hyrule Field: not a played game's progress)",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-minish-woods",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-minish-woods.ss",
+   "desc": "Link as a Minish in the Minish Woods: the map of Hyrule (the owner's device state)",
+   "rules": [
+    "TMC-1"
+   ],
+   "shots": {
+    "start": 60,
+    "end": 480
+   },
+   "golden": [
+    "end"
+   ],
+   "checks": [
+    {
+     "rule": "TMC-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "tmc-us-ezlo-talking",
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-north-field.ss",
+   "desc": "North Hyrule Field's map, then Ezlo talking in the Minish Woods, where the menu won't open: the last picture stays (the owner's device states)",
+   "rules": [
+    "TMC-8"
+   ],
+   "shots": {
+    "map": 380,
+    "talking": 640
+   },
+   "golden": [
+    "talking"
+   ],
+   "input": [
+    [
+     400,
+     "LOAD:zelda-the-minish-cap/us-ezlo-talking.ss"
+    ]
+   ]
+  }
+ ]
+}

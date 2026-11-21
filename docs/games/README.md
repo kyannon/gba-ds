@@ -10,6 +10,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Metroid: Zero Mission](metroid-zero-mission.md) | MZM | `BMXE` + 2 |
 | [Metroid Fusion](metroid-fusion.md) | MF | `AMTE` + 2 |
 | [The Legend of Zelda: A Link to the Past & Four Swords](zelda-a-link-to-the-past.md) | LTTP | `AZLE` + 2 |
+| [The Legend of Zelda: The Minish Cap](zelda-the-minish-cap.md) | TMC | `BZME` + 2 |
 | [Tony Hawk's Pro Skater 2](tony-hawks-pro-skater-2.md) | TH2 | `ATHE` + 3 |
 | [Mario Kart: Super Circuit](mario-kart-super-circuit.md) | MK | `AMKE` + 2 |
 | [Tony Hawk's Pro Skater 3](tony-hawks-pro-skater-3.md) | TH3 | `AT3E` + 2 |
@@ -45,7 +46,11 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Lady Sia](lady-sia.md) | LS | `ALDE` + 1 |
 | [Zoids: Legacy (Zoids Saga II in Japan)](zoids-legacy.md) | ZL | `AZ2E` + 1 |
 | [Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan)](harvest-moon-friends-of-mineral-town.md) | HM | `A4NE` + 3 |
+| [Duel Masters: Kaijudo Showdown](duel-masters-kaijudo-showdown.md) | DMK | `BD6E` + 1 |
 | [Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan)](yu-gi-oh-the-eternal-duelist-soul.md) | EDS | `AY5E` + 1 |
+| [Yu-Gi-Oh! World Championship Tournament 2004 (Yu-Gi-Oh! Duel Monsters Expert 3 in Japan)](yu-gi-oh-world-championship-tournament-2004.md) | WCT | `BYWE` + 2 |
+| [Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006](yu-gi-oh-ultimate-masters-world-championship-tournament-2006.md) | UM6 | `BY6E` + 1 |
+| [Yu-Gi-Oh! 7 Trials to Glory: World Championship Tournament 2005](yu-gi-oh-7-trials-to-glory.md) | YWC | `BY7E` + 1 |
 | [Wario Land 4 (Wario Land Advance in Japan)](wario-land-4.md) | WL4 | `AWAE` + 1 |
 | [Mega Man Battle Network (Battle Network Rockman EXE in Japan)](mega-man-battle-network.md) | MMBN | `AREE` + 2 |
 | [Muppet Pinball Mayhem](muppet-pinball-mayhem.md) | MPM | `AMWE` + 1 |
@@ -60,6 +65,8 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Banjo-Kazooie: Grunty's Revenge](banjo-kazooie-gruntys-revenge.md) | BK | `BKZE` + 3 |
 | [Rebelstar: Tactical Command](rebelstar-tactical-command.md) | RS | `BRLE` + 1 |
 | [Shin Megami Tensei](shin-megami-tensei.md) | SMT | `AAUJ` |
+| [Breath of Fire](breath-of-fire.md) | BOF | `ABFE` + 3 |
+| [Breath of Fire II (Shimei no Ko in Japan)](breath-of-fire-ii.md) | BOF2 | `AB2E` + 2 |
 
 ## General rules
 
