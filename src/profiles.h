@@ -169,6 +169,9 @@ typedef struct MapProfile {
 	 * spot its info box takes no L; B twice, back to the map, first) */
 	MemProbe openAltIf[2];
 	MacroStep openAlt[8];
+	/* A byte written on the hidden copy before `open` (Kirby & The Amazing
+	 * Mirror: the pause menu's page, kept by the game from its last use) */
+	struct { uint32_t addr; uint8_t value; } openPoke;
 	/* Optional second step: once the map is up (mem probes), if open2If
 	 * matches, wait open2Delay frames and press open2 (A Link to the Past:
 	 * L again on the world map zooms out to the whole world). */
@@ -424,6 +427,16 @@ typedef struct MapProfile {
 	 * has no status bar (SM4-11) */
 	MemProbe logoIf[2];
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
+	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
+	bool logoIfLast;
+	/* On the game itself (not the hidden copy), as `key` (GBA keys) is pressed while `when`
+	 * matches, each byte holding `from` is set to `to` before the frame: the game then turns
+	 * on from there, past a page of its own pause screen (KAM-6) */
+	struct { MemProbe when[2]; uint32_t addr[6]; uint8_t from, to; uint16_t key; } skip;
+	/* While `when` matches, the second screen's picture fades with the game's own: by a
+	 * level byte from 0 to max (above max: none), and with `bldy` by its BLDY fade too;
+	 * toward black, or white with `white` */
+	struct { uint32_t addr; int max; bool white; MemProbe when[2]; bool bldy; } fade;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
@@ -778,7 +791,7 @@ typedef struct MapProfile {
 	 * of only `underLayers` (bits 0-3 BG0-3, bit 4 sprites), made once per
 	 * capture: bezel pieces drawn over the map, like Zero Mission's corner
 	 * minimap, give way to the map underneath. */
-	struct { int x0, y0, x1, y1; } underRect[2];
+	struct { int x0, y0, x1, y1; } underRect[3];
 	unsigned underLayers;
 	SpriteRule underHide[2]; /* also left out of that render (on top of captureHide) */
 

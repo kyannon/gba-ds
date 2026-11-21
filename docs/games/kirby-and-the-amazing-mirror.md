@@ -1,0 +1,57 @@
+# Kirby & The Amazing Mirror
+
+| | |
+|---|---|
+| Releases | `B8KE` USA |
+| Dumps | `B8KE` cartridge `9f2a3048` (tested) |
+| Profile | `src/profiles.c`: the `B8KE` entry |
+| Tests | `tests/regress/kirby-and-the-amazing-mirror.json` (`tools/regress.py kirby-and-the-amazing-mirror`) |
+| Status | in progress |
+
+What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list kirby-and-the-amazing-mirror`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
+
+Every game also follows the [general rules](README.md#general-rules).
+
+The game is a maze of rooms over nine areas, with a map of each area on its pause screen, so its second screen is that map, as in the Metroids and the Castlevanias.
+
+## Rules
+
+**KAM-1. Logo.** The logo is the title's lettering: Kirby with its rainbow and & The Amazing Mirror on its ribbon, with its ™ (BG1 above the copyright line, without the landscape behind it or PRESS START).
+
+**KAM-2. In an area: its Area map.** While Kirby is in a room of one of the areas, the second screen shows the pause screen's Area map of that area, opened on the hidden copy (on the Area map page whichever page the player last looked at) and taken again as Kirby goes into another room and about once a second: the rooms Kirby has been through (every room once the area's map, its big chest, has been found), the paths between them, the four Kirbys' marker with its pulsing bar, and the area's name at the top.
+
+**KAM-3. No prompts.** The pause screen's prompts are left out of the map: SELECT SWITCH, R ZOOM and B QUIT along the bottom, the L and R tabs in the top corners once the area's map has been found, and the white arrows at the map's edges that say it scrolls further; the map's own picture and rooms show there instead. With `map_crop = 0` (gba-ds.cfg) the whole pause screen is shown, prompts too.
+
+**KAM-4. The game screen as the game draws it.** The HUD (the copy ability, lives, health, an enemy's health and the area's name along the bottom, the phone's battery at the top left) stays where the game draws it.
+
+**KAM-5. Logo before a map, and the last map where there's none.** The second screen shows the logo at half strength before the first Area map: the title, the file and game select, the opening, and the tutorial at the start (where the pause screen has no map until its chest is found). Where the pause screen has no Area map later (the Dimension Mirror, the rooms outside the areas' maps), the last Area map stays. Back at the title or the file select, the logo comes back.
+
+**KAM-6. The game's own pause screen, without its Area map page.** SELECT turns only the pause screen's Help and World map pages: the Area map page is skipped (pressed on Help, GBA DS sets the page to the Area map's first, so the game's own SELECT goes on from there to the World map), so the Area map stays on the second screen the whole time and is never on both. The second screen fades with the game: as the pause screen opens and closes, and as SELECT turns its pages, the map below fades to white and back with the game's. This changes the game on purpose (an exception to GEN-2), so that the map, which the game shows only on that page, is on the second screen throughout. It does so only while the map is on a second screen: on one screen, or with `map = 0`, the pause screen is the game's own.
+
+## Not covered yet
+
+- Multiplayer (four players over link cables): only one player is checked.
+- Cutscenes inside the areas and the boss fights.
+
+## Notes
+
+| | |
+|---|---|
+| Pause page | 0x0203ACCD (gPauseMenus[0].menuId): 1 Help, 2 World map, 4 Area map, in turn Help, Area map, World map (set as SELECT is pressed, the page drawn at the fade's white point; SELECT on Help: KAM-6 sets the four players' pages, 0x0203ACCD, ACE1, ACF5, AD09, to 4 just before, on the game itself); kept from the page last looked at, written to 4 on the hidden copy before START (`openPoke`). In the tutorial, the Dimension Mirror and the rooms outside the areas' maps the game opens Help whatever it holds |
+| Area map up | gDispCnt 0x03003690: video mode 1 (`& 7 == 1`) only on the Area map; the map is drawn and still about 54 frames after START |
+| Pause open | 0x0203AD4C (u32) non-zero while a pause page is open |
+| Fades | the pause screen's opening and closing: to white by its colours, 0x020229A1 from 0 to 0x1F (2 a frame, about 19 frames held; 0xFD once done, and a twin at 0x02022931 for doors); SELECT's pages: BLDCNT 0x00BF, BLDY 0 to 16. gDispCnt's video mode changes inside the white hold, the real DISPCNT 3 frames later |
+| Playing | gNumKirbys 0x0203AD44: 1-4 in the game, 0 at the title and in the opening |
+| Room | 0x02020F40 (u16): the hub is 0x321, the tutorial 0x323-0x325 |
+| Maps found | bigChestField 0x0203897C (u32): bit N, area N's map (1 Rainbow Route ... 9); visited rooms gVisitedDoors, u16[0x120] at 0x02028CA0 |
+| Map layers | BG0 the art, BG1 the lettering (the area's name rows 3-14, the prompts rows 145-157), BG2 the rooms and paths, sprites the Kirbys' marker; only a 12x4 bar under the marker pulses (54 frames) |
+| Decompilation | jiangzhengwenjz/katam (its linker.ld names the RAM above; the ROM's SHA-1 matches) |
+
+## For the merge
+
+- Philosophy page, its exceptions: Kirby & The Amazing Mirror's pause screen without its Area map page, the map on the second screen instead (the game changed: SELECT turns only Help and the World map), only with two screens and the map on, so one-screen play keeps the game's own pause screen.
+- Shared code: `logoIfLast` (when `logoIf` stops matching, the last picture at once rather than the logo until a new one), the profile `fade` (the second screen's picture fading with the game's own fade), `skip` (a byte the game sets, changed on the game itself: run_frame), and for map captures `openPoke` (a byte written on the hidden copy before opening the map: mapcap.c) and a third `underRect` box, `tools/regress.py --changed` to run.
+- Changelog (New games): Kirby & The Amazing Mirror (USA): the Area map of the area Kirby is in, kept up to date room by room.
+- Supported games table: `| Kirby & The Amazing Mirror | `B8KE` | in an area: its Area map | |`
+- Supported games section: the USA release, checked in the Rainbow Route (being filled in).
+- For the owner: KAM-6 skips the game's own Area map page, so the map is on the second screen throughout and never on both (the exception above).

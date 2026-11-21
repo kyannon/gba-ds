@@ -232,6 +232,7 @@ static const KnownDump knownDumps[] = {
 	{ "B8CE", 0xd031ce67, true, false, "Kingdom Hearts - Chain of Memories (USA)" },
 	{ "B8CJ", 0x8d5a0d84, true, false, "Kingdom Hearts - Chain of Memories (Japan)" },
 	{ "B8CP", 0x772d97fb, true, false, "Kingdom Hearts - Chain of Memories (Europe) (En,Fr,De,Es,It)" },
+	{ "B8KE", 0x9f2a3048, true, false, "Kirby & The Amazing Mirror (USA)" },
 	{ "BCNE", 0xe6d58aa0, true, false, "Crash Nitro Kart (USA)" },
 	{ "BCNJ", 0x70f8291f, true, false, "Crash Bandicoot Bakusou! Nitro Cart (Japan)" },
 	{ "BCNP", 0x03925772, true, false, "Crash Nitro Kart (Europe) (En,Fr,De,Es,It,Nl)" },
