@@ -16,7 +16,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
 | X, or tap the button left of Settings | Next view: list, two columns, three columns |
-| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder and Updates (Linux) or Folders, RetroAchievements sign-in and Updates (Android)) |
+| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder, [GBA BIOS](#a-state-saved-with-a-gba-bios) and Updates (Linux) or Folders, RetroAchievements sign-in, GBA BIOS and Updates (Android)) |
 | B or HOME | Back to EmulationStation / the launcher |
 
 ## Resume points
@@ -39,6 +39,12 @@ When they're shared:
 - RetroAchievements progress isn't shared: each app keeps its own with its states.
 
 GBA DS works out RetroArch's state folder from RetroArch's own settings, the way RetroArch does: on ROCKNIX `/storage/roms/savestates/gba`, on BananaOS `/data/states/mGBA`. If RetroArch is somewhere GBA DS doesn't look, choose its folder with **RetroArch's State Folder**.
+
+States RetroArch compressed with zstd (RetroArch 1.21 and later can) load like the others.
+
+### A state saved with a GBA BIOS
+
+If RetroArch's mGBA core has a GBA BIOS file set, its states can't go on in GBA DS, which runs games with a built-in BIOS, when the state was saved while the game was inside the BIOS (waiting for the next frame, say, which is much of the time). Loading one says "Saved with a GBA BIOS". To load them, put your own BIOS (the 16 KB file, usually `gba_bios.bin`) in the `bios` folder of GBA DS's data folder, named `gba_bios.bin`, and in the game list's **Settings** > **System** choose **GBA BIOS: Your Own**. GBA DS never looks for a BIOS by itself, and with this left on **Built-in** (the default) nothing is different. The BIOS applies to games you start after switching it. States saved without a BIOS may then not load while it's on: switch it back to **Built-in** for them. GBA DS doesn't come with a BIOS.
 
 ## Updates
 

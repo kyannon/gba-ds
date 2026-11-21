@@ -201,6 +201,7 @@ app case runs with its own `--patch_dir`.
   load would, with the second screen kept: the way to test a rule about
   keeping an earlier picture (show it from one state, then load the moment
   where it must stay).
+- `bios` (GEN-15): a fixture under `bios/` (the official GBA BIOS, `gba_bios.bin`, from the owner) put as `<asset_dir>/bios/gba_bios.bin`; the case's `config` `gba_bios: 1` switches it on. Its states are made with the harness (`HARNESS_BIOS=FILE harness ROM OUT SCRIPT`, which runs with that BIOS; Sonic Advance 2 waits inside the BIOS every frame, Advance Wars never does) and wrapped with `tools/retroarch_state.py wrap`: `sonic-advance-2/us-retroarch-bios-real.state` (real BIOS, inside it), `us-retroarch-hle-in-bios.state` (built-in BIOS, inside it).
 - `retroarch` (GEN-13) runs the case with save states shared with a
   stand-in RetroArch (`--state_folder=retroarch`): `cfg` is its
   retroarch.cfg's text, where `{states}` is its state folder in the case's

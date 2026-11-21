@@ -344,7 +344,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `poke ADDR LEN VAL`, `io OFFSET N` (I/O registers), `dumpram NAME`, `layershot NAME` (each BG layer and
   OBJ alone), `map NAME` (run a map capture), `logo NAME`. It writes the
   game's battery save beside the ROM (`ROM.sav`): don't run it on the fixtures'
-  ROMs in place, or delete those `.sav` files after (never commit them). `HARNESS_SAVE=PATH` runs it with that battery save instead (written to as the game saves; `tools/pokemon/saves.py state` uses it).
+  ROMs in place, or delete those `.sav` files after (never commit them). `HARNESS_BIOS=FILE` runs it with that GBA BIOS (the fixtures' `bios/gba_bios.bin`, issue #78), `HARNESS_SAVE=PATH` with that battery save instead (written to as the game saves; `tools/pokemon/saves.py state` uses it).
 - **Players' bug reports** (the quick bar's bug button or Extras > Submit
   a Bug Report, `bug-reports/*.zip`): `GAME-DATE-info.txt` (the player's note, typed on the keyboard that comes up after the button, if any; device, system,
   screens, settings, the second screen's state, the last 48 KB of the log
@@ -499,7 +499,8 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `split off` and `hudshot NAME`.
   State files (issue #39): loading (and `emu_state_file_kind` /
   `_rom_crc` / `_get_extra`) takes mGBA's own files and RetroArch's /
-  BananaFront's (`RASTATE`, RZIP-compressed or not, its mGBA core's bytes in
+  BananaFront's (`RASTATE`, RZIP-compressed (zlib, or zstd since issue #78: the
+  vendored decoder `third_party/rzstd`) or not, its mGBA core's bytes in
   the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
   second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
   shared with RetroArch (`state_folder = retroarch`, game list Settings >
