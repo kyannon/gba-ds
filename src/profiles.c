@@ -11471,6 +11471,33 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Kirby: Nightmare in Dream Land (docs/games/kirby-nightmare-in-dream-land.md):
+		 * no map; the pause page for Kirby's copy ability, as Wario Land 4's pause screen */
+		.codes = { "A7KE" },
+		.title = "Kirby: Nightmare in Dream Land",
+		.open = { { K_START, 4 } },
+		/* START is ignored through the copy pose after swallowing: pressed again (KND-2) */
+		.settleMax = 220, .openWithin = 15, .openTries = 12, .stableFrames = 3, .maxDiff = 0,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* 0x030023D8 the screen mode (8 in a level), 0x030023C0 8 while paused */
+		.mem = { { 0x030023D8, 0xFF, 8, 1 }, { 0x030023C0, 0xFF, 8, 1 } },
+		.live = { { 0x030023D8, 0xFF, 8, 1 }, { 0x030023C0, 0xFF, 0, 1 } },
+		/* the title and the menus (modes 3, 4) */
+		.menu = { { 0x030023D8, 0xFF, 3, 1, true, 4, true } },
+		/* a new room, or a new copy ability (0x02004B50: 0 none), takes the page again */
+		.room = { { 0x03002468, 0xFF, 0, 1 }, { 0x02004B50, 0xFF, 0, 1 } },
+		/* a hub of doors (5) or a level's title card (7): the logo (KND-4) */
+		.logoIf = { { 0x030023D8, 0xFF, 5, 1, true, 7 } },
+		/* the game's own pause page open: the logo, not the same page twice (KND-5) */
+		.logoIfOr = { { 0x030023C0, 0xFF, 8, 1 }, { 0x04000000, 0x1000, 0, 2 } },
+		.logoIfLast = true,
+		/* its fade to white and back (0x1F) as the pause page opens and closes, the second
+		 * screen fading with it (the byte also moves for the copy pose, a flash elsewhere) */
+		.fade = { 0x03000FB8, 0x1F, true, { { 0x030023C0, 0xFF, 8, 1 } } },
+		/* the lettering (BG1) over its swoosh (BG2), above the PRESS START sprites */
+		.logo = { .wait = 800, .layers = 0x6, .maxY = 116 },
+	},
+	{
 		/* Super Mario Advance 3: Yoshi's Island (USA and Japan; Europe:
 		 * the A3AP variant, its language menu first; all three with the
 		 * same addresses). In a level the status screen, on a world's
