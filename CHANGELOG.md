@@ -23,6 +23,7 @@
 - **A three-column logo view in the game list.** The list/grid button and **X** now go round three views: the list of names, two columns of logos, and three columns of smaller logos (more games on screen). It's chosen and remembered like the other two (`library_view = grid3`).
 
 ### Fixes
+- **Separate hotkeys for Close game and Close emulator** (#69): the Quit hotkey is now two. **Close emulator** (hotkey + Start, as before) closes GBA DS; the new **Close game** (hotkey + B by default) goes back to the game list. When a game is started straight from a launcher or EmulationStation there is no game list, so both close GBA DS. The defaults of two more moved: **Swap screens** is hotkey + D-pad up (was Y) and **Toggle selected shader** hotkey + D-pad down (was B). Settings you already saved keep their buttons. Set them in Settings > Hotkeys or with `hotkey_quit` and `hotkey_close_game` in `gba-ds.cfg`.
 - **Web player: the sound comes back after the quick menu** (#67): it used to stay silent after closing the menu until the page was reloaded.
 - **Web player: settings you change are kept** (#67): a setting changed in the menu and then followed by a reload, or leaving the page, within a few seconds was lost; it's now kept at once.
 
