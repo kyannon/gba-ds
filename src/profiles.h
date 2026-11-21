@@ -169,6 +169,9 @@ typedef struct MapProfile {
 	 * spot its info box takes no L; B twice, back to the map, first) */
 	MemProbe openAltIf[2];
 	MacroStep openAlt[8];
+	/* A byte written on the hidden copy before `open` (Kirby & The Amazing
+	 * Mirror: the pause menu's page, kept by the game from its last use) */
+	struct { uint32_t addr; uint8_t value; } openPoke;
 	/* Optional second step: once the map is up (mem probes), if open2If
 	 * matches, wait open2Delay frames and press open2 (A Link to the Past:
 	 * L again on the world map zooms out to the whole world). */
@@ -784,7 +787,7 @@ typedef struct MapProfile {
 	 * of only `underLayers` (bits 0-3 BG0-3, bit 4 sprites), made once per
 	 * capture: bezel pieces drawn over the map, like Zero Mission's corner
 	 * minimap, give way to the map underneath. */
-	struct { int x0, y0, x1, y1; } underRect[2];
+	struct { int x0, y0, x1, y1; } underRect[3];
 	unsigned underLayers;
 	SpriteRule underHide[2]; /* also left out of that render (on top of captureHide) */
 
