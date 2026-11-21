@@ -1059,7 +1059,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	}
 	int done, total;
 	logo_progress(&done, &total);
-	bool extracting = done < total;
+	bool extracting = done < total || ui_file_crc_pending(); /* (or a ROM's checksum, for its logo's name) */
 	for (int i = 0; i < nGames && i < 256; ++i) {
 		SDL_Rect t = tile_rect(&g, i, scroll);
 		if (t.y + t.h <= g.headerH || t.y >= r.h) continue;
@@ -2523,6 +2523,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 #ifdef __wasi__
 	int listFrames = 0;
 #endif
+	ui_file_crc_async(true); /* (no whole-ROM reads while the list draws) */
 	while (!quit && chosen < 0) {
 #ifdef __wasi__
 		if (listFrames++) logo_step(); /* (the web build: a logo a frame, from the list's second) */
@@ -2535,8 +2536,10 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				rom_crc_save(cfg);
 			}
 		}
-		if (logo_generation() != logoGen) { /* a logo finished extracting */
+		static unsigned fileCrcSeen;
+		if (logo_generation() != logoGen || ui_file_crc_generation() != fileCrcSeen) { /* a logo finished extracting, or a ROM file's checksum was worked out (its logo's name) */
 			logoGen = logo_generation();
+			fileCrcSeen = ui_file_crc_generation();
 			thumbFor = -2;
 			free_tiles();
 		}
@@ -2818,6 +2821,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		ui_present();
 		SDL_Delay(15);
 	}
+	ui_file_crc_async(false);
 	free_thumbs();
 	free_brand();
 	free_tiles();
