@@ -10897,6 +10897,39 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* F-Zero Climax (docs/games/f-zero-climax.md): GP Legend's engine, its
+		 * own tiles. HUD sprites, priority 0: RANK 666-668 and LAST 655-657
+		 * (palette 15, digits 970-980), POWER 339-357 (12, 13), the time
+		 * 992-1016 (14), KO 620, the map tile 882 (15) at 0, 96 every other
+		 * frame with the dots (654) every frame. */
+		.codes = { "BFTJ" },
+		.title = "F-Zero Climax",
+		.logoOnly = true,
+		.logo = { .steps = { { 0, 1400 } }, .layer = 2 },
+		.hud = {
+			/* 0x02018EDB: 0xFF racing, 0 finished, 1 given up; over, the game
+			 * keeps drawing the HUD till RESULTS (tile 308), so it stays too */
+			.on = { { 0x04000000, 0xFFFF, 0x3C62, 2 }, { 0x02018EDB, 0xFF, 0xFF, 1 } },
+			.stay = { { 0x04000000, 0xFFFF, 0x3C62, 2 }, { 0x02018EDB, 0xFF, 0x00, 1, true, 0x01 } },
+			.offTile = 308,
+			.objs = { { -16, -16, 100, 20, 655, 668, 0, 1u << 15 },
+			          { -16, -16, 100, 20, 970, 980, 0, 1u << 14 | 1u << 15 },
+			          { 150, -16, 239, 12, 339, 357, 0, 1u << 12 | 1u << 13 },
+			          { 150, -16, 239, 12, 992, 1016, 0, 1u << 14 },
+			          { 190, 30, 239, 56, 620, 620, 0, 1u << 15 },
+			          { 190, 30, 239, 56, 970, 980, 0, 1u << 14 },
+			          { -64, 88, 64, 150, 882, 882, 0, 1u << 15 },
+			          { -16, 88, 64, 159, 654, 654, 0 } },
+			.map = { 0, 88, 63, 159 },
+			.mapAt = { 2, 120, 159, 882, 654 },
+			.emptyIsOff = true,
+			.moves = { { 0, 0, 100, 12, 'L', 4, 'B', 155, true, .ifTile = 666 },
+			           { 150, 0, 239, 11, 'C', 120, 'T', 2 },
+			           { 0, 13, 100, 30, 'L', 2, 'T', 2 },
+			           { 150, 12, 239, 56, 0, 0, 'T', 2 } },
+		},
+	},
+	{
 		/* F-Zero: Maximum Velocity (docs/games/f-zero-maximum-velocity.md),
 		 * GP Legend's engine before it. The race HUD is all sprites,
 		 * priority 0, on the track's BG2 / BG3 in mode 2 (DISPCNT 0x3C42,
