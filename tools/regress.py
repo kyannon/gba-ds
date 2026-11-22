@@ -257,6 +257,18 @@ def run_app(case, args, workdir):
             os.utime(dst, (t, t))
         r.ra_states = sd
         extra += ["--retroarch_cfg=" + cfgfile, "--state_folder=retroarch"]
+    # GEN-15: "bios": a fixture under bios/, put as <asset_dir>/bios/gba_bios.bin
+    # (the player's own GBA BIOS; the case's "config" {"gba_bios": 1} switches it on)
+    if case.get("bios"):
+        src = os.path.join(args.fixtures, "bios", case["bios"])
+        if not os.path.exists(src):
+            r.error = "missing bios fixture bios/%s" % case["bios"]
+            return r
+        ad = os.path.join(workdir, "assets")
+        os.makedirs(os.path.join(ad, "bios"), exist_ok=True)
+        os.symlink(src, os.path.join(ad, "bios", "gba_bios.bin"))
+        if "--asset_dir=" + ad not in extra:
+            extra.append("--asset_dir=" + ad)
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
