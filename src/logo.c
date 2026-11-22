@@ -1,4 +1,5 @@
 #include "logo.h"
+#include "trace.h"
 #include "emu.h"
 #include "profiles.h"
 #ifdef __ANDROID__
@@ -373,6 +374,7 @@ static void do_job(Job* j) {
 
 static void* worker(void* arg) {
 	(void) arg;
+	trace_thread("gbads-logo");
 	/* background work: let the game (and its audio) have the CPU first */
 #ifndef __wasi__
 	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 19);
@@ -393,7 +395,15 @@ static void* worker(void* arg) {
 		*at = j->next;
 		snprintf(current, sizeof(current), "%s", j->code);
 		pthread_mutex_unlock(&qlock);
+		double tJob = trace_ms();
+		char jobCode[8];
+		snprintf(jobCode, sizeof(jobCode), "%.4s", j->code); /* (do_job frees the job) */
+		const bool jobUrgent = j->urgent;
 		do_job(j);
+		if (traceOn) {
+			trace("logo: %s extraction took %.0f ms%s", jobCode, trace_ms() - tJob, jobUrgent ? " (asked for by the game being played)" : "");
+			TRACE_ADD("logo.extract_ms", trace_ms() - tJob);
+		}
 		pthread_mutex_lock(&qlock);
 		current[0] = 0;
 		--pending;

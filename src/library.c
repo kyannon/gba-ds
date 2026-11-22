@@ -1,4 +1,5 @@
 #include "library.h"
+#include "trace.h"
 #include "android.h"
 #include "paths.h"
 #include "profiles.h"
@@ -478,6 +479,7 @@ static uint32_t rom_crc_read(const char* path, char files[][1024], int nFiles, i
 
 static void* rom_crc_worker(void* arg) {
 	(void) arg;
+	trace_thread("gbads-romcrc");
 #ifndef __wasi__
 	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 19); /* (background work: the game first) */
 #endif
@@ -2551,6 +2553,8 @@ static int keep_visible(int scr, int sel, int scroll) {
 }
 
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
+	double tLib = trace_ms();
+	trace("library: opening the game list");
 	storage_check(cfg);
 
 	/* the last game played (reselected) */
@@ -2568,7 +2572,9 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	 * can be switched in the game: GEN-9). Issue #49: a big library took a
 	 * while each time. */
 	if (library_changed(cfg)) {
+		trace("library: scanning the ROM folders");
 		scan(cfg);
+		trace_since("library: scan done", tLib);
 	} else {
 		for (int i = 0; i < nGames; ++i) {
 			struct stat st;
@@ -2577,6 +2583,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			entry_patches(cfg, &games[i], file ? file + 1 : games[i].path, (long long) st.st_size, (long long) st.st_mtime);
 		}
 		fprintf(stderr, "library: %d game(s), folders unchanged\n", nGames);
+		trace_since("library: list kept (folders unchanged)", tLib);
 	}
 	thumbFor = -2;
 
@@ -2608,6 +2615,8 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	int listFrames = 0;
 #endif
 	ui_file_crc_async(true); /* (no whole-ROM reads while the list draws) */
+	bool firstListFrame = true;
+	double tWaitLogo = 0;
 	while (!quit && chosen < 0) {
 #ifdef __wasi__
 		if (listFrames++) logo_step(); /* (the web build: a logo a frame, from the list's second) */
@@ -2651,7 +2660,9 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			prioSel = sel, prioScroll = scroll;
 		}
 		if (waiting >= 0) {
+			if (!tWaitLogo) tWaitLogo = trace_ms(), trace("library: the chosen game waits for logo extraction in the background");
 			if (!logo_busy(games[waiting].code) && !logo_busy(NULL)) {
+				trace_since("library: waited for logo extraction before starting the game", tWaitLogo);
 				chosen = waiting;
 				break;
 			}
@@ -2906,8 +2917,13 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		draw_list(cfg, ls, sel, scroll);
 		if (nScreens > 1) draw_preview(cfg, ui_other_screen(), sel);
 		ui_present();
+		if (firstListFrame) {
+			firstListFrame = false;
+			trace_since("library: first list frame shown", tLib);
+		}
 		SDL_Delay(15);
 	}
+	trace("library: leaving the list (%s)", chosen >= 0 ? games[chosen].path : "quit");
 	ui_file_crc_async(false);
 	free_thumbs();
 	free_brand();

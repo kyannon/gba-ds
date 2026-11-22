@@ -1,4 +1,5 @@
 #include "mapcap.h"
+#include "trace.h"
 #include "profiles.h"
 #ifdef __ANDROID__
 #include "android.h"
@@ -498,6 +499,13 @@ static const char* do_capture(MapCapture* mc, const void* state) {
 	unsigned long f0 = mc->shadow.frames;
 	const char* err = do_capture_(mc, state);
 	clock_gettime(CLOCK_MONOTONIC, &t1);
+	if (traceOn) {
+		double ms = (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6;
+		TRACE_ADD("mapcap.capture_ms", ms);
+		TRACE_ADD("mapcap.capture_frames", (double) (mc->shadow.frames - f0));
+		if (mc->cancel) TRACE_ADD("mapcap.called_off", 1);
+		if (ms > 400) trace("mapcap: a capture took %.0f ms (%lu frames of the hidden copy)%s", ms, mc->shadow.frames - f0, mc->cancel ? ", called off" : "");
+	}
 	if (dbg) fprintf(stderr, "capture: %.0f ms, %lu frames%s%s\n", (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6, mc->shadow.frames - f0,
 	                 mc->cancel ? ", called off" : err ? ": " : "", mc->cancel ? "" : err ? err : "");
 	return err;
@@ -729,6 +737,7 @@ static void publish(MapCapture* mc, const char* err);
 
 static void* worker(void* arg) {
 	MapCapture* mc = arg;
+	trace_thread("gbads-mapcap");
 	/* the live game (and its audio) gets the CPU first */
 #ifndef __wasi__
 	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 10);
@@ -847,6 +856,7 @@ void mapcap_destroy(MapCapture* mc) {
 	if (webLive == mc) webLive = NULL;
 #endif
 	if (mc->running) {
+		trace("mapcap: stopping the capture thread%s", mc->busy ? " (a capture is running: called off)" : "");
 		pthread_mutex_lock(&mc->lock);
 		mc->running = false;
 		if (mc->busy) mc->cancel = true; /* (closing: a capture running isn't waited for: some take seconds) */

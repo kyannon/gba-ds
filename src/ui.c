@@ -1,5 +1,6 @@
 #include <limits.h>
 #include "ui.h"
+#include "trace.h"
 
 /* the left stick presses the D-pad (issue #57): game.c turns it off for a game
  * with left_stick_dpad = 0, and on again for its menus and the game list */
@@ -404,6 +405,7 @@ static void open_pads(void) {
 }
 
 bool ui_init(Config* c, bool wantDual) {
+	double tUi = trace_ms();
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
 	SDL_SetHint(SDL_HINT_APP_NAME, "GBA DS");
@@ -425,6 +427,7 @@ bool ui_init(Config* c, bool wantDual) {
 		fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
 		return false;
 	}
+	tUi = trace_since("ui_init: SDL_Init (video, audio, controllers)", tUi);
 	SDL_ShowCursor(SDL_DISABLE);
 	SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt");
 	if (getenv("SDL_GAMECONTROLLERCONFIG_FILE")) {
@@ -436,6 +439,7 @@ bool ui_init(Config* c, bool wantDual) {
 	if (SDL_GameControllerAddMappingsFromFile(mapFile) > 0) fprintf(stderr, "button mappings: %s\n", mapFile);
 	load_user_guids(mapFile);
 	open_pads();
+	tUi = trace_since("ui_init: controllers opened", tUi);
 
 #ifdef __ANDROID__
 	/* SDL only has the display the activity is on. The other one is a
@@ -446,6 +450,7 @@ bool ui_init(Config* c, bool wantDual) {
 	 * offscreen driver makes a full-screen one 1024x768) */
 	if (!create_view(&views[0], 0, "GBA DS", !getenv("GBADS_WINDOW"), 1024, 768)) return false;
 	nViews = 1;
+	tUi = trace_since("ui_init: game screen's window and renderer made", tUi);
 	int sw, sh, w0, h0;
 	SDL_RendererInfo ri;
 	SDL_GetRendererOutputSize(views[0].ren, &w0, &h0);
@@ -472,7 +477,9 @@ bool ui_init(Config* c, bool wantDual) {
 	}
 	views[0].retained = true; /* drawn only when it changes, like the second screen */
 	fprintf(stderr, "android: %s\n", nViews == 2 ? "two screens" : "one screen (no second display)");
+	tUi = trace_since("ui_init: second screen set up", tUi);
 	ui_layout();
+	trace_since("ui_init: layout", tUi);
 	return true;
 #endif
 	int displays = SDL_GetNumVideoDisplays();
@@ -534,19 +541,23 @@ void ui_textures_reset(void) {
 }
 
 void ui_shutdown(void) {
+	double tSd = trace_ms();
 	for (int v = 0; v < 2; ++v) {
 		for (int i = 0; i < PIPE_CACHE; ++i) {
 			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
 			if (pipeGrids[v][i].tex) SDL_DestroyTexture(pipeGrids[v][i].tex);
 		}
 	}
+	tSd = trace_since("ui_shutdown: scaling textures destroyed", tSd);
 	for (int i = 0; i < nViews; ++i) {
 		if (i == 0 || views[i].ren != views[0].ren) SDL_DestroyRenderer(views[i].ren);
 		if (views[i].win) SDL_DestroyWindow(views[i].win);
 		if (views[i].surf) SDL_FreeSurface(views[i].surf);
 		views[i] = (View) { 0 };
 	}
+	tSd = trace_since("ui_shutdown: renderers and windows destroyed", tSd);
 	SDL_Quit();
+	trace_since("ui_shutdown: SDL_Quit", tSd);
 }
 
 static void layout_screens(void);
@@ -1054,10 +1065,19 @@ bool ui_events(void) {
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
 		case SDL_QUIT:
+			trace("sdl: quit requested");
 			uiQuit = 1;
+			break;
+		case SDL_APP_TERMINATING:
+		case SDL_APP_LOWMEMORY:
+		case SDL_APP_DIDENTERBACKGROUND:
+		case SDL_APP_WILLENTERFOREGROUND:
+			trace("sdl: %s", ev.type == SDL_APP_TERMINATING ? "app terminating" : ev.type == SDL_APP_LOWMEMORY ? "LOW MEMORY"
+			                 : ev.type == SDL_APP_DIDENTERBACKGROUND ? "did enter background" : "will enter foreground");
 			break;
 		case SDL_APP_WILLENTERBACKGROUND:
 			/* now: SDL stops this thread at its next event pump (Android) */
+			trace("sdl: will enter background");
 			fprintf(stderr, "going to the background\n");
 			if (backgroundFn) backgroundFn();
 #ifdef __ANDROID__
@@ -1070,6 +1090,7 @@ bool ui_events(void) {
 			renderReset = true;
 			break;
 		case SDL_APP_DIDENTERFOREGROUND:
+			trace("sdl: did enter foreground");
 			fprintf(stderr, "back in the foreground\n");
 #ifdef __ANDROID__
 			retained_invalidate(); /* SDL's window surface is a new one: redraw both screens */
@@ -1080,7 +1101,13 @@ bool ui_events(void) {
 		case SDL_JOYDEVICEADDED:
 			open_pads();
 			break;
-		case SDL_WINDOWEVENT:
+		case SDL_WINDOWEVENT: {
+			static const char* const wnames[] = { "none", "shown", "hidden", "exposed", "moved", "resized", "size changed", "minimized", "maximized",
+				                                  "restored", "mouse enter", "mouse leave", "focus gained", "focus lost", "close", "take focus", "hit test" };
+			if (ev.window.event >= SDL_WINDOWEVENT_SHOWN && ev.window.event != SDL_WINDOWEVENT_MOVED && ev.window.event != SDL_WINDOWEVENT_ENTER &&
+			    ev.window.event != SDL_WINDOWEVENT_LEAVE)
+				trace("sdl: window %u %s %d,%d", (unsigned) ev.window.windowID, ev.window.event < 17 ? wnames[ev.window.event] : "?", ev.window.data1, ev.window.data2);
+		}
 			if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED || ev.window.event == SDL_WINDOWEVENT_RESIZED) {
 				ui_layout();
 			}
@@ -2321,6 +2348,7 @@ static volatile unsigned fileCrcGen;
 
 static void* file_crc_worker(void* arg) {
 	(void) arg;
+	trace_thread("gbads-filecrc");
 #ifndef __wasi__
 	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 10); /* (below the list, above the logo extraction's 19) */
 #endif
@@ -2715,6 +2743,7 @@ void ui_notice(const char* title, const char* line) {
  * frames it froze the game for seconds (the whole file read and summed from the SD
  * card), so it's done here, with a screen saying so, before the game starts. */
 void ui_game_prepare(const Config* c, const char* rom) {
+	double tPrep = trace_ms();
 	uint8_t h[0xB0];
 	if (!rom || !emu_rom_header(rom, h, sizeof(h))) return;
 	char code[5];
@@ -2730,6 +2759,7 @@ void ui_game_prepare(const Config* c, const char* rom) {
 	bool needLogo = false;
 	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
 	if (!needCrc && !needLogo) return;
+	trace("game prepare: first start of this ROM file (checksum %s, logo %s)", needCrc ? "needed" : "known", needLogo ? "needed" : "there");
 	ui_notice("Initializing game...", tr("Only the first time for each game"));
 	if (needCrc) {
 		fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
@@ -2743,6 +2773,7 @@ void ui_game_prepare(const Config* c, const char* rom) {
 		fprintf(stderr, "initializing %s: extracting its logo\n", rom);
 		logo_extract(rom, code, logoFile);
 	}
+	trace_since("game prepare: first-time work done", tPrep);
 }
 
 void ui_logo_queue(const Config* c, const char* rom, const char* code) {

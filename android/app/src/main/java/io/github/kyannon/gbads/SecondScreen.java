@@ -38,6 +38,7 @@ public class SecondScreen extends Presentation implements SurfaceHolder.Callback
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        Trace.log(getContext(), "SecondScreen.onCreate");
         Window w = getWindow();
         /* never take key focus: the buttons must keep going to the game */
         w.addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -84,16 +85,19 @@ public class SecondScreen extends Presentation implements SurfaceHolder.Callback
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        Trace.log(getContext(), "second screen surface created");
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         Log.i(TAG, "second screen surface " + width + "x" + height);
+        Trace.log(getContext(), "second screen surface changed: " + width + "x" + height + " (format " + format + ")");
         nativeSetSurface(holder.getSurface());
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        Trace.log(getContext(), "second screen surface destroyed");
         nativeSetSurface(null);
     }
 }

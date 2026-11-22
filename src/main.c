@@ -17,6 +17,7 @@
 #include "ui.h"
 #include "ra.h"
 #include "update.h"
+#include "trace.h"
 #include "clocks.h"
 #include "i18n.h"
 #ifdef __wasi__
@@ -70,6 +71,7 @@ static void on_crash(int sig) {
 #endif
 
 int main(int argc, char** argv) {
+	trace_init(); /* the clock for every "[+ms]" line (trace.h) */
 #ifdef __wasi__
 	/* the web player's capture worker: GBADS_CAPTURE_SERVE=CODE, the ROM last,
 	 * GBADS_CAPTURE_TIGHT=1 for the tight crop (mapcap.c) */
@@ -102,6 +104,10 @@ int main(int argc, char** argv) {
 	android_init_log();
 #endif
 	fprintf(stderr, "GBA DS %s\n", GBADS_VERSION);
+	trace_thread("gbads-game"); /* (SDL's main thread: the game loop) */
+	trace("main: native code started (the process is %.0f ms old)", trace_ms());
+	trace_start();
+	double tMain = trace_ms();
 	Config cfg;
 	config_defaults(&cfg);
 #ifdef __ANDROID__
@@ -171,6 +177,7 @@ int main(int argc, char** argv) {
 	config_load_file(&cfg, path);
 	config_parse_args(&cfg, argc, argv);
 	library_bios_apply(&cfg);
+	tMain = trace_since("main: settings loaded", tMain);
 	emu_solar_level = cfg.solarLevel; /* (the sun sensor's reading, Boktai) */
 	if (cfg.overlayMode == OVM_LEGACY) {
 		/* overlays = top / both... from before v1.5 (the player's PNGs, which
@@ -188,6 +195,7 @@ int main(int argc, char** argv) {
 	/* and ES-DE's, on Android (ES-DE's RetroArch SAF mode may have changed) */
 	esde_integration_refresh();
 #endif
+	tMain = trace_since("main: frontend integration checked", tMain);
 
 #if defined(__linux__) && !defined(__ANDROID__) && defined(__GLIBC__)
 	signal(SIGSEGV, on_crash);
@@ -205,34 +213,52 @@ int main(int argc, char** argv) {
 	/* the interface's language (Settings > System > Language): before anything is drawn */
 	i18n_init(cfg.language);
 
+	tMain = trace_since("main: language set up", tMain);
 	if (!ui_init(&cfg, true)) return 1;
+	tMain = trace_since("main: screens made (ui_init)", tMain);
 	ui_language_changed(); /* (the fonts the language's script needs) */
 	ui_accent(cfg.accent);
 	ui_theme(cfg.lightTheme);
 	ui_brightness(cfg.brightTop, cfg.brightBottom);
+	tMain = trace_since("main: language fonts, colours and brightness", tMain);
 	ra_init(&cfg); /* signs in to RetroAchievements in the background */
 	update_init(&cfg, exeDir, argc, argv);
+	tMain = trace_since("main: RetroAchievements and update check started", tMain);
 #ifdef __ANDROID__
 	fprintf(stderr, "startup: screens ready\n"); /* logcat's timestamps time the start-up steps */
 #endif
 	if (cfg.inputScript[0]) ui_load_script(cfg.inputScript);
 
+	trace("main: ready (everything up to here took %.0f ms of the process's life)", trace_ms());
 	if (cfg.rom[0]) {
+		trace_phase("game-prepare");
 		ui_game_prepare(&cfg, cfg.rom);
 		while (game_run(&cfg, cfg.rom, false) == GAME_RELOAD && !uiQuit) fprintf(stderr, "restarting %s\n", cfg.rom);
 	} else {
 		char rom[1024];
-		while (!uiQuit && library_run(&cfg, rom, sizeof(rom))) {
+		while (!uiQuit && (trace_phase("library"), library_run(&cfg, rom, sizeof(rom)))) {
 			fprintf(stderr, "starting %s\n", rom);
+			trace("main: starting %s", rom);
+			trace_phase("game-prepare");
+			double tPrep = trace_ms();
 			ui_game_prepare(&cfg, rom);
+			trace_since("main: game prepared (first-time checksum and logo, if any)", tPrep);
 			enum GameExit x;
 			while ((x = game_run(&cfg, rom, true)) == GAME_RELOAD && !uiQuit) fprintf(stderr, "restarting %s\n", rom);
 			if (x == GAME_QUIT_APP) break;
+			trace("main: back to the game list");
 		}
 	}
+	trace_phase("exit");
+	trace("main: shutting down (quit flag %d)", (int) uiQuit);
+	tMain = trace_ms();
 	logo_shutdown();
+	tMain = trace_since("exit: logo workers stopped", tMain);
 	ra_shutdown();
+	tMain = trace_since("exit: RetroAchievements stopped", tMain);
 	ui_shutdown();
+	tMain = trace_since("exit: screens and SDL shut down", tMain);
 	if (cfg.perfMax) clocks_set(false); /* (the governors as they were) */
+	trace("main: returning to the system (%.0f ms into the process)", trace_ms());
 	return update_restart_if_installed(); /* an update was installed: start it */
 }

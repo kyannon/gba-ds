@@ -57,6 +57,10 @@ public class GbaDsActivity extends SDLActivity {
     @Override
     protected void onCreate(Bundle state) {
         running = this;
+        Trace.start(this, "GbaDsActivity");
+        final long tCreate = Trace.ms();
+        Trace.log(this, "GbaDsActivity.onCreate begins (task " + getTaskId() + ", " + getClass().getSimpleName() + ", display "
+                + getWindowManager().getDefaultDisplay().getDisplayId() + ")");
         /* before SDL starts the native thread: where config, states and the log go */
         File home = dataFolder();
         try {
@@ -76,10 +80,13 @@ public class GbaDsActivity extends SDLActivity {
         /* before the window is laid out: on a Surface Duo a landscape lock
          * here takes a spanned app back to one screen (issue #48) */
         setRequestedOrientation(orientationWanted());
+        long tSuper = Trace.since(this, "GbaDsActivity.onCreate: data folder, orientation", tCreate);
         super.onCreate(state);
+        tSuper = Trace.since(this, "SDLActivity.onCreate (loads libSDL2.so and libmain.so, makes the surface; the native thread starts when the surface is ready)", tSuper);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         LauncherActivity.launchLog(this, mBrokenLibraries ? "native libraries didn't load (SDL shows why)" : "native libraries loaded");
         if (!mBrokenLibraries) openSecondScreen();
+        Trace.since(this, "GbaDsActivity.onCreate: the second screen opened", tSuper);
         IntentFilter f = new IntentFilter(INSTALL_STATUS);
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(installStatus, f, Context.RECEIVER_NOT_EXPORTED);
         else registerReceiver(installStatus, f);
@@ -151,6 +158,7 @@ public class GbaDsActivity extends SDLActivity {
         String rom = getIntent() != null ? getIntent().getStringExtra("rom") : null;
         if (rom != null && !rom.isEmpty()) {
             Log.i(TAG, "rom from intent: " + rom);
+            Trace.log(this, "GbaDsActivity: the game to start is " + rom);
             currentRom = rom;
             return new String[] { rom };
         }
@@ -256,9 +264,12 @@ public class GbaDsActivity extends SDLActivity {
         other.getRealMetrics(otherDm);
         Log.i(TAG, "display ppi: " + mineDm.xdpi + " x " + mineDm.ydpi + " (game activity), " + otherDm.xdpi + " x " + otherDm.ydpi + " (second)");
         SecondScreen.nativeSetPpi((mineDm.xdpi + mineDm.ydpi) / 2, (otherDm.xdpi + otherDm.ydpi) / 2);
+        Trace.displayFacts(this, other);
+        final long tShow = Trace.ms();
         second = new SecondScreen(this, other);
         try {
             second.show();
+            Trace.since(this, "second screen: Presentation.show() returned (its surface comes later: see 'second screen surface')", tShow);
             Log.i(TAG, "second screen on display " + other.getDisplayId() + " (" + size.x + "x" + size.y + ")");
         } catch (WindowManager.InvalidDisplayException e) {
             Log.e(TAG, "second screen: " + e);
@@ -469,6 +480,7 @@ public class GbaDsActivity extends SDLActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        Trace.log(this, "GbaDsActivity.onStart");
         if (second != null && secondHidden) {
             secondHidden = false;
             try {
@@ -483,6 +495,7 @@ public class GbaDsActivity extends SDLActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        Trace.log(this, "GbaDsActivity.onStop (finishing " + isFinishing() + ")");
         if (second != null && !secondHidden && !isFinishing()) {
             second.hide();
             secondHidden = true;
@@ -491,7 +504,46 @@ public class GbaDsActivity extends SDLActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Trace.log(this, "GbaDsActivity.onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Trace.log(this, "GbaDsActivity.onPause (finishing " + isFinishing() + ")");
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        Trace.log(this, "GbaDsActivity window focus " + (hasFocus ? "gained" : "lost"));
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        Trace.trim(this, level);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        Trace.log(this, "onLowMemory: the system is critically short of memory");
+    }
+
+    /** Who finishes the activity (SDL when the native main returns, a frontend switch, the system...). */
+    @Override
+    public void finish() {
+        Trace.log(this, "GbaDsActivity.finish() called from " + Trace.caller());
+        super.finish();
+    }
+
+    @Override
     protected void onDestroy() {
+        final long tDestroy = Trace.ms();
+        Trace.log(this, "GbaDsActivity.onDestroy begins (finishing " + isFinishing() + ")");
         try {
             unregisterReceiver(installStatus);
         } catch (IllegalArgumentException ignored) {
@@ -499,14 +551,18 @@ public class GbaDsActivity extends SDLActivity {
         if (second != null) {
             second.dismiss();
             second = null;
+            Trace.since(this, "GbaDsActivity.onDestroy: second screen dismissed", tDestroy);
         }
         boolean finishing = isFinishing();
         if (running == this) running = null;
+        long tSuper = Trace.ms();
         super.onDestroy();
+        Trace.since(this, "SDLActivity.onDestroy (tells the native side to quit and waits for its thread)", tSuper);
         /* the native side keeps its state in statics: start fresh next time
          * (with the game a frontend asked for, if that's why we closed) */
         if (finishing) {
             if (switchTo != null) startActivity(switchTo);
+            Trace.log(this, "GbaDsActivity.onDestroy: calling System.exit(0) (the process ends; its exit time shows in 'previous exits' at the next start)");
             System.exit(0);
         }
     }

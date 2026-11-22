@@ -835,3 +835,81 @@ one session"). Empty after each release.
   left out: `Window.setSustainedPerformanceMode`, which holds clocks steady
   for heat rather than raising them; `pin_cores` (no difference, see above).
 - Desktop kit: `stubs_gpu.c` has stand-ins that log the change.
+
+## Diagnostic trace (issue #36, GammaOS performance; branch `issue-36-gammaos-trace`)
+
+A test build that logs far more than the usual log, to find where the RG DS
+Plus on GammaOS loses time: the start (long black screens), choosing a game,
+leaving, and heavy games (the pinball games). Not player-facing: no changelog
+line. On by default on Android; off when a file `GBA DS/trace-off` exists
+(Java and native both look), on other systems `GBADS_TRACE=1`.
+
+**Where it goes (all in the GBA DS folder):**
+
+- `gba-ds.log`: the native side. Every trace line starts `[+12345.6]`, the
+  milliseconds since the process started (`trace.c`, from `/proc/self/stat`,
+  CLOCK_BOOTTIME).
+- `launch.log`: the Java side, the same `[+ms]` clock (`Trace.java`), so the
+  two files line up. Now 512 KB before it rolls to `launch.log.old`.
+- `logcat.log` (and `logcat.prev.log`, the run before): the app's own logcat
+  (what the system says about the process: BufferQueue, Choreographer frame
+  skips, GC, EGL), copied by a `logcat --pid` child, 8 MB at most. No adb
+  needed.
+
+**What the Java side logs** (`Trace.java`, hooks in `LauncherActivity`,
+`GbaDsActivity`, `SecondScreen`): why the *previous* process ended
+(`getHistoricalProcessExitReasons`, Android 11+: crash, low memory, killed,
+normal exit, and when; the gap between the last log line and that time is
+the shutdown tail); device, memory, power, standby bucket, displays and their
+refresh modes; every lifecycle step with its time (`onCreate`, how long
+`SDLActivity.onCreate` took, `Presentation.show`, surface created / changed /
+destroyed, `onPause` / `onStop` / `onDestroy`, `finish()` with who called it,
+`System.exit`, the VM's exit hooks); `onTrimMemory` / `onLowMemory`; thermal
+status changes; a watchdog (UI thread not answering within 100 ms, memory
+every 2 s then 5 s).
+
+**What the native side logs** (`trace.c`):
+
+- Phase lines with durations: `main:` (settings, frontend check, `ui_init`
+  and its steps), `library:` (scan, first list frame, waiting for logo
+  extraction after choosing a game), `game load:` (patch plan, `emu_open`,
+  achievements, cheats, second-screen set-up with the live-view copies,
+  textures, logo, resume state, rewind buffer, audio), `game:` first frame /
+  frame 60 / 300 / 1800 since loading began, `game exit:` (each step of
+  leaving: keeper, frame-buffer worker, resume state, audio, map thread, live
+  view, battery save flush) and `exit:` / `ui_shutdown:`.
+- `sdl:` events: quit, background / foreground, low memory, every window event.
+- **A sampler thread** (`gbads-trace`, nice 10): `sys:` once a second (every
+  250 ms in the first 30 s and for 15 s after each phase change): each core's
+  busy %, clock (if readable), runnable threads, context switches, load,
+  this process's CPU, memory available / RSS, I/O KB/s, pressure (PSI),
+  temperatures, battery; `threads:` the app's threads over 2% (or in
+  uninterruptible I/O wait, with the kernel function it waits in); `devfreq:`
+  GPU / bus clocks where readable. At start `readable:` says which of those
+  sources the app may read on this device (GammaOS may hide some).
+- **Stats** (`TRACE_ADD`), once a second as `stats[group]: name avg/min/max xN`:
+  - `loop`: `interval` (top to top, should be 16.7), `over20ms` / `over33ms`
+    (count = x), `work`, `input`, `emu`, `emu_sound`, `map_etc`, `draw`
+    (split into `tex_upload`, `draw_calls`, `present_call`), `present_top` /
+    `present_bottom` (the swaps), `wait_ahead`, `sleep`, `fps`.
+  - `audio.queue_ms`: the sound queue (min near 0 = underruns coming).
+  - `emu`: `run_frame` (the game's frame incl. the live view's work),
+    `ahead_lag` (asked for -> the worker started: scheduling delay),
+    `ahead_run`, `ahead_wait`.
+  - `pinball` (Pok&eacute;mon Pinball and Sonic Pinball Party's tall view):
+    per frame, `first_main` / `first_wait` (the copies' first frame, on this
+    thread and waited for), `hide_hud`, `state_save`, `game_frame`,
+    `second_wait` (waiting for the copies after the game's frame: how much
+    slower they are), `state_load`, `copy_blind_frame`, `copy_rerun`,
+    `copiesN.first|second.lag|run|cpu` (per copy: asked -> started, wall time,
+    CPU time: run >> cpu means the copy was kept off the CPU),
+    `copies_running` / `copies_idle` (counts).
+  - `mapcap` (capture ms, frames, called off), `logo.extract_ms`.
+- Reading it: a frame that is slow with `cpu` ~ `run` is work; `run` >> `cpu`
+  or a big `lag` is a thread kept off the CPU (look at `runnable`, the core
+  busy %, and the clocks in `sys:`); `IN I/O WAIT` on the game thread is
+  storage; `present_*` large is the display / compositor.
+- Cost: the sampler reads `/proc` and `/sys` files (a few hundred microseconds
+  a second, at nice 10), the stats take one uncontended mutex a few dozen
+  times a frame, the logcat copy is a separate process. Compare a heavy game
+  with `GBA DS/trace-off` present if the trace itself is suspected.

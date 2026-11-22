@@ -8,6 +8,7 @@
 #include "android.h"
 #include "i18n.h"
 #include "clocks.h"
+#include "trace.h"
 #include "emu.h"
 #include "paths.h"
 #include "profiles.h"
@@ -36,8 +37,9 @@
 static FILE* logFile;
 
 static void* log_thread(void* arg) {
+	trace_thread("gbads-log");
 	FILE* in = fdopen((int) (intptr_t) arg, "r");
-	char line[1024];
+	char line[4096]; /* (the trace's lines are long) */
 	while (in && fgets(line, sizeof(line), in)) {
 		size_t n = strlen(line);
 		if (logFile) {

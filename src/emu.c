@@ -20,6 +20,7 @@
 #include <mgba-util/vfs.h>
 #include <mgba/core/log.h>
 #include "patch.h"
+#include "trace.h"
 #include <stdarg.h>
 #include <stddef.h>
 #include <sys/stat.h>
@@ -69,6 +70,7 @@ typedef struct {
 
 static void* async_save_worker(void* arg) {
 	AsyncSave* a = arg;
+	trace_thread("gbads-save");
 #ifdef __ANDROID__
 	android_pin_worker_thread("save writer"); /* threads start on their creator's cores: not the game's */
 #endif
@@ -80,8 +82,11 @@ static void* async_save_worker(void* arg) {
 		pthread_mutex_unlock(&a->lock);
 		int fd = open(a->path, O_RDWR); /* fsync flushes the file, whichever descriptor */
 		if (fd >= 0) {
+			double tSync = trace_ms();
 			futimens(fd, NULL);
-			if (fsync(fd) != 0) fprintf(stderr, "save: couldn't flush %s\n", a->path);
+			int syncRes = fsync(fd);
+			if (traceOn && trace_ms() - tSync > 30) trace("save: flushing %s to storage took %.0f ms (on its own thread)", a->path, trace_ms() - tSync);
+			if (syncRes != 0) fprintf(stderr, "save: couldn't flush %s\n", a->path);
 			else if (getenv("GBADS_DEBUG")) fprintf(stderr, "save: flushed %s\n", a->path);
 			close(fd);
 		}
@@ -385,6 +390,7 @@ BiosFile emu_bios_check(const char* path) {
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
+	double tOpen = trace_ms();
 	memset(e, 0, sizeof(*e));
 	mLogSetDefaultLogger(&quietLogger);
 	e->core = mCoreFind(romPath);
@@ -466,6 +472,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->gameCode[4] = 0;
 	e->core->checksum(e->core, &e->romCrc, mCHECKSUM_CRC32); /* (worked out by mGBA as it loaded the ROM) */
 	if (e->patch != PATCH_APPLIED && e->patch != PATCH_PARTIAL) e->fileCrc = e->romCrc;
+	if (audio) trace("emu_open: %s opened in %.0f ms (%s)", e->gameCode, trace_ms() - tOpen, savePath ? "with a battery save" : "no save");
 	return true;
 }
 

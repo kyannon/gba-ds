@@ -2,6 +2,7 @@
 #ifdef GBADS_RA
 
 #include "ra.h"
+#include "trace.h"
 #include "i18n.h"
 #include "paths.h"
 #include "textfont.h"
@@ -376,6 +377,7 @@ static void run_job(Job* j) {
 
 static void* worker_main(void* arg) {
 	(void) arg;
+	trace_thread("gbads-ra");
 #ifdef __ANDROID__
 	android_pin_worker_thread("RetroAchievements");
 #endif

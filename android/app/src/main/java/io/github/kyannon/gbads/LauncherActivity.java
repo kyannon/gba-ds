@@ -46,8 +46,40 @@ public class LauncherActivity extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        Trace.start(this, "LauncherActivity");
+        Trace.log(this, "LauncherActivity.onCreate (task " + getTaskId() + ", root " + isTaskRoot() + ", on display " + getWindowManager().getDefaultDisplay().getDisplayId() + ")");
         if (state != null) askedForFiles = state.getBoolean("askedForFiles");
         installCrashLog(getApplicationContext());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Trace.log(this, "LauncherActivity.onStart");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Trace.log(this, "LauncherActivity.onPause (finishing " + isFinishing() + ")");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Trace.log(this, "LauncherActivity.onStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Trace.log(this, "LauncherActivity.onDestroy (finishing " + isFinishing() + ")");
+    }
+
+    @Override
+    public void finish() {
+        Trace.log(this, "LauncherActivity.finish() called from " + Trace.caller());
+        super.finish();
     }
 
     /* ------------------------------------------------------------ launch.log
@@ -92,7 +124,7 @@ public class LauncherActivity extends Activity {
         Log.i(TAG, line);
         try {
             File f = new File(dataDir(c), "launch.log");
-            if (f.length() > 64 * 1024) f.delete(); /* keep it short */
+            if (f.length() > 512 * 1024) f.renameTo(new File(f.getParentFile(), "launch.log.old")); /* keep it short (the trace's lines make it longer than it was) */
             try (FileOutputStream os = new FileOutputStream(f, true)) {
                 String stamp = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(new java.util.Date());
                 os.write((stamp + "  " + line + "\n").getBytes("UTF-8"));
@@ -124,6 +156,7 @@ public class LauncherActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        Trace.log(this, "LauncherActivity.onResume");
         if (Build.VERSION.SDK_INT >= 30 && !Environment.isExternalStorageManager()) {
             if (!askedForFiles && !getPreferences(MODE_PRIVATE).getBoolean("filesNotNow", false)) {
                 askedForFiles = true;
@@ -179,6 +212,8 @@ public class LauncherActivity extends Activity {
         final Context app = getApplicationContext();
         /* off the UI thread: a game from another app's provider may have to be
          * copied, which takes a while for a big ROM */
+        final long tStart = Trace.ms();
+        Trace.log(this, "launcher: working out the game from the launch request");
         new Thread(() -> {
             String rom = null;
             try {
@@ -187,6 +222,7 @@ public class LauncherActivity extends Activity {
                 launchLog(app, "couldn't get the game from the launch request: " + t);
             }
             final String found = rom;
+            Trace.since(app, "launcher: the game's path worked out (" + (found != null ? "copying a ROM from another app's provider shows here" : "no game: the list") + ")", tStart);
             runOnUiThread(() -> launchGame(found));
         }, "gbads-launch").start();
     }
@@ -201,6 +237,7 @@ public class LauncherActivity extends Activity {
          * task the game would become part of the frontend's. A game already
          * running gets the request where it is. */
         boolean here = now != null ? now instanceof GbaDsHereActivity : !hasSecondDisplay() && isTaskRoot();
+        Trace.log(this, "launcher: starting " + (here ? "GbaDsHereActivity (the launcher's own task)" : "GbaDsActivity (a task of its own)") + (now != null ? ", one is already running" : ""));
         Intent game = new Intent(this, here ? GbaDsHereActivity.class : GbaDsActivity.class);
         if (rom != null) {
             launchLog(this, "game from the launch request: " + rom);

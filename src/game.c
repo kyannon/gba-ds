@@ -1,6 +1,7 @@
 /* One play session: the emulator, the second-screen map, and the pause menu. */
 #include "game.h"
 #include "i18n.h"
+#include "trace.h"
 #ifdef __wasi__
 extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_name("web_sleep")));
 #endif
@@ -116,6 +117,7 @@ static struct {
 	pthread_cond_t cond;
 	bool started, busy, quit;
 	uint32_t keys;
+	double queued; /* trace_ms() when the frame was asked for */
 } ahead = { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER };
 static bool aheadInFlight; /* the worker is emulating the next frame */
 static bool aheadReady;    /* it has: that frame is emulated but not yet used */
@@ -215,19 +217,36 @@ static struct {
 	bool started, busy, quit;
 	void (*fn)(void*);
 	void* arg;
+	double queued;     /* trace_ms() when the work was asked for */
+	int st[2][3];      /* trace stats: [first, second][asked -> began, ran, CPU time] */
+	bool stInit;
 } twinWork[TWINS] = { { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER },
                       { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER } };
 
+static void twin_second(void* arg);
 static void* twin_worker(void* arg) {
 	typeof(twinWork[0])* w = arg;
+	{
+		char nm[16];
+		snprintf(nm, sizeof(nm), "gbads-twin%d", (int) (w - twinWork));
+		trace_thread(nm);
+	}
 	pthread_mutex_lock(&w->lock);
 	for (;;) {
 		while (!w->busy && !w->quit) pthread_cond_wait(&w->cond, &w->lock);
 		if (w->quit) break;
 		void (*fn)(void*) = w->fn;
 		void* a = w->arg;
+		double queued = w->queued;
 		pthread_mutex_unlock(&w->lock);
+		double t0 = trace_ms(), c0 = thread_cpu_ms();
 		fn(a);
+		if (traceOn && w->stInit) {
+			int ph = fn == twin_second;
+			trace_add(w->st[ph][0], t0 - queued);
+			trace_add(w->st[ph][1], trace_ms() - t0);
+			trace_add(w->st[ph][2], thread_cpu_ms() - c0);
+		}
 		pthread_mutex_lock(&w->lock);
 		w->busy = false;
 		pthread_cond_broadcast(&w->cond);
@@ -244,6 +263,19 @@ static void twin_work_start(int i, void (*fn)(void*), void* arg) {
 		w->started = pthread_create(&w->thread, NULL, twin_worker, w) == 0;
 	}
 	bool ok = w->started;
+	if (traceOn && !w->stInit) {
+		static const char* const phases[2] = { "first", "second" };
+		static const char* const kinds[3] = { "lag", "run", "cpu" }; /* asked -> began; wall time; CPU time */
+		for (int p = 0; p < 2; ++p) {
+			for (int k = 0; k < 3; ++k) {
+				char nm[40];
+				snprintf(nm, sizeof(nm), "pinball.copy%d.%s.%s", i, phases[p], kinds[k]);
+				w->st[p][k] = trace_stat(nm);
+			}
+		}
+		w->stInit = true;
+	}
+	w->queued = trace_ms();
 	if (ok) w->fn = fn, w->arg = arg, w->busy = true, pthread_cond_broadcast(&w->cond);
 	pthread_mutex_unlock(&w->lock);
 	if (!ok) fn(arg);
@@ -578,20 +610,25 @@ static void twin_first(void* arg) {
 	 * between the screens wrong: then the frame is run again with the step
 	 * it really took) */
 	for (int again = 0; again < 2; ++again) {
+		double tq = trace_ms();
 		if (!emu_state_load(&tw->e, twinStates[twinCur])) return;
+		TRACE_ADD("pinball.state_load", trace_ms() - tq);
 		uint32_t T = twin_hold(tw, tw->row, tw->panStep);
 		if (!T) return;
 		twin_jump(&tw->e, T, tw->row + (int8_t) emu_read8(&tw->e, T + L->shake));
 		/* not drawn: its picture is never shown (twin_second's is), and
 		 * drawing is about half of a frame's work, on the frame's critical
 		 * path (twins[1]'s runs before the game's frame, on its thread) */
+		tq = trace_ms();
 		emu_frame_blind(&tw->e, twinKeys[twinCur] & 0x3FF);
+		TRACE_ADD("pinball.copy_blind_frame", trace_ms() - tq);
 		/* (how far its pans moved it: put right) */
 		int at = (int16_t) emu_read16(&tw->e, L->view) - (int8_t) emu_read8(&tw->e, T + L->shake);
 		int miss = at - tw->row;
 		tw->panStep += miss;
 		if (tw->panStep > 8 || tw->panStep < -8) tw->panStep = 0;
 		if (!miss) break;
+		TRACE_ADD("pinball.copy_rerun", miss);
 		if (tallTrace || debug) fprintf(stderr, "copy %d: %d row(s) off, run again\n", (int) (tw - twins), miss);
 	}
 	tw->up = true;
@@ -697,6 +734,7 @@ static void twin_close(void) {
 }
 
 static void twin_open(const char* rom, const MapProfile* p) {
+	double tTwin = trace_ms();
 	twin_close();
 	if (!p || (!p->tall.live.state && !tall_carry(p))) return;
 	if (tall_carry(p)) {
@@ -736,6 +774,7 @@ static void twin_open(const char* rom, const MapProfile* p) {
 	twinOpen = true;
 	tallTrace = getenv("GBADS_TALL_TRACE") != NULL;
 	fprintf(stderr, "live view: two more copies of the game for the table's other rows\n");
+	trace("live view: copies opened in %.0f ms (a state is %zu KB; the game runs 3 more cores' worth of emulation: two copies, two frames each)", trace_ms() - tTwin, sz / 1024);
 }
 
 /* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
@@ -743,7 +782,13 @@ static const MapProfile* hideWhenProf;
 static int hideWhenN;
 static bool hideWhenOn;
 
+static void run_frame_body(uint32_t keys);
 static void run_frame(uint32_t keys) {
+	double t0 = trace_ms();
+	run_frame_body(keys);
+	TRACE_ADD("emu.run_frame", trace_ms() - t0);
+}
+static void run_frame_body(uint32_t keys) {
 	frameKeys = keys;
 	unsigned bugAt = bugFrame & (BUG_LOG - 1);
 	bugKeys[bugAt] = keys & 0x3FF;
@@ -766,6 +811,7 @@ static void run_frame(uint32_t keys) {
 	++twinSeq;
 	if (!run) for (int i = 0; i < TWINS; ++i) twins[i].up = false;
 	nTallFixed = 0;
+	double tP0 = live ? trace_ms() : 0, tP1 = 0, tP2 = 0;
 	if (run) {
 		/* the copies' first frame (the game's frame before again, at their
 		 * own cameras), then which of their sprites to leave out, and the
@@ -774,7 +820,11 @@ static void run_frame(uint32_t keys) {
 		for (int i = 0; i < TWINS; ++i) twins[i].up = false;
 		if (twins[0].need) twin_work_start(0, twin_first, &twins[0]);
 		twin_first(&twins[1]);
+		tP1 = trace_ms();
+		TRACE_ADD("pinball.first_main", tP1 - tP0); /* the copy on this thread (and starting the other) */
 		if (twins[0].need) twin_work_wait(0);
+		tP2 = trace_ms();
+		TRACE_ADD("pinball.first_wait", tP2 - tP1); /* waiting for the other copy's first frame */
 		if (!twinProf->tall.live.carry.keepObj)
 			for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_hide(&twins[i]);
 		/* (only while a copy's rows are on the top screen this frame) */
@@ -799,19 +849,32 @@ static void run_frame(uint32_t keys) {
 		emu_hud_keep_exact(tallFixed, 0);
 		if (tall_carry(twinProf)) emu_hide_exact(&emu, tallFixed, 0);
 	}
+	double tS0 = live ? trace_ms() : 0;
 	if (live) {
+		if (run) TRACE_ADD("pinball.hide_hud", tS0 - tP2); /* sprites to hide, the HUD split's fixed ones */
 		/* the game's state from before this frame, for next frame's copies */
 		twinCur ^= 1;
 		if (emu_state_save(&emu, twinStates[twinCur])) twinKeys[twinCur] = keys, twinHave = 1;
 		else twinHave = 0;
+		TRACE_ADD("pinball.state_save", trace_ms() - tS0);
 	}
 	/* the copies' second frame (this one), alongside the game's */
 	twinFrameKeys = keys;
+	double tE0 = live ? trace_ms() : 0;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_start(i, twin_second, &twins[i]);
 	emu_frame(&emu, keys & 0x3FF);
+	double tE1 = live ? trace_ms() : 0;
 	++bugFrame;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_wait(i);
+	double tE2 = live ? trace_ms() : 0;
 	if (live) twin_step();
+	if (live) {
+		TRACE_ADD("pinball.game_frame", tE1 - tE0); /* the game's own emu_frame (with starting the copies) */
+		TRACE_ADD("pinball.second_wait", tE2 - tE1); /* waiting for the copies after the game's frame: the cost of their being slower */
+		TRACE_ADD("pinball.step", trace_ms() - tE2);
+		TRACE_ADD("pinball.run_frame_total", trace_ms() - tP0);
+		TRACE_ADD(run ? "pinball.copies_running" : "pinball.copies_idle", 1);
+	}
 }
 
 /* Start the bug log again from here (the frames before belong to another moment). */
@@ -847,6 +910,7 @@ static void bug_tick(void) {
 
 static void* ahead_worker(void* arg) {
 	(void) arg;
+	trace_thread("gbads-ahead");
 #ifdef __ANDROID__
 	int nice = android_raise_thread();
 #else
@@ -858,8 +922,12 @@ static void* ahead_worker(void* arg) {
 		while (!ahead.busy && !ahead.quit) pthread_cond_wait(&ahead.cond, &ahead.lock);
 		if (ahead.quit) break;
 		uint32_t keys = ahead.keys;
+		double queued = ahead.queued;
 		pthread_mutex_unlock(&ahead.lock);
+		double t0 = trace_ms();
+		TRACE_ADD("emu.ahead_lag", t0 - queued); /* asked for -> the worker began (scheduling delay) */
 		run_frame(keys);
+		TRACE_ADD("emu.ahead_run", trace_ms() - t0);
 		pthread_mutex_lock(&ahead.lock);
 		ahead.busy = false;
 		pthread_cond_broadcast(&ahead.cond);
@@ -878,6 +946,7 @@ static bool ahead_start(uint32_t keys) {
 	bool ok = ahead.started;
 	if (ok) {
 		ahead.keys = keys;
+		ahead.queued = trace_ms();
 		ahead.busy = true;
 		pthread_cond_broadcast(&ahead.cond);
 	}
@@ -888,9 +957,11 @@ static bool ahead_start(uint32_t keys) {
 /* Wait for the frame being emulated, if any (then the core is ours again). */
 static void ahead_sync(void) {
 	if (!aheadInFlight) return;
+	double tW = trace_ms();
 	pthread_mutex_lock(&ahead.lock);
 	while (ahead.busy) pthread_cond_wait(&ahead.cond, &ahead.lock);
 	pthread_mutex_unlock(&ahead.lock);
+	TRACE_ADD("emu.ahead_wait", trace_ms() - tW); /* the loop waiting for the frame emulated ahead */
 	aheadInFlight = false;
 	aheadReady = true;
 }
@@ -1150,6 +1221,7 @@ static void slow_frame_report(bool debug) {
 	slowWorst.total = 0;
 }
 static bool debug;
+static double traceGameT0; /* trace_ms() when game_run_inner began (the load's milestones) */
 
 /* ---------------------------------------------------------------- menu */
 
@@ -7159,6 +7231,7 @@ static void keeper_audio(void) {
 
 static void* keeper_worker(void* arg) {
 	(void) arg;
+	trace_thread("gbads-keeper");
 	const double freq = (double) SDL_GetPerformanceFrequency();
 	pthread_mutex_lock(&keeper.lock);
 	for (;;) {
@@ -8279,6 +8352,10 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 }
 
 static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary) {
+	double tG = trace_ms();
+	traceGameT0 = tG;
+	trace_phase("game-load");
+	trace("game: loading %s", rom);
 	cfg = c;
 	tallLiveAtStart = cfg->tallLive;
 	debug = getenv("GBADS_DEBUG") != NULL;
@@ -8288,10 +8365,12 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	game_keys_reload();
 	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	profile_set_rom(NULL, 0);
+	tG = trace_since("game load: settings, buttons and patch plan", tG);
 	if (!emu_open(&emu, rom, gp.sav, true)) {
 		ui_osd("Couldn't load the game");
 		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;
 	}
+	tG = trace_since("game load: ROM and save opened (emu_open: file read / unzip, core reset)", tG);
 	sun_load();
 	profile_set_rom(emu.gameCode, emu.romCrc); /* (a known colour patch: the profile's colours as it draws them) */
 	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
@@ -8319,8 +8398,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			fprintf(stderr, "ra: waited %u ms for the achievements before starting\n", (unsigned) (SDL_GetTicks() - t0));
 		}
 	}
+	tG = trace_since("game load: achievements (RetroAchievements: see its own lines)", tG);
 	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
+	tG = trace_since("game load: cheats", tG);
 	cheatsOpen = false;
 	patchesOpen = false;
 	ovl_close_all();
@@ -8338,12 +8419,15 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		pickProf = gp && gp->pick ? gp : NULL;
 		snprintf(subCode, sizeof(subCode), "%.4s", emu.gameCode);
 	}
+	tG = trace_since("game load: bookkeeping before the second screen", tG);
 	ss_setup(rom, subCode);
+	tG = trace_since("game load: second screen set up (map capture thread, live view copies, HUD)", tG);
 	for (int i = 0; i < nViews; ++i) {
 		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
 		SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
 	}
 	ss_textures();
+	tG = trace_since("game load: game textures", tG);
 	unsigned bc = (unsigned) strtoul(cfg->borderColor, NULL, 16);
 	borderColor = (SDL_Color) { (bc >> 16) & 0xFF, (bc >> 8) & 0xFF, bc & 0xFF, 255 };
 	overlayMode[0][0] = overlayMode[1][0] = 0;
@@ -8352,6 +8436,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	logoSub = 1;
 	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
 	logoProvisional = ui_logo_provisional();
+	tG = trace_since("game load: logo", tG);
 
 	memset(pageLen, 0, sizeof(pageLen));
 	memset(rowN, 0, sizeof(rowN));
@@ -8438,8 +8523,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	} else {
 		ui_osd("Tap the screen or press HOME for the menu");
 	}
+	tG = trace_since("game load: save state loaded (resume) / menu rows", tG);
 	if (cfg->barPinned) barOpen = true, barSince = SDL_GetTicks(); /* (pinned: up from the start) */
 	rewind_setup();
+	tG = trace_since("game load: rewind buffer set up", tG);
 
 	/* The device runs at a fixed rate. The GBA's own rate follows the game's
 	 * sound settings (32768 Hz at power-on, 65536 Hz once Zero Mission is
@@ -8482,6 +8569,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		if (!audio) SDL_AudioQuit(), SDL_AudioInit(NULL);
 	}
 #endif
+	tG = trace_since("game load: audio device opened", tG);
 	if (audio) {
 		SDL_PauseAudioDevice(audio, 0);
 		fprintf(stderr, "audio: %s%s%s, %d Hz, %d channels, %d samples\n", SDL_GetCurrentAudioDriver(), getenv("AUDIODEV") ? " on " : "",
@@ -8541,6 +8629,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	android_set_pinning(cfg->pinCores);
 	android_pin_game_thread();
 #endif
+	trace("game: loaded, entering the loop (%.0f ms since loading began; the map's first capture and logo may still be running)", trace_ms() - traceGameT0);
+	trace_phase("game");
+	const char* tracePh = "game";
 	while (!done) {
 		{
 			/* the last iteration, if it was a stall (issue #50) */
@@ -8549,6 +8640,14 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			const LoopMarks* p = &loopCur;
 			int queueMs = audio ? (int) (SDL_GetQueuedAudioSize(audio) / 4 * 1000 / want.freq) : 0;
 			double gap = p->valid ? (double) (t - p->top) * msPer : 0;
+			if (p->valid && gap < 5000) {
+				TRACE_ADD("loop.interval", gap); /* top to top: the frames' spacing */
+				if (gap > 20.0) TRACE_ADD("loop.over20ms", gap);
+				if (gap > 33.4) TRACE_ADD("loop.over33ms", gap);
+				TRACE_ADD("loop.wait_ahead", (double) (p->synced - p->top) * msPer);
+				TRACE_ADD("loop.sleep", (double) (p->end - p->sleep0) * msPer);
+				TRACE_ADD("audio.queue_ms", queueMs);
+			}
 			if (gap > STALL_MS && gap < 5000) {
 				++stallCount;
 				if (gap > stallWorst) stallWorst = gap;
@@ -8572,6 +8671,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 		ahead_sync(); /* the core is the loop's again */
 		loopCur.synced = SDL_GetPerformanceCounter();
+		{
+			const char* wantPh = menuOpen ? "menu" : "game";
+			if (tracePh != wantPh) tracePh = wantPh, trace_phase(wantPh);
+		}
 		screen_restore_apply();
 		bug_tick();
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
@@ -9594,9 +9697,11 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		if (cfg->ghosting) shownFb = ghost_frame(shownFb);
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
+		double trU0 = trace_ms();
 		for (int i = 0; i < nViews; ++i) {
 			if (gameTexAll || i == screens[game_screen()].view) ui_update_texture(gameTex[i], shownFb, GBA_W * 4);
 		}
+		TRACE_ADD("loop.tex_upload", trace_ms() - trU0);
 		gameTexAll = false;
 		/* (tests, GBADS_DRAW_SHOTS_ONLY: only the frames a screenshot or a
 		 * touch needs are drawn) */
@@ -9608,6 +9713,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				if (budget < 0) budget = getenv("GBADS_DRAW_BUDGET") ? atof(getenv("GBADS_DRAW_BUDGET")) : frameSec * 1000.0 * 0.7;
 				ui_present_budget(ff ? -1 : screens[game_screen()].view, workT0, budget);
 			}
+			double trD0 = trace_ms();
 			ui_clear();
 			draw_game();
 			if (shotPending) {
@@ -9623,7 +9729,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			 * for tests, whose frames are counted exactly) */
 			const bool keep = cfg->keepSound && audio && !ff && !rewinding && !noPace && !ui_scripted();
 			if (keep) keeper_arm(keys, audio, want.freq, targetQueued * 3, aheadInFlight ? 1 : 0);
+			double trD1 = trace_ms();
+			TRACE_ADD("loop.draw_calls", trD1 - trD0); /* drawing the pictures (before the buffers are shown) */
 			ui_present();
+			TRACE_ADD("loop.present_call", trace_ms() - trD1); /* ui_present: the screens' buffer swaps */
 			if (keep) {
 				int kept = keeper_disarm();
 				if (kept) {
@@ -9650,6 +9759,17 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		{
 			double msPer = 1000.0 / (double) SDL_GetPerformanceFrequency();
 			double total = (double) (drawT1 - workT0) * msPer;
+			if (traceOn && !ff && !rewinding) {
+				int tvTop = screens[0].view, tvBot = nScreens > 1 ? screens[1].view : tvTop;
+				TRACE_ADD("loop.work", total); /* all of a frame's work, not the sleep */
+				TRACE_ADD("loop.input", (double) (emuT0 - workT0) * msPer);
+				TRACE_ADD("loop.emu", (double) (emuT1 - emuT0 - raT) * msPer);
+				TRACE_ADD("loop.emu_sound", (double) audT * msPer); /* (of the emulation: the sound hand-off) */
+				TRACE_ADD("loop.map_etc", (double) (drawT0 - emuT1) * msPer);
+				TRACE_ADD("loop.draw", (double) (drawT1 - drawT0) * msPer);
+				TRACE_ADD("loop.present_top", ui_last_present_ms(tvTop));
+				if (tvBot != tvTop) TRACE_ADD("loop.present_bottom", ui_last_present_ms(tvBot));
+			}
 			/* matched, each frame includes the wait for the display's refresh:
 			 * only one that missed its refresh (about two frames long) is slow */
 			if (!ff && !rewinding && pacedHz > 0 && total > frameSec * 1000.0 * 1.4) ++pacedMisses;
@@ -9683,6 +9803,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 #ifdef __ANDROID__
 		if (frameCount == 1) fprintf(stderr, "startup: first frame shown\n");
 #endif
+		if (frameCount == 1 || frameCount == 60 || frameCount == 300 || frameCount == 1800)
+			trace("game: frame %llu shown, %.0f ms after loading began", (unsigned long long) frameCount, trace_ms() - traceGameT0);
 
 		/* ---- pacing: real-time clock nudged by audio queue depth */
 		double now = SDL_GetPerformanceCounter() / freq;
@@ -9691,6 +9813,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			fps = fpsFrames / (now - fpsT0);
 			speedPct = fps / GBA_FPS * 100.0;
 			if (debug) fprintf(stderr, "speed %.1f fps (%.0f%%)\n", fps, speedPct);
+			TRACE_ADD("loop.fps", fps);
 			fpsFrames = 0;
 			fpsT0 = now;
 			if (pacedHz > 0) {
@@ -9734,8 +9857,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		loopCur.end = SDL_GetPerformanceCounter();
 	}
 
+	double tX = trace_ms();
+	trace_phase("game-exit");
+	trace("game exit: leaving after %llu frames", (unsigned long long) frameCount);
 	keeper_stop();
+	tX = trace_since("game exit: sound keeper stopped", tX);
 	ahead_stop(); /* before anything else touches the core */
+	tX = trace_since("game exit: frame buffer worker stopped", tX);
 	ui_on_background(NULL);
 	ui_on_foreground(NULL);
 	ui_sync_view(-1);
@@ -9746,18 +9874,25 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		bug_finish(noteOpen ? noteText : "", out, sizeof(out));
 		noteOpen = false;
 	}
+	tX = trace_since("game exit: pending bug report", tX);
 	auto_save();
+	tX = trace_since("game exit: resume state saved (auto_save)", tX);
 	ra_game_end();
+	tX = trace_since("game exit: achievements ended", tX);
 	if (audio) SDL_CloseAudioDevice(audio);
 	if (audioConv) SDL_FreeAudioStream(audioConv);
+	tX = trace_since("game exit: audio closed", tX);
 	mapcap_destroy(mc);
 	mc = NULL;
+	tX = trace_since("game exit: map capture thread stopped", tX);
 	emu_rewind_deinit();
 #ifdef __wasi__
 	webPlaying = false;
 #endif
 	twin_close();
+	tX = trace_since("game exit: live view copies closed", tX);
 	emu_close(&emu); /* flushes the battery save */
+	tX = trace_since("game exit: game closed (battery save flushed)", tX);
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 		free(mapRes.frames[i]);
 		mapRes.frames[i] = NULL;
@@ -9780,5 +9915,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_free_image(bezelTex[0]);
 	ui_free_image(bezelTex[1]);
 	bezelKey[0][0] = bezelKey[1][0] = 0;
+	trace_since("game exit: pictures freed", tX);
+	trace("game exit: done, %s", exitTo == GAME_QUIT_APP ? "closing the app" : "back to the game list");
 	return exitTo;
 }
