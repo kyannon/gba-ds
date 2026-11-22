@@ -13101,6 +13101,9 @@ static void um6_eur(MapProfile* p) {
 }
 
 static const Variant variants[] = {
+	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
+	{ "B8KP", "B8KE", 0, NULL },
+	{ "B8KJ", "B8KE", 0, NULL },
 	{ "BY6P", "BY6E", 0, um6_eur },
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */

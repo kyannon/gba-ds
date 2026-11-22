@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Releases | `B8KE` USA |
-| Dumps | `B8KE` cartridge `9f2a3048` (tested) |
-| Profile | `src/profiles.c`: the `B8KE` entry |
+| Releases | `B8KE` USA, `B8KP` Europe, `B8KJ` Japan (Rev 1) |
+| Dumps | `B8KE` cartridge `9f2a3048` (tested) · `B8KP` cartridge `4f07c618` (tested), Virtual Console `7c74487c` · `B8KJ` Rev 1 `683d772c` (tested), Rev 1, Virtual Console `3da3603b` |
+| Profile | `src/profiles.c`: the `B8KE` entry; `B8KP` and `B8KJ` are variants of it |
 | Tests | `tests/regress/kirby-and-the-amazing-mirror.json` (`tools/regress.py kirby-and-the-amazing-mirror`) |
 | Status | in progress |
 
@@ -37,6 +37,7 @@ The game is a maze of rooms over nine areas, with a map of each area on its paus
 
 | | |
 |---|---|
+| Regions | Europe (`B8KP`) and Japan (`B8KJ`, Rev 1) have the USA release's addresses (checked with `tools/romxref.py` and on the owner's states). Their own states are the title, file select, tutorial and the pause screen's Area and World map pages; the hub and the Area map taken from it are tested in the USA release only |
 | Pause page | 0x0203ACCD (gPauseMenus[0].menuId): 1 Help, 2 World map, 4 Area map, in turn Help, Area map, World map (set as SELECT is pressed, the page drawn at the fade's white point; SELECT on Help: KAM-6 sets the four players' pages, 0x0203ACCD, ACE1, ACF5, AD09, to 4 just before, on the game itself); kept from the page last looked at, written to 4 on the hidden copy before START (`openPoke`). In the tutorial, the Dimension Mirror and the rooms outside the areas' maps the game opens Help whatever it holds |
 | Area map up | gDispCnt 0x03003690: video mode 1 (`& 7 == 1`) only on the Area map; the map is drawn and still about 54 frames after START |
 | Pause open | 0x0203AD4C (u32) non-zero while a pause page is open |
