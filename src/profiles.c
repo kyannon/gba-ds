@@ -13089,7 +13089,25 @@ static void um6_eur(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
+/* Kirby: Nightmare in Dream Land in Japan (A7KJ, Hoshi no Kirby: Yume no
+ * Izumi Deluxe): the game's variables 0x18 lower in IWRAM (the screen mode
+ * 0x030023D0, paused 0x030023B8, the room 0x03002450), found by the code
+ * that loads the USA release's (tools/romxref.py); the ability byte is where
+ * it was (0x02004B50). The title's lettering is on the same layers (KND-1).
+ * Europe (A7KP) has the USA release's addresses. */
+static void kdl_jpn(MapProfile* p) {
+	p->mem[0].addr = 0x030023D0, p->mem[1].addr = 0x030023B8;
+	p->live[0].addr = 0x030023D0, p->live[1].addr = 0x030023B8;
+	p->menu[0].addr = 0x030023D0;
+	p->room[0].addr = 0x03002450;
+	p->logoIf[0].addr = 0x030023D0;
+	p->logoIfOr[0].addr = 0x030023B8;
+}
+
 static const Variant variants[] = {
+	/* Kirby: Nightmare in Dream Land: Europe (the USA release's addresses) and Japan */
+	{ "A7KP", "A7KE", 0, NULL },
+	{ "A7KJ", "A7KE", 0, kdl_jpn },
 	{ "BY6P", "BY6E", 0, um6_eur },
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */

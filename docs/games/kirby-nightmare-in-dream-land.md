@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Releases | `A7KE` USA |
-| Dumps | `A7KE` cartridge `20ef3f64` (tested), Virtual Console `1af07ac8` |
-| Profile | `src/profiles.c`: the `A7KE` entry |
+| Releases | `A7KE` USA, `A7KP` Europe, `A7KJ` Japan |
+| Dumps | `A7KE` cartridge `20ef3f64` (tested), Virtual Console `1af07ac8` · `A7KP` cartridge `3b7a7477` (tested), Virtual Console `7336b1fa` · `A7KJ` cartridge `c55a3c2c` (tested), Virtual Console `15235965` |
+| Profile | `src/profiles.c`: the `A7KE` entry; `A7KP` and `A7KJ` are variants (`kdl_jpn`) |
 | Tests | `tests/regress/kirby-nightmare-in-dream-land.json` (`tools/regress.py kirby-nightmare-in-dream-land`) |
 | Status | in progress |
 
@@ -16,7 +16,7 @@ The game has no map. Its pause screen is a page about the copy ability Kirby has
 
 ## Rules
 
-**KND-1. Logo.** The logo is the title's lettering: Kirby over its red swoosh, and NIGHTMARE IN DREAM LAND (BG1 and BG2 above row 116, without the sky behind them, the copyright line or PRESS START).
+**KND-1. Logo.** The logo is the title's lettering: Kirby over its red swoosh, and NIGHTMARE IN DREAM LAND (BG1 and BG2 above row 116, without the sky behind them, the copyright line or PRESS START). In Japan it is HOSHI NO KIRBY: YUME NO IZUMI DELUXE over its crest, on the same layers.
 
 **KND-2. In a level: the ability's page.** While Kirby is in a level, the second screen shows the game's pause page, opened on the hidden copy and taken again as Kirby goes into another room and about once a second: the copy ability Kirby has, its name, what the game says about it and its picture; with no ability, the game's tip about copying. A new ability is taken at once: dropped with SELECT, its page shows within a few frames; copied, as soon as Kirby's copy pose is over (the game ignores START during it, so the hidden copy presses it again until the page opens).
 
@@ -35,9 +35,9 @@ The game has no map. Its pause screen is a page about the copy ability Kirby has
 
 | | |
 |---|---|
+| Regions | Europe (`A7KP`): the same addresses as the USA release. Japan (`A7KJ`): the three IWRAM variables 0x18 lower (screen mode 0x030023D0, paused 0x030023B8, room 0x03002450), found with `tools/romxref.py`; the ability byte 0x02004B50 is the same. All the rules hold in each |
 | Screen mode | 0x030023D8: 3 the title, 4 the menus, 7 a level's title card, 5 a hub, 8 in a level (still 8 while paused) |
 | Paused | 0x030023C0: 8 while the pause page is open (in a level or a hub), 0 otherwise; set the frame after START, cleared as the level's fade in ends |
-| Fade | 0x03000FB8: 0 to 0x1F as the screen fades to white (2 a frame), held 4 frames at 0x1F, then back to 0 as the next picture fades in; DISPCNT 0x0E00 the pause page (no sprites), 0x0E80 the white blank, 0x1F00 the level. The byte moves in the copy pose too, where the screen doesn't fade |
 | Room | 0x03002468: 0 in a level's first room, then the room's number |
 | Health | 0x03002808: 8 a cell, 0x30 full |
 | Copy ability | 0x02004B50: 0 none, 2 Spark; changes the frame the ability does (0x02005591 follows about a second later, with the HUD card) |
