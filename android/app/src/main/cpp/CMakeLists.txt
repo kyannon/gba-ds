@@ -51,6 +51,13 @@ add_library(webpdec STATIC ${WEBP_SRC})
 set_target_properties(webpdec PROPERTIES C_STANDARD 11 C_EXTENSIONS ON)
 target_include_directories(webpdec PUBLIC "${WEBP}")
 
+# --- rzstd, libretro-common's Zstandard decoder (RZIP version 2 save states, MIT), vendored (issue #78) ---
+set(RZSTD "${GBADS_ROOT}/third_party/rzstd")
+file(GLOB RZSTD_SRC "${RZSTD}/src/*.c")
+add_library(rzstd STATIC ${RZSTD_SRC})
+set_target_properties(rzstd PROPERTIES C_STANDARD 11 C_EXTENSIONS ON)
+target_include_directories(rzstd PUBLIC "${RZSTD}/include")
+
 # --- GBA DS ---
 set(S "${GBADS_ROOT}/src")
 add_library(main SHARED
@@ -62,4 +69,4 @@ set_target_properties(main PROPERTIES C_STANDARD 11 C_EXTENSIONS ON)
 target_compile_options(main PRIVATE ${MGBA_DEFINES} -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers)
 target_compile_definitions(main PRIVATE GBADS_VERSION="${GBADS_VERSION}" GBADS_RA)
 target_include_directories(main PRIVATE "${GBADS_MGBA_SRC}/include" "${GBADS_MGBA_BUILD}/include" "${RC}/src")
-target_link_libraries(main PRIVATE SDL2::SDL2 ${MGBA_LIBS} rcheevos webpdec android log EGL m)
+target_link_libraries(main PRIVATE SDL2::SDL2 ${MGBA_LIBS} rcheevos webpdec rzstd android log EGL m)

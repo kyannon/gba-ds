@@ -1,6 +1,12 @@
 # Changelog
 
-## v1.5.7 (not yet released)
+## v1.5.8 (not yet released)
+
+### Interface
+- **RetroArch's zstd save states load** (issue #78). States RetroArch 1.21 and later compress with zstd (RZIP version 2) now load, shared or from its folder; GBA DS still saves RetroArch's zlib ones, which every RetroArch reads.
+- **A state saved with a GBA BIOS says so, and there's an option for it** (issue #78). A state from RetroArch's mGBA core with a BIOS file set, saved while the game was inside the BIOS, couldn't load and said only "Load failed". It now says "Saved with a GBA BIOS". New, and off by default: Settings > System > **GBA BIOS** (Linux and Android) runs games with your own BIOS, a file you put in the `bios` folder of GBA DS's data folder as `gba_bios.bin` (GBA DS has none and never looks for one itself). Known: with it on, states saved without a BIOS may not load, and a BIOS applies to games started after switching it.
+
+## v1.5.7 (2026-11-21)
 
 ### New games
 - **Pokémon FireRed, LeafGreen, Ruby, Sapphire and Emerald**, in every language, and many romhacks of them (Radical Red, Unbound, Gaia, Saiph, Fuligin, Light Platinum, Flora Sky, Glazed, Theta Emerald EX, Super MarioMon, Emerald Rogue EX): the second screen shows the game's Party and its region map, turning every five seconds (only the Party in a battle), and the game's title logo before you have a Party. Known: Saiph and Super MarioMon show only the Party (no map); Gaia's Party screen has black bars of its own (not re-checked on the device); the map's marker can lag a few seconds; the Japanese Rev 1 releases, the Pokémon Box and debug dumps, the Switch Online dumps and Korean releases haven't been tried.
