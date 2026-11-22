@@ -596,9 +596,17 @@ release zip, which replaces the main install.
   `--retroachievements=1 --ra-username=tester --ra-password=secret
   --ra-host=http://127.0.0.1:8099` (the mock also has game 777's Rich
   Presence and a leaderboard; `touch /tmp/ra_mock_down` makes unlocks and
-  entries fail with HTTP 503). Hardcore is not allowed before the app has
-  been public for 6 months (from Oct 13, 2026: Apr 13, 2027; the plan and the
-  rules page's checklist are in the project's `claude/issue-82-progress.md`).
+  entries fail with HTTP 503). Hardcore (rule GEN-16: `ra_hardcore`
+  in prefs.cfg, the Game page's Hardcore item; `ra_hardcore()` /
+  `ra_start_mode` / `ra_set_hardcore` / `ra_reset_wanted` in ra.c) is built
+  but not approved by RetroAchievements, which wants the app public for 6
+  months first (from Oct 13, 2026: Apr 13, 2027, unless they take libmgba as
+  the parent emulator); the plan and the rules page's checklist are in the
+  project's `claude/issue-82-progress.md`. Every state load goes through
+  game.c `state_load`, which refuses in hardcore; rewind and cheats are
+  gated beside it (`cheats_sync`). The regression suite doesn't cover RA
+  (no mock server in regress.py): test with `tools/ra_mock.py` and
+  `--ra_hardcore=1`.
   Also in ra.c: the user agent (`GBADS/<numbers> (Linux|Android)
   mgba/<numbers> rcheevos/<ver>`), the events for leaderboards, challenge and
   progress indicators (drawn in the corners of the popup screen by

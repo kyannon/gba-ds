@@ -116,6 +116,7 @@ typedef struct Config {
 	char raMode[8];
 	char raUser[128], raPassword[256]; /* override ROCKNIX's account */
 	char raSystemCfg[512]; /* ROCKNIX's system.cfg (global.retroachievements.*) */
+	bool raHardcore;      /* RetroAchievements hardcore (ra_hardcore; the pause menu's switch, kept in prefs.cfg) */
 	char raHost[256];     /* testing: another server */
 	bool gbaBios;         /* run games with the player's own GBA BIOS (<data folder>/bios/gba_bios.bin; issue #78; Settings > System) */
 	bool updateCheck;     /* look for a new release once a day (the game list's Settings can switch it) */

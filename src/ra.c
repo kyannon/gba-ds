@@ -596,6 +596,7 @@ static void pending_answer(const char* key, int status) {
 
 static void begin_load(void);
 static bool gameWanted, gameLoaded, loadFailed;
+static bool resetWanted; /* RC_CLIENT_EVENT_RESET: hardcore switched on (ra_reset_wanted) */
 static int loginState;
 enum { LOGIN_OFF, LOGIN_BUSY, LOGIN_OK, LOGIN_FAILED };
 
@@ -1162,7 +1163,7 @@ static void load_done(int result, const char* error, rc_client_t* c, void* ud) {
 	} else {
 		snprintf(desc, sizeof(desc), tr("%u of %u achievements unlocked"), sum.num_unlocked_achievements, sum.num_core_achievements);
 	}
-	popup_add(POP_GAME, tr("RETROACHIEVEMENTS \xC2\xB7 CASUAL"), g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
+	popup_add(POP_GAME, ra_hardcore() ? tr("RETROACHIEVEMENTS \xC2\xB7 HARDCORE") : tr("RETROACHIEVEMENTS \xC2\xB7 CASUAL"), g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
 	/* the badges, so popups have them right away */
 	rc_client_achievement_list_t* list =
 	    rc_client_create_achievement_list(client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE, RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_LOCK_STATE);
@@ -1250,6 +1251,10 @@ static void on_event(const rc_client_event_t* ev, rc_client_t* c) {
 	case RC_CLIENT_EVENT_LEADERBOARD_TRACKER_HIDE:
 		tracker_hide(ev->leaderboard_tracker->id);
 		break;
+	case RC_CLIENT_EVENT_RESET:
+		/* (hardcore switched on with a game loaded: it starts over) */
+		resetWanted = true;
+		break;
 	case RC_CLIENT_EVENT_SERVER_ERROR:
 		fprintf(stderr, "ra: server error (%s): %s\n", ev->server_error->api ? ev->server_error->api : "?",
 		        ev->server_error->error_message ? ev->server_error->error_message : "?");
@@ -1318,7 +1323,7 @@ static bool client_setup(void) {
 	if (!client) return false;
 	rc_client_enable_logging(client, getenv("GBADS_DEBUG") ? RC_CLIENT_LOG_LEVEL_VERBOSE : RC_CLIENT_LOG_LEVEL_WARN, log_message);
 	rc_client_set_event_handler(client, on_event);
-	rc_client_set_hardcore_enabled(client, 0); /* casual only, for now */
+	rc_client_set_hardcore_enabled(client, 0); /* on from ra_start_mode, before a game starts */
 	if (cfg->raHost[0]) rc_client_set_host(client, cfg->raHost);
 	/* RetroAchievements' client identity (hardcore compliance, C): name and version
 	 * (numbers only: "1.5.8-dev" sends 1.5.8), the system, the core and its version,
@@ -1360,7 +1365,7 @@ void ra_init(const Config* c) {
 		sys_setting("global.retroachievements.token", sysToken, sizeof(sysToken));
 		char hc[16] = "";
 		sys_setting("global.retroachievements.hardcore", hc, sizeof(hc));
-		if (!strcmp(hc, "1")) fprintf(stderr, "ra: hardcore mode isn't supported yet: playing in casual mode\n");
+		if (!strcmp(hc, "1") && !cfg->raHardcore) fprintf(stderr, "ra: EmulationStation's hardcore setting isn't used: switch Hardcore on in GBA DS's menu\n");
 		if (strcmp(enabled, "1") && strcmp(cfg->raMode, "1")) {
 			if (raUser[0]) fprintf(stderr, "ra: off (RetroAchievements is switched off in EmulationStation)\n");
 			raUser[0] = 0;
@@ -1374,7 +1379,7 @@ void ra_init(const Config* c) {
 	}
 	if (strcasecmp(savedUser, raUser)) savedToken[0] = 0; /* another account's */
 	if (!client_setup()) return;
-	fprintf(stderr, "ra: signing in as %s (casual mode)\n", raUser);
+	fprintf(stderr, "ra: signing in as %s\n", raUser);
 	start_login();
 }
 
@@ -1438,6 +1443,40 @@ void ra_shutdown(void) {
 		pthread_mutex_unlock(&qLock);
 		pthread_detach(worker);
 	}
+}
+
+/* ------------------------------------------------------------ hardcore
+ *
+ * Hardcore (RetroAchievements' compliance page, B): while it's on, game.c
+ * refuses state loads, rewind and cheats. It applies while a game's
+ * achievements are loaded or loading: an unrecognised game, a patched one
+ * or one started offline has none, and plays as it always did. */
+bool ra_hardcore(void) {
+	return client && gameWanted && !loadFailed && rc_client_get_hardcore_enabled(client);
+}
+
+/* Before ra_game_start: the mode this game starts in. casualOnly: it starts
+ * from a saved state (resuming, a patch change, --load-state), which has to
+ * be casual; the player's choice stays for the next game. */
+void ra_start_mode(bool hardcore, bool casualOnly) {
+	if (!client) return;
+	rc_client_set_hardcore_enabled(client, hardcore && !casualOnly);
+	resetWanted = false; /* (nothing loaded yet: no reset to ask for) */
+	if (hardcore && casualOnly) fprintf(stderr, "ra: starting in casual mode (the game starts from a saved state)\n");
+}
+
+/* The menu's Hardcore switch. Switching on with a game loaded starts it over
+ * (rc_client asks for the reset: ra_reset_wanted); off carries on as it is. */
+void ra_set_hardcore(bool on) {
+	if (!client) return;
+	fprintf(stderr, "ra: %s mode\n", on ? "hardcore" : "casual");
+	rc_client_set_hardcore_enabled(client, on);
+}
+
+bool ra_reset_wanted(void) {
+	bool r = resetWanted;
+	resetWanted = false;
+	return r;
 }
 
 void ra_game_start(Emu* e, const char* romPath) {
@@ -1658,8 +1697,8 @@ void ra_list_draw(int s, SDL_Rect a) {
 	if (!sum.num_core_achievements) {
 		snprintf(line, sizeof(line), tr("This game has no achievements yet"));
 	} else {
-		snprintf(line, sizeof(line), "%u of %u unlocked \xC2\xB7 %u of %u points \xC2\xB7 casual", sum.num_unlocked_achievements,
-		         sum.num_core_achievements, sum.points_unlocked, sum.points_core);
+		snprintf(line, sizeof(line), "%u of %u unlocked \xC2\xB7 %u of %u points \xC2\xB7 %s", sum.num_unlocked_achievements,
+		         sum.num_core_achievements, sum.points_unlocked, sum.points_core, ra_hardcore() ? "hardcore" : "casual");
 	}
 	ui_font_text(s, TF_BODY, a.x + a.w / 2, a.y + px * 5, px * 4, line, P_GOLD, 0);
 	int top = a.y + px * 12;

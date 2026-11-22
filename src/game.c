@@ -1153,11 +1153,11 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
-enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO, M_PLACE };
+enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO, M_PLACE, M_HARDCORE };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
 	[M_RESUME] = N_("Resume"), [M_SWAP] = N_("Swap Screens"), [M_SAVE] = N_("Save State"), [M_SCALE] = "", [M_LCD] = "", [M_FPS] = "", [M_FRAMEBUF] = "", [M_OVERLAY] = "", [M_LOGO] = "", [M_MATCH] = "", [M_REWIND] = "", [M_RESTART] = N_("Restart Game"),
-	[M_LOAD] = N_("Load State"), [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_BUTTONS] = N_("Buttons"), [M_ACH] = "Achievements", [M_SHOT] = N_("Take Screenshot"), [M_LIBRARY] = N_("Close Game"), [M_EXIT] = N_("Close GBA DS"),
+	[M_LOAD] = N_("Load State"), [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_BUTTONS] = N_("Buttons"), [M_ACH] = "Achievements", [M_HARDCORE] = "", [M_SHOT] = N_("Take Screenshot"), [M_LIBRARY] = N_("Close Game"), [M_EXIT] = N_("Close GBA DS"),
 	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = N_("Submit a Bug Report"), [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "", [M_PLACE] = "",
 };
 static int menuItems[12], nMenuItems;
@@ -1166,7 +1166,7 @@ static int menuItems[12], nMenuItems;
 static int itemRow[12], itemSide[12], nMenuRows;
 static bool half_item(int item) {
 	return item == M_RESUME || item == M_RESTART || item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
-	       item == M_COLOR || item == M_GHOST || item == M_CHEATS || item == M_PATCHES || item == M_SHOT || item == M_BUG;
+	       item == M_COLOR || item == M_GHOST || item == M_HARDCORE || item == M_CHEATS || item == M_PATCHES || item == M_SHOT || item == M_BUG;
 }
 /* Close Game and Close GBA DS are double height: two rows tall, side by side
  * when both are there, else the one across the whole row */
@@ -1235,7 +1235,7 @@ static int armedItem = -1;
 static void rebuild_textures(void);
 static void commit_current(const char* key);
 static bool confirm_item(int item) {
-	return item == M_RESTART || item == M_LIBRARY || item == M_EXIT;
+	return item == M_RESTART || item == M_LIBRARY || item == M_EXIT || (item == M_HARDCORE && !ra_hardcore());
 }
 static bool menuOpen;
 static int menuSel;
@@ -1394,7 +1394,8 @@ static void slot_step(int d) {
 }
 
 static bool item_enabled(int item) {
-	if (item == M_CHEATS) return cheats.n > 0;
+	if (item == M_CHEATS) return cheats.n > 0 && !ra_hardcore();
+	if (item == M_LOAD && ra_hardcore()) return false; /* (hardcore: no state loads) */
 	if (item == M_SHAPES) return ui_screens_differ(); /* (two screens of a shape: nothing to match) */
 	if (item == M_PLACE) return nScreens == 2;         /* (one screen: no gap) */
 	if (item == M_FRAMEBUF) return !tallProf;          /* (always on in the pinball games' two-screen view) */
@@ -1482,11 +1483,28 @@ static void open_cheats(void) {
 	cheatPressRow = -1;
 }
 
+/* The cheats the game runs with: the ones that are on, but none in hardcore
+ * (switching hardcore off brings them back). */
+static void cheats_sync(void) {
+	if (ra_hardcore()) emu_cheats_clear(&emu);
+	else cheats_apply(&cheats, &emu);
+}
+
+static void restart_game(void) {
+	fprintf(stderr, "game restarted\n");
+	emu_reset(&emu);
+	aheadReady = false;
+	bug_reset();
+	ra_reset();
+	mapShownIdx = -1; /* back to the logo until the next map */
+}
+
 static void toggle_cheat(int row) {
 	if (row < 0 || row >= nCheatRows || cheatRows[row] < 0) return;
+	if (ra_hardcore()) return;
 	Cheat* c = &cheats.items[cheatRows[row]];
 	c->on = !c->on;
-	cheats_apply(&cheats, &emu);
+	cheats_sync();
 	cheats_save(&cheats);
 }
 
@@ -4031,7 +4049,8 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_AUTOLOAD) label = cfg->autoLoad ? N_("Auto-Load: On"): N_("Auto-Load: Off");
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? N_("Show FPS: On"): N_("Show FPS: Off");
 		if (menuItems[i] == M_FRAMEBUF) label = tallProf ? N_("Frame Buffer: Always on here"): cfg->frameBuffer ? N_("Frame Buffer: On"): N_("Frame Buffer: Off");
-		if (menuItems[i] == M_REWIND) label = cfg->rewind ? N_("Rewind: On"): N_("Rewind: Off");
+		if (menuItems[i] == M_REWIND) label = ra_hardcore() ? N_("Rewind: Off in hardcore"): cfg->rewind ? N_("Rewind: On"): N_("Rewind: Off");
+		if (menuItems[i] == M_HARDCORE) label = ra_hardcore() ? N_("Hardcore: On"): N_("Hardcore: Off");
 		if (menuItems[i] == M_FF) {
 			static char ffLabel[32];
 			if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(ffLabel, sizeof(ffLabel), tr("Fast Forward: Max"));
@@ -6081,6 +6100,14 @@ static void state_rom_check(const char* path) {
 static StateFileKind stateLoadKind; /* (what the last state_load found: why it failed) */
 static BiosRefusal stateLoadBios;   /* (and whether it was the GBA BIOS, issue #78) */
 static bool state_load(const char* path) {
+	if (ra_hardcore()) {
+		/* (RetroAchievements hardcore: no state loads, whichever way it was asked for) */
+		fprintf(stderr, "load state: %s: refused in hardcore mode\n", path);
+		stateLoadKind = STATE_FILE_NONE;
+		stateLoadBios = BIOS_REFUSAL_NONE;
+		ui_osd("Hardcore mode: states can't be loaded");
+		return false;
+	}
 	bool fromGbads = false;
 	stateLoadKind = emu_state_file_kind(&emu, path, &fromGbads);
 	bool ok = emu_state_load_file(&emu, path);
@@ -7304,13 +7331,14 @@ void prefs_save(Config* cfg) {
 	 * stays (config_kv_update). */
 	char prefs[1100];
 	snprintf(prefs, sizeof(prefs), "%s/prefs.cfg", cfg->stateDir);
-	const char* kv[4][2] = {
+	const char* kv[5][2] = {
 		{ "quick_bar_pinned", cfg->barPinned ? "1" : "0" },
 		{ "shader_last", shaderNames[cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID] },
 		{ "bezel_inner", cfg->bezelInner },
 		{ "bezel_outer", cfg->bezelOuter },
+		{ "ra_hardcore", cfg->raHardcore ? "1" : "0" },
 	};
-	config_kv_update(prefs, "# written by gba-ds's menus; overrides gba-ds.cfg", 4, kv);
+	config_kv_update(prefs, "# written by gba-ds's menus; overrides gba-ds.cfg", 5, kv);
 }
 
 static bool gameTexAll = true; /* upload the game's frame to every view next time */
@@ -7925,7 +7953,8 @@ static bool activate(int item, enum GameExit* exitTo) {
 	if (confirm_item(item) && armedItem != item) {
 		armedItem = item;
 		const char* lost = cfg->autoSave ? N_("your place is saved"): N_("unsaved progress is lost");
-		if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), tr("Choose it again to restart: unsaved progress is lost"));
+		if (item == M_HARDCORE) snprintf(menuNote, sizeof(menuNote), tr("Again for hardcore: restarts, no cheats or loads"));
+		else if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), tr("Choose it again to restart: unsaved progress is lost"));
 		else snprintf(menuNote, sizeof(menuNote), tr("Choose it again to close %s: %s"), item == M_EXIT ? "GBA DS" : tr("the game"), lost);
 		return false;
 	}
@@ -7944,7 +7973,8 @@ static bool activate(int item, enum GameExit* exitTo) {
 		achPressed = false;
 		break;
 	case M_CHEATS:
-		if (!cheats.n) snprintf(menuNote, sizeof(menuNote), tr("No cheats found (see Cheats in the wiki)"));
+		if (ra_hardcore()) snprintf(menuNote, sizeof(menuNote), tr("Not in hardcore mode (Achievements)"));
+		else if (!cheats.n) snprintf(menuNote, sizeof(menuNote), tr("No cheats found (see Cheats in the wiki)"));
 		else open_cheats();
 		break;
 	case M_PATCHES:
@@ -7964,7 +7994,9 @@ static bool activate(int item, enum GameExit* exitTo) {
 		}
 		break;
 	case M_LOAD:
-		if (!item_enabled(M_LOAD)) {
+		if (ra_hardcore()) {
+			snprintf(menuNote, sizeof(menuNote), tr("Not in hardcore mode (Achievements)"));
+		} else if (!item_enabled(M_LOAD)) {
 			snprintf(menuNote, sizeof(menuNote), tr("Nothing saved in slot %d yet"), stateSlot);
 		} else if (state_load(gp.slot[stateSlot])) {
 			char m[40];
@@ -7995,14 +8027,28 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	}
 	case M_RESTART:
-		emu_reset(&emu);
-		aheadReady = false;
-		bug_reset();
-		ra_reset();
-		mapShownIdx = -1; /* back to the logo until the next map */
+		restart_game();
 		menuOpen = false;
 		ui_osd("Game restarted");
 		break;
+	case M_HARDCORE: {
+		bool on = !ra_hardcore();
+		cfg->raHardcore = on;
+		save_prefs();
+		ra_set_hardcore(on);
+		cheats_sync(); /* (off in hardcore, back after it) */
+		if (on && ra_hardcore()) {
+			/* casual -> hardcore: the game starts over (rc_client's reset event) */
+			if (ra_reset_wanted()) restart_game();
+			menuOpen = false;
+			ui_osd("Hardcore: the game restarted");
+		} else if (on) {
+			snprintf(menuNote, sizeof(menuNote), tr("Hardcore needs this game's achievements"));
+		} else {
+			ui_osd("Casual mode");
+		}
+		break;
+	}
 	case M_LIBRARY:
 		*exitTo = GAME_TO_LIBRARY;
 		return true;
@@ -8305,6 +8351,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	if (emu.patch != PATCH_NONE) {
 		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
 	} else {
+		/* (a game that starts from a saved state, resuming included, starts casual) */
+		bool fromState = cfg->loadState[0] || (patchHandoff[0] && file_exists(patchHandoff)) || (cfg->autoLoad && !patchReload && file_exists(gp.autoState));
+		ra_start_mode(cfg->raHardcore, fromState);
 		ra_game_start(&emu, rom);
 		if (ra_loading()) {
 			/* The server's answers for a game with a big set are parsed on this thread
@@ -8320,7 +8369,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 	}
 	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
-	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
+	if (cheats_on(&cheats)) cheats_sync();
 	cheatsOpen = false;
 	patchesOpen = false;
 	ovl_close_all();
@@ -8363,6 +8412,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_CHEATS;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_PATCHES;
 	if (ra_enabled()) pages[PG_GAME][pageLen[PG_GAME]++] = M_ACH;
+	if (ra_enabled()) pages[PG_GAME][pageLen[PG_GAME]++] = M_HARDCORE;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_SHOT;
 	pages[PG_GAME][pageLen[PG_GAME]++] = M_BUG;
 	if (fromLibrary) pages[PG_GAME][pageLen[PG_GAME]++] = M_LIBRARY;
@@ -8426,7 +8476,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		if (!stateWarned) ui_osd(ok ? "Patches changed: carrying on from where you were" : "Patches changed");
 	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
-			if (!stateWarned) ui_osd("Resumed. Tap or HOME for the menu");
+			if (!stateWarned) ui_osd(cfg->raHardcore && ra_enabled() && !ra_hardcore() ? "Resumed in casual mode (hardcore resumes from the menu). Tap or HOME for the menu": "Resumed. Tap or HOME for the menu");
 		} else if (stateLoadKind == STATE_FILE_OTHER_CORE) {
 			/* (RetroArch's automatic state, from another of its GBA cores) */
 			ui_osd_long("Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.");
@@ -8955,7 +9005,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		 * skipped (RetroArch's habit; issue #44). No hotkeys meanwhile,
 		 * and letting go of the hotkey doesn't open the menu. */
 		bool ffMod = false;
-		if (mod && !menuOpen && cfg->fastForward && btnNow[B_R2] && !(cfg->rewind && btnNow[B_L2])) {
+		if (mod && !menuOpen && cfg->fastForward && btnNow[B_R2] && !(cfg->rewind && !ra_hardcore() && btnNow[B_L2])) {
 			ffMod = true;
 			for (int i = 0; i < HK_COUNT; ++i) ffMod = ffMod && hkBtn[i] != B_R2;
 			if (ffMod) comboUsed = ffModUsed = true;
@@ -9231,7 +9281,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			lastKeys = keys;
 		}
 
-		bool rewinding = cfg->rewind && btnNow[B_L2];
+		bool rewinding = cfg->rewind && !ra_hardcore() && btnNow[B_L2];
 		bool ff = cfg->fastForward && btnNow[B_R2] && !rewinding;
 		ffBox = ff;
 		/* Max (ff_speed 0): as many frames as fit in about 70% of a display
@@ -9422,7 +9472,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		emuTicks += emuT1 - emuT0;
 		++frameCount;
 		/* the rewind buffer: a state every second emulated frame */
-		if (cfg->rewind && !rewinding && (rewindTick += runs) >= 2) {
+		if (cfg->rewind && !ra_hardcore() && !rewinding && (rewindTick += runs) >= 2) {
 			emu_rewind_append(&emu);
 			rewindTick = 0;
 		}

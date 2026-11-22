@@ -31,6 +31,10 @@ void ra_game_start(Emu* e, const char* romPath);
 /* A game played with a patch (GEN-9): no achievements (RetroAchievements
  * doesn't allow patched games), the banner says so instead */
 void ra_game_patched(void);
+bool ra_hardcore(void);                           /* hardcore is on for this game */
+void ra_start_mode(bool hardcore, bool casualOnly); /* before ra_game_start */
+void ra_set_hardcore(bool on);
+bool ra_reset_wanted(void);                       /* switching to hardcore asks for a reset (once) */
 void ra_game_end(void);
 /* After each emulated frame. */
 void ra_frame(void);
@@ -66,6 +70,10 @@ static inline void ra_init(const Config* cfg) { (void) cfg; }
 static inline void ra_shutdown(void) {}
 static inline void ra_game_start(Emu* e, const char* romPath) { (void) e, (void) romPath; }
 static inline void ra_game_patched(void) {}
+static inline bool ra_hardcore(void) { return false; }
+static inline void ra_start_mode(bool hardcore, bool casualOnly) { (void) hardcore, (void) casualOnly; }
+static inline void ra_set_hardcore(bool on) { (void) on; }
+static inline bool ra_reset_wanted(void) { return false; }
 static inline void ra_game_end(void) {}
 static inline void ra_frame(void) {}
 static inline void ra_idle(void) {}
