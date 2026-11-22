@@ -140,6 +140,8 @@ void android_config_defaults(Config* c) {
 			              "A screen with no file of its own gets GBA DS's generated bezel in its default colors.\n\n"
 			              "Names for one scaling or screen shape, and more, in the wiki:\n"
 			              "https://github.com/kyannon/gba-ds/wiki/Overlays\n" },
+			{ "bios", "Optional: your own GBA BIOS, as gba_bios.bin (16 KB), for save states made with one.\n"
+			          "Switch it on in Settings > System > GBA BIOS. Off, games run with GBA DS's built-in BIOS.\n" },
 			{ "logos", "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" },
 			{ "screenshots", NULL },
 		};

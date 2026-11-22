@@ -28,6 +28,12 @@ struct mCore;
 /* the sunlight a cartridge's sun sensor reads (0-10; Boktai) */
 extern int emu_solar_level;
 
+/* The player's own GBA BIOS (issue #78; off unless Settings > System turns it on): the file's
+ * path, or "" to run games with mGBA's built-in one, as always. emu_open gives it to every core. */
+extern char emu_bios_path[512];
+typedef enum { BIOS_FILE_OK, BIOS_FILE_MISSING, BIOS_FILE_SIZE, BIOS_FILE_NOT_BIOS, BIOS_FILE_BROKEN } BiosFile;
+BiosFile emu_bios_check(const char* path);
+
 /* A sprite to leave out when drawing (e.g. a HUD mini-map): matches when its
  * top-left corner is inside x0..x1 / y0..y1 (y may be negative), its tile
  * number is within tileMin..tileMax and its priority equals prio. */
@@ -115,6 +121,17 @@ bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t 
 bool emu_state_load_file(Emu* e, const char* path);
 /* what's in a state file; *fromGbads (may be NULL): it has GBA DS's own data (saved by GBA DS) */
 StateFileKind emu_state_file_kind(Emu* e, const char* path, bool* fromGbads);
+/* Why mGBA refuses a state of the GBA BIOS's kind (issue #78): a state saved while the
+ * CPU was inside the real GBA BIOS (the waits for the next frame, the interrupt
+ * handler) can't go on in a core without that BIOS, nor a state saved without it in
+ * a core that has it. Called after emu_state_load_file failed; BIOS_REFUSAL_NONE
+ * when that isn't why (nothing else of mGBA's refusals is told apart). */
+typedef enum {
+	BIOS_REFUSAL_NONE,
+	BIOS_REFUSAL_STATE_HAS_BIOS, /* saved with the official BIOS, this core runs without it */
+	BIOS_REFUSAL_CORE_HAS_BIOS,  /* saved without it, this core runs the official one */
+} BiosRefusal;
+BiosRefusal emu_state_file_bios_refusal(Emu* e, const char* path);
 /* The CRC32 of the ROM a state file was saved with (mGBA keeps it in the
  * state's header); false if it isn't a GBA state */
 bool emu_state_file_rom_crc(const char* path, uint32_t* crc);
