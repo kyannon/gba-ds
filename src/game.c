@@ -989,6 +989,7 @@ static bool logoOnly; /* the game has a profile but no map: logo on the second s
 static const MapProfile* snapProf; /* logo-only game with screens copied to the second screen */
 static const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
 static uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
+static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
 static bool tallLiveAtStart; /* pinball_live as this game started with it: a change counts only after a new start */
 static bool tallLive;      /* the live view: the table over both screens (update_tall) */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
@@ -3764,6 +3765,7 @@ static bool toggle_supported(void) {
 
 /* why a row can't be changed here, or NULL */
 static const char* row_disabled(const char* key) {
+	if (!strcmp(key, "pinball_live") && !tallSupported) return N_("Not available in this game: only the pinball games have a table to show on both screens");
 	if ((!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
 		return N_("Not available in this game: its second screen has nothing to turn");
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
@@ -3807,6 +3809,7 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		if (off && !strcmp(key, "frame_buffer")) snprintf(val, sizeof(val), tr("Always on here"));
 		if (off && (!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
 			snprintf(val, sizeof(val), tr("Not available"));
+		if (off && !strcmp(key, "pinball_live") && !tallSupported) snprintf(val, sizeof(val), tr("Not available"));
 		bool has = game_has(st);
 		SDL_Color vc = off ? C_DIS : C_GOLD;
 		ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, st->label, off ? C_DIS : C_TEXT, -1);
@@ -8326,6 +8329,7 @@ static void ss_setup(const char* rom, const char* code) {
 	{
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
+		tallSupported = cp && cp->logoOnly && cp->tall.on[0].addr;
 		snesHere = false;
 		fb_load(); /* GEN-10 */
 		if (ctlProf) {

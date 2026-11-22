@@ -1871,7 +1871,7 @@
    "id": "aw-us-toggle-unavailable",
    "rom": "AWRE",
    "state": "advance-wars/us-title.ss",
-   "desc": "the in-game settings' Second screen page in a game the toggle doesn't apply to: Contextual toggle, Auto-rotate and Toggle button are greyed out and say Not available",
+   "desc": "the in-game settings' Second screen page in a game the toggle and the pinball view don't apply to: Contextual toggle, Auto-rotate, Toggle button and Pinball two-screen view are greyed out and say Not available",
    "rules": [
     "GEN-14"
    ],
