@@ -9467,7 +9467,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				const MapProfile* lp = mapcap_profile(mc);
 				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
 				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
-				if (lf) logoHolding = 60;
+				if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
 				else if (logoHolding > 0) --logoHolding;
 				lf = lf || logoHolding > 0;
 				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");

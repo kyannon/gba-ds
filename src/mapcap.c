@@ -406,7 +406,7 @@ static void paint_tab(MapCapture* mc, uint32_t* out) {
 
 static void patch_under(MapCapture* mc, uint32_t* out) {
 	const MapProfile* p = mc->prof;
-	for (int r = 0; r < 2 && p->underRect[r].x1; ++r) {
+	for (int r = 0; r < 3 && p->underRect[r].x1; ++r) {
 		int x0 = IMAX(p->underRect[r].x0, mc->cx), x1 = IMIN(p->underRect[r].x1, mc->cx + mc->cw - 1);
 		int y0 = IMAX(p->underRect[r].y0, mc->cy), y1 = IMIN(p->underRect[r].y1, mc->cy + mc->ch - 1);
 		for (int y = y0; y <= y1; ++y) {
@@ -532,6 +532,7 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 	if (map_up(p, s)) {
 		return "screen already looks like the map";
 	}
+	if (p->openPoke.addr) emu_write8(s, p->openPoke.addr, p->openPoke.value);
 	/* (openAlt: the game's other way to the map, from where it's asked for) */
 	const MacroStep* open = p->openAlt[0].frames && memprobes_match(p->openAltIf, 2, s) ? p->openAlt : p->open;
 	for (int i = 0; i < 8 && open[i].frames; ++i) {
