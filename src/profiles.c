@@ -10932,6 +10932,39 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* F-Zero Climax (docs/games/f-zero-climax.md): GP Legend's engine, its
+		 * own tiles. HUD sprites, priority 0: RANK 666-668 and LAST 655-657
+		 * (palette 15, digits 970-980), POWER 339-357 (12, 13), the time
+		 * 992-1016 (14), KO 620, the map tile 882 (15) at 0, 96 every other
+		 * frame with the dots (654) every frame. */
+		.codes = { "BFTJ" },
+		.title = "F-Zero Climax",
+		.logoOnly = true,
+		.logo = { .steps = { { 0, 1400 } }, .layer = 2 },
+		.hud = {
+			/* 0x02018EDB: 0xFF racing, 0 finished, 1 given up; over, the game
+			 * keeps drawing the HUD till RESULTS (tile 308), so it stays too */
+			.on = { { 0x04000000, 0xFFFF, 0x3C62, 2 }, { 0x02018EDB, 0xFF, 0xFF, 1 } },
+			.stay = { { 0x04000000, 0xFFFF, 0x3C62, 2 }, { 0x02018EDB, 0xFF, 0x00, 1, true, 0x01 } },
+			.offTile = 308,
+			.objs = { { -16, -16, 100, 20, 655, 668, 0, 1u << 15 },
+			          { -16, -16, 100, 20, 970, 980, 0, 1u << 14 | 1u << 15 },
+			          { 150, -16, 239, 12, 339, 357, 0, 1u << 12 | 1u << 13 },
+			          { 150, -16, 239, 12, 992, 1016, 0, 1u << 14 },
+			          { 190, 30, 239, 56, 620, 620, 0, 1u << 15 },
+			          { 190, 30, 239, 56, 970, 980, 0, 1u << 14 },
+			          { -64, 88, 64, 150, 882, 882, 0, 1u << 15 },
+			          { -16, 88, 64, 159, 654, 654, 0 } },
+			.map = { 0, 88, 63, 159 },
+			.mapAt = { 2, 120, 159, 882, 654 },
+			.emptyIsOff = true,
+			.moves = { { 0, 0, 100, 12, 'L', 4, 'B', 155, true, .ifTile = 666 },
+			           { 150, 0, 239, 11, 'C', 120, 'T', 2 },
+			           { 0, 13, 100, 30, 'L', 2, 'T', 2 },
+			           { 150, 12, 239, 56, 0, 0, 'T', 2 } },
+		},
+	},
+	{
 		/* F-Zero: Maximum Velocity (docs/games/f-zero-maximum-velocity.md),
 		 * GP Legend's engine before it. The race HUD is all sprites,
 		 * priority 0, on the track's BG2 / BG3 in mode 2 (DISPCNT 0x3C42,
@@ -11504,6 +11537,30 @@ static const MapProfile profiles[] = {
 			.logoBelow = true,
 			.emptyIsOff = true,
 		},
+	},
+	{
+		/* Kirby: Nightmare in Dream Land (docs/games/kirby-nightmare-in-dream-land.md):
+		 * no map; the pause page for Kirby's copy ability, as Wario Land 4's pause screen */
+		.codes = { "A7KE" },
+		.title = "Kirby: Nightmare in Dream Land",
+		.open = { { K_START, 4 } },
+		/* START is ignored through the copy pose after swallowing: pressed again (KND-2) */
+		.settleMax = 220, .openWithin = 15, .openTries = 12, .stableFrames = 3, .maxDiff = 0,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* 0x030023D8 the screen mode (8 in a level), 0x030023C0 8 while paused */
+		.mem = { { 0x030023D8, 0xFF, 8, 1 }, { 0x030023C0, 0xFF, 8, 1 } },
+		.live = { { 0x030023D8, 0xFF, 8, 1 }, { 0x030023C0, 0xFF, 0, 1 } },
+		/* the title and the menus (modes 3, 4) */
+		.menu = { { 0x030023D8, 0xFF, 3, 1, true, 4, true } },
+		/* a new room, or a new copy ability (0x02004B50: 0 none), takes the page again */
+		.room = { { 0x03002468, 0xFF, 0, 1 }, { 0x02004B50, 0xFF, 0, 1 } },
+		/* a hub of doors (5) or a level's title card (7): the logo (KND-4) */
+		.logoIf = { { 0x030023D8, 0xFF, 5, 1, true, 7 } },
+		/* the game's own pause page open: the logo, not the same page twice (KND-5) */
+		.logoIfOr = { { 0x030023C0, 0xFF, 8, 1 }, { 0x04000000, 0x1000, 0, 2 } },
+		.logoIfLast = true,
+		/* the lettering (BG1) over its swoosh (BG2), above the PRESS START sprites */
+		.logo = { .wait = 800, .layers = 0x6, .maxY = 116 },
 	},
 	{
 		/* Super Mario Advance 3: Yoshi's Island (USA and Japan; Europe:
@@ -13100,10 +13157,28 @@ static void um6_eur(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
+/* Kirby: Nightmare in Dream Land in Japan (A7KJ, Hoshi no Kirby: Yume no
+ * Izumi Deluxe): the game's variables 0x18 lower in IWRAM (the screen mode
+ * 0x030023D0, paused 0x030023B8, the room 0x03002450), found by the code
+ * that loads the USA release's (tools/romxref.py); the ability byte is where
+ * it was (0x02004B50). The title's lettering is on the same layers (KND-1).
+ * Europe (A7KP) has the USA release's addresses. */
+static void kdl_jpn(MapProfile* p) {
+	p->mem[0].addr = 0x030023D0, p->mem[1].addr = 0x030023B8;
+	p->live[0].addr = 0x030023D0, p->live[1].addr = 0x030023B8;
+	p->menu[0].addr = 0x030023D0;
+	p->room[0].addr = 0x03002450;
+	p->logoIf[0].addr = 0x030023D0;
+	p->logoIfOr[0].addr = 0x030023B8;
+}
+
 static const Variant variants[] = {
 	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
 	{ "B8KP", "B8KE", 0, NULL },
 	{ "B8KJ", "B8KE", 0, NULL },
+	/* Kirby: Nightmare in Dream Land: Europe (the USA release's addresses) and Japan */
+	{ "A7KP", "A7KE", 0, NULL },
+	{ "A7KJ", "A7KE", 0, kdl_jpn },
 	{ "BY6P", "BY6E", 0, um6_eur },
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */

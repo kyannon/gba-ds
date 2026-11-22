@@ -79,6 +79,7 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Mother 3 | `A3UJ` | Dutch (fan translation) | translation | MOTHER_3_Dutch.xdelta | 451837 | `d3ee6bc5` | `42ac9cb9` | `8b74324c` | yes |
 | Fire Emblem: Fuuin no Tsurugi | `AFEJ` | English (Dark Twilkitri) | translation | fe6.ips | 610179 | `5befafab` | `d38763e1` |  |  |
 | Fire Emblem: Fuuin no Tsurugi | `AFEJ` | English v1.2.1 (FE6 Localization fan translation) | translation | FE6Localization_v1.2.1.ups | 914642 | `625aeade` | `d38763e1` | `197de10b` | yes |
+| F-Zero Climax | `BFTJ` | English Patch 1.1 (F-Zero Climax Translation Project) | translation | F-Zero Climax English Patch 1.1.ips | 246104 | `4eb16ff2` | `dbdc71e3` | `80366a0a` | yes: the race HUD is the Japanese game's, its own logo (FZC-9) |
 | Rhythm Tengoku | `BRIJ` | Rhythm Heaven Silver beta 13a | translation | Rhythm.Heaven.Silver.-.Beta.13a.ips | 339033 | `be54e107` | `349d7025` |  |  |
 | Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA)_GBPPalette.ips | 15 | `9fa926ad` | `a44ba79f` | `d4f7d398` | yes (SM4-9's check of the opening's frame colour doesn't apply: the frame is there, a shade darker) |
 | Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA, Australia)_(Rev 1)_GBPPalette.ips | 15 | `a99fb3df` | `88dab27f` | `e6c145c2` | yes |

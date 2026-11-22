@@ -2,6 +2,10 @@
 
 ## v1.5.8 (not yet released)
 
+### New games
+- **Kirby: Nightmare in Dream Land** (USA, Europe and Japan): in a level, the second screen shows the pause page for Kirby's copy ability, kept up to date as he copies and drops abilities. While the game's own pause page is open, and everywhere outside a level, it shows the logo. Checked in Vegetable Valley in the USA release; the Europe and Japan releases have been tried on saved states.
+- **F-Zero Climax** (Japan, and in English with the F-Zero Climax English Patch 1.1): the race HUD moves to the second screen as in F-Zero: GP Legend, with the course map twice as big. Grand Prix is checked; Time Attack and Survival haven't been yet.
+
 ### Interface
 - **RetroArch's zstd save states load** (issue #78). States RetroArch 1.21 and later compress with zstd (RZIP version 2) now load, shared or from its folder; GBA DS still saves RetroArch's zlib ones, which every RetroArch reads.
 - **A state saved with a GBA BIOS says so, and there's an option for it** (issue #78). A state from RetroArch's mGBA core with a BIOS file set, saved while the game was inside the BIOS, couldn't load and said only "Load failed". It now says "Saved with a GBA BIOS". New, and off by default: Settings > System > **GBA BIOS** (Linux and Android) runs games with your own BIOS, a file you put in the `bios` folder of GBA DS's data folder as `gba_bios.bin` (GBA DS has none and never looks for one itself). Known: with it on, states saved without a BIOS may not load, and a BIOS applies to games started after switching it.
