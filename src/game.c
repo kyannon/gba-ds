@@ -3756,8 +3756,16 @@ static SDL_Rect scope_rect(int scr, int half) {
 static SDL_Rect rowTag[ROW_MAX + 1], rowBack[ROW_MAX + 1]; /* where the last drawing put each row's Game tag and left arrow (for touch) */
 static bool rowTagOn[ROW_MAX + 1];
 
+/* the game has a second screen the toggle can turn (pages, or views: GEN-14) */
+static bool toggle_supported(void) {
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	return hp && (hp->pages || hp->views || hp->onPress);
+}
+
 /* why a row can't be changed here, or NULL */
 static const char* row_disabled(const char* key) {
+	if ((!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
+		return N_("Not available in this game: its second screen has nothing to turn");
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
@@ -3797,6 +3805,8 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		char val[48];
 		config_setting_text(cfg, st, val, sizeof(val));
 		if (off && !strcmp(key, "frame_buffer")) snprintf(val, sizeof(val), tr("Always on here"));
+		if (off && (!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
+			snprintf(val, sizeof(val), tr("Not available"));
 		bool has = game_has(st);
 		SDL_Color vc = off ? C_DIS : C_GOLD;
 		ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, st->label, off ? C_DIS : C_TEXT, -1);

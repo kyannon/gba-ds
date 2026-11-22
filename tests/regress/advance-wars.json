@@ -1866,6 +1866,40 @@
      "what": "switched on with a usable file"
     }
    ]
+  },
+  {
+   "id": "aw-us-toggle-unavailable",
+   "rom": "AWRE",
+   "state": "advance-wars/us-title.ss",
+   "desc": "the in-game settings' Second screen page in a game the toggle doesn't apply to: Contextual toggle, Auto-rotate and Toggle button are greyed out and say Not available",
+   "rules": [
+    "GEN-14"
+   ],
+   "input": [
+    [
+     60,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.5,0.864"
+    ],
+    [
+     170,
+     "-"
+    ],
+    [
+     200,
+     "TAP:0.855,0.529"
+    ],
+    [
+     230,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 260
+   }
   }
  ]
 }

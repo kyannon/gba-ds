@@ -135,7 +135,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | HOME + X | Quick bar (it shows the FPS too) |
 | HOME + D-pad up | Swap screens |
 | HOME + D-pad down | Toggle the selected shader (off, and back on) |
-| HOME + A | Turn the second screen's page or view (Settings > Second screen > Contextual toggle, off by default) |
+| HOME + A | Turn the second screen's page or view (Settings > Second screen > Contextual toggle, off by default; greyed out as not available in games whose second screen has nothing to turn) |
 
 If HOME doesn't open the menu on your device, see `home_button` in [[Settings]]; `menu_combo = select+start` also makes SELECT + START open it.
 
