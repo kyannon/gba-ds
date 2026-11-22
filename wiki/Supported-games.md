@@ -35,6 +35,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Harry Potter and the Prisoner of Azkaban (Harry Potter to Azkaban no Shuujin in Japan) | `BHTE` (USA and Europe) `BHTJ` | the party's level, experience, Stamina and Magic from the Status/Equip screen, with the current task | |
 | Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are | |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo | |
+| Kirby & The Amazing Mirror (Hoshi no Kirby: Kagami no Daimeikyuu in Japan) | `B8KE` `B8KP` `B8KJ` | in an area: its Area map | |
 | Kirby: Nightmare in Dream Land (Hoshi no Kirby: Yume no Izumi Deluxe in Japan) | `A7KE` `A7KP` `A7KJ` | in a level: the pause page for Kirby's copy ability | |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen | |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | Voice removal (USA, Europe) |
@@ -380,6 +381,14 @@ The USA, European and Japanese releases, tried in Traverse Town.
 - **Walking about in a world,** the second screen is the **World Map** (the one SELECT opens), as the game draws it, filling the screen: the floor's rooms, the room you're in lit blue with its name, and the floor you're on. It's opened in the background in a silent copy of the game about once a second, so new rooms show up without you opening it; your game is never paused. The map's cursor and its A button bubble are left out.
 - **In battles,** from the flash as one starts until the last enemy falls, the second screen shows the logo; the World Map comes back afterwards.
 - On the title, in the opening and in the scenes before the first world, it shows the logo; in conversations, scenes, at doors and in the game's own menus it keeps its last picture.
+
+## Kirby & The Amazing Mirror
+
+- **In an area** the second screen shows the pause screen's Area map of that area: the rooms Kirby has been through (every room once the area's map has been found), the paths between them, the four Kirbys' marker and the area's name. It's taken again as Kirby goes into another room and about once a second. The map's prompts (SELECT SWITCH, R ZOOM, B QUIT, the L and R tabs and the scroll arrows) are left out, so the art shows there instead; `map_crop = 0` shows the whole pause screen.
+- The game screen keeps its HUD where the game draws it.
+- **The game's own pause screen** skips its Area map page: SELECT goes from Help to the World map, because the map is already on the second screen and would otherwise be on both. The second screen doesn't fade with the game's pause screen. With one screen (or with the map off) the pause screen is the game's own, Area map page included.
+- Before the first map (the title, the file select and the tutorial at the start, where the pause screen has no map yet) and while the game's own pause screen is open on a page, the second screen shows the logo, at half strength. Where the pause screen has no Area map later on (the Dimension Mirror and the rooms outside the areas' maps), the last map stays.
+- The USA release has been played in the Rainbow Route. The Europe and Japan (Rev 1) releases have been tried on saved states for the title, file select, tutorial and pause screen's pages, not yet in an area.
 
 ## Kirby: Nightmare in Dream Land
 

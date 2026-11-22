@@ -3,6 +3,7 @@
 ## v1.5.8 (not yet released)
 
 ### New games
+- **Kirby & The Amazing Mirror** (USA, Europe and Japan): in an area, the second screen shows its Area map, kept up to date room by room. The game's own pause screen skips its Area map page (SELECT goes from Help to the World map) so the map is never on both screens; with one screen the pause screen is the game's own. Checked in the Rainbow Route in the USA release; the Europe and Japan releases have been tried on saved states (the title, file select, tutorial and the pause screen's maps) but not in an area yet.
 - **Kirby: Nightmare in Dream Land** (USA, Europe and Japan): in a level, the second screen shows the pause page for Kirby's copy ability, kept up to date as he copies and drops abilities. While the game's own pause page is open, and everywhere outside a level, it shows the logo. Checked in Vegetable Valley in the USA release; the Europe and Japan releases have been tried on saved states.
 - **F-Zero Climax** (Japan, and in English with the F-Zero Climax English Patch 1.1): the race HUD moves to the second screen as in F-Zero: GP Legend, with the course map twice as big. Grand Prix is checked; Time Attack and Survival haven't been yet.
 

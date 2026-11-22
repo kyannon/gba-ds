@@ -9909,6 +9909,41 @@ static const MapProfile profiles[] = {
 		.animFrames = 8, .animStep = 4,
 	},
 	{
+		/* Kirby & The Amazing Mirror (docs/games/kirby-and-the-amazing-mirror.md);
+		 * RAM names from the jiangzhengwenjz/katam decompilation */
+		.codes = { "B8KE" },
+		.title = "Kirby & The Amazing Mirror",
+		/* the pause menu reopens on the page last looked at: the Area map's first */
+		.openPoke = { 0x0203ACCD, 4 },
+		.open = { { K_START, 4 } },
+		.settleMax = 120, .stableFrames = 3, .maxDiff = 64,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* the Area map page, in video mode 1 (Help and the World map are mode 0) */
+		.mem = { { 0x0203ACCD, 0xFF, 4, 1 }, { 0x03003690, 0x7, 1, 2 } },
+		/* playing (1-4 Kirbys) and no pause page open */
+		.live = { { 0x0203AD44, 0xFF, 1, 1, true, 4, true }, { 0x0203AD4C, 0xFFFFFFFF, 0, 4 } },
+		.menu = { { 0x0203AD44, 0xFF, 0, 1 } },
+		.room = { { 0x02020F40, 0xFFFF, 0, 2 } },
+		/* the game's own pause open on its Area map page: the logo, not the same map twice (KAM-6) */
+		/* (the Area map page by its video mode, gDispCnt 0x03003690: it changes at the fade's white point) */
+		.logoIf = { { 0x0203AD4C, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true }, { 0x03003690, 0x0007, 1, 2 } },
+		.logoIfLast = true,
+		/* SELECT turns only the Help and World map pages (KAM-6): pressed on
+		 * Help, the page (each of the four players') is the Area map's first, so the game's own
+		 * SELECT goes on from it to the World map (Help, Area map, World map in turn) */
+		.skip = { { { 0x0203AD4C, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true } },
+		          { 0x0203ACCD, 0x0203ACE1, 0x0203ACF5, 0x0203AD09 }, 1, 4, 0x0004 },
+		/* the prompts (BG1): the bottom row and the L / R tabs in the top
+		 * corners give way to the art, rooms and marker under them (KAM-3) */
+		.underRect = { { 0, 143, 239, 159 }, { 0, 0, 52, 16 }, { 188, 0, 239, 16 } }, .underLayers = 0x15,
+		/* the white scroll arrows at the map's edges (KAM-3) */
+		.captureHide = { { -16, -16, 255, 175, 264, 267, 0 } },
+		/* the bar under the Kirbys' marker pulses over 54 frames */
+		.animFrames = 9, .animStep = 6,
+		/* the title from frame ~720: the lettering on BG1, the copyright below row 130 */
+		.logo = { .wait = 900, .layer = 1, .maxY = 130 },
+	},
+	{
 		.codes = { "AZLE" },
 		.title = "The Legend of Zelda: A Link to the Past",
 		/* the cartridge also holds Four Swords (multiplayer only), so list it
@@ -13138,6 +13173,9 @@ static void kdl_jpn(MapProfile* p) {
 }
 
 static const Variant variants[] = {
+	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
+	{ "B8KP", "B8KE", 0, NULL },
+	{ "B8KJ", "B8KE", 0, NULL },
 	/* Kirby: Nightmare in Dream Land: Europe (the USA release's addresses) and Japan */
 	{ "A7KP", "A7KE", 0, NULL },
 	{ "A7KJ", "A7KE", 0, kdl_jpn },
