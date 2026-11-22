@@ -692,6 +692,8 @@ def main():
                     need.add("states/" + keys[5:])
             for fx in c.get("retroarch", {}).get("states", {}).values():  # (GEN-13's stand-in RetroArch folder)
                 need.add("states/" + fx)
+            if c.get("bios"):  # (GEN-15's player-supplied GBA BIOS)
+                need.add("bios/" + c["bios"])
         print("\n".join(sorted(need)))
         return
     if args.list:
