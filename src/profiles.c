@@ -2388,7 +2388,8 @@ static const Probe khcMap[8] = { { 4, 4, 0x00298C }, { 20, 6, 0xFFFFFF }, { 40, 
  * game has loaded: the bubble 454 in one room, 450 in another) */
 static const SpriteRule khcHide[1] = { { -64, -16, 239, 159, 0, 1023, 0, 1u << 0 } };
 static bool khc_map_up(Emu* s) {
-	return som_probes(s, khcMap, 8, 7, 8);
+	/* 7 of the 8, and always the floor's badge: the menu's World Cards screen has the banner and the bottom strip too */
+	return som_probes(s, khcMap, 8, 7, 8) && som_probes(s, &khcMap[5], 1, 1, 8);
 }
 /* the title (KHC-4): the emblem and the art at its corner, as they stand
  * once it's up, the same in all three releases (not the emblem on black
@@ -2402,10 +2403,6 @@ static uint32_t khc_virt(Emu* e, uint32_t addr) {
 static bool khc_wait(Emu* s, bool (*up)(Emu*), int n) {
 	for (int f = 0; f < n && !up(s); ++f) emu_frame(s, 0);
 	return up(s);
-}
-static bool khc_alt_here(Emu* live) {
-	(void) live;
-	return false;
 }
 static const char* khc_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	emu_hide_sprites(s, khcHide, 1);
@@ -3732,9 +3729,120 @@ static uint32_t hm_glove_var(Emu* s, int gx, int gy) {
 	return 0;
 }
 
+/* the Farm Map is up: BG1 to 3 only, their controls as it sets them (walking about has BG0 and others) */
+static bool hm_farm_up(Emu* s) {
+	return emu_io16(s, 0x00) == 0x1E40 && emu_io16(s, 0x0A) == 0xD440 && emu_io16(s, 0x4C) == 0;
+}
+
+/* the toggle's other view (HM-7): START, the icon bar's fourth icon, the Farm Map. It scrolls over a field the
+ * screen is a window onto (BG1's scroll, 4 pixels a frame, as far as 240 across and 192 down): the screens are
+ * taken along its left edge top to bottom, then back up its right, each put where its scroll says, and the
+ * whole shrunk (area average) into the 240x160 box with black round it. No sprites (its arrows, the heads). */
+#define HM_FARM_MAX 1024
+static const char* hm_farm(Emu* s, uint32_t* out, int w, int h) {
+	static uint32_t canvas[HM_FARM_MAX * HM_FARM_MAX];
+	if (emu_io16(s, 0x4C) != 0 || !(emu_io16(s, 0x00) & 0x0F00) || hm_map_up(s) || hm_farm_up(s)) return "map button did nothing";
+	const SpriteRule all[1] = { { -512, -256, 511, 255, 0, 1023, -1, 0, 0, 0 } };
+	emu_hide_sprites(s, all, 1);
+	/* the icon bar, its fourth icon (the cursor starts on the first: the bar's up check is the map itself) */
+	emu_frame_blind(s, K_START);
+	emu_frame_blind(s, K_START);
+	for (int i = 0; i < 40; ++i) emu_frame_blind(s, 0);
+	for (int n = 0; n < 3; ++n) {
+		emu_frame_blind(s, K_RIGHT);
+		emu_frame_blind(s, K_RIGHT);
+		for (int i = 0; i < 12; ++i) emu_frame_blind(s, 0);
+	}
+	emu_frame_blind(s, K_A);
+	emu_frame_blind(s, K_A);
+	int f = 0;
+	while (f < 200 && !hm_farm_up(s)) emu_frame_blind(s, 0), ++f;
+	if (f >= 200) {
+		emu_hide_sprites(s, NULL, 0);
+		return "map screen did not appear";
+	}
+	for (int i = 0; i < 20; ++i) emu_frame_blind(s, 0);
+	/* to the top left corner, then the extent: how far it goes right and down */
+	for (int i = 0; i < 80; ++i) emu_frame_blind(s, K_LEFT | K_UP);
+	int maxX = 0, maxY = 0;
+	for (int i = 0; i < 90; ++i) emu_frame_blind(s, K_RIGHT);
+	maxX = emu_io16(s, 0x14) & 0x1FF;
+	for (int i = 0; i < 90; ++i) emu_frame_blind(s, K_DOWN);
+	maxY = emu_io16(s, 0x16) & 0x1FF;
+	int cw = maxX + GBA_W, ch = maxY + GBA_H;
+	if (emu_cancelled(s)) {
+		emu_hide_sprites(s, NULL, 0);
+		return "called off";
+	}
+	if (cw > HM_FARM_MAX || ch > HM_FARM_MAX || cw < GBA_W || ch < GBA_H) {
+		emu_hide_sprites(s, NULL, 0);
+		return "the Farm Map's size isn't one we know";
+	}
+	memset(canvas, 0, (size_t) cw * (size_t) ch * sizeof canvas[0]);
+	for (int i = 0; i < 120; ++i) emu_frame_blind(s, K_LEFT | K_UP); /* (back at the top left) */
+	/* columns no more than 200 pixels apart from the left to the right edge, each swept up or down in stops no more than 100 pixels
+	 * apart (the screen is 240 by 160: they overlap); the scroll is read back each time, so nothing here relies on its speed */
+	int cols = (maxX + 199) / 200 + 1;
+	for (int ci = 0; ci < cols && !emu_cancelled(s); ++ci) {
+		int wantX = cols > 1 ? maxX * ci / (cols - 1) : 0, g = 0;
+		while (g < 120 && (int) (emu_io16(s, 0x14) & 0x1FF) != wantX) {
+			int cur = (int) (emu_io16(s, 0x14) & 0x1FF);
+			emu_frame_blind(s, cur < wantX ? K_RIGHT : K_LEFT), ++g;
+			if (g > 3 && ((int) (emu_io16(s, 0x14) & 0x1FF) - cur) * (cur < wantX ? 1 : -1) <= 0) break; /* (can't go further) */
+		}
+		bool down = (ci % 2) == 0; /* (the first column is swept down from the top, the next up from the bottom) */
+		for (int stop = 0; stop < 40; ++stop) {
+			for (int i = 0; i < 2; ++i) emu_frame(s, 0);
+			int x = emu_io16(s, 0x14) & 0x1FF, y = emu_io16(s, 0x16) & 0x1FF;
+			for (int r = 0; r < GBA_H && y + r < ch; ++r)
+				for (int c = 0; c < GBA_W && x + c < cw; ++c) canvas[(size_t) (y + r) * cw + x + c] = s->fb[r * GBA_W + c];
+			if (emu_cancelled(s) || (down ? y >= maxY : y <= 0)) break;
+			int want = down ? (y + 100 < maxY ? y + 100 : maxY) : (y > 100 ? y - 100 : 0);
+			g = 0;
+			while (g < 60 && (int) (emu_io16(s, 0x16) & 0x1FF) != want) {
+				int cy = (int) (emu_io16(s, 0x16) & 0x1FF);
+				if (down ? cy >= want : cy <= want) break;
+				emu_frame_blind(s, down ? K_DOWN : K_UP), ++g;
+			}
+		}
+	}
+	emu_hide_sprites(s, NULL, 0);
+	if (emu_cancelled(s)) return "called off";
+	if (!hm_farm_up(s)) return "the Farm Map went away";
+	/* the whole into the box: area average, centred */
+	int bw = w < GBA_W ? w : GBA_W, bh = h < GBA_H ? h : GBA_H;
+	double sc = (double) bw / cw < (double) bh / ch ? (double) bw / cw : (double) bh / ch;
+	int ow = (int) (cw * sc), oh = (int) (ch * sc);
+	if (ow < 1) ow = 1;
+	if (oh < 1) oh = 1;
+	for (int i = 0; i < w * h; ++i) out[i] = 0xFF000000;
+	int ox = (bw - ow) / 2, oy = (bh - oh) / 2;
+	for (int dy = 0; dy < oh; ++dy) {
+		int sy0 = dy * ch / oh, sy1 = (dy + 1) * ch / oh;
+		if (sy1 <= sy0) sy1 = sy0 + 1;
+		for (int dx = 0; dx < ow; ++dx) {
+			int sx0 = dx * cw / ow, sx1 = (dx + 1) * cw / ow;
+			if (sx1 <= sx0) sx1 = sx0 + 1;
+			unsigned a = 0, b = 0, c = 0, n = 0;
+			for (int sy = sy0; sy < sy1; ++sy)
+				for (int sx = sx0; sx < sx1; ++sx) {
+					uint32_t p = canvas[(size_t) sy * cw + sx];
+					a += p & 0xFF, b += (p >> 8) & 0xFF, c += (p >> 16) & 0xFF, ++n;
+				}
+			out[(oy + dy) * w + ox + dx] = 0xFF000000u | (c / n) << 16 | (b / n) << 8 | (a / n);
+		}
+	}
+	return NULL;
+}
+
+static bool hm_alt_here(Emu* live) {
+	return emu_read8(live, HM_MODE) != HM_MODE_TITLE;
+}
+
 static const char* hm_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame_blind(s, 0);
+	if (mapcap_alt_view()) return hm_farm(s, out, w, h);
 	/* (open in the game already: as it is, the glove moved back) */
 	if (!hm_map_up(s)) {
 		/* going from one area to the next (a mosaic out, the backgrounds
@@ -11994,8 +12102,6 @@ static const MapProfile profiles[] = {
 		.codes = { "B8CE" },
 		.title = "Kingdom Hearts: Chain of Memories",
 		.compose = khc_compose,
-		.onPress = true, /* the toggle's other view isn't chosen yet: never ready, so the button stays inactive (GEN-14) */
-		.altHere = khc_alt_here,
 		.virt = khc_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12148,6 +12254,8 @@ static const MapProfile profiles[] = {
 		.codes = { "A4NE", "A4NP", "A4ND" },
 		.title = "Harvest Moon: Friends of Mineral Town",
 		.compose = hm_compose,
+		.onPress = true, /* the Farm Map, captured on a press (HM-7) */
+		.altHere = hm_alt_here,
 		.virt = hm_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,

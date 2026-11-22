@@ -2455,7 +2455,7 @@
    "id": "m3-jp-toggle-view",
    "rom": "A3UJ",
    "state": "mother-3/jp-tazmily.ss",
-   "desc": "the toggle on, in Tazmily: HOME + A fades to black while the hidden copy takes the Status, then shows it; the next presses turn its pages; after the last, the map comes back",
+   "desc": "the toggle on, in Tazmily: HOME + A fades to black while the hidden copy takes the Status, then shows it; the next presses turn its pages; after the last, the map comes back; pressed again, the Status starts over at the first page",
    "rules": [
     "GEN-14",
     "M3-2",
@@ -2505,13 +2505,22 @@
     [
      1204,
      "-"
+    ],
+    [
+     1400,
+     "HOME+A"
+    ],
+    [
+     1404,
+     "-"
     ]
    ],
    "shots": {
     "before": 290,
     "after": 800,
     "page2": 950,
-    "back": 1290
+    "back": 1290,
+    "again": 1900
    },
    "checks": [
     {
@@ -2589,6 +2598,30 @@
      },
      "b": {
       "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "GEN-14",
+     "what": "round again: the Status starts at its first page",
+     "type": "same",
+     "a": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "again",
       "rect": [
        0,
        0,

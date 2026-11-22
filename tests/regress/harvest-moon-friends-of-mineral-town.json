@@ -45,7 +45,7 @@
    "id": "hm-logo-a4nj",
    "kind": "logo",
    "rom": "A4NJ",
-   "desc": "A4NJ logo extraction (Japan: its own sign, 牧場物語 with its banner)",
+   "desc": "A4NJ logo extraction (Japan: its own sign, \u7267\u5834\u7269\u8a9e with its banner)",
    "rules": [
     "GEN-1",
     "HM-5"
@@ -440,7 +440,7 @@
    "id": "hm-jp-town-saved",
    "rom": "A4NJ",
    "state": "harvest-moon-friends-of-mineral-town/jp-town-saved.ss",
-   "desc": "Japan, the same place (the USA save loaded): the town map, ミネラルタウン北側",
+   "desc": "Japan, the same place (the USA save loaded): the town map, \u30df\u30cd\u30e9\u30eb\u30bf\u30a6\u30f3\u5317\u5074",
    "rules": [
     "HM-1",
     "HM-2"
@@ -993,6 +993,98 @@
      ],
      "color": "303030",
      "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hm-us-toggle-view",
+   "rom": "A4NE",
+   "state": "harvest-moon-friends-of-mineral-town/us-farm.ss",
+   "desc": "the toggle on, on the farm: HOME + A fades to black while the hidden copy takes the Farm Map (stitched, shrunk to fit, no sprites), then shows it; again, back to the town map",
+   "rules": [
+    "GEN-14",
+    "HM-7"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     150,
+     "HOME+A"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     300,
+     "HOME+A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 140,
+    "after": 250,
+    "back": 400
+   },
+   "checks": [
+    {
+     "rule": "HM-7",
+     "what": "the Farm Map, not the town map",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.1
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a second press brings the town map back",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the view came",
+     "type": "log",
+     "match": "toggle: view 2$"
     }
    ]
   }

@@ -7180,6 +7180,7 @@ static void toggle_press(void) {
 	if (tg_view_mode(pp)) {
 		/* capture on press: the other view is asked for now; the picture fades out, stays black until it is here (or it isn't, in time: the old one comes back) */
 		viewAlt = !viewAlt, viewWait = true, tgCapWant = 0;
+		pageOffset = 0, mapAnimStart = frameCount; /* (a view's pages start at the first: coming round again, not from the page the last turn ended on) */
 		if (mc && mapcap_busy(mc)) mapcap_cancel(mc); /* (a refresh of the old view: the new one starts as soon as it has stopped) */
 		tgState = TG_FADE_OUT, tgFrames = 0, tgTarget = -1;
 		if (debug) fprintf(stderr, "frame %llu: toggle: view %s asked for\n", (unsigned long long) frameCount, viewAlt ? "2" : "1");

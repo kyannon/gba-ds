@@ -349,23 +349,15 @@
    "Harvest Moon - Friends of Mineral Town (USA)": {
     "1": [
      "us-farm.ss",
-     "walking about on the farm: START opens the icon bar (Diary, Rucksack, World Map, Farm Map, Earnings, Memo, Tutorial), L + START the world map; choose which should be the toggle's other view"
+     "walking about on the farm: press the button (or HOME + A) for the whole Farm Map, again for the town map (HM-1, HM-7). The game starts an event after a few seconds; press early"
     ],
     "2": [
      "us-town-saved.ss",
-     "in town: the same menu and maps"
+     "the same, in town / indoors: press for the Farm Map and back (HM-7)"
     ],
     "3": [
      "us-house.ss",
-     "indoors: which of the maps and screens open here"
-    ],
-    "4": [
-     "us-farm-map.ss",
-     "the Farm Map open"
-    ],
-    "5": [
-     "us-status.ss",
-     "a status screen open"
+     "the same, in town / indoors: press for the Farm Map and back (HM-7)"
     ]
    }
   },
@@ -373,19 +365,19 @@
    "Boktai - The Sun Is in Your Hand (USA)": {
     "1": [
      "us-castle.ss",
-     "in a dungeon: SELECT opens the menu (its pages), START the map; choose the other view"
+     "no toggle button expected here (the owner's choice)"
     ],
     "2": [
      "us-castle-map-open.ss",
-     "the Map open"
+     "no toggle button expected here (the owner's choice)"
     ],
     "3": [
      "us-forest.ss",
-     "outdoors: the same menu and map"
+     "no toggle button expected here (the owner's choice)"
     ],
     "4": [
      "us-istrakan.ss",
-     "in town: the same menu and map"
+     "no toggle button expected here (the owner's choice)"
     ]
    }
   },
@@ -393,7 +385,7 @@
    "Kingdom Hearts - Chain of Memories (USA)": {
     "1": [
      "us-field.ss",
-     "walking about a room: the map, and the pause menu (its pages); choose the other view"
+     "walking about a room: no toggle button expected (the owner's choice); the World Map shows"
     ],
     "2": [
      "us-world-map.ss",
@@ -401,7 +393,7 @@
     ],
     "3": [
      "us-menu.ss",
-     "the pause menu open"
+     "the pause menu open: nothing new is taken (KHC-2)"
     ],
     "4": [
      "us-new-room.ss",
@@ -410,6 +402,10 @@
     "5": [
      "us-room-synthesis.ss",
      "room synthesis"
+    ],
+    "6": [
+     "us-world-cards.ss",
+     "the menu's World Cards screen: must NOT appear on the second screen; the last World Map stays (KHC-2)"
     ]
    }
   }
