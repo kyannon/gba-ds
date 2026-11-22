@@ -18,6 +18,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
 | Duel Masters: Kaijudo Showdown | `BD6E` `BD6P` | Card Details of the card under the cursor | |
 | Eragon | `BENE` `BENP` (no Japanese release) | the Party screen, every card lit; the map where L opens one; in battles, the party's HP bars | |
+| F-Zero Climax | `BFTJ` (Japan only) | the race HUD, with the course map twice as big | F-Zero Climax English Patch 1.1 |
 | F-Zero: GP Legend (F-Zero: Falcon Densetsu in Japan) | `BFZE` `BFZP` `BFZJ` | the race HUD, with the course map twice as big | |
 | F-Zero: Maximum Velocity (F-Zero for Game Boy Advance in Japan) | `AFZE` (USA and Europe) `AFZJ` (China: `AFZC`) | the race HUD, with the course map twice as big | |
 | Final Fantasy I & II: Dawn of Souls (Final Fantasy I, II Advance in Japan) | `BFFE` `BFFP` `BFFJ` | the Enlarged Map on the world map, the party screen elsewhere and in battles (both games) | |
@@ -223,6 +224,19 @@ USA and Europe (English, French, German, Spanish and Italian).
 - In conversations and scenes the second screen keeps its picture. The title and Europe's language screen show the logo: the carved "eragon" alone.
 - After you leave the game's own menu or map, the second screen can take a few seconds to catch up (the game ignores START and L for about two seconds then).
 - Not tried yet: Saphira's flying, boss battles, Farthen Dûr and the ending.
+
+## F-Zero Climax
+
+The same second screen as F-Zero: GP Legend's: the HUD is moved off the game screen rather than copied, so nothing behind it is lost.
+
+- **Racing:**
+  - The game screen keeps your **speed** where the game draws it (bottom right) and shows your **RANK** in the bottom-left corner, where the course map was.
+  - The second screen has the **POWER** meter at the top centre, LAST (laps left) in the top-left corner, the time and KO count on the right, and the **course map**, whole and twice as big, with every racer's dot, at the bottom centre. The game draws the map only every other frame, so it's held steady here and the dots move every frame.
+- The game's **pause menu** stays on the game screen, with the HUD on the second screen.
+- Past the finish line and through GIVE UP's YOU LOST the HUD stays; the logo comes back with the RESULTS and stays through the standings, and in the menus, on the course card and in the course fly-in.
+- With one screen (`layout = single`), the HUD stays where the game draws it.
+- It works the same on the **English Patch 1.1** (switched on in Extras > Patches, or as a patched ROM), with that translation's own title as the logo.
+- Grand Prix at Novice has been tried (Mute City to the finish, Sand Ocean and Big Blue). Not tried yet: Time Attack and Survival, which open late in the story; any HUD piece of their own would stay on the game screen.
 
 ## F-Zero: GP Legend
 
