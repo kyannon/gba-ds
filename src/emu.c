@@ -983,6 +983,10 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n) {
 	return ok;
 }
 
+bool emu_is_gb(const Emu* e) {
+	return e && e->core && e->platform == mPLATFORM_GB;
+}
+
 /* Game Boy / Game Boy Color header (0x100..): the Nintendo logo's first bytes at 0x104 */
 static bool header_is_gb(const uint8_t* h, size_t n) {
 	if (n >= 0xB3 && h[0xB2] == 0x96) return false; /* (a GBA header's fixed byte) */

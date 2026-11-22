@@ -85,6 +85,8 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n);
 /* The game's 4-letter code from a header read with emu_rom_header (n >= EMU_HEADER_MAX): a GBA game's
  * own; a Game Boy / Game Boy Color game's made from its header ("g" or "c" + 3 characters, lower case:
  * issue #77). Its title (up to 15 characters, unprintable ones "_"). */
+/* Is the game a Game Boy / Game Boy Color one (issue #77)? */
+bool emu_is_gb(const Emu* e);
 bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
 void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);

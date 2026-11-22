@@ -7557,6 +7557,20 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
  * that's bigger stays a high-resolution image (logoCanvasTex NULL). */
 static void make_logo_canvas(void) {
 	ui_free_image(logoCanvasTex);
+	if (emu_is_gb(&emu)) {
+		/* A Game Boy / Game Boy Color game: the second screen is idle, plain dark grey, no logo
+		 * (docs/GAME-BOY.md, GB-3; logos come later) */
+		static uint32_t grey[GBA_W * GBA_H];
+		for (int i = 0; i < GBA_W * GBA_H; ++i) grey[i] = SCREEN_GREY;
+		logoSub = 1;
+		for (int i = 0; i < nViews; ++i) {
+			logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+			if (!logoCanvasTex[i]) continue;
+			SDL_SetTextureBlendMode(logoCanvasTex[i], SDL_BLENDMODE_NONE);
+			ui_update_texture(logoCanvasTex[i], grey, GBA_W * 4);
+		}
+		return;
+	}
 	bool pixelArt = false;
 	int sub = 1;
 	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
@@ -7617,7 +7631,10 @@ static void draw_game(void) {
 		SDL_Rect r = screens[s].rect;
 		if (showGame) {
 			if (nScreens == 2 && !mapOn && s != game_screen()) {
-				/* no map: the other screen black, in its bezel if it has one */
+				/* no map: the other screen black, in its bezel if it has one (a Game Boy game's:
+				 * idle grey, the same as a logo's, with no logo: GB-3) */
+				if (emu_is_gb(&emu) && (logoCanvasTex[0] || logoCanvasTex[1]))
+					ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
 				if (overlay_on(s)) draw_overlay(s, 1);
 				continue;
 			}
@@ -8350,7 +8367,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 	uint32_t logoGen = logo_generation();
 	logoSub = 1;
-	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
+	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel) || emu_is_gb(&emu)) make_logo_canvas();
 	logoProvisional = ui_logo_provisional();
 
 	memset(pageLen, 0, sizeof(pageLen));
