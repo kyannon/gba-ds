@@ -131,7 +131,7 @@ msgstr ""
 msgid "%s, Select, Start or L3. Tap to keep it as it is"
 msgstr ""
 
-#: src/ra.c:788
+#: src/ra.c:1163
 #, c-format
 msgid "%u of %u achievements unlocked"
 msgstr ""
@@ -232,7 +232,7 @@ msgstr ""
 msgid "A: the one lit above. Y: all games. X: undo this game's value"
 msgstr ""
 
-#: src/ra.c:823
+#: src/ra.c:1198
 msgid "ACHIEVEMENT UNLOCKED"
 msgstr ""
 
@@ -252,7 +252,7 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: src/ra.c:786 src/ra.c:831
+#: src/ra.c:1161 src/ra.c:1206
 #, c-format
 msgid "All %u achievements unlocked"
 msgstr ""
@@ -388,7 +388,7 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: src/ra.c:843
+#: src/ra.c:1261
 msgid "Back online"
 msgstr ""
 
@@ -496,11 +496,11 @@ msgstr ""
 msgid "Check now"
 msgstr ""
 
-#: src/ra.c:721 src/ra.c:724
+#: src/ra.c:1096 src/ra.c:1099
 msgid "Check ra_username and ra_password in gba-ds.cfg"
 msgstr ""
 
-#: src/ra.c:724
+#: src/ra.c:1099
 msgid "Check the account in EmulationStation's RetroAchievements settings"
 msgstr ""
 
@@ -614,7 +614,7 @@ msgstr ""
 msgid "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."
 msgstr ""
 
-#: src/ra.c:693
+#: src/ra.c:1068
 msgid "Couldn't connect"
 msgstr ""
 
@@ -626,7 +626,7 @@ msgstr ""
 msgid "Couldn't keep that choice."
 msgstr ""
 
-#: src/ra.c:768
+#: src/ra.c:1143
 msgid "Couldn't load the achievements"
 msgstr ""
 
@@ -1259,6 +1259,22 @@ msgstr ""
 msgid "LCD Grid"
 msgstr ""
 
+#: src/ra.c:1228
+msgid "LEADERBOARD ATTEMPT FAILED"
+msgstr ""
+
+#: src/ra.c:1225
+msgid "LEADERBOARD ATTEMPT STARTED"
+msgstr ""
+
+#: src/ra.c:1243
+msgid "LEADERBOARD RANK"
+msgstr ""
+
+#: src/ra.c:1234
+msgid "LEADERBOARD SUBMITTED"
+msgstr ""
+
 #: src/hotkeys.c:20 src/mapper.c:32
 msgid "Left"
 msgstr ""
@@ -1316,7 +1332,7 @@ msgstr ""
 msgid "Loading games..."
 msgstr ""
 
-#: src/ra.c:1018 src/ra.c:1211
+#: src/ra.c:1452 src/ra.c:1650
 msgid "Loading the achievements..."
 msgstr ""
 
@@ -1420,7 +1436,7 @@ msgstr ""
 msgid "New"
 msgstr ""
 
-#: src/ra.c:765
+#: src/ra.c:1140
 #, c-format
 msgid "No achievements for this ROM (MD5 %s)"
 msgstr ""
@@ -1542,7 +1558,7 @@ msgstr ""
 msgid "Off for slower devices: the table on one screen. Close and restart GBA DS to apply."
 msgstr ""
 
-#: src/ra.c:1052
+#: src/ra.c:1490
 msgid "Off while a patch is on"
 msgstr ""
 
@@ -1570,7 +1586,7 @@ msgstr ""
 msgid "Off: the left stick does nothing in games."
 msgstr ""
 
-#: src/ra.c:840
+#: src/ra.c:1258
 msgid "Offline"
 msgstr ""
 
@@ -1756,7 +1772,7 @@ msgstr ""
 msgid "Play"
 msgstr ""
 
-#: src/ra.c:693
+#: src/ra.c:1068
 msgid "Playing without achievements this time"
 msgstr ""
 
@@ -1764,11 +1780,11 @@ msgstr ""
 msgid "PM"
 msgstr ""
 
-#: src/ra.c:584 src/ra.c:1282
+#: src/ra.c:813 src/ra.c:1730
 msgid "point"
 msgstr ""
 
-#: src/ra.c:584 src/ra.c:1282
+#: src/ra.c:813 src/ra.c:1730
 msgid "points"
 msgstr ""
 
@@ -1846,6 +1862,11 @@ msgstr ""
 msgid "Raise it if the sound crackles."
 msgstr ""
 
+#: src/ra.c:1241
+#, c-format
+msgid "Rank %u of %u · your score %s · best %s"
+msgstr ""
+
 #: src/config.c:436
 msgid "Red"
 msgstr ""
@@ -1902,19 +1923,19 @@ msgstr ""
 msgid "Resumed. Tap or HOME for the menu"
 msgstr ""
 
-#: src/ra.c:964
+#: src/ra.c:1397
 msgid "RetroAchievements couldn't start"
 msgstr ""
 
-#: src/ra.c:1052
+#: src/ra.c:1490
 msgid "RetroAchievements doesn't allow patched games"
 msgstr ""
 
-#: src/ra.c:1211
+#: src/ra.c:1650
 msgid "RetroAchievements is off"
 msgstr ""
 
-#: src/ra.c:790
+#: src/ra.c:1165
 msgid "RETROACHIEVEMENTS · CASUAL"
 msgstr ""
 
@@ -2110,6 +2131,11 @@ msgstr ""
 msgid "Scanlines"
 msgstr ""
 
+#: src/ra.c:1233
+#, c-format
+msgid "Score: %s"
+msgstr ""
+
 #: src/config.c:486
 msgid "Screen placement"
 msgstr ""
@@ -2239,11 +2265,11 @@ msgstr ""
 msgid "Show FPS: On"
 msgstr ""
 
-#: src/ra.c:721
+#: src/ra.c:1096
 msgid "Sign in again in the game list's Settings"
 msgstr ""
 
-#: src/ra.c:721 src/ra.c:724
+#: src/ra.c:1096 src/ra.c:1099
 msgid "Sign-in failed"
 msgstr ""
 
@@ -2628,7 +2654,7 @@ msgstr ""
 msgid "This game has its own value. X, or going on past the last choice: same as all games"
 msgstr ""
 
-#: src/ra.c:784 src/ra.c:1220
+#: src/ra.c:1159 src/ra.c:1659
 msgid "This game has no achievements yet"
 msgstr ""
 
@@ -2693,19 +2719,19 @@ msgstr ""
 msgid "Unexpected es_systems.cfg (see the log)."
 msgstr ""
 
-#: src/ra.c:766
+#: src/ra.c:1141
 msgid "Unknown version of this game"
 msgstr ""
 
-#: src/ra.c:1282
+#: src/ra.c:1730
 msgid "Unlocked"
 msgstr ""
 
-#: src/ra.c:843
+#: src/ra.c:1261
 msgid "Unlocks sent"
 msgstr ""
 
-#: src/ra.c:840
+#: src/ra.c:1258
 msgid "Unlocks will be sent when the connection is back"
 msgstr ""
 

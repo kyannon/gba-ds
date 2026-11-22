@@ -7,6 +7,7 @@
 #include "textfont.h"
 #include "ui.h"
 
+#include "rc_api_runtime.h"
 #include "rc_client.h"
 #include "rc_util.h"
 #include "rhash/md5.h"
@@ -14,6 +15,8 @@
 #ifdef __ANDROID__
 #include "android.h"
 #endif
+
+#include <mgba/core/version.h>
 
 #include <SDL.h>
 #include <errno.h>
@@ -26,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -59,6 +63,7 @@ typedef struct Job {
 	char* body;
 	size_t len;
 	int status;
+	char qkey[96]; /* an unlock or leaderboard entry kept on disk until the server has it (see Pending) */
 } Job;
 
 static pthread_mutex_t qLock = PTHREAD_MUTEX_INITIALIZER;
@@ -413,6 +418,228 @@ static void submit(Job* j, bool download, bool front) {
 	pthread_mutex_unlock(&qLock);
 }
 
+/* ------------------------------------------------------------ unlocks the server hasn't got yet */
+
+/* An achievement unlock or a leaderboard entry is kept in <state_dir>/ra/pending.txt
+ * from the moment rc_client sends it until the server has answered, so one earned
+ * while the connection is down (rc_client retries those, but only while the app
+ * runs) is still sent after the app is closed: at the next sign-in, before the
+ * game's achievements load, so it isn't earned twice. The token isn't kept (the
+ * request is built again with the current one, and the time since it was earned
+ * brought up to date). The file is the player's own (mode 0600), one line each:
+ *   A|L queued-time user id hardcore|score game-hash seconds-since */
+typedef struct Pending {
+	struct Pending* next;
+	char key[96];
+	bool leaderboard, sending;
+	char user[64], hash[33];
+	uint32_t id, hardcore, since;
+	int32_t score;
+	time_t queued;
+} Pending;
+
+#define PENDING_MAX 300
+#define PENDING_DAYS 60
+
+static Pending* pendingList;
+static bool pendingRead;
+static int replayBusy; /* kept unlocks on their way (the game's achievements load after them) */
+
+static void pending_path(char* out, size_t n) {
+	snprintf(out, n, "%s/pending.txt", cacheDir);
+}
+
+static int pending_count(void) {
+	int n = 0;
+	for (Pending* p = pendingList; p; p = p->next) ++n;
+	return n;
+}
+
+static void pending_save(void) {
+	char path[1200], tmp[1210];
+	pending_path(path, sizeof(path));
+	if (!pendingList) {
+		unlink(path);
+		return;
+	}
+	snprintf(tmp, sizeof(tmp), "%s.part", path);
+	int fd = open(tmp, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+	FILE* f = fd < 0 ? NULL : fdopen(fd, "w");
+	if (!f) {
+		if (fd >= 0) close(fd);
+		return;
+	}
+	for (Pending* p = pendingList; p; p = p->next) {
+		fprintf(f, "%c %lld %s %u %d %s %u\n", p->leaderboard ? 'L' : 'A', (long long) p->queued, p->user, p->id,
+		        p->leaderboard ? (int) p->score : (int) p->hardcore, p->hash[0] ? p->hash : "-", p->since);
+	}
+	fclose(f);
+	rename(tmp, path);
+}
+
+static void pending_key(Pending* p) {
+	snprintf(p->key, sizeof(p->key), "%c%u:%d:", p->leaderboard ? 'L' : 'A', p->id, p->leaderboard ? (int) p->score : (int) p->hardcore);
+	size_t n = strlen(p->key);
+	for (const char* u = p->user; *u && n + 1 < sizeof(p->key); ++u) p->key[n++] = (char) tolower((unsigned char) *u);
+	p->key[n] = 0;
+}
+
+static Pending* pending_find(const char* key) {
+	for (Pending* p = pendingList; p; p = p->next) {
+		if (!strcmp(p->key, key)) return p;
+	}
+	return NULL;
+}
+
+/* the file, once (entries older than PENDING_DAYS are let go) */
+static void pending_read(void) {
+	if (pendingRead) return;
+	pendingRead = true;
+	char path[1200];
+	pending_path(path, sizeof(path));
+	FILE* f = fopen(path, "r");
+	if (!f) return;
+	time_t now = time(NULL);
+	Pending** tail = &pendingList;
+	char line[256];
+	bool dropped = false;
+	while (fgets(line, sizeof(line), f)) {
+		Pending* p = calloc(1, sizeof(*p));
+		char kind = 0, hash[40] = "";
+		long long queued = 0;
+		int v = 0;
+		if (!p || sscanf(line, "%c %lld %63s %u %d %39s %u", &kind, &queued, p->user, &p->id, &v, hash, &p->since) != 7 ||
+		    (kind != 'A' && kind != 'L') || now - (time_t) queued > PENDING_DAYS * 86400 || pending_count() >= PENDING_MAX) {
+			free(p);
+			dropped = true;
+			continue;
+		}
+		p->leaderboard = kind == 'L';
+		p->queued = (time_t) queued;
+		if (p->leaderboard) p->score = v;
+		else p->hardcore = (uint32_t) v;
+		snprintf(p->hash, sizeof(p->hash), "%.32s", strcmp(hash, "-") ? hash : "");
+		pending_key(p);
+		*tail = p;
+		tail = &p->next;
+	}
+	fclose(f);
+	if (dropped) pending_save();
+}
+
+/* a parameter of a urlencoded request ("r=awardachievement&u=...") */
+static bool post_param(const char* post, const char* name, char* out, size_t n) {
+	size_t nl = strlen(name);
+	for (const char* q = post; q && *q;) {
+		if (!strncmp(q, name, nl) && q[nl] == '=') {
+			size_t len = strcspn(q + nl + 1, "&");
+			if (len >= n) return false;
+			memcpy(out, q + nl + 1, len);
+			out[len] = 0;
+			return true;
+		}
+		q = strchr(q, '&');
+		if (q) ++q;
+	}
+	return false;
+}
+
+/* rc_client is sending this request: if it's an unlock or a leaderboard entry,
+ * keep it until the server has answered (rc_client's own retries of it come
+ * through here again: they find it kept already). */
+static void pending_track(Job* j, const char* post) {
+	char r[32], u[64], a[24], h[8], s[24], m[40], o[24];
+	if (!post || !post_param(post, "r", r, sizeof(r)) || !post_param(post, "u", u, sizeof(u)) || strchr(u, '%') || strchr(u, '+')) return;
+	bool lb = !strcmp(r, "submitlbentry");
+	if (!lb && strcmp(r, "awardachievement")) return;
+	if (!post_param(post, lb ? "i" : "a", a, sizeof(a))) return;
+	Pending probe = { 0 };
+	probe.leaderboard = lb;
+	probe.id = (uint32_t) strtoul(a, NULL, 10);
+	if (lb) probe.score = post_param(post, "s", s, sizeof(s)) ? (int32_t) strtol(s, NULL, 10) : 0;
+	else probe.hardcore = post_param(post, "h", h, sizeof(h)) ? (uint32_t) strtoul(h, NULL, 10) : 0;
+	snprintf(probe.user, sizeof(probe.user), "%s", u);
+	pending_key(&probe);
+	pending_read();
+	snprintf(j->qkey, sizeof(j->qkey), "%s", probe.key);
+	if (pending_find(probe.key) || pending_count() >= PENDING_MAX) return;
+	Pending* p = calloc(1, sizeof(*p));
+	if (!p) return;
+	*p = probe;
+	if (post_param(post, "m", m, sizeof(m))) snprintf(p->hash, sizeof(p->hash), "%.32s", m);
+	if (post_param(post, "o", o, sizeof(o))) p->since = (uint32_t) strtoul(o, NULL, 10);
+	p->queued = time(NULL);
+	Pending** t = &pendingList;
+	while (*t) t = &(*t)->next;
+	*t = p;
+	pending_save();
+}
+
+/* The server's answer: it has it (or won't ever take it), or it should be tried again. */
+static void pending_answer(const char* key, int status) {
+	Pending* p = pending_find(key);
+	if (!p) return;
+	bool retry = status <= 0 || status >= 500 || status == 401 || status == 403 || status == 408 || status == 429;
+	if (retry) {
+		p->sending = false;
+		return;
+	}
+	for (Pending** t = &pendingList; *t; t = &(*t)->next) {
+		if (*t == p) {
+			*t = p->next;
+			break;
+		}
+	}
+	free(p);
+	pending_save();
+}
+
+static void begin_load(void);
+static bool gameWanted, gameLoaded, loadFailed;
+static int loginState;
+enum { LOGIN_OFF, LOGIN_BUSY, LOGIN_OK, LOGIN_FAILED };
+
+static void replay_done(const rc_api_server_response_t* resp, void* ud) {
+	(void) resp, (void) ud;
+	if (replayBusy > 0 && --replayBusy == 0) {
+		fprintf(stderr, "ra: the unlocks kept from earlier are done\n");
+		if (gameWanted && !gameLoaded && !loadFailed && loginState == LOGIN_OK) begin_load();
+	}
+}
+
+/* Signed in: send what's kept for this account (the request built again, with
+ * this session's token and the time it has been waiting added). */
+static void pending_replay(const char* user, const char* token) {
+	pending_read();
+	rc_api_host_t host = { cfg->raHost[0] ? cfg->raHost : NULL, NULL };
+	time_t now = time(NULL);
+	for (Pending* p = pendingList; p; p = p->next) {
+		if (p->sending || strcasecmp(p->user, user)) continue;
+		uint32_t since = p->since + (now > p->queued ? (uint32_t) (now - p->queued) : 0);
+		rc_api_request_t rq;
+		int rc;
+		if (p->leaderboard) {
+			rc_api_submit_lboard_entry_request_t a = { user, token, p->id, p->score, p->hash[0] ? p->hash : NULL, since };
+			rc = rc_api_init_submit_lboard_entry_request_hosted(&rq, &a, &host);
+		} else {
+			rc_api_award_achievement_request_t a = { user, token, p->id, p->hardcore, p->hash[0] ? p->hash : NULL, since };
+			rc = rc_api_init_award_achievement_request_hosted(&rq, &a, &host);
+		}
+		if (rc != RC_OK) continue;
+		Job* j = calloc(1, sizeof(*j));
+		j->url = dupstr(rq.url);
+		j->post = dupstr(rq.post_data);
+		j->ctype = dupstr(rq.content_type);
+		j->cb = replay_done;
+		snprintf(j->qkey, sizeof(j->qkey), "%s", p->key);
+		rc_api_destroy_request(&rq);
+		p->sending = true;
+		++replayBusy;
+		fprintf(stderr, "ra: sending %s kept from earlier (%u)\n", p->leaderboard ? "a leaderboard entry" : "an unlock", p->id);
+		submit(j, false, false);
+	}
+}
+
 /* rc_client's server calls */
 static void server_call(const rc_api_request_t* req, rc_client_server_callback_t cb, void* cbData, rc_client_t* c) {
 	(void) c;
@@ -422,6 +649,7 @@ static void server_call(const rc_api_request_t* req, rc_client_server_callback_t
 	j->ctype = dupstr(req->content_type);
 	j->cb = cb;
 	j->cbData = cbData;
+	pending_track(j, req->post_data);
 	submit(j, false, false);
 }
 
@@ -434,6 +662,7 @@ static void pump(void) {
 	while (list) {
 		Job* j = list;
 		list = j->next;
+		if (j->qkey[0]) pending_answer(j->qkey, j->status);
 		rc_api_server_response_t resp = { j->body ? j->body : "", j->body ? j->len : 0, j->status };
 		j->cb(&resp, j->cbData);
 		job_free(j);
@@ -527,7 +756,7 @@ static const SDL_Color P_BG = { 30, 26, 52, 245 }, P_EDGE = { 150, 120, 210, 255
 
 #define POP_IN_MS 250
 
-void ra_draw(int s) {
+static void draw_popup(int s) {
 	if (!nPopups) return;
 	Popup* p = &popups[0];
 	Uint32 now = SDL_GetTicks();
@@ -597,24 +826,169 @@ void ra_draw(int s) {
 #undef F
 }
 
+/* ------------------------------------------------------------ leaderboards, challenges, progress */
+
+/* What stays on the screen while it's true, in the corners of the screen the
+ * popups use: a leaderboard's running value (bottom right), the badge of an
+ * achievement whose challenge is under way (bottom left) and, for a few
+ * seconds, how far a measured achievement has got (above it). */
+#define MAX_TRACKERS 4
+#define MAX_INDICATORS 6
+#define PROGRESS_MS 4000
+
+typedef struct {
+	uint32_t id;
+	char badge[1200];
+	SDL_Texture* tex[2];
+	int w, h;
+	bool tried;
+} BadgeIcon;
+
+static struct {
+	uint32_t id;
+	char text[RC_CLIENT_LEADERBOARD_DISPLAY_SIZE];
+} trackers[MAX_TRACKERS];
+static int nTrackers;
+static BadgeIcon challenges[MAX_INDICATORS];
+static int nChallenges;
+static BadgeIcon progressIcon;
+static char progressText[32];
+static bool progressOn;
+static Uint32 progressUntil;
+
+static void icon_set(BadgeIcon* ic, const rc_client_achievement_t* a) {
+	ui_free_image(ic->tex);
+	memset(ic, 0, sizeof(*ic));
+	ic->id = a->id;
+	if (a->badge_url && *a->badge_url) {
+		badge_path(a->badge_url, ic->badge, sizeof(ic->badge));
+		fetch_badge(a->badge_url, true);
+	}
+}
+
+static void overlays_clear(void) {
+	nTrackers = 0;
+	for (int i = 0; i < nChallenges; ++i) ui_free_image(challenges[i].tex);
+	nChallenges = 0;
+	ui_free_image(progressIcon.tex);
+	memset(&progressIcon, 0, sizeof(progressIcon));
+	progressOn = false;
+}
+
+static void tracker_set(uint32_t id, const char* text) {
+	for (int i = 0; i < nTrackers; ++i) {
+		if (trackers[i].id == id) {
+			snprintf(trackers[i].text, sizeof(trackers[i].text), "%s", text);
+			return;
+		}
+	}
+	if (nTrackers == MAX_TRACKERS) return;
+	trackers[nTrackers].id = id;
+	snprintf(trackers[nTrackers].text, sizeof(trackers[nTrackers].text), "%s", text);
+	++nTrackers;
+}
+
+static void tracker_hide(uint32_t id) {
+	for (int i = 0; i < nTrackers; ++i) {
+		if (trackers[i].id == id) {
+			memmove(trackers + i, trackers + i + 1, sizeof(trackers[0]) * (size_t) (nTrackers - i - 1));
+			--nTrackers;
+			return;
+		}
+	}
+}
+
+static void challenge_show(const rc_client_achievement_t* a) {
+	for (int i = 0; i < nChallenges; ++i) {
+		if (challenges[i].id == a->id) return;
+	}
+	if (nChallenges == MAX_INDICATORS) return;
+	icon_set(&challenges[nChallenges++], a);
+}
+
+static void challenge_hide(uint32_t id) {
+	for (int i = 0; i < nChallenges; ++i) {
+		if (challenges[i].id == id) {
+			ui_free_image(challenges[i].tex);
+			memmove(challenges + i, challenges + i + 1, sizeof(challenges[0]) * (size_t) (nChallenges - i - 1));
+			--nChallenges;
+			return;
+		}
+	}
+}
+
+static void progress_show(const rc_client_achievement_t* a) {
+	if (progressIcon.id != a->id) icon_set(&progressIcon, a);
+	snprintf(progressText, sizeof(progressText), "%s", a->measured_progress);
+	progressOn = true;
+	progressUntil = SDL_GetTicks() + PROGRESS_MS;
+}
+
+static void icon_draw(int s, BadgeIcon* ic, SDL_Rect box, int frame, int radius) {
+	if (!ic->tried && ic->badge[0] && file_exists(ic->badge)) {
+		ic->tried = true;
+		ui_load_image(ic->badge, ic->tex, &ic->w, &ic->h, true);
+	}
+	ui_fill_round(s, (SDL_Rect) { box.x - frame, box.y - frame, box.w + 2 * frame, box.h + 2 * frame }, P_GOLD, radius + frame);
+	if (ic->tex[0] || ic->tex[1]) ui_image(s, ic->tex, ic->w, ic->h, "stretch", &box);
+	else ui_fill_round(s, box, P_BLANK, radius);
+}
+
+static void draw_overlays(int s) {
+	if (progressOn && SDL_GetTicks() >= progressUntil) progressOn = false;
+	if (!nTrackers && !nChallenges && !progressOn) return;
+	SDL_Rect r = screens[s].rect;
+	float f = SDL_min(r.w / 1024.0f, r.h / 768.0f);
+#define F(v) ((int) ((v) * f + 0.5f))
+	int margin = F(22), bs = F(56), gap = F(10);
+	/* challenge badges, left to right along the bottom */
+	int y = r.h - margin - bs;
+	for (int i = 0; i < nChallenges; ++i) {
+		icon_draw(s, &challenges[i], (SDL_Rect) { margin + F(3) + i * (bs + gap + F(6)), y, bs, bs }, F(3), F(8));
+	}
+	if (progressOn) {
+		int ph = F(64), cap = F(26);
+		int pw = F(120) + ui_font_width(TF_BOLD, cap, progressText);
+		int py = r.h - margin - ph - (nChallenges ? bs + gap + F(8) : 0);
+		ui_fill_round(s, (SDL_Rect) { margin, py + F(5), pw, ph }, P_SHADOW, F(18));
+		ui_fill_round(s, (SDL_Rect) { margin, py, pw, ph }, P_EDGE, F(18));
+		ui_fill_round(s, (SDL_Rect) { margin + F(3), py + F(3), pw - F(6), ph - F(6) }, P_BG, F(15));
+		int b = ph - F(16);
+		icon_draw(s, &progressIcon, (SDL_Rect) { margin + F(12), py + F(8), b, b }, F(2), F(6));
+		ui_font_text(s, TF_BOLD, margin + F(12) + b + F(16), py + ph / 2 + F(1), cap, progressText, P_TEXT, -1);
+	}
+	/* a leaderboard's running value, right-aligned along the bottom, newest on top */
+	int cap = F(26), th = F(52), ty = r.h - margin - th;
+	for (int i = 0; i < nTrackers; ++i) {
+		int tw = F(40) + ui_font_width(TF_BOLD, cap, trackers[i].text);
+		int tx = r.w - margin - tw;
+		ui_fill_round(s, (SDL_Rect) { tx, ty + F(5), tw, th }, P_SHADOW, F(16));
+		ui_fill_round(s, (SDL_Rect) { tx, ty, tw, th }, P_EDGE, F(16));
+		ui_fill_round(s, (SDL_Rect) { tx + F(3), ty + F(3), tw - F(6), th - F(6) }, P_BG, F(13));
+		ui_font_text(s, TF_BOLD, tx + tw / 2, ty + th / 2 + F(1), cap, trackers[i].text, P_GOLD, 0);
+		ty -= th + F(10);
+	}
+#undef F
+}
+
+void ra_draw(int s) {
+	draw_popup(s);
+	draw_overlays(s);
+}
+
 /* ------------------------------------------------------------ the client */
 
 static Emu* emu;
 static char gameHash[33];
-static bool gameWanted; /* a game is running and should be loaded once signed in */
-static bool gameLoaded;
-static bool loadFailed; /* this game's achievements won't load (ra_loading is over) */
+/* gameWanted: a game is running and should be loaded once signed in; loadFailed: this
+ * game's achievements won't load (ra_loading is over) */
 static char pendingProgress[1100]; /* a state loaded before the game was */
 
-enum { LOGIN_OFF, LOGIN_BUSY, LOGIN_OK, LOGIN_FAILED };
-static int loginState;
 static bool loginRejected; /* the server said no to every credential (don't retry) */
 static int loginStep;
 static bool loginInteractive; /* signing in from the Settings screen: its status shows there, no popups */
 static bool raOff;            /* retroachievements = 0 */
 static char raUser[128], raPass[256], sysToken[256], savedUser[128], savedToken[256], lastError[256];
-
-static void begin_load(void);
 
 static uint32_t read_memory(uint32_t addr, uint8_t* buf, uint32_t n, rc_client_t* c) {
 	(void) c;
@@ -677,7 +1051,8 @@ static void login_done(int result, const char* error, rc_client_t* c, void* ud) 
 		fprintf(stderr, "ra: signed in as %s\n", u && u->display_name ? u->display_name : raUser);
 		if (u) save_token(u->username ? u->username : raUser, u->token);
 		memset(raPass, 0, sizeof(raPass)); /* the token does from here on */
-		if (gameWanted) begin_load();
+		if (u && u->username && u->token) pending_replay(u->username, u->token); /* (the game loads after them) */
+		if (gameWanted && !replayBusy) begin_load();
 		return;
 	}
 	snprintf(lastError, sizeof(lastError), "%s", error && *error ? error : rc_error_str(result));
@@ -832,6 +1207,49 @@ static void on_event(const rc_client_event_t* ev, rc_client_t* c) {
 		popup_add(POP_DONE, "GAME COMPLETED", g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
 		break;
 	}
+	case RC_CLIENT_EVENT_ACHIEVEMENT_CHALLENGE_INDICATOR_SHOW:
+		if (ev->achievement->id < WARNING_ID) challenge_show(ev->achievement);
+		break;
+	case RC_CLIENT_EVENT_ACHIEVEMENT_CHALLENGE_INDICATOR_HIDE:
+		challenge_hide(ev->achievement->id);
+		break;
+	case RC_CLIENT_EVENT_ACHIEVEMENT_PROGRESS_INDICATOR_SHOW:
+	case RC_CLIENT_EVENT_ACHIEVEMENT_PROGRESS_INDICATOR_UPDATE:
+		if (ev->achievement->id < WARNING_ID) progress_show(ev->achievement);
+		break;
+	case RC_CLIENT_EVENT_ACHIEVEMENT_PROGRESS_INDICATOR_HIDE:
+		progressOn = false;
+		break;
+	case RC_CLIENT_EVENT_LEADERBOARD_STARTED:
+		fprintf(stderr, "ra: leaderboard attempt started: %s\n", ev->leaderboard->title);
+		popup_add(POP_NOTE, tr("LEADERBOARD ATTEMPT STARTED"), ev->leaderboard->title, ev->leaderboard->description, 0, NULL);
+		break;
+	case RC_CLIENT_EVENT_LEADERBOARD_FAILED:
+		popup_add(POP_NOTE, tr("LEADERBOARD ATTEMPT FAILED"), ev->leaderboard->title, ev->leaderboard->description, 0, NULL);
+		break;
+	case RC_CLIENT_EVENT_LEADERBOARD_SUBMITTED: {
+		fprintf(stderr, "ra: leaderboard entry submitted: %s (%s)\n", ev->leaderboard->title, ev->leaderboard->tracker_value ? ev->leaderboard->tracker_value : "");
+		char desc[120];
+		snprintf(desc, sizeof(desc), tr("Score: %s"), ev->leaderboard->tracker_value ? ev->leaderboard->tracker_value : "");
+		popup_add(POP_NOTE, tr("LEADERBOARD SUBMITTED"), ev->leaderboard->title, desc, 0, NULL);
+		break;
+	}
+	case RC_CLIENT_EVENT_LEADERBOARD_SCOREBOARD: {
+		const rc_client_leaderboard_scoreboard_t* sb = ev->leaderboard_scoreboard;
+		const rc_client_leaderboard_t* lb = rc_client_get_leaderboard_info(client, sb->leaderboard_id);
+		char desc[160];
+		snprintf(desc, sizeof(desc), tr("Rank %u of %u \xC2\xB7 your score %s \xC2\xB7 best %s"), sb->new_rank, sb->num_entries,
+		         sb->submitted_score, sb->best_score);
+		popup_add(POP_NOTE, tr("LEADERBOARD RANK"), lb ? lb->title : "", desc, 0, NULL);
+		break;
+	}
+	case RC_CLIENT_EVENT_LEADERBOARD_TRACKER_SHOW:
+	case RC_CLIENT_EVENT_LEADERBOARD_TRACKER_UPDATE:
+		tracker_set(ev->leaderboard_tracker->id, ev->leaderboard_tracker->display);
+		break;
+	case RC_CLIENT_EVENT_LEADERBOARD_TRACKER_HIDE:
+		tracker_hide(ev->leaderboard_tracker->id);
+		break;
 	case RC_CLIENT_EVENT_SERVER_ERROR:
 		fprintf(stderr, "ra: server error (%s): %s\n", ev->server_error->api ? ev->server_error->api : "?",
 		        ev->server_error->error_message ? ev->server_error->error_message : "?");
@@ -883,6 +1301,14 @@ static void read_saved_login(void) {
 	if (f) fclose(f);
 }
 
+/* the leading numbers of a version ("1.5.8-dev+x" -> "1.5.8", "0.11.0-gitabc" -> "0.11.0") */
+static void numeric_version(const char* v, char* out, size_t n) {
+	size_t k = 0;
+	while (v && (isdigit((unsigned char) *v) || (*v == '.' && k && isdigit((unsigned char) v[1]))) && k + 1 < n) out[k++] = *v++;
+	if (!k) out[k++] = '0';
+	out[k] = 0;
+}
+
 static bool client_setup(void) {
 	if (client) return true;
 	char badges[1200];
@@ -894,13 +1320,20 @@ static bool client_setup(void) {
 	rc_client_set_event_handler(client, on_event);
 	rc_client_set_hardcore_enabled(client, 0); /* casual only, for now */
 	if (cfg->raHost[0]) rc_client_set_host(client, cfg->raHost);
-	char clause[64] = "";
+	/* RetroAchievements' client identity (hardcore compliance, C): name and version
+	 * (numbers only: "1.5.8-dev" sends 1.5.8), the system, the core and its version,
+	 * then rc_client's own clause */
+	char clause[64] = "", ver[32], core[32];
 	rc_client_get_user_agent_clause(client, clause, sizeof(clause));
+	numeric_version(GBADS_VERSION, ver, sizeof(ver));
+	numeric_version(projectVersion, core, sizeof(core));
 #ifdef __ANDROID__
-	snprintf(userAgent, sizeof(userAgent), "GBADS/%s (Android) %s", GBADS_VERSION, clause);
+	const char* system = "Android";
 #else
-	snprintf(userAgent, sizeof(userAgent), "GBADS/%s (Linux) %s", GBADS_VERSION, clause);
+	const char* system = "Linux";
 #endif
+	snprintf(userAgent, sizeof(userAgent), "GBADS/%s (%s) mgba/%s %s", ver, system, core, clause);
+	fprintf(stderr, "ra: user agent %s\n", userAgent);
 	return true;
 }
 
@@ -1015,6 +1448,7 @@ void ra_game_start(Emu* e, const char* romPath) {
 	gameWanted = true;
 	pendingProgress[0] = 0;
 	nPopups = 0;
+	overlays_clear();
 	snprintf(listStatus, sizeof(listStatus), tr("Loading the achievements..."));
 	/* the RetroAchievements hash of a GBA game: MD5 of the whole ROM */
 	size_t size = 0;
@@ -1032,8 +1466,11 @@ void ra_game_start(Emu* e, const char* romPath) {
 		free(rom);
 		fprintf(stderr, "ra: game hash %s\n", gameHash);
 	}
-	if (loginState == LOGIN_OK) begin_load();
-	else if (loginState == LOGIN_FAILED && !loginRejected) start_login();
+	if (loginState == LOGIN_OK) {
+		if (!replayBusy) begin_load();
+	} else if (loginState == LOGIN_FAILED && !loginRejected) {
+		start_login();
+	}
 }
 
 /* The game's achievements are still being fetched and set up (the server's
@@ -1048,6 +1485,7 @@ void ra_game_patched(void) {
 	emu = NULL;
 	gameLoaded = gameWanted = false;
 	nPopups = 0;
+	overlays_clear();
 	gameHash[0] = 0;
 	note("Off while a patch is on", "RetroAchievements doesn't allow patched games");
 	fprintf(stderr, "ra: off, the game is patched\n");
@@ -1064,6 +1502,7 @@ void ra_game_end(void) {
 	emu = NULL;
 	for (int i = 0; i < nPopups; ++i) ui_free_image(popups[i].tex);
 	nPopups = 0;
+	overlays_clear();
 }
 
 void ra_frame(void) {
@@ -1224,6 +1663,15 @@ void ra_list_draw(int s, SDL_Rect a) {
 	}
 	ui_font_text(s, TF_BODY, a.x + a.w / 2, a.y + px * 5, px * 4, line, P_GOLD, 0);
 	int top = a.y + px * 12;
+	/* Rich Presence: what the server shows on the player's profile, from the game's own script */
+	char rp[160] = "";
+	if (rc_client_has_rich_presence(client) && rc_client_get_rich_presence_message(client, rp, sizeof(rp)) > 0) {
+		char fitted[200];
+		int cap = px * 3 + px / 2;
+		fit(fitted, sizeof(fitted), TF_BODY, cap, rp, a.w - px * 8);
+		ui_font_text(s, TF_BODY, a.x + a.w / 2, a.y + px * 10, cap, fitted, P_DIM, 0);
+		top = a.y + px * 14;
+	}
 	listViewH = a.y + a.h - top;
 	ra_list_scroll(s, 0); /* keep in range */
 
