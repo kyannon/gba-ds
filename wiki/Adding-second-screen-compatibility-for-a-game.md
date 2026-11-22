@@ -107,7 +107,7 @@ Script lines: `TICK BUTTONS` (`A`, `B+UP`, `-`), `TICK SHOT:file.bmp` (both scre
 - **`tools/ramdiff.py --on a.ram b.ram --off c.ram d.ram`**: addresses whose value is the same in every "on" dump (map open) and different from all "off" dumps (gameplay). Take dumps in several places of the game to narrow it down.
 - **`tools/explore_bits.py a.ram b.ram c.ram ...`**: bytes whose bits are only ever set across an ordered series of dumps (progress flags, collected items).
 - **`tools/sheet.py OUT.png [--cols N] [--scale S] FILES...`**: tiles screenshots into a contact sheet.
-- **`tools/ra_mock.py`**: a stand-in RetroAchievements server on 127.0.0.1:8099, for testing without an account.
+- **`tools/ra_mock.py`**: a stand-in RetroAchievements server on 127.0.0.1:8099, for testing without an account. It has a Rich Presence script and a leaderboard for game 777, and `touch /tmp/ra_mock_down` makes unlocks fail as if the connection were lost.
 
 ## A typical workflow
 

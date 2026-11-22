@@ -7,6 +7,14 @@
 - **Kirby: Nightmare in Dream Land** (USA, Europe and Japan): in a level, the second screen shows the pause page for Kirby's copy ability, kept up to date as he copies and drops abilities. While the game's own pause page is open, and everywhere outside a level, it shows the logo. Checked in Vegetable Valley in the USA release; the Europe and Japan releases have been tried on saved states.
 - **F-Zero Climax** (Japan, and in English with the F-Zero Climax English Patch 1.1): the race HUD moves to the second screen as in F-Zero: GP Legend, with the course map twice as big. Grand Prix is checked; Time Attack and Survival haven't been yet.
 
+### RetroAchievements
+- **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
+- **Rich Presence** shows under your totals in the Achievements page: the line RetroAchievements shows on your profile for the game.
+- **Challenge and progress indicators**: while an achievement's challenge is under way its badge sits at the bottom left of the second screen, and a measured achievement shows its progress (50/5,000) for a few seconds when it changes.
+- **Leaderboard popups and a running value** are ready (started, failed, submitted, your rank) but only appear in hardcore mode, which isn't on yet.
+- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.5.8 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
+- New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
+
 ### Interface
 - **RetroArch's zstd save states load** (issue #78). States RetroArch 1.21 and later compress with zstd (RZIP version 2) now load, shared or from its folder; GBA DS still saves RetroArch's zlib ones, which every RetroArch reads.
 - **A state saved with a GBA BIOS says so, and there's an option for it** (issue #78). A state from RetroArch's mGBA core with a BIOS file set, saved while the game was inside the BIOS, couldn't load and said only "Load failed". It now says "Saved with a GBA BIOS". New, and off by default: Settings > System > **GBA BIOS** (Linux and Android) runs games with your own BIOS, a file you put in the `bios` folder of GBA DS's data folder as `gba_bios.bin` (GBA DS has none and never looks for one itself). Known: with it on, states saved without a BIOS may not load, and a BIOS applies to games started after switching it.

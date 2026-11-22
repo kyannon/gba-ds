@@ -242,9 +242,11 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
   - Android: the game list's **Settings** → **RetroAchievements: Sign In**, with your retroachievements.org username and password. **Sign Out** forgets the account.
   - Either way, after the first sign-in GBA DS keeps a token (`states/ra/login.cfg`), not your password.
 - **While playing:** each game shows your progress on the second screen as it starts ("2 of 30 achievements unlocked"). Unlocks pop up there too, with the badge and points, out of the game's way.
-- **Achievements** (pause menu → Extras) lists the game's achievements, grouped as recently unlocked, almost there, locked and unlocked. Each has its badge, description and points, plus a progress bar for those that count something, and your totals are at the top. D-pad or drag to scroll, L1 / R1 a page at a time, B back.
+- **Achievements** (pause menu → Extras) lists the game's achievements, grouped as recently unlocked, almost there, locked and unlocked. Each has its badge, description and points, plus a progress bar for those that count something, and your totals are at the top. When the game has a Rich Presence script, the line RetroAchievements shows on your profile ("Skating in the Hangar, 12,000 points") is under them. D-pad or drag to scroll, L1 / R1 a page at a time, B back.
+- **Challenges and progress** show on that second screen while they matter: the badge of an achievement whose challenge is under way sits at the bottom left until it ends, and for a few seconds after a measured achievement moves (50/5,000) its badge and count appear above it.
+- **Leaderboards** run in hardcore mode only (RetroAchievements doesn't count them otherwise), so they aren't on yet. When they are, an attempt, its running value, the submission and your rank show on the same screen.
 - **Save states** keep the achievements' progress beside them (`<state>.ra`), so loading an old state doesn't unlock anything by mistake. Cheats are allowed in casual mode.
-- **Offline**, the game plays on; unlocks earned while the connection is down are sent once it's back.
+- **Offline**, the game plays on; unlocks earned while the connection is down are sent once it's back, even if you close GBA DS first: they wait in `states/ra/pending.txt` and go out the next time you sign in, before the game's achievements load. A game has to start online to have achievements. What GBA DS sends and keeps: [[Privacy]].
 - **Hardcore mode** isn't available yet (RetroAchievements requires an emulator to have been public for six months first). With hardcore on in EmulationStation, GBA DS still plays in casual mode.
 - `retroachievements = 0` in `gba-ds.cfg` turns it off. Badges are cached in `states/ra/badges/`.
 

@@ -106,6 +106,8 @@ GBA DS is free software: you can redistribute it and/or modify it under the term
 
 The parts of GBA DS made by others keep their own licences, all compatible with the GPL:
 
+What GBA DS sends over the network and keeps, and everything it is built from: the wiki's [Privacy](https://github.com/kyannon/gba-ds/wiki/Privacy) and [Licenses](https://github.com/kyannon/gba-ds/wiki/Licenses) pages (`wiki/Privacy.md`, `wiki/Licenses.md`).
+
 GBA DS statically links libmgba, which is © Jeffrey Pfau and licensed under MPL-2.0. The mGBA source is at <https://github.com/mgba-emu/mgba> (pinned commit in `scripts/mgba-options.sh`).
 
 The interface text is set in [Jost](https://github.com/indestructible-type/Jost) (© The Jost Project Authors), bundled under the SIL Open Font License 1.1 (`assets/fonts/Jost-OFL.txt`), and drawn with [stb_truetype](https://github.com/nothings/stb) (public domain).
