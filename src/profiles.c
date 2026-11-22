@@ -9924,15 +9924,9 @@ static const MapProfile profiles[] = {
 		.live = { { 0x0203AD44, 0xFF, 1, 1, true, 4, true }, { 0x0203AD4C, 0xFFFFFFFF, 0, 4 } },
 		.menu = { { 0x0203AD44, 0xFF, 0, 1 } },
 		.room = { { 0x02020F40, 0xFFFF, 0, 2 } },
-		/* the game's own pause open on its Area map page: the logo, not the same map twice (KAM-6) */
-		/* (the Area map page by its video mode, gDispCnt 0x03003690: it changes at the fade's white point) */
-		.logoIf = { { 0x0203AD4C, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true }, { 0x03003690, 0x0007, 1, 2 } },
+		/* the game's own pause open on any page: the logo, not the same page twice (KAM-6) */
+		.logoIf = { { 0x0203AD4C, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true } },
 		.logoIfLast = true,
-		/* SELECT turns only the Help and World map pages (KAM-6): pressed on
-		 * Help, the page (each of the four players') is the Area map's first, so the game's own
-		 * SELECT goes on from it to the World map (Help, Area map, World map in turn) */
-		.skip = { { { 0x0203AD4C, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true } },
-		          { 0x0203ACCD, 0x0203ACE1, 0x0203ACF5, 0x0203AD09 }, 1, 4, 0x0004 },
 		/* the prompts (BG1): the bottom row and the L / R tabs in the top
 		 * corners give way to the art, rooms and marker under them (KAM-3) */
 		.underRect = { { 0, 143, 239, 159 }, { 0, 0, 52, 16 }, { 188, 0, 239, 16 } }, .underLayers = 0x15,

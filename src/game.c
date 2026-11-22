@@ -740,7 +740,6 @@ static void twin_open(const char* rom, const MapProfile* p) {
 
 /* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
 static const MapProfile* hideWhenProf;
-static const MapProfile* skipProf;
 static int hideWhenN;
 static bool hideWhenOn;
 
@@ -809,12 +808,6 @@ static void run_frame(uint32_t keys) {
 	/* the copies' second frame (this one), alongside the game's */
 	twinFrameKeys = keys;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_start(i, twin_second, &twins[i]);
-	static uint32_t skipKeys;
-	if (skipProf && (keys & ~skipKeys & skipProf->skip.key) && memprobes_match(skipProf->skip.when, 2, &emu))
-		for (int i = 0; i < (int) SDL_arraysize(skipProf->skip.addr) && skipProf->skip.addr[i]; ++i)
-			if (emu_read8(&emu, skipProf->skip.addr[i]) == skipProf->skip.from)
-				emu_write8(&emu, skipProf->skip.addr[i], skipProf->skip.to);
-	skipKeys = keys;
 	emu_frame(&emu, keys & 0x3FF);
 	++bugFrame;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_wait(i);
@@ -8120,7 +8113,6 @@ static void ss_setup(const char* rom, const char* code) {
 		if (mc) mapcap_set_still(mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
 		hideWhenProf = NULL;
-		skipProf = lp && lp->skip.addr[0] && nScreens > 1 ? lp : NULL;
 		if (mc) {
 			fprintf(stderr, "map profile: %s\n", mapcap_title(mc));
 			mapcap_size(mc, &mapW, &mapH);
@@ -8188,7 +8180,7 @@ static void ss_switch(const char* rom, const char* code) {
 	snprintf(subCode, sizeof(subCode), "%.4s", code);
 	if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(&emu, NULL, 0);
-	hideWhenProf = NULL, skipProf = NULL;
+	hideWhenProf = NULL;
 	mapcap_destroy(mc);
 	mc = NULL;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {

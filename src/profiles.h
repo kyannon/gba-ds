@@ -429,10 +429,6 @@ typedef struct MapProfile {
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
 	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
 	bool logoIfLast;
-	/* On the game itself (not the hidden copy), as `key` (GBA keys) is pressed while `when`
-	 * matches, each byte holding `from` is set to `to` before the frame: the game then turns
-	 * on from there, past a page of its own pause screen (KAM-6) */
-	struct { MemProbe when[2]; uint32_t addr[6]; uint8_t from, to; uint16_t key; } skip;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
