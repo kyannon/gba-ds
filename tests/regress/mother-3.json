@@ -2455,14 +2455,15 @@
    "id": "m3-jp-toggle-view",
    "rom": "A3UJ",
    "state": "mother-3/jp-tazmily.ss",
-   "desc": "the toggle on, in Tazmily: HOME + A fades to black while the hidden copy takes the Status, then shows it; again, back to the map",
+   "desc": "the toggle on, in Tazmily: HOME + A fades to black while the hidden copy takes the Status, then shows it; the next presses turn its pages; after the last, the map comes back",
    "rules": [
     "GEN-14",
     "M3-2",
     "M3-3"
    ],
    "config": {
-    "toggle": "1"
+    "toggle": "1",
+    "auto_rotate": "0"
    },
    "input": [
     [
@@ -2480,12 +2481,37 @@
     [
      904,
      "-"
+    ],
+    [
+     1000,
+     "HOME+A"
+    ],
+    [
+     1004,
+     "-"
+    ],
+    [
+     1100,
+     "HOME+A"
+    ],
+    [
+     1104,
+     "-"
+    ],
+    [
+     1200,
+     "HOME+A"
+    ],
+    [
+     1204,
+     "-"
     ]
    ],
    "shots": {
     "before": 290,
     "after": 800,
-    "back": 1400
+    "page2": 950,
+    "back": 1290
    },
    "checks": [
     {
@@ -2514,7 +2540,43 @@
     },
     {
      "rule": "GEN-14",
-     "what": "a second press brings the map back",
+     "what": "a press turns the Status's page",
+     "type": "differs",
+     "a": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "page2",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the first press asks for the view",
+     "type": "log",
+     "match": "toggle: view 2 asked for"
+    },
+    {
+     "rule": "GEN-14",
+     "what": "and it came",
+     "type": "log",
+     "match": "toggle: view 2$"
+    },
+    {
+     "rule": "GEN-14",
+     "what": "after the last page, the map comes back",
      "type": "same",
      "a": {
       "shot": "before",
@@ -2535,18 +2597,6 @@
       ]
      },
      "frac": 0.05
-    },
-    {
-     "rule": "GEN-14",
-     "what": "the first press asks for the view",
-     "type": "log",
-     "match": "toggle: view 2 asked for"
-    },
-    {
-     "rule": "GEN-14",
-     "what": "and it came",
-     "type": "log",
-     "match": "toggle: view 2$"
     }
    ]
   },

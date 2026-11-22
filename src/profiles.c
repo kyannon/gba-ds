@@ -1,4 +1,5 @@
 #include "profiles.h"
+#include "mapcap.h"
 
 #include <mgba/core/core.h>
 

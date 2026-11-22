@@ -7137,7 +7137,11 @@ static int tgState, tgFrames, tgTarget, tgWait = -1;
 
 /* a press turns the view (captured on the press) rather than a page: the profile's views, unless its picture is pages (Mother 3's Status where there's no map) and the other view isn't up */
 static bool tg_view_mode(const MapProfile* hp) {
-	return hp && hp->onPress && (viewAlt || !(mapRes.pages && mapRes.nFrames >= 2));
+	if (!hp || !hp->onPress) return false;
+	const bool paged = mapRes.pages && mapRes.nFrames >= 2;
+	if (!paged) return true;
+	/* the picture is pages: they turn as pages do, and from the other view's last page a press brings the game's own view back (map, Status p1, p2, p3, map) */
+	return viewAlt && second_page() == mapRes.nFrames - 1;
 }
 
 static bool toggle_ready(void) {
@@ -7145,7 +7149,7 @@ static bool toggle_ready(void) {
 	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
 	if (tg_view_mode(hp)) {
 		/* the other view is captured on the press: ready when there is one here (or this is it, and the game's own is to come back), a picture is up and the hidden copy is free */
-		if (mapShownIdx < 0 || logoForced || liveOn || mapInactive || pressCap || mapcap_busy(mc)) return false;
+		if (mapShownIdx < 0 || logoForced || liveOn || mapInactive || pressCap || (capSubject && mapcap_busy(mc))) return false; /* (a refresh still running doesn't count: a press calls it off) */
 		return viewAlt || !hp->altHere || hp->altHere(&emu);
 	}
 	if (!mapRes.pages || mapRes.nFrames < 2 || mapShownIdx < 0 || !map_anim()) return false; /* (one picture, the logo, Map Animations off) */
@@ -7176,6 +7180,7 @@ static void toggle_press(void) {
 	if (tg_view_mode(pp)) {
 		/* capture on press: the other view is asked for now; the picture fades out, stays black until it is here (or it isn't, in time: the old one comes back) */
 		viewAlt = !viewAlt, viewWait = true, tgCapWant = 0;
+		if (mc && mapcap_busy(mc)) mapcap_cancel(mc); /* (a refresh of the old view: the new one starts as soon as it has stopped) */
 		tgState = TG_FADE_OUT, tgFrames = 0, tgTarget = -1;
 		if (debug) fprintf(stderr, "frame %llu: toggle: view %s asked for\n", (unsigned long long) frameCount, viewAlt ? "2" : "1");
 		return;
