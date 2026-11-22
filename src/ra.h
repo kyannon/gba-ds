@@ -22,6 +22,13 @@
 /* ra_account's answer */
 enum { RA_ACCOUNT_NONE, RA_ACCOUNT_BUSY, RA_ACCOUNT_OK, RA_ACCOUNT_FAILED, RA_ACCOUNT_OFF };
 
+/* Whether the pause menu offers Hardcore. RetroAchievements hasn't approved GBA DS for hardcore, so the
+ * owner's rule (Nov 22, 2026) is: hidden until and unless they do. TODO: set to 0 before this branch
+ * is merged into dev (while 0, it still shows for a player who has ra_hardcore = 1 in gba-ds.cfg,
+ * so they can switch it off, and for testing). */
+#define RA_HARDCORE_MENU 1
+static inline bool ra_hardcore_menu(bool pref) { return RA_HARDCORE_MENU || pref; }
+
 #ifdef GBADS_RA
 /* At start-up: reads the account and starts signing in. */
 void ra_init(const Config* cfg);

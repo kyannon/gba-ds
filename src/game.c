@@ -749,7 +749,7 @@ static void run_frame(uint32_t keys) {
 	bugKeys[bugAt] = keys & 0x3FF;
 	bugPoke[bugAt] = 0;
 	uint32_t want = keys & (KX_PAN_L | KX_PAN_R);
-	if (want && ctlProf && ctlProf->controls.snes.pan) {
+	if (want && !ra_hardcore() && ctlProf && ctlProf->controls.snes.pan) { /* (hardcore: nothing written into the game) */
 		const typeof(ctlProf->controls.snes)* sn = &ctlProf->controls.snes;
 		if (memprobes_match(sn->when, 3, &emu)) {
 			emu_write8(&emu, sn->pan, want & KX_PAN_L ? 2 : 1);
@@ -1153,6 +1153,8 @@ static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
+/* the most items one page can hold (the Game page has 13 with RetroAchievements on and a game list to go back to) */
+#define MENU_MAX_ITEMS 16
 enum MenuItem { M_RESUME, M_CHEATS, M_PATCHES, M_ACH, M_SHOT, M_SWAP, M_SCALE, M_LCD, M_OVERLAY, M_FPS, M_SAVE, M_LOAD, M_RESTART, M_LIBRARY, M_EXIT, M_FRAMEBUF, M_LOGO, M_MATCH, M_REWIND, M_AUTOSAVE, M_AUTOLOAD, M_BUG, M_SLOT, M_SHAPES, M_FF, M_COLOR, M_GHOST, M_BUTTONS, M_PIXLOGO, M_PLACE, M_HARDCORE };
 static const char* menuLabels[] = {
 	/* title case: drawn in Futura from the built-in images (tools/make_brand.py) */
@@ -1160,10 +1162,10 @@ static const char* menuLabels[] = {
 	[M_LOAD] = N_("Load State"), [M_CHEATS] = "Cheats", [M_PATCHES] = "Patches", [M_BUTTONS] = N_("Buttons"), [M_ACH] = "Achievements", [M_HARDCORE] = "", [M_SHOT] = N_("Take Screenshot"), [M_LIBRARY] = N_("Close Game"), [M_EXIT] = N_("Close GBA DS"),
 	[M_AUTOSAVE] = "", [M_AUTOLOAD] = "", [M_BUG] = N_("Submit a Bug Report"), [M_SLOT] = "", [M_FF] = "", [M_COLOR] = "", [M_GHOST] = "", [M_PIXLOGO] = "", [M_PLACE] = "",
 };
-static int menuItems[12], nMenuItems;
+static int menuItems[MENU_MAX_ITEMS], nMenuItems;
 /* Some buttons are half as wide, two to a row (Save State | Load State):
  * each item's row and side (-1: the whole row, 0 left, 1 right). */
-static int itemRow[12], itemSide[12], nMenuRows;
+static int itemRow[MENU_MAX_ITEMS], itemSide[MENU_MAX_ITEMS], nMenuRows;
 static bool half_item(int item) {
 	return item == M_RESUME || item == M_RESTART || item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
 	       item == M_COLOR || item == M_GHOST || item == M_HARDCORE || item == M_CHEATS || item == M_PATCHES || item == M_SHOT || item == M_BUG;
@@ -1201,7 +1203,7 @@ static int layout_rows(const int* items, int n, int* row, int* side) {
 #define N_PAGES 6
 enum { PG_GAME, PG_DISPLAY, PG_SCREENS, PG_CONTROLS, PG_SPEED, PG_MAP };
 #define ICON_SYSTEM 100 /* a toolbox: Settings > System (not a page) */
-static int pages[N_PAGES][12], pageLen[N_PAGES], curPage;
+static int pages[N_PAGES][MENU_MAX_ITEMS], pageLen[N_PAGES], curPage;
 #define ROW_MAX 16 /* settings on a page */
 #define ROW_VIS 8  /* most shown at once: more scroll */
 static const char* rowKeys[N_PAGES][ROW_MAX]; /* a settings page's rows: the settings' keys, or "@name" for a button that opens something */
@@ -1286,7 +1288,7 @@ static MenuGeom menu_geom(int scr) {
 	SDL_Rect r = screens[scr].rect;
 	int n = 1;
 	for (int p = 0; p < N_PAGES; ++p) {
-		int row[12], side[12];
+		int row[MENU_MAX_ITEMS], side[MENU_MAX_ITEMS];
 		n = SDL_max(n, page_is_rows(p) ? SDL_min(rowN[p], ROW_VIS) + 1 : SDL_min(layout_rows(pages[p], pageLen[p], row, side), ROW_VIS));
 	}
 	if (r.w == cw && r.h == ch && n == cn) return cache;
@@ -3114,6 +3116,15 @@ static void draw_bar(void) {
 	ui_clip(s, &clip);
 	ui_image(s, barTex, GBA_W, GBA_H, "stretch", &pic);
 	ui_clip(s, NULL);
+}
+
+/* an item on a page (more than MENU_MAX_ITEMS would write over the next page) */
+static void page_add(int page, int item) {
+	if (pageLen[page] >= MENU_MAX_ITEMS) {
+		fprintf(stderr, "menu: page %d is full, item %d left out\n", page, item);
+		return;
+	}
+	pages[page][pageLen[page]++] = item;
 }
 
 static void set_page(int page) {
@@ -8404,19 +8415,19 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 
 	memset(pageLen, 0, sizeof(pageLen));
 	memset(rowN, 0, sizeof(rowN));
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_RESUME;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_RESTART;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_SAVE;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_LOAD;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_SLOT;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_CHEATS;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_PATCHES;
-	if (ra_enabled()) pages[PG_GAME][pageLen[PG_GAME]++] = M_ACH;
-	if (ra_enabled()) pages[PG_GAME][pageLen[PG_GAME]++] = M_HARDCORE;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_SHOT;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_BUG;
-	if (fromLibrary) pages[PG_GAME][pageLen[PG_GAME]++] = M_LIBRARY;
-	pages[PG_GAME][pageLen[PG_GAME]++] = M_EXIT;
+	page_add(PG_GAME, M_RESUME);
+	page_add(PG_GAME, M_RESTART);
+	page_add(PG_GAME, M_SAVE);
+	page_add(PG_GAME, M_LOAD);
+	page_add(PG_GAME, M_SLOT);
+	page_add(PG_GAME, M_CHEATS);
+	page_add(PG_GAME, M_PATCHES);
+	if (ra_enabled()) page_add(PG_GAME, M_ACH);
+	if (ra_enabled() && ra_hardcore_menu(cfg->raHardcore)) page_add(PG_GAME, M_HARDCORE);
+	page_add(PG_GAME, M_SHOT);
+	page_add(PG_GAME, M_BUG);
+	if (fromLibrary) page_add(PG_GAME, M_LIBRARY);
+	page_add(PG_GAME, M_EXIT);
 	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
 	ui_shader(cfg->shader);
 #define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
