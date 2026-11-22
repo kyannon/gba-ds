@@ -424,6 +424,8 @@ typedef struct MapProfile {
 	 * has no status bar (SM4-11) */
 	MemProbe logoIf[2];
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
+	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
+	bool logoIfLast;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */

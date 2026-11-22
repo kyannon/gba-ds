@@ -35,6 +35,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Harry Potter and the Prisoner of Azkaban (Harry Potter to Azkaban no Shuujin in Japan) | `BHTE` (USA and Europe) `BHTJ` | the party's level, experience, Stamina and Magic from the Status/Equip screen, with the current task | |
 | Harvest Moon: Friends of Mineral Town (Bokujou Monogatari: Mineral Town no Nakama-tachi in Japan) | `A4NE` `A4NP` `A4ND` `A4NJ` | the town map, with where you are | |
 | Kingdom Hearts: Chain of Memories | `B8CE` `B8CP` `B8CJ` | the World Map; in battles, the logo | |
+| Kirby: Nightmare in Dream Land (Hoshi no Kirby: Yume no Izumi Deluxe in Japan) | `A7KE` `A7KP` `A7KJ` | in a level: the pause page for Kirby's copy ability | |
 | Lady Sia | `ALDE` `ALDP` (no Japanese release) | the pause screen as a status screen: lives, gems, villagers, the time, the ring and heart; the HUD off the game screen | |
 | The Legend of Zelda: A Link to the Past & Four Swords | `AZLE` `AZLP` `AZLJ` | world and dungeon maps | Voice removal (USA, Europe) |
 | The Legend of Zelda: The Minish Cap | `BZME` `BZMP` `BZMJ` | the map of Hyrule and dungeon maps (Quest Status before you have the map) | |
@@ -379,6 +380,13 @@ The USA, European and Japanese releases, tried in Traverse Town.
 - **Walking about in a world,** the second screen is the **World Map** (the one SELECT opens), as the game draws it, filling the screen: the floor's rooms, the room you're in lit blue with its name, and the floor you're on. It's opened in the background in a silent copy of the game about once a second, so new rooms show up without you opening it; your game is never paused. The map's cursor and its A button bubble are left out.
 - **In battles,** from the flash as one starts until the last enemy falls, the second screen shows the logo; the World Map comes back afterwards.
 - On the title, in the opening and in the scenes before the first world, it shows the logo; in conversations, scenes, at doors and in the game's own menus it keeps its last picture.
+
+## Kirby: Nightmare in Dream Land
+
+- **In a level** the second screen shows the game's own pause page for the copy ability Kirby has: its name, what the game says about it and its picture, or the game's tip about copying while he has none. It's taken again as Kirby goes into another room and about once a second, and a new ability shows within a moment of the copy (or of dropping it with SELECT).
+- The game screen is untouched: the HUD (lives, health, score and the ability's card) stays where the game draws it.
+- Before the first page, and wherever Kirby isn't in a level (the title, the file and game select, a level's title card and the hubs of doors), the second screen shows the logo, at half strength. While the game's own pause page is open the logo shows as well, so the same page is never on both screens; the second screen doesn't fade with the game's own fade.
+- The USA release has been played in Vegetable Valley. The Europe and Japan releases have been tried on saved states only (the pause pages in Japanese there).
 
 ## Lady Sia
 
