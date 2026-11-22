@@ -1,6 +1,6 @@
 # GBA DS
 
-**Join the community on Discord:** https://discord.gg/TCVHSkK9wp
+[![Join the GBA DS Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/TCVHSkK9wp)
 
 <p align="center"><img src="docs/lineup.png" width="100%" alt="GBA DS on three dual-screen handhelds: Metroid: Zero Mission with its map on a DS-style handheld, Pokémon Pinball's table across both screens of one with a wide top screen, and Golden Sun with its menu on another"></p>
 
