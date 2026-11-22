@@ -6,6 +6,7 @@
 | Dumps | `BE8E` cartridge `a47246ae` (tested), Virtual Console `dea3b767` · `BE8P` cartridge `b3005195` (tested), Virtual Console `2653401a` · `BE8J` cartridge `9d76826f` (tested), Virtual Console `d2b431f8` |
 | Profile | `src/profiles.c`: the `BE8E` entry (Fire Emblem's `fe_virt` / `fe_compose`); variants `BE8P`, `BE8J` |
 | Tests | `tests/regress/fire-emblem-sacred-stones.json` (`tools/regress.py fire-emblem-sacred-stones`) |
+| Toggle | `pages`: a unit's three pages (FE8-2) · GEN-14 |
 | Status | supported (tested on the device for v1.4.4) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list fire-emblem-sacred-stones`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

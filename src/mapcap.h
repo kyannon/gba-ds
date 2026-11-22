@@ -20,6 +20,7 @@ typedef struct MapResult {
 	int w, h;
 	int nFrames;                 /* >1 when the map has an animated marker */
 	int frameStep;               /* emulated frames between animation frames */
+	bool pages;                  /* the frames are pages, a few seconds each (MapProfile.pages), not a marker's blinking */
 	uint32_t* pixels;            /* == frames[0] */
 	uint32_t* frames[MAP_MAX_FRAMES];
 	uint32_t serial;             /* increments with each successful capture */
@@ -39,6 +40,10 @@ MapResult mapcap_capture_sync(MapCapture* mc, Emu* live);
  * the newest successful result into *out (caller-owned buffers are managed
  * internally) and returns true if it is newer than lastSerial. */
 bool mapcap_request(MapCapture* mc, Emu* live);
+/* ONPRESS views (GEN-14): the next capture takes the game's other view (a
+ * profile's compose reads it); set before mapcap_request */
+void mapcap_set_alt(int on);
+int mapcap_alt_view(void);
 bool mapcap_busy(MapCapture* mc);
 /* Calls off the capture running, if any (the game moved on: a newer one's
  * wanted): it stops at once and publishes nothing; mapcap_busy is false

@@ -1650,6 +1650,26 @@
      "match": "fight on"
     }
    ]
+  },
+  {
+   "id": "khc-us-world-cards",
+   "rom": "B8CE",
+   "state": "kingdom-hearts-chain-of-memories/us-world-cards.ss",
+   "desc": "the menu's World Cards screen open: it is not taken for the World Map, nothing is taken",
+   "rules": [
+    "KHC-2"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "KHC-2",
+     "what": "no World Map taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
   }
  ]
 }

@@ -6,6 +6,7 @@
 | Dumps | `BZ5E` cartridge `7a24ab0c` (tested) · `BZ5P` cartridge `7197117e` (tested) · `BZ5J` cartridge `fc7909a7` (tested), Virtual Console `bb4a2de0` (tested) |
 | Profile | `src/profiles.c`: the `BZ5E` entry (`ffv_compose`) |
 | Tests | `tests/regress/final-fantasy-v-advance.json` (`tools/regress.py final-fantasy-v-advance`) |
+| Toggle | `views`, `HELD`: the party screen (FV-6, FV-10) and the world map (FV-3), where both exist; the party picture is already kept (FV-7) · GEN-14 |
 | Status | supported (merged into dev Nov 18, 2026, for v1.5.6; tested on the device) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list final-fantasy-v-advance`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

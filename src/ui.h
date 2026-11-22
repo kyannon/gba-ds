@@ -233,6 +233,13 @@ bool ui_logo_custom(const Config* c, const char* rom, const char* code);
 /* The extracted logo queued for extraction if it's needed and missing (a
  * scraped logo needs it too: it takes its size from it). */
 void ui_logo_queue(const Config* c, const char* rom, const char* code);
+/* The game list: a ROM file's checksum (for logos made per file) not known yet is worked out on a
+ * thread, not while the list draws; ui_file_crc_generation moves as each is done. */
+void ui_file_crc_async(bool on);
+uint32_t ui_file_crc_generation(void);
+bool ui_file_crc_pending(void);
+void ui_notice(const char* title, const char* line); /* a two-line screen on every screen, shown until the next frame is drawn */
+void ui_game_prepare(const Config* c, const char* rom); /* before a game starts: what would freeze its first frames (a screen says so) */
 /* An RGBA32 picture resampled to w x h (averaged down; nearest pixel up). */
 SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h);
 

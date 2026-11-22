@@ -4,6 +4,8 @@
 #include <mgba/internal/gba/gba.h>
 #include <mgba/internal/gba/renderers/video-software.h>
 #include <mgba/internal/gba/cheats.h>
+#include <mgba/internal/gba/bios.h>
+#include <mgba/internal/gba/serialize.h>
 #undef GBA_H
 #include "emu.h"
 
@@ -19,6 +21,7 @@
 #include <mgba/core/log.h>
 #include "patch.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include <sys/stat.h>
 #include <pthread.h>
 #include <ctype.h>
@@ -330,7 +333,56 @@ static void rtc_pin(Emu* e) {
 	e->core->rtc.value = atoll(t) * 1000;
 }
 
-static struct GBALuminanceSource luxSource = { .sample = lux_sample, .readLuminance = lux_read };
+/* Does the cartridge have a sun sensor (Boktai 1, 2 and 3)? mGBA sets the flag from its
+ * game database (or the header's GPIO probe) when the ROM loads. */
+bool emu_has_solar(Emu* e) {
+	struct GBA* gba = e->core->board;
+	return gba && (gba->memory.hw.devices & HW_LIGHT_SENSOR) != 0;
+}
+
+char emu_bios_path[512];
+
+/* The BIOS file read once (16 KB) and kept for the run: each core maps it, so it must stay. */
+static uint8_t* biosData;
+static char biosDataPath[512];
+static pthread_mutex_t biosLock = PTHREAD_MUTEX_INITIALIZER;
+
+static uint8_t* bios_read(const char* path, BiosFile* why) {
+	*why = BIOS_FILE_MISSING;
+	FILE* f = fopen(path, "rb");
+	if (!f) return NULL;
+	uint8_t* buf = malloc(GBA_SIZE_BIOS + 1);
+	size_t n = buf ? fread(buf, 1, GBA_SIZE_BIOS + 1, f) : 0;
+	fclose(f);
+	if (n != GBA_SIZE_BIOS) {
+		free(buf);
+		*why = BIOS_FILE_SIZE;
+		return NULL;
+	}
+	struct VFile* vf = VFileFromConstMemory(buf, GBA_SIZE_BIOS);
+	bool ok = vf && GBAIsBIOS(vf);
+	if (vf) vf->close(vf);
+	if (!ok) {
+		free(buf);
+		*why = BIOS_FILE_NOT_BIOS;
+		return NULL;
+	}
+	if (GBAChecksum((uint32_t*) buf, GBA_SIZE_BIOS) == GBA_DEBUG_BIOS_CHECKSUM) { /* (mGBA refuses it) */
+		free(buf);
+		*why = BIOS_FILE_BROKEN;
+		return NULL;
+	}
+	*why = BIOS_FILE_OK;
+	return buf;
+}
+
+BiosFile emu_bios_check(const char* path) {
+	BiosFile why;
+	free(bios_read(path, &why));
+	return why;
+}
+
+static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
@@ -384,6 +436,25 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 			e->core->loadSave(e->core, vf);
 		} else {
 			fprintf(stderr, "warning: cannot open save file %s\n", savePath);
+		}
+	}
+	if (emu_bios_path[0]) { /* the player's own BIOS (issue #78), started past its logo as the built-in one is */
+		pthread_mutex_lock(&biosLock);
+		if (!biosData || strcmp(biosDataPath, emu_bios_path)) {
+			BiosFile why;
+			uint8_t* b = bios_read(emu_bios_path, &why);
+			if (b) { /* (an earlier one stays mapped by cores still open: kept, not freed) */
+				biosData = b;
+				snprintf(biosDataPath, sizeof(biosDataPath), "%s", emu_bios_path);
+			} else {
+				fprintf(stderr, "GBA BIOS %s: not used (%d)\n", emu_bios_path, (int) why);
+			}
+		}
+		struct VFile* bvf = biosData && !strcmp(biosDataPath, emu_bios_path) ? VFileFromConstMemory(biosData, GBA_SIZE_BIOS) : NULL;
+		pthread_mutex_unlock(&biosLock);
+		if (bvf) {
+			e->core->opts.skipBios = true;
+			e->core->loadBIOS(e->core, bvf, 0);
 		}
 	}
 	e->core->reset(e->core);
@@ -509,11 +580,15 @@ size_t emu_rewind_count(void) {
  * checked byte for byte), ACHV RetroAchievements progress, RPLY a replay.
  * Usually compressed (savestate_file_compression, on by default):
  * "#RZIPv" 1 "#", u32 chunk size, u64 size, then each chunk as a u32 size
- * and zlib's data. (RZIP version 2, zstd, isn't read.) Loading takes any
- * of these; saving writes the format asked for. All numbers little-endian. */
+ * and zlib's data; version 2 (RetroArch 1.21 on, when its Save State
+ * Compression is set to zstd; issue #78) the same with a zstd frame for each
+ * chunk. Loading takes any of these; saving writes the format asked for
+ * (zlib's version 1, which every RetroArch reads). All numbers little-endian. */
 
 /* (in mGBA's subsystem range, which it doesn't use for the GBA) */
 #define EXTDATA_GBADS ((enum mStateExtdataTag) (EXTDATA_SUBSYSTEM_START + 0x3D))
+
+#include <encodings/rzstd.h> /* (RZIP version 2's zstd: third_party/rzstd) */
 
 #ifdef USE_ZLIB
 /* (zlib's, linked with libmgba; its header isn't on every build's include path) */
@@ -562,24 +637,38 @@ static uint8_t* state_file_read(const char* path, size_t* n, StateFileKind* kind
 	if (bn >= 20 && !memcmp(b, RZIP_MAGIC, 6) && b[7] == '#') {
 		uint8_t* out = NULL;
 		size_t got = 0;
-#ifdef USE_ZLIB
 		uint32_t chunk = le32(b + 8);
 		uint64_t total = (uint64_t) le32(b + 12) | (uint64_t) le32(b + 16) << 32;
-		if (b[6] == 1 && chunk && total && total <= STATE_FILE_MAX) out = malloc((size_t) total);
+		uint8_t version = b[6];
+#ifndef USE_ZLIB
+		if (version == 1) total = 0; /* (no zlib in this build) */
+#endif
+		if ((version == 1 || version == 2) && chunk && total && total <= STATE_FILE_MAX) out = malloc((size_t) total);
 		size_t at = 20;
 		while (out && got < total) {
-			unsigned long dl = (unsigned long) (total - got < chunk ? total - got : chunk);
+			size_t dl = (size_t) (total - got < chunk ? total - got : chunk), made = 0;
 			uint32_t zn = at + 4 <= bn ? le32(b + at) : 0;
-			if (!zn || zn > bn - at - 4 || uncompress(out + got, &dl, b + at + 4, zn) != 0 || !dl) {
+			bool ok = zn && zn <= bn - at - 4;
+			if (ok && version == 2) {
+				/* (one zstd frame a chunk, the chunk's size known: rzstd_decode fails rather than write past it) */
+				ok = rzstd_decode(out + got, dl, b + at + 4, zn, &made) == RZSTD_PROCESS_END;
+			}
+#ifdef USE_ZLIB
+			else if (ok) {
+				unsigned long ul = (unsigned long) dl;
+				ok = uncompress(out + got, &ul, b + at + 4, zn) == 0;
+				made = ul;
+			}
+#endif
+			if (!ok || !made) {
 				free(out);
 				out = NULL;
 				break;
 			}
-			got += dl, at += 4 + zn;
+			got += made, at += 4 + zn;
 		}
-#endif
 		free(b);
-		if (!out) return NULL; /* (zstd, damaged, or no zlib in this build) */
+		if (!out) return NULL; /* (damaged, or an RZIP version GBA DS doesn't know) */
 		b = out;
 		bn = got;
 		wrapped = true;
@@ -737,6 +826,29 @@ StateFileKind emu_state_file_kind(Emu* e, const char* path, bool* fromGbads) {
 	}
 	free(b);
 	return kind;
+}
+
+/* mGBA's own rule (GBADeserialize, src/gba/serialize.c): a different BIOS checksum is
+ * only a warning, unless one side is the official BIOS and the saved program counter
+ * is inside the BIOS (from 0x20: past the reset vector): then the state is refused.
+ * (GBA DS's own states are made with mGBA's built-in BIOS, so those from RetroArch's
+ * core with a BIOS file are the ones that meet this.) */
+BiosRefusal emu_state_file_bios_refusal(Emu* e, const char* path) {
+	size_t n;
+	StateFileKind kind;
+	uint8_t* b = state_file_read(path, &n, &kind);
+	BiosRefusal r = BIOS_REFUSAL_NONE;
+	const size_t pcAt = offsetof(struct GBASerializedState, cpu.gprs) + ARM_PC * sizeof(int32_t);
+	if (b && (kind == STATE_FILE_MGBA || kind == STATE_FILE_RETROARCH) && n >= pcAt + 4 && e && e->core && e->core->board) {
+		uint32_t saved = le32(b + offsetof(struct GBASerializedState, biosChecksum)), pc = le32(b + pcAt);
+		uint32_t mine = ((struct GBA*) e->core->board)->biosChecksum;
+		if (saved != mine && pc < GBA_SIZE_BIOS && pc >= 0x20) {
+			if (saved == GBA_BIOS_CHECKSUM) r = BIOS_REFUSAL_STATE_HAS_BIOS;
+			else if (mine == GBA_BIOS_CHECKSUM) r = BIOS_REFUSAL_CORE_HAS_BIOS;
+		}
+	}
+	free(b);
+	return r;
 }
 
 bool emu_state_file_rom_crc(const char* path, uint32_t* crc) {

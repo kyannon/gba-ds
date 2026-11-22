@@ -6,6 +6,7 @@
 | Dumps | `BZME` cartridge `abcebbb1` (tested) · `BZMP` cartridge `e8637292` (tested) · `BZMJ` cartridge `6ce771a5` (tested) |
 | Profile | `src/profiles.c`: the `BZME` entry (`tmc_compose`); variants `BZMP`, `BZMJ` |
 | Tests | `tests/regress/zelda-the-minish-cap.json` (`tools/regress.py zelda-the-minish-cap`) |
+| Toggle | `views`, `ONPRESS`: the map (TMC-1, TMC-2) and the Quest Status tab (TMC-4), the one the game doesn't show · GEN-14 |
 | Status | working (tested on the device: USA, Europe and Japan) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list zelda-the-minish-cap`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
@@ -20,9 +21,9 @@ Checked against the [philosophy](../../wiki/Philosophy.md): the game's own scree
 
 ## Rules
 
-**TMC-1. Outdoors and indoors: the map of Hyrule.** Wherever the game's Map tab shows the map of Hyrule (the fields and towns, the Minish Woods, and under a roof too: houses, caves, the Minish world), the second screen shows it, the whole screen at the game screen's size as the game draws it: Hyrule's regions, the one Link is in marked by the map's red corner marks, and its name in the bar under the map ("Hyrule Town"). Indoors, the marks stay on the region Link last left outdoors, as the game's map does.
+**TMC-1. Outdoors and indoors: the map of Hyrule.** Wherever the game's Map tab shows the map of Hyrule (the fields and towns, the Minish Woods, and under a roof too: houses, caves, the Minish world; and the Royal Crypt, which has no dungeon map: the game's Map tab shows the Royal Valley there), the second screen shows it, the whole screen at the game screen's size as the game draws it: Hyrule's regions, the one Link is in marked by the map's red corner marks, and its name in the bar under the map ("Hyrule Town"). Indoors, the marks stay on the region Link last left outdoors, as the game's map does.
 
-**TMC-2. Dungeons: the dungeon's map.** In a dungeon (Deepwood Shrine, the Cave of Flames, the Fortress of Winds, the Temple of Droplets, the Palace of Winds, the Royal Crypt, Dark Hyrule Castle), the second screen shows the dungeon's map as the Map tab draws it: the floor plan of the floor chosen (Link's own: its corner marks are on it in the list of floors), Link's head by that list, the dungeon's keys, compass and map icons below it, the chests and the boss mark on the plan, and the dungeon's name in the bar.
+**TMC-2. Dungeons: the dungeon's map.** In a dungeon (Deepwood Shrine, the Cave of Flames, the Fortress of Winds, the Temple of Droplets, the Palace of Winds, Dark Hyrule Castle), the second screen shows the dungeon's map as the Map tab draws it: the floor plan of the floor chosen (Link's own: its corner marks are on it in the list of floors), Link's head by that list, the dungeon's keys, compass and map icons below it, the chests and the boss mark on the plan, and the dungeon's name in the bar.
 
 **TMC-3. Opened on the hidden copy, wherever the player left the menu.** The map is taken from a hidden copy of the game (GEN-2): START opens its menu on the Map tab, and the picture is taken once the menu has settled. The menu opens on the tab the player last used, so the copy is first told to open on the Map (the hidden copy's own memory: the game being played isn't touched, and the Items and Quest Status tabs are never taken). Where the game's menu won't open (TMC-8), nothing is taken. Before the map the hidden copy is told to open on Quest Status instead (TMC-4).
 
@@ -45,11 +46,12 @@ Checked against the [philosophy](../../wiki/Philosophy.md): the game's own scree
 ## Not covered yet
 
 - Japan has no save of its own: its tests run on states made from a new game with the USA endgame's save data copied in (the same addresses), so its first hours are as untested as the others'. Europe and Japan have no Language-menu or game-over state.
-- The tests run on states made by warping Link (Hyrule Town, Deepwood Shrine), not on a played game: crossing into another region or room (TMC-6's speed), a house or a cave, and leaving a dungeon are checked by hand on the device.
+- The tests run on states made by warping Link (Hyrule Town, Deepwood Shrine; and, from the owner's Deepwood Shrine and North Hyrule Field states, the Cave of Flames, the Fortress of Winds, the Temple of Droplets, the Palace of Winds and Dark Hyrule Castle with and without their maps, the Royal Crypt, Dark Hyrule Castle's grounds and the stone Hyrule Town, with the story flags of Vaati's takeover set), not on a played game: crossing into another region or room (TMC-6's speed), a house or a cave, and leaving a dungeon are checked by hand on the device.
 - Game over and the credits (TMC-9), and the Language menu in Europe, have no state yet.
-- The map with the menu refused (a conversation, a cutscene, TMC-8) is covered only by the game's own menu being open.
+- The map with the menu refused (TMC-8) is covered by the game's own menu being open and by Ezlo talking in the Minish Woods; a cutscene isn't.
+- Dark Hyrule Castle's grounds: the area has the map flag of a dungeon, but on the warped state the game's own Map tab shows the Castle Garden's map of Hyrule (as the second screen does); a played game's grounds should confirm it.
 - Europe is checked from the end of the game (the Hyrule Town area and a dungeon); the first hours aren't.
-- Link as a Minish in the Minish world, the Cloud Tops, the Dark Hyrule Castle and the Vaati fights haven't been tried, nor the map during a conversation that the menu refuses.
+- The Cloud Tops and the Vaati fights haven't been tried. Link as a Minish has only the Minish Woods (a device state), not the Minish world's houses and paths.
 
 ## Facts found so far (for sessions)
 
@@ -63,5 +65,8 @@ The same addresses in all three releases (they follow the decompilation's linker
 | The map item | `gSave.inventory` `0x02002A40 + 0xF2 + 17`, bits 6-7: `ITEM_MAP` (2 bits per item). Without it the menu has no Map tab (L and R: Items, Quest Status) |
 | Where | `gRoomControls` `0x03000BF0`: area `+4`, room `+5`; `gRoomTransition.player_status` `0x030010AC`: Link's place on the map of Hyrule at `+0x14` / `+0x16` (pixels; its region is `x >> 4`, `y >> 4` in `gOverworldLocations`' 17 boxes), in a dungeon at `+0x10` / `+0x12`; they only update outdoors and in dungeons |
 | Warping for tests | poke `gRoomTransition` `0x030010A8` = 1 (leaving), `+9` = 5 (the fade), `0x030010AC` area, `+1` room, `+3` = 3 (instant), `+4` / `+6` x / y (16 bits), `+8` layer 1: the game does the rest. Areas: 0x02 Hyrule Town, 0x48 Deepwood Shrine (room 0x0B) |
+| More warps (the `tmc-us-warp-*` states) | area / room / x, y: Cave of Flames 0x50 / 0x03 / 0x88, 0xA8; Fortress of Winds 0x58 / 0x18 / 0x88, 0x22; Temple of Droplets 0x60 / 0x20 / 0x58, 0x38; Palace of Winds 0x70 / 0x15 / 0x218, 0xE8; Dark Hyrule Castle 0x88 / 0x00 / 0x198, 0x1F0; Royal Crypt 0x68 / 0x04 / 0x128, 0x48 (its entrance room's Gibdo holds Link, and the menu won't open while he's held); Dark Hyrule Castle's grounds 0x89 / 0x01; Royal Valley 0x09, Castle Garden 0x07. The map of Hyrule marks where Link last was outdoors, so warp to the area outside first, then in. A few A presses clear Ezlo's words on arrival |
+| A dungeon's map item | `gSave.dungeonItems` `0x02002EAC` + the dungeon's number (Deepwood 1, Cave of Flames 2, Fortress 3, Temple 4, Palace 5, Dark Hyrule Castle 6), bit 0. The Royal Crypt's area (0x68) has no map flag: the Map tab shows the map of Hyrule there |
+| Vaati's takeover (Dark Hyrule) | `gSave.global_progress` `0x02002A48` (9) is worked out again from flags at each area change: set `gSave.flags` (`0x02002C9C`, bit = bank + flag) `0x02002C9C` = 0x74 (LV1, 3, 4, 5 cleared), `0x02002D0B` bit 0 (bank 3 + 0x78, the stained glass scene) and `0x02002CD0` bit 0 (bank 1 + 0xA0, Vaati takes the king) |
 | Quest Status | tab byte 2; shown before `ITEM_MAP` (without it the menu has only Items and Quest Status) |
 | Sprites on the Map tab | the L and R arrows (tile 32 at the left, tile 16 at the right, priority 1, around y 56), "Choose" and its button (tiles 256-300, priority 0, top right) |

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Make the save states baked into a final dev test zip.
 
-    tools/make_device_states.py [--games slug,slug,...] [--out DIR] [--fixtures DIR]
+    tools/make_device_states.py [--games slug,slug,...] [--manifest FILE] [--out DIR] [--fixtures DIR]
 
 Reads tools/device-states.json (per game: each release's No-Intro name, slots
 1-9 -> fixture state + what to check), copies each fixture from
@@ -29,10 +29,11 @@ def dump_names():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--games', help='comma-separated game slugs (default: all in the manifest)')
+    ap.add_argument('--manifest', default=os.path.join(ROOT, 'tools', 'device-states.json'))
     ap.add_argument('--out', default=os.path.join(ROOT, 'build', 'device-states'))
     ap.add_argument('--fixtures', default=os.environ.get('GBADS_TESTS') or os.path.join(ROOT, '..', 'gba-ds-tests'))
     a = ap.parse_args()
-    man = json.load(open(os.path.join(ROOT, 'tools', 'device-states.json'), encoding='utf-8'))['games']
+    man = json.load(open(a.manifest, encoding='utf-8'))['games']
     want = a.games.split(',') if a.games else list(man)
     names = dump_names()
     bad = 0

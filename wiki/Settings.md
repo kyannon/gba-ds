@@ -27,15 +27,16 @@ In the game list's Settings > System, **Reset settings to defaults** puts every 
 | `quick_bar_hint` | `1` | At a game's start, "Swipe up for quick menu" at the bottom of the touchscreen for 3 seconds (or until you touch it); `0` turns it off. |
 | `quick_bar_pinned` | `0` | The quick bar stays up, as with its pin (top right of the bar) on; the pin sets this too. |
 | `auto_load` | `1` | Pick up from the resume point when you start a game. Also in the pause menu. (`auto_resume`, from older versions, sets both.) |
+| `gba_bios` | `0` | `1` runs games with your own GBA BIOS (`bios/gba_bios.bin` in the data folder) instead of the built-in one; if the file isn't a usable BIOS, the built-in one is used. Set by Settings > System > GBA BIOS in the game list (kept in `library.cfg`, which only switches it on when the file is there). See [[Playing#a-state-saved-with-a-gba-bios]]. |
 | `update_check` | `1` | Look for a new release once a day when the game list opens, and ask before downloading it. The **Automatic checks** switch in Settings > Updates overrides this (kept in `states/update.cfg`). See [[Playing#updates]]. |
 
 ## Screens
 
 | Option | Default | |
 |---|---|---|
-| `layout` | `auto` | `auto` detects the screens. On ROCKNIX's sway, GBA DS makes its window full screen across both outputs and splits it. `span-h` / `span-v`: one window over two screens side by side / stacked. `dual`: one window per display. `single`: one screen; HOME + Y (or the menu's Swap Screens) flips between game and second screen. |
+| `layout` | `auto` | `auto` detects the screens. On ROCKNIX's sway, GBA DS makes its window full screen across both outputs and splits it. `span-h` / `span-v`: one window over two screens side by side / stacked. `dual`: one window per display. `single`: one screen; HOME + D-pad up (or the menu's Swap Screens) flips between game and second screen. |
 | `brightness_top`, `brightness_bottom` | `100` | How bright each screen is, `20` to `100` (steps of 10). It darkens GBA DS's picture only: it's separate from the device's own brightness, which it doesn't change or exceed. The pause menu's Screens tab sets them per game or for all games. |
-| `swap` | `0` | `1` puts the second screen first (top) and the game second. The menu's Swap Screens and its hotkey (HOME + Y) are remembered in `prefs.cfg` and win over this. |
+| `swap` | `0` | `1` puts the second screen first (top) and the game second. The menu's Swap Screens and its hotkey (HOME + D-pad up) are remembered in `prefs.cfg` and win over this. |
 | `touch_screen` | `second` | `first` or `second`: the screen with the touch panel. The menu and game list are drawn there. |
 | `screen_match` | `keep` | **Experimental.** When your two screens' shapes differ (a widescreen top screen over a narrower bottom one, as on the AYN Thor): `keep` draws each screen's picture as its own screen's shape allows; `aspect` gives the wider screen's picture the other screen's shape (black bars at the sides); `size` gives it the other screen's real size too, at the edge nearest the other screen, so a picture that carries on across both (Pokémon Pinball's table) lines up. The pause menu's **Display** page has it as Keep device aspect ratios / Match screen aspect ratios / Match screen sizes and aspect ratios. Does nothing on two screens of a shape. |
 | `screen_placement` | `center` | With two screens: `center` puts each screen's picture in the middle of its screen; `no_gap` puts the top screen's picture against its bottom edge and the bottom screen's against its top, as close together as they go. Only moves pictures that don't fill the screen's height (Pixel Perfect, Full Width). The pause menu's **Display** page has it as **Screen Placement**. |
@@ -76,6 +77,9 @@ In the game list's Settings > System, **Reset settings to defaults** puts every 
 | `logo_folder` | empty | A folder of scraped logos (EmulationStation's marquees, Skraper's wheels), found by the ROM's file name whatever the details in brackets (`Golden Sun.png`, `Golden Sun (USA)-marquee.jpg`...), PNG, JPG or WebP. Used instead of the logo GBA DS takes from the game, at its height. See [Playing](Playing#logos). |
 | `custom_logos` | `pixelated` | Your own and scraped logos: `pixelated` shrinks them to the GBA's pixels, drawn like the game's own; `full` keeps their detail, at the same size; `off` doesn't use them (the logo GBA DS takes from the game instead). Also in the pause menu (Display > Custom Logos). |
 | `pinball_live` | `1` | Pokémon Pinball, Sonic Pinball Party and Muppet Pinball Mayhem: two more copies of the game draw the rest of the table live on both screens. `0` turns them off (for slower devices): the game plays on one screen, with the logo on the other. |
+| `toggle` | `0` | `1` lets you turn the second screen by hand in the games that have pages or views to turn: a status screen's pages, the next party member, the map or the party screen. HOME + A (`hotkey_toggle`) does it, and so does a small button on the second screen (`toggle_button`). Nothing changes in the game; with it off, every game shows what it always did. |
+| `auto_rotate` | `1` | With `toggle` on: `1` keeps timed pages turning by themselves, a press moving them on at once; `0` keeps a page until you press. Only used when `toggle` is on. |
+| `toggle_button` | `left` | Where the toggle button sits on the second screen: `left`, `center`, `right` or `off` (the hotkey still works). It isn't shown in games with nothing to turn, is dim while the second screen has nothing to turn to (the logo, a one-page picture), and is only drawn on a screen that takes touch. Turning a picture that the game has to find first fades the picture to black until it's ready. Only used when `toggle` is on. |
 
 How the Metroid map screens are tidied:
 - **Zero Mission** keeps its whole pause screen, frame included, and only the lettering is erased: the L and R key letters, SLEEP, the area name, STATUS, and the A on the button beside the minimap. The keys, plates and button stay; the blank plates (magenta) and L/R keys (orange) are recoloured to the dark grey-green of the curved pieces beside the area name. The corner minimap gives way to the map underneath, and its "SELECT / CHANGE AREAS" prompt is covered by a piece of the bezel.
@@ -90,12 +94,14 @@ How the Metroid map screens are tidied:
 | `turbo_rate` | `15` | How many times a second Turbo A and Turbo B press: `10`, `15` or `20`. |
 | `ab_swap` | `0` | GBA A is the right face button and GBA B the bottom one, like a GBA. `1` flips them. A game's own choices in the pause menu (Controls tab, see [Playing](Playing#changing-the-face-buttons-for-a-game)) replace this for that game. |
 | `hotkey` | `home` | The hotkey button, held with another button for a shortcut (see [[Playing#hotkeys]]): `home`, `select`, `start` or `l3`. SELECT or START as the hotkey still reach the game when tapped on their own, and L3 tapped on its own still opens the quick bar. HOME always opens the menu. (`guide` and `back`, the names before v1.5, still work.) |
-| `hotkey_quit` | `start` | The button held with the hotkey to quit GBA DS (`select` when the hotkey is START). Each shortcut takes one of `a`, `b`, `x`, `y`, `l`, `r`, `l2`, `r2`, `select`, `start`, `l3`, `up`, `down`, `left`, `right`, or `none` to turn it off. |
+| `hotkey_quit` | `start` | The button held with the hotkey to close GBA DS (`select` when the hotkey is START). Each shortcut takes one of `a`, `b`, `x`, `y`, `l`, `r`, `l2`, `r2`, `select`, `start`, `l3`, `up`, `down`, `left`, `right`, or `none` to turn it off. |
+| `hotkey_close_game` | `b` | The button held with the hotkey to close the game and go back to the game list. When GBA DS was started straight into a game (from a launcher or a frontend, so there is no game list), it closes GBA DS, the same as `hotkey_quit`. |
 | `hotkey_save_state` | `r` | Hotkey + this button saves the quick state (the quick bar's, not the resume point or the menu's slots). |
 | `hotkey_load_state` | `l` | Hotkey + this button loads the quick state. |
 | `hotkey_quick_menu` | `x` | Hotkey + this button brings up the quick bar, as swiping up does (again: puts it away). |
-| `hotkey_swap_screens` | `y` | Hotkey + this button swaps the screens. |
-| `hotkey_shader` | `b` | Hotkey + this button toggles the selected shader: off, and back on (the one last picked in the pause menu, or the LCD grid). |
+| `hotkey_swap_screens` | `up` | Hotkey + this button swaps the screens. |
+| `hotkey_shader` | `down` | Hotkey + this button toggles the selected shader: off, and back on (the one last picked in the pause menu, or the LCD grid). |
+| `hotkey_toggle` | `a` | Hotkey + this button turns the second screen's page or view by hand (see `toggle` under Second screen). |
 | `home_button` | `-1` | If HOME does nothing: launch once with `GBADS_DEBUG=1` (see [[Troubleshooting]]), press HOME, and put the "raw joystick ... button N" number from `gba-ds.log` here. |
 | `menu_combo` | `none` (Android: `select+start`) | `select+start`: SELECT and START pressed together also open the menu. The game doesn't see the pair; either button alone still reaches the game. |
 | `fast_forward` | `1` | Hold **R2** to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |

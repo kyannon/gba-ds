@@ -181,6 +181,7 @@ app case runs with its own `--patch_dir`.
  "rules": ["FE-1", "FE-2", "FE-3"],
  "input": [[150, "START"], [154, "-"]],
  "config": {"layout": "single"},
+ "env": {"GBADS_TOGGLE_WAIT": "30"},
  "shots": {"start": 60, "page2": 420, "end": 720},
  "checks": [
   {"rule": "FE-2", "what": "the minimap at the bottom right",
@@ -190,6 +191,7 @@ app case runs with its own `--patch_dir`.
 }
 ```
 
+- `env` (optional) sets environment variables for the run: `GBADS_TOGGLE_WAIT=N` makes a page turn by hand wait N frames behind the fade (GEN-14), the way a view that has to be captured will.
 - `rom` is the release's game code (`roms/<rom>.zip`); `state` is relative
   to the fixtures' `states/`; `save` (optional) is a battery save from
   `saves/`, put beside the ROM.
@@ -199,6 +201,7 @@ app case runs with its own `--patch_dir`.
   load would, with the second screen kept: the way to test a rule about
   keeping an earlier picture (show it from one state, then load the moment
   where it must stay).
+- `bios` (GEN-15): a fixture under `bios/` (the official GBA BIOS, `gba_bios.bin`, from the owner) put as `<asset_dir>/bios/gba_bios.bin`; the case's `config` `gba_bios: 1` switches it on. Its states are made with the harness (`HARNESS_BIOS=FILE harness ROM OUT SCRIPT`, which runs with that BIOS; Sonic Advance 2 waits inside the BIOS every frame, Advance Wars never does) and wrapped with `tools/retroarch_state.py wrap`: `sonic-advance-2/us-retroarch-bios-real.state` (real BIOS, inside it), `us-retroarch-hle-in-bios.state` (built-in BIOS, inside it).
 - `retroarch` (GEN-13) runs the case with save states shared with a
   stand-in RetroArch (`--state_folder=retroarch`): `cfg` is its
   retroarch.cfg's text, where `{states}` is its state folder in the case's

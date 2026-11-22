@@ -1241,6 +1241,33 @@
    ]
   },
   {
+   "id": "aw-us-retroarch-zstd-resume",
+   "rom": "AWRE",
+   "desc": "save states shared with RetroArch: GBA DS resumes from RetroArch's automatic state when RetroArch compresses its states with zstd (RZIP version 2, RetroArch 1.21 on): the same moment, the same picture as aw-us-retroarch-resume's (GEN-15)",
+   "rules": [
+    "GEN-15"
+   ],
+   "config": {
+    "auto_load": 1
+   },
+   "retroarch": {
+    "states": {
+     "mGBA/AWRE.state.auto": "advance-wars/us-retroarch-zstd.state"
+    }
+   },
+   "shots": {
+    "resumed": 60
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: .*AWRE\\.state\\.auto: loaded \\(RetroArch's, saved by RetroArch\\)",
+     "rule": "GEN-15",
+     "what": "resumed from a zstd-compressed automatic state"
+    }
+   ]
+  },
+  {
    "id": "aw-us-retroarch-save",
    "rom": "AWRE",
    "state": "advance-wars/us-co-screen.ss",
@@ -1471,6 +1498,96 @@
    ]
   },
   {
+   "id": "aw-us-retroarch-bios",
+   "rom": "AWRE",
+   "state": "advance-wars/us-co-screen.ss",
+   "desc": "a state RetroArch's core saved with the GBA BIOS while the CPU was inside it (GEN-15): the pause menu's Load Slot 4 says it was saved with the GBA BIOS, not just \"Load failed\" (the clock's corner masked, it shows the real time)",
+   "rules": [
+    "GEN-15"
+   ],
+   "retroarch": {
+    "states": {
+     "mGBA/AWRE.state4": "advance-wars/us-retroarch-bios.state"
+    }
+   },
+   "shots": {
+    "refused-keys": 190
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: .*AWRE\\.state4: not loaded \\(RetroArch's",
+     "rule": "GEN-15",
+     "what": "the BIOS state is refused"
+    },
+    {
+     "type": "log",
+     "match": "load state: refused by mGBA: saved inside the GBA BIOS",
+     "rule": "GEN-15",
+     "what": "and the reason is told"
+    }
+   ],
+   "input": [
+    [
+     30,
+     "HOME"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     66,
+     "-"
+    ],
+    [
+     72,
+     "DOWN"
+    ],
+    [
+     78,
+     "-"
+    ],
+    [
+     140,
+     "UP"
+    ],
+    [
+     146,
+     "-"
+    ],
+    [
+     152,
+     "RIGHT"
+    ],
+    [
+     158,
+     "-"
+    ],
+    [
+     164,
+     "A"
+    ],
+    [
+     170,
+     "-"
+    ]
+   ],
+   "golden_frac": 0.001,
+   "golden_mask": [
+    [
+     0,
+     0,
+     200,
+     60
+    ]
+   ]
+  },
+  {
    "id": "aw-retroarch-settings",
    "kind": "library",
    "rom": "AWRE",
@@ -1549,6 +1666,246 @@
      725,
      1010,
      750
+    ]
+   ]
+  },
+  {
+   "id": "aw-bios-settings",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "the game list's Settings > System, GBA BIOS row: Built-in and its note; switched on with no gba_bios.bin in the bios folder it stays Built-in and says where to put the file (the BIOS is never looked for by itself)",
+   "rules": [
+    "GEN-15"
+   ],
+   "input": [
+    [
+     30,
+     "SELECT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     44,
+     "DOWN"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     52,
+     "DOWN"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     74,
+     "-"
+    ],
+    [
+     78,
+     "DOWN"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     86,
+     "DOWN"
+    ],
+    [
+     90,
+     "-"
+    ],
+    [
+     94,
+     "DOWN"
+    ],
+    [
+     98,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ]
+   ],
+   "shots": {
+    "system-bios": 120,
+    "system-bios-missing": 150
+   },
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ]
+   ]
+  },
+  {
+   "id": "aw-bios-settings-on",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "Settings > System, GBA BIOS with the real BIOS file in the bios folder: switched on it says so and the row reads Your Own",
+   "rules": [
+    "GEN-15"
+   ],
+   "input": [
+    [
+     30,
+     "SELECT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     44,
+     "DOWN"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     52,
+     "DOWN"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     74,
+     "-"
+    ],
+    [
+     78,
+     "DOWN"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     86,
+     "DOWN"
+    ],
+    [
+     90,
+     "-"
+    ],
+    [
+     94,
+     "DOWN"
+    ],
+    [
+     98,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ]
+   ],
+   "shots": {
+    "system-bios-on": 150
+   },
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ]
+   ],
+   "bios": "gba_bios.bin",
+   "checks": [
+    {
+     "type": "log",
+     "match": "library: GBA BIOS on",
+     "rule": "GEN-15",
+     "what": "switched on with a usable file"
+    }
+   ]
+  },
+  {
+   "id": "aw-us-toggle-unavailable",
+   "rom": "AWRE",
+   "state": "advance-wars/us-title.ss",
+   "desc": "the in-game settings' Second screen page in a game the toggle and the pinball view don't apply to: Contextual toggle, Auto-rotate, Toggle button and Pinball two-screen view are greyed out and say Not available",
+   "rules": [
+    "GEN-14"
+   ],
+   "input": [
+    [
+     60,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.5,0.864"
+    ],
+    [
+     170,
+     "-"
+    ],
+    [
+     200,
+     "TAP:0.855,0.529"
+    ],
+    [
+     230,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 260
+   },
+   "golden_mask": [
+    [
+     0,
+     0,
+     140,
+     70
     ]
    ]
   }

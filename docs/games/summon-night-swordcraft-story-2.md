@@ -6,6 +6,7 @@
 | Dumps | `BSKE` cartridge `1eac1f48` (tested) · `BSKJ` cartridge `8cd98f6f` (tested) |
 | Profile | `src/profiles.c`: the `BSKE` entry (with `BSKJ`) |
 | Tests | `tests/regress/summon-night-swordcraft-story-2.json` (`tools/regress.py summon-night-swordcraft-story-2`) |
+| Toggle | `pages`: the characters' Status, in turn (SN2-5) · GEN-14 |
 | Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list summon-night-swordcraft-story-2`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

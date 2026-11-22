@@ -6,6 +6,7 @@
 | Dumps | `U3IE` cartridge `e715ac45` (tested) · `U3IP` cartridge `9686c36b` (tested) · `U3IJ` cartridge `a09c0807` (tested) |
 | Profile | `src/profiles.c`: the `U3IE` entry (bt_compose; the Map page of SELECT's menu); variants `U3IP`, `U3IJ` (as `U3IE`) |
 | Tests | `tests/regress/boktai-the-sun-is-in-your-hand.json` (`tools/regress.py boktai-the-sun-is-in-your-hand`) |
+| Toggle | `none`: the Map is the only picture worth showing, the SELECT menu's other pages being interactive (the owner, Nov 21, 2026) · GEN-14 |
 | Status | working (tested on the device, USA; Europe and Japan on their logos) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them. Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused.
@@ -26,12 +27,15 @@ Every game also follows the [general rules](README.md#general-rules). The game d
 
 **BT-6. Game screen untouched.** Nothing leaves the game screen.
 
-**BT-7. The sun.** The cartridge's solar sensor reads a fixed level, 6 of 10 (the `solar_level` setting in `gba-ds.cfg`, 0 to 10; 0 is dark), so the sun gauge isn't empty. This is shared code (the emulator hands the core a light level); the game list has no row for it yet.
+**BT-7. The sun.** The cartridge's solar sensor reads a level from 0 (dark) to 10, 6 to begin with (the `solar_level` setting in `gba-ds.cfg`), so the sun gauge isn't empty. This is shared code (the emulator hands every core, the hidden copies included, the same light level). BT-9 changes it while playing.
+
+**BT-9. Sun row in the quick bar.** Where other games have Controls, the quick bar of a game whose cartridge has a sun sensor (Boktai 1, 2 and 3) has a **Sun** row: **Dark** (level 0), **-** and **+** (one level down or up, as RetroArch's Darken and Brighten Solar Sensor buttons, L3 and R3 by default, do), the level between them (0 to 10, not a button) and **Full** (10). A tap on a button changes the sunlight the game reads straight away, so the game's own sun gauge follows and Django's sun-sensitive moments (ice melting, enemies, the Gun del Sol's charge) respond as in RetroArch; it stays between 0 and 10. The level is kept for the game (`states/<game>.sun`), so it is as left the next time, and starts from `solar_level`. The row, its buttons and the level are in the quick bar only (nothing is added to either game screen: GEN-2, GEN-5), and a tap on the row never opens the menu. The bug report's info says the level.
 
 **BT-8. Clock, sunrise and sunset.** With the Map, the second screen has three of the game's own lines of text, as its own digits and letters (just the glyphs and their yellow outline, nothing of the page behind them): the clock at the top left, and SUNRISE and SUNSET with their times stacked at the top right, the sunrise above. They are the lines the ITEM page shows above its health bar (the clock; START on it turns it into the sunrise time, START again into the sunset), cut out on the hidden copy, so GBA DS draws none of it (rule 4). The space around them is equal: the clock is as far from the screen's left edge as the sunrise and sunset lines are from its right edge, and the topmost of them from its top edge (four pixels of the game's screen each); the clock sits on the same line as the sunrise's times. They are looked at about every 30 seconds (the Map's capture itself runs about once a second), and a line the game doesn't give is left out. It is a deliberate exception to the Philosophy's "nothing on both screens" for the moment the ITEM page is open on the game screen (the second screen keeps its last Map and lines then, BT-3).
 
 ## Not covered yet
 
+- BT-9 (the Sun row) was tried on the device for the USA release (the owner, Nov 21, 2026); it is to be tried again on Boktai 2 and 3 once they have app support (they have no profile yet, so the row is untried there).
 - Europe's and Japan's walking about: they share the USA release's addresses (checked: the Map opens, the logos extract); only their logos have cases until a state from each arrives.
 - Bosses, the Solar Station and the World map: not reached; the Map is only taken where SELECT opens it, and BT-3 covers the rest.
 - A fixed area key for refreshing the moment the area changes: none found, so BT-1 refreshes about once a second.

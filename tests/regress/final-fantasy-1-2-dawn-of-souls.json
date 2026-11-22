@@ -3780,6 +3780,192 @@
      "color": "000000"
     }
    ]
+  },
+  {
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff1-world.ss",
+   "id": "ff1-toggle-view",
+   "desc": "Final Fantasy I, the toggle on, on the world map: HOME + A turns to the party screen, and back",
+   "rules": [
+    "GEN-14",
+    "FF-4",
+    "FF-12"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     300,
+     "HOME+A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "after": 250,
+    "back": 340
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a press shows the other picture",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a second press turns back",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the turn is logged",
+     "type": "log",
+     "match": "toggle: page 2 of 2"
+    }
+   ]
+  },
+  {
+   "rom": "BFFE",
+   "state": "final-fantasy-1-2-dawn-of-souls/us-ff2-world.ss",
+   "id": "ff2-toggle-view",
+   "desc": "Final Fantasy II, the toggle on, on the world map: HOME + A turns to the party screen, and back",
+   "rules": [
+    "GEN-14",
+    "FF-11",
+    "FF-12"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     300,
+     "HOME+A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "after": 250,
+    "back": 340
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a press shows the other picture",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a second press turns back",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the turn is logged",
+     "type": "log",
+     "match": "toggle: page 2 of 2"
+    }
+   ]
   }
  ]
 }

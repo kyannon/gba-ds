@@ -989,6 +989,7 @@ static bool logoOnly; /* the game has a profile but no map: logo on the second s
 static const MapProfile* snapProf; /* logo-only game with screens copied to the second screen */
 static const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
 static uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
+static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
 static bool tallLiveAtStart; /* pinball_live as this game started with it: a change counts only after a new start */
 static bool tallLive;      /* the live view: the table over both screens (update_tall) */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
@@ -1068,12 +1069,35 @@ static int snapShow, snapRevert;   /* consecutive frames matching show / a rever
 static uint32_t snapShown[GBA_W * GBA_H]; /* the copy on the second screen (kept with save states) */
 
 static uint64_t mapAnimStart;
-/* which of the map's frames shows now (they turn every frameStep frames
- * from mapAnimStart); never out of range, even with mapAnimStart ahead of
- * frameCount (it once came from the game played before: frames[-1]) */
-static int map_anim_index(void) {
+/* the contextual toggle (GEN-14, issue #37): where the pages' count starts
+ * (0 with the toggle off: then nothing here is used), the picture's
+ * brightness while a turn that waits fades (256: as it is), and whether
+ * the capture under way is for a new subject (a room, a unit, a loaded
+ * state: the pages start again at the first) */
+static int pageOffset;
+static int fadeLevel = 256;
+static bool fadeUpload; /* the picture is uploaded again this frame for the fade, one picture or not */
+static bool capSubject;
+/* ONPRESS views (GEN-14): the other view is up (viewAlt), a capture of the view wanted is to be asked for now (pressCap), how many captures have come in (capDone), and which one the press waits for (tgCapWant; 0: not asked for yet) */
+static bool viewAlt, pressCap, viewWait;
+static unsigned capDone, tgCapWant;
+/* which of the second screen's pictures shows now: the map's frames turn
+ * every frameStep frames from mapAnimStart (a marker's blinking, or pages:
+ * mapRes.pages); never out of range, even with mapAnimStart ahead of
+ * frameCount (it once came from the game played before: frames[-1]).
+ * The one place that says which page is up (the toggle, GEN-14, changes
+ * it from here). */
+static int second_page(void) {
 	if (mapRes.nFrames < 1 || frameCount < mapAnimStart) return 0;
-	return (int) (((frameCount - mapAnimStart) / (uint64_t) SDL_max(1, mapRes.frameStep)) % (uint64_t) mapRes.nFrames);
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	if (hp && hp->holdPage) {
+		int hold = hp->holdPage(&emu); /* (a page kept up: Pokémon's Party in a battle) */
+		if (hold >= 0 && hold < mapRes.nFrames) return hold;
+	}
+	if (hp && hp->views) return cfg->toggle ? pageOffset % mapRes.nFrames : 0; /* (views: the first until the toggle turns to another; no timer) */
+	bool by_hand = cfg->toggle && mapRes.pages;
+	if (by_hand && !cfg->autoRotate) return pageOffset % mapRes.nFrames; /* (auto-rotate off: a page stays until you press) */
+	return (int) ((((frameCount - mapAnimStart) / (uint64_t) SDL_max(1, mapRes.frameStep)) + (uint64_t) (by_hand ? pageOffset : 0)) % (uint64_t) mapRes.nFrames);
 }
 static bool singleShowsMap;
 static double fps, speedPct;
@@ -2640,13 +2664,14 @@ static const char* const icon_exit[] = {
  * GBA pixels (the *_g functions: 240x160, the second screen's picture), drawn
  * into a canvas of that size (below) and scaled up with the picture. */
 enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 24, BAR_MSG_H = 19, BAR_PICK_H = 24 };
+static bool sunHere; /* the cartridge has a sun sensor: the Sun row stands in the Controls row's place */
 static int bar_pick_h(void) {
-	return ctlProf ? BAR_PICK_H : 0;
+	return ctlProf || sunHere ? BAR_PICK_H : 0;
 }
 /* the row of time, FPS and battery: without the Controls row above it, tall enough that the pin
  * (2 px down, 12 high, its edge a row more) has a clear pixel row before the buttons */
 static int bar_status_h(void) {
-	return ctlProf ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
+	return ctlProf || sunHere ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
 }
 static int game_screen(void);
 
@@ -2714,12 +2739,15 @@ static int bar_button_at(int s, int x, int y) {
 static uint32_t barPx[GBA_W * GBA_H]; /* ABGR8888 */
 static SDL_Texture* barTex[2];
 static SDL_Renderer* barTexRen[2];
+/* the canvas cv_put draws on: the bar's, or the toggle button's (taller: the margin under the picture) */
+static uint32_t* cvBuf = barPx;
+static int cvRows = GBA_H;
 
 static uint32_t cv_rgba(SDL_Color c) {
 	return (uint32_t) c.a << 24 | (uint32_t) c.b << 16 | (uint32_t) c.g << 8 | c.r;
 }
 static void cv_put(int x, int y, SDL_Color c) {
-	if (x >= 0 && y >= 0 && x < GBA_W && y < GBA_H) barPx[y * GBA_W + x] = cv_rgba(c);
+	if (x >= 0 && y >= 0 && x < GBA_W && y < cvRows) cvBuf[y * GBA_W + x] = cv_rgba(c);
 }
 static void cv_rect(SDL_Rect r, SDL_Color c) {
 	for (int y = r.y; y < r.y + r.h; ++y)
@@ -2893,6 +2921,8 @@ static void cv_message(SDL_Rect area, const char* msg, SDL_Color c) {
 
 static void ctl_draw(void);
 static bool ctl_tap(int s, int x, int y);
+static void sun_draw(void);
+static bool sun_tap(int s, int x, int y);
 static void save_prefs(void);
 
 static const char* const icon_pin[] = {
@@ -3047,6 +3077,7 @@ static void draw_bar(void) {
 		cv_label(c.x + c.w / 2, c.y + c.h / 2, true, buf[i], G_TEXT, c.w - 2);
 	}
 	if (ctlProf) ctl_draw();
+	else if (sunHere) sun_draw();
 	static const char* const* const art[BB_COUNT] = { icon_save, icon_load, icon_gear, icon_bug, icon_exit };
 	bool lit = barLit >= 0 && SDL_GetTicks() - barLitAt < 1500;
 	for (int i = 0; i < BB_COUNT; ++i) {
@@ -3726,11 +3757,21 @@ static SDL_Rect scope_rect(int scr, int half) {
 static SDL_Rect rowTag[ROW_MAX + 1], rowBack[ROW_MAX + 1]; /* where the last drawing put each row's Game tag and left arrow (for touch) */
 static bool rowTagOn[ROW_MAX + 1];
 
+/* the game has a second screen the toggle can turn (pages, or views: GEN-14) */
+static bool toggle_supported(void) {
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	return hp && (hp->pages || hp->views || hp->onPress);
+}
+
 /* why a row can't be changed here, or NULL */
 static const char* row_disabled(const char* key) {
+	if (!strcmp(key, "pinball_live") && !tallSupported) return N_("Not available in this game: only the pinball games have a table to show on both screens");
+	if ((!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
+		return N_("Not available in this game: its second screen has nothing to turn");
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
+	if ((!strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !cfg->toggle) return N_("Turn on the contextual toggle first");
 	return NULL;
 }
 
@@ -3766,6 +3807,9 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		char val[48];
 		config_setting_text(cfg, st, val, sizeof(val));
 		if (off && !strcmp(key, "frame_buffer")) snprintf(val, sizeof(val), tr("Always on here"));
+		if (off && (!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
+			snprintf(val, sizeof(val), tr("Not available"));
+		if (off && !strcmp(key, "pinball_live") && !tallSupported) snprintf(val, sizeof(val), tr("Not available"));
 		bool has = game_has(st);
 		SDL_Color vc = off ? C_DIS : C_GOLD;
 		ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, st->label, off ? C_DIS : C_TEXT, -1);
@@ -5746,6 +5790,93 @@ static bool ctl_tap(int s, int x, int y) {
 	return true;
 }
 
+
+/* ------------------------------------------------------------------- the sun
+ * Cartridges with a sun sensor (Boktai 1, 2 and 3) have a Sun row in the quick
+ * bar, where Controls is in other games: Dark (0), - and + (one step, as
+ * RetroArch's darken / brighten sensor buttons), the level between them, and
+ * Full (10). The level is each core's sunlight (emu_solar_level), kept per game
+ * in <state_dir>/<game>.sun and starting from the solar_level setting. */
+enum { SUN_DARK, SUN_DOWN, SUN_LEVEL, SUN_UP, SUN_FULL, SUN_TILES };
+static int sunLevel;
+static char sunPath[1400];
+
+static void sun_set(int v) {
+	sunLevel = v < 0 ? 0 : v > 10 ? 10 : v;
+	emu_solar_level = sunLevel;
+}
+
+static void sun_save(void) {
+	FILE* f = fopen(sunPath, "w");
+	if (!f) return;
+	fprintf(f, "%d\n", sunLevel);
+	fclose(f);
+}
+
+static void sun_load(void) {
+	sunHere = emu_has_solar(&emu);
+	if (!sunHere) return;
+	snprintf(sunPath, sizeof(sunPath), "%s/%s.sun", cfg->stateDir, gp.base);
+	int v = cfg->solarLevel;
+	FILE* f = fopen(sunPath, "r");
+	if (f) {
+		int n;
+		if (fscanf(f, "%d", &n) == 1) v = n;
+		fclose(f);
+	}
+	sun_set(v);
+	fprintf(stderr, "sun: level %d\n", sunLevel);
+}
+
+static SDL_Rect sun_tile_g(int i, int* labelX, int* labelY) {
+	SDL_Rect b = bar_rect_g();
+	int t = BAR_PICK_H - 4, tw = 30, gap = 3;
+	char ca[64];
+	const char* st = tr("Sun");
+	int lw = cv_ascii(st, ca, sizeof(ca)) && pixfont_has(&pixfont_small, ca) ? pixfont_width(&pixfont_large, ca) : tf_width(TF_BOLD, pixfont_large.cap, st);
+	int total = lw + gap * 3 + tw * SUN_TILES + gap * (SUN_TILES - 1);
+	int x = b.x + (b.w - total) / 2, y = b.y + 4;
+	if (labelX) *labelX = x + lw / 2;
+	if (labelY) *labelY = y + t / 2;
+	x += lw + gap * 3;
+	return (SDL_Rect) { x + i * (tw + gap), y, tw, t };
+}
+
+static void sun_draw(void) {
+	int lx, ly;
+	sun_tile_g(0, &lx, &ly);
+	cv_label(lx, ly, true, "Sun", G_TEXT, 0);
+	for (int i = 0; i < SUN_TILES; ++i) {
+		SDL_Rect t = sun_tile_g(i, NULL, NULL);
+		bool lvl = i == SUN_LEVEL;
+		cv_key(t, lvl ? KEY_LIT : KEY_PLAIN);
+		SDL_Color ink = lvl ? (SDL_Color) { 20, 16, 36, 255 } : ui_key_ink();
+		char b[8];
+		const char* txt = i == SUN_DARK ? "Dark" : i == SUN_DOWN ? "-" : i == SUN_UP ? "+" : i == SUN_FULL ? "Full" : (snprintf(b, sizeof(b), "%d", sunLevel), b);
+		cv_label(t.x + t.w / 2, t.y + t.h / 2, true, txt, ink, t.w - 4);
+	}
+}
+
+/* A tap on the Sun row: true if it was there (it then doesn't open the menu). */
+static bool sun_tap(int s, int x, int y) {
+	if (!sunHere || ctlProf || !barOpen || s != ui_touch_screen()) return false;
+	SDL_Point pt = { x, y };
+	SDL_Rect br = bar_rect_g();
+	SDL_Rect all = bar_to_screen(s, (SDL_Rect) { br.x, br.y + 3, br.w - 14, BAR_PICK_H - 2 }); /* (the pin is in the corner) */
+	if (!SDL_PointInRect(&pt, &all)) return false;
+	for (int i = 0; i < SUN_TILES; ++i) {
+		SDL_Rect t = bar_to_screen(s, sun_tile_g(i, NULL, NULL));
+		if (i == SUN_LEVEL || !SDL_PointInRect(&pt, &t)) continue;
+		int was = sunLevel;
+		sun_set(i == SUN_DARK ? 0 : i == SUN_FULL ? 10 : sunLevel + (i == SUN_UP ? 1 : -1));
+		if (sunLevel != was) {
+			sun_save();
+			if (debug) fprintf(stderr, "frame %llu: sun %d\n", (unsigned long long) frameCount, sunLevel);
+		}
+	}
+	return true;
+}
+
 static void save_thumbs(void) {
 	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormatFrom(emu.fb, GBA_W, GBA_H, 32, GBA_W * 4, SDL_PIXELFORMAT_XBGR8888);
 	if (s) {
@@ -5874,6 +6005,12 @@ static const uint8_t* blob_find(const uint8_t* b, size_t n, const char* tag, uin
 	return NULL;
 }
 static uint32_t rd32(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v; }
+/* a loaded state's frames are pages when this game's profile says its
+ * frames are (a state keeps the frames and their pace, not what they are) */
+static bool state_pages(int nFrames) {
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	return nFrames > 1 && hp && (hp->pages || hp->views);
+}
 /* (at the start of a frame, everything set up) */
 static void screen_restore_apply(void) {
 	if (!screenRestorePending) return;
@@ -5899,7 +6036,7 @@ static void screen_restore_apply(void) {
 		/* (only at the size this game's captures are: frames are that big) */
 		if (mapRes.frames[0] && w == mapRes.w && h == mapRes.h && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
 			for (int i = 0; i < nf; ++i) memcpy(mapRes.frames[i], d + 16 + px * i, px);
-			mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
+			mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.pages = state_pages(nf), mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
 			map_show_new(false);
 		} else if (!mapRes.frames[0] && w > 0 && h > 0 && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
 			/* (no capture yet this session: the frames made here, as mapcap_poll does) */
@@ -5908,7 +6045,7 @@ static void screen_restore_apply(void) {
 			for (int i = 0; i < MAP_MAX_FRAMES; ++i) ok = ok && mapRes.frames[i];
 			if (ok) {
 				for (int i = 0; i < nf; ++i) memcpy(mapRes.frames[i], d + 16 + px * i, px);
-				mapRes.w = w, mapRes.h = h, mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
+				mapRes.w = w, mapRes.h = h, mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.pages = state_pages(nf), mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
 				map_show_new(false);
 			}
 		}
@@ -5983,14 +6120,20 @@ static void state_rom_check(const char* path) {
 }
 
 static StateFileKind stateLoadKind; /* (what the last state_load found: why it failed) */
+static BiosRefusal stateLoadBios;   /* (and whether it was the GBA BIOS, issue #78) */
 static bool state_load(const char* path) {
 	bool fromGbads = false;
 	stateLoadKind = emu_state_file_kind(&emu, path, &fromGbads);
 	bool ok = emu_state_load_file(&emu, path);
+	stateLoadBios = ok ? BIOS_REFUSAL_NONE : emu_state_file_bios_refusal(&emu, path);
 	{
 		static const char* const kinds[] = { "no file", "GBA DS's / mGBA's", "RetroArch's", "another emulator's", "unreadable" };
 		fprintf(stderr, "load state: %s: %s (%s%s)\n", path, ok ? "loaded" : "not loaded", kinds[stateLoadKind],
 		        stateLoadKind == STATE_FILE_RETROARCH ? (fromGbads ? ", saved by GBA DS" : ", saved by RetroArch") : "");
+		if (stateLoadBios != BIOS_REFUSAL_NONE)
+			fprintf(stderr, "load state: refused by mGBA: %s\n", stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS
+			                                                         ? "saved inside the GBA BIOS, which this game isn't run with"
+			                                                         : "saved without the GBA BIOS, and this game runs with it");
 	}
 	stateWarned = false;
 	if (ok && !stateNoCheck) state_rom_check(path);
@@ -6018,6 +6161,13 @@ static bool state_load(const char* path) {
 	if (ok) mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
 	if (ok) hudOffLatch = false; /* (hud.offAfter: found again from the loaded game) */
 	return ok;
+}
+
+/* the quick bar's and the hotkey's word for a load that failed */
+static const char* load_failed_osd(void) {
+	if (stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS) return "Saved with a GBA BIOS: see Settings > System > GBA BIOS.";
+	if (stateLoadBios == BIOS_REFUSAL_CORE_HAS_BIOS) return "Saved without a GBA BIOS: switch yours off in Settings > System.";
+	return "Load failed.";
 }
 
 #ifdef __wasi__
@@ -6302,6 +6452,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	}
 	text_add(t, "Controls: %s. Cheats on: %d. RetroAchievements: %s\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats),
 	         ra_enabled() ? "signed in" : "off");
+	if (sunHere) text_add(t, "Sun: %d of 10\n", sunLevel);
 	text_add(t, "The rewound state is %llu frames before the other\n", (unsigned long long) back);
 	/* (issue #39: slots 0-9 and the resume point shared with RetroArch, and where) */
 	if (gp.raDir[0])
@@ -6314,7 +6465,8 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	text_add(t, "\n== Settings\n");
 	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, shader %s, color_correction %d, lcd_ghosting %d, smooth %d, overlays %d (screens %d, logo %d, %s / %s), border_color %s\n", cfg->layout,
 	         cfg->swap, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection, cfg->ghosting, cfg->smooth, cfg->overlayMode, cfg->overlays, cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter, cfg->borderColor);
-	text_add(t, "map %d, map_interval %d, pinball_live %d\n", cfg->map, cfg->mapInterval, cfg->tallLive);
+	text_add(t, "map %d, map_interval %d, pinball_live %d, toggle %d, auto_rotate %d, toggle_button %s\n", cfg->map, cfg->mapInterval, cfg->tallLive,
+	         cfg->toggle, cfg->autoRotate, cfg->toggleButton);
 	text_add(t, "logo_folder %s, custom_logos %s; logo: %s\n", cfg->logoFolder[0] ? cfg->logoFolder : "(not set)",
 	         cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated", ui_logo_note());
 	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d\n", cfg->frameBuffer,
@@ -6774,6 +6926,22 @@ static void upload_map_frame(int idx) {
 	if ((idx == mapShownIdx && !overDirty) || !px) return;
 	overDirty = false;
 	px = hud_over_map(px);
+	if (fadeLevel < 256) {
+		/* (a turn that waits, GEN-14: only the picture fades, so the
+		 * shader and the bezel stay as they are) */
+		static uint32_t* fadeBuf;
+		static size_t fadeN;
+		size_t n = (size_t) mapW * mapH;
+		if (n > fadeN) fadeBuf = realloc(fadeBuf, n * 4), fadeN = fadeBuf ? n : 0;
+		if (fadeBuf) {
+			for (size_t i = 0; i < n; ++i) {
+				uint32_t c = px[i];
+				uint32_t r = (c & 0xFF) * (uint32_t) fadeLevel >> 8, g = ((c >> 8) & 0xFF) * (uint32_t) fadeLevel >> 8, b = ((c >> 16) & 0xFF) * (uint32_t) fadeLevel >> 8;
+				fadeBuf[i] = (c & 0xFF000000u) | r | g << 8 | b << 16;
+			}
+			px = fadeBuf;
+		}
+	}
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, mapW * 4);
 	mapShownIdx = idx;
 }
@@ -6929,8 +7097,10 @@ static bool update_still(void) {
 /* A new map picture in mapRes (a capture; or one kept with a save state,
  * `fresh` false: the level name above the HUD isn't taken from it, it's
  * kept on its own) */
+static void toggle_new_subject(void);
 static void map_show_new(bool fresh) {
 	mapInactive = false;
+	if (!fresh || capSubject) capSubject = false, toggle_new_subject();
 	if (fresh && hudProf && hudProf->hud.held.over.x1 && mapRes.frames[0] && mapRes.w * mapRes.h <= GBA_W * GBA_H) {
 		/* hud.held.over: the number, laid over the held picture */
 		heldNumW = mapRes.w, heldNumH = mapRes.h;
@@ -6946,14 +7116,14 @@ static void map_show_new(bool fresh) {
 	mapShownIdx = -1;
 	/* (pages, a few seconds each: Fire Emblem's unit status; they
 	 * keep turning at their pace through new captures) */
-	bool pages = mapRes.nFrames > 1 && mapRes.frameStep >= 60;
+	bool pages = mapRes.pages;
 	if (!pages) mapAnimStart = frameCount;
 	/* the still (each marker frozen) is only shown with map animations
 	 * off, and building it is real work: only then */
 	bool stillChanged = false;
 	stillStale = map_anim();
 	if (!stillStale) stillChanged = update_still();
-	int first = pages ? map_anim_index() : 0;
+	int first = pages ? second_page() : 0;
 	upload_map_frame(map_anim() ? first : STILL_IDX);
 	if (debug) fprintf(stderr, "frame %llu: map %s (%d frame(s) %d apart%s)\n", (unsigned long long) frameCount, fresh ? "updated" : "from the save state",
 	                   mapRes.nFrames, mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
@@ -6962,6 +7132,218 @@ static void map_show_new(bool fresh) {
 
 /* a profile's own live picture is up (liveView): drawn as it is */
 static bool liveOn;
+
+/* ---- the contextual toggle (GEN-14, issue #37). Turning the second screen
+ * by hand: this is the one gate (toggle_ready: the button's active state
+ * and the hotkey both read it) and the one state machine. A page is always
+ * held, so it is shown at once (a cut); a turn that has to wait fades the
+ * picture to black (5 frames), holds on black until the next picture is
+ * ready (2 s at most, then the old picture comes back and nothing
+ * changes), and fades back (5 frames). Presses outside IDLE are ignored,
+ * not queued. Step 2 turns pages only; views are for the profiles (step 4),
+ * and GBADS_TOGGLE_WAIT=N (frames, for tests) makes a page turn wait too. */
+enum { TG_IDLE, TG_FADE_OUT, TG_HOLD, TG_FADE_IN };
+#define TG_FADE_FRAMES 5
+#define TG_HOLD_MAX 120
+#define TG_HOLD_PRESS_MAX 600 /* (capture on press: a capture can take seconds) */
+static int tgState, tgFrames, tgTarget, tgWait = -1;
+
+/* a press turns the view (captured on the press) rather than a page: the profile's views, unless its picture is pages (Mother 3's Status where there's no map) and the other view isn't up */
+static bool tg_view_mode(const MapProfile* hp) {
+	if (!hp || !hp->onPress) return false;
+	const bool paged = mapRes.pages && mapRes.nFrames >= 2;
+	if (!paged) return true;
+	/* the picture is pages: they turn as pages do, and from the other view's last page a press brings the game's own view back (map, Status p1, p2, p3, map) */
+	return viewAlt && second_page() == mapRes.nFrames - 1;
+}
+
+static bool toggle_ready(void) {
+	if (!cfg->toggle || tgState != TG_IDLE) return false;
+	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	if (tg_view_mode(hp)) {
+		/* the other view is captured on the press: ready when there is one here (or this is it, and the game's own is to come back), a picture is up and the hidden copy is free */
+		if (mapShownIdx < 0 || logoForced || liveOn || mapInactive || pressCap || (capSubject && mapcap_busy(mc))) return false; /* (a refresh still running doesn't count: a press calls it off) */
+		return viewAlt || !hp->altHere || hp->altHere(&emu);
+	}
+	if (!mapRes.pages || mapRes.nFrames < 2 || mapShownIdx < 0 || !map_anim()) return false; /* (one picture, the logo, Map Animations off) */
+	if (logoForced || liveOn || mapInactive) return false;
+	if (hp && hp->holdPage && hp->holdPage(&emu) >= 0) return false; /* (a page kept up: Pokémon's Party in a battle) */
+	if (capSubject && mapcap_busy(mc)) return false; /* (the next subject's pictures aren't here yet: GEN-6) */
+	return true;
+}
+
+/* the page shows, the timer (auto-rotate) starting again from it */
+static void toggle_apply(int page) {
+	if (cfg->autoRotate) mapAnimStart = frameCount;
+	pageOffset = page;
+	overDirty = true;
+	if (debug) fprintf(stderr, "frame %llu: toggle: page %d of %d\n", (unsigned long long) frameCount, page + 1, mapRes.nFrames);
+}
+
+static void toggle_press(void) {
+	if (!toggle_ready()) {
+		if (debug) fprintf(stderr, "frame %llu: toggle: not ready, ignored\n", (unsigned long long) frameCount);
+		return;
+	}
+	if (tgWait < 0) {
+		const char* e = getenv("GBADS_TOGGLE_WAIT");
+		tgWait = e ? SDL_max(0, atoi(e)) : 0;
+	}
+	const MapProfile* pp = mc ? mapcap_profile(mc) : NULL;
+	if (tg_view_mode(pp)) {
+		/* capture on press: the other view is asked for now; the picture fades out, stays black until it is here (or it isn't, in time: the old one comes back) */
+		viewAlt = !viewAlt, viewWait = true, tgCapWant = 0;
+		pageOffset = 0, mapAnimStart = frameCount; /* (a view's pages start at the first: coming round again, not from the page the last turn ended on) */
+		if (mc && mapcap_busy(mc)) mapcap_cancel(mc); /* (a refresh of the old view: the new one starts as soon as it has stopped) */
+		tgState = TG_FADE_OUT, tgFrames = 0, tgTarget = -1;
+		if (debug) fprintf(stderr, "frame %llu: toggle: view %s asked for\n", (unsigned long long) frameCount, viewAlt ? "2" : "1");
+		return;
+	}
+	int next = (second_page() + 1) % mapRes.nFrames;
+	if (tgWait > 0) tgState = TG_FADE_OUT, tgFrames = 0, tgTarget = next;
+	else toggle_apply(next);
+}
+
+/* a new subject (a unit, a room, a loaded state): the pages start again at
+ * the first; a turn under way ends, no fade. Nothing at all with the toggle
+ * off: the pages go on turning through new captures as they always did. */
+static void toggle_new_subject(void) {
+	if (tgState != TG_IDLE) tgState = TG_IDLE, fadeLevel = 256, overDirty = true;
+	if (!cfg->toggle) return;
+	pageOffset = 0;
+	if (mapRes.pages) mapAnimStart = frameCount;
+}
+
+/* each frame */
+static void toggle_step(void) {
+	if (!cfg->toggle && viewAlt) viewAlt = false, pressCap = true; /* (switched off while the other view was up: the game's own comes back) */
+	if (!cfg->toggle && tgState != TG_IDLE) tgState = TG_IDLE, fadeLevel = 256, overDirty = true; /* (switched off meanwhile) */
+	if (tgState == TG_IDLE) return;
+	overDirty = true, fadeUpload = true; /* (the picture is drawn again each frame of a turn) */
+	++tgFrames;
+	switch (tgState) {
+	case TG_FADE_OUT:
+		fadeLevel = 256 * (TG_FADE_FRAMES - tgFrames) / TG_FADE_FRAMES;
+		if (tgFrames >= TG_FADE_FRAMES) tgState = TG_HOLD, tgFrames = 0, fadeLevel = 0, pressCap = viewWait; /* (capture on press: asked for now that the old view is dark) */
+		break;
+	case TG_HOLD:
+		if (tgTarget < 0) {
+			/* (capture on press) the view is in: fade up; not in time: the old one stays, and the capture is called off */
+			if (tgCapWant && capDone >= tgCapWant) {
+				tgState = TG_FADE_IN, tgFrames = 0, viewWait = false;
+				if (debug) fprintf(stderr, "frame %llu: toggle: view %s\n", (unsigned long long) frameCount, viewAlt ? "2" : "1");
+			} else if (tgFrames >= TG_HOLD_PRESS_MAX) {
+				viewAlt = !viewAlt, pressCap = false, viewWait = false, tgCapWant = 0;
+				if (mc && mapcap_busy(mc)) mapcap_cancel(mc);
+				tgState = TG_FADE_IN, tgFrames = 0;
+				if (debug) fprintf(stderr, "frame %llu: toggle: the view didn't come in time, the old one stays\n", (unsigned long long) frameCount);
+			}
+			break;
+		}
+		if (tgFrames >= tgWait) {
+			toggle_apply(tgTarget);
+			tgState = TG_FADE_IN, tgFrames = 0;
+		} else if (tgFrames >= TG_HOLD_MAX) {
+			tgState = TG_FADE_IN, tgFrames = 0; /* (not found in time: the old picture comes back) */
+		}
+		break;
+	case TG_FADE_IN:
+		fadeLevel = 256 * tgFrames / TG_FADE_FRAMES;
+		if (tgFrames >= TG_FADE_FRAMES) tgState = TG_IDLE, fadeLevel = 256;
+		break;
+	}
+}
+
+/* ---- the toggle button (GEN-14): a key in the quick bar's look, drawn at
+ * the second screen's own pixel size on a canvas a little taller than the
+ * picture, so it can sit in the margin under it. Hotkey-only on a screen
+ * without touch. Hidden while the bar or a menu is up, and in games with
+ * nothing to turn. */
+#define TB_W 30
+#define TB_H 13
+#define TB_ROWS (GBA_H + 16)
+static uint32_t tbPx[GBA_W * TB_ROWS];
+static SDL_Texture* tbTex[2];
+static SDL_Renderer* tbTexRen[2];
+static bool tbDown; /* a finger is on it */
+static int tbGX, tbGY;
+static const char* const icon_toggle[] = {
+	"...X.......X...",
+	"..XX.......XX..",
+	".XXXXXXXXXXXXX.",
+	"..XX.......XX..",
+	"...X.......X...",
+	NULL,
+};
+
+/* the screen the button is on, or -1: the second screen, if it takes touch and the game has something to turn */
+static int toggle_btn_screen(void) {
+	if (!cfg->toggle || !strcmp(cfg->toggleButton, "off") || nScreens < 2 || !mc) return -1;
+	const MapProfile* hp = mapcap_profile(mc);
+	if (!hp || !(hp->pages || hp->views || hp->onPress)) return -1;
+	int s = 1 - game_screen();
+	if (s != ui_touch_screen() || !cfg->map) return -1;
+	return s;
+}
+
+/* where it is: the key in the canvas's pixels (kx, ky), the canvas's size on screen s, and the area a tap counts in (screen-local) */
+static void toggle_btn_geom(int s, SDL_Rect* key, SDL_Rect* canvas, SDL_Rect* tap) {
+	SDL_Rect pic = bar_pic_full(s);
+	float u = (float) pic.w / GBA_W;
+	int margin = (int) ((screens[s].rect.h - (pic.y + pic.h)) / u);
+	int x = !strcmp(cfg->toggleButton, "right") ? GBA_W - 6 - TB_W : !strcmp(cfg->toggleButton, "center") ? (GBA_W - TB_W) / 2 : 6;
+	int y = margin >= TB_H + 3 ? GBA_H + (SDL_min(margin, 16) - TB_H - 1) / 2 : GBA_H - 6 - TB_H - 1;
+	*key = (SDL_Rect) { x, y, TB_W, TB_H };
+	*canvas = (SDL_Rect) { pic.x, pic.y, pic.w, (int) (u * TB_ROWS + 0.5f) };
+	int cx = x + TB_W / 2, cy = y + TB_H / 2;
+	int tx = pic.x + (int) ((cx - 32) * u), ty = pic.y + (int) ((cy - 14) * u);
+	*tap = (SDL_Rect) { tx, ty, (int) (64 * u), (int) (28 * u) };
+	if (tap->x < 0) tap->w += tap->x, tap->x = 0;
+	if (tap->y + tap->h > screens[s].rect.h) tap->h = screens[s].rect.h - tap->y;
+	if (tap->x + tap->w > screens[s].rect.w) tap->w = screens[s].rect.w - tap->x;
+}
+
+static bool toggle_btn_visible(void) {
+	return toggle_btn_screen() >= 0 && !menuOpen && !barOpen && barShown <= 0;
+}
+
+static bool toggle_btn_hit(int screen, int x, int y) {
+	if (!toggle_btn_visible() || screen != toggle_btn_screen()) return false;
+	SDL_Rect key, canvas, tap;
+	toggle_btn_geom(screen, &key, &canvas, &tap);
+	SDL_Point pt = { x, y };
+	return SDL_PointInRect(&pt, &tap);
+}
+
+static void draw_toggle_btn(void) {
+	if (!toggle_btn_visible()) return;
+	int s = toggle_btn_screen();
+	SDL_Rect key, canvas, tap;
+	toggle_btn_geom(s, &key, &canvas, &tap);
+	bool ready = toggle_ready();
+	bool pressed = tbDown && ready;
+	cvBuf = tbPx, cvRows = TB_ROWS;
+	memset(tbPx, 0, sizeof(tbPx));
+	cv_key(key, pressed ? KEY_SEL : KEY_PLAIN);
+	cv_icon(icon_toggle, key.x + key.w / 2, key.y + key.h / 2, !ready ? G_DIS : pressed ? G_LIT : ui_key_ink());
+	cvBuf = barPx, cvRows = GBA_H;
+	for (int v = 0; v < nViews; ++v) {
+		if (tbTex[v] && tbTexRen[v] != views[v].ren) tbTex[v] = NULL;
+		if (!tbTex[v]) {
+			tbTex[v] = SDL_CreateTexture(views[v].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, TB_ROWS);
+			tbTexRen[v] = views[v].ren;
+			if (!tbTex[v]) continue;
+			SDL_SetTextureBlendMode(tbTex[v], SDL_BLENDMODE_BLEND);
+			SDL_SetTextureScaleMode(tbTex[v], SDL_ScaleModeNearest);
+		}
+		SDL_SetTextureAlphaMod(tbTex[v], ready ? 189 : 112); /* 74% (44% when there's nothing to turn right now) */
+		ui_update_texture_plain(tbTex[v], tbPx, GBA_W * 4);
+	}
+	SDL_Rect sr = screens[s].rect, clip = { sr.x, sr.y, sr.w, sr.h };
+	ui_clip(s, &clip);
+	ui_image(s, tbTex, GBA_W, TB_ROWS, "stretch", &canvas);
+	ui_clip(s, NULL);
+}
 
 static bool frame_is_dark(const uint32_t* fb) {
 	int bright = 0, total = 0;
@@ -7868,6 +8250,11 @@ static bool activate(int item, enum GameExit* exitTo) {
 			snprintf(menuNote, sizeof(menuNote), tr("Saved by another emulator: can't load it"));
 		} else if (stateLoadKind == STATE_FILE_UNREADABLE) {
 			snprintf(menuNote, sizeof(menuNote), tr("This state can't be read"));
+		} else if (stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS) {
+			/* (a RetroArch state from its core with a BIOS file: issue #78; Settings > System has the option) */
+			snprintf(menuNote, sizeof(menuNote), tr("Saved with a GBA BIOS: see Settings > System"));
+		} else if (stateLoadBios == BIOS_REFUSAL_CORE_HAS_BIOS) {
+			snprintf(menuNote, sizeof(menuNote), tr("Saved without a GBA BIOS: see Settings > System"));
 		} else {
 			snprintf(menuNote, sizeof(menuNote), tr("Load failed"));
 		}
@@ -7942,6 +8329,7 @@ static void ss_setup(const char* rom, const char* code) {
 	{
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
+		tallSupported = cp && cp->logoOnly && cp->tall.on[0].addr;
 		snesHere = false;
 		fb_load(); /* GEN-10 */
 		if (ctlProf) {
@@ -8177,6 +8565,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		ui_osd("Couldn't load the game");
 		return fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP;
 	}
+	sun_load();
 	profile_set_rom(emu.gameCode, emu.romCrc); /* (a known colour patch: the profile's colours as it draws them) */
 	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
 	{
@@ -8190,6 +8579,18 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
 	} else {
 		ra_game_start(&emu, rom);
+		if (ra_loading()) {
+			/* The server's answers for a game with a big set are parsed on this thread
+			 * (a second or two of CPU on the device): behind a screen, not a second into play. */
+			ui_notice("Loading achievements...", tr("A few seconds"));
+			Uint32 t0 = SDL_GetTicks();
+			while (ra_loading() && SDL_GetTicks() - t0 < 12000) {
+				ui_events();
+				ra_idle();
+				SDL_Delay(20);
+			}
+			fprintf(stderr, "ra: waited %u ms for the achievements before starting\n", (unsigned) (SDL_GetTicks() - t0));
+		}
 	}
 	cheats_load(&cheats, cfg, rom, emu.gameCode, gp.cheats);
 	if (cheats_on(&cheats)) cheats_apply(&cheats, &emu);
@@ -8280,6 +8681,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_SPEED, "auto_load");
 	ROW(PG_MAP, "map");
 	ROW(PG_MAP, "map_interval");
+	ROW(PG_MAP, "toggle");
+	ROW(PG_MAP, "auto_rotate");
+	ROW(PG_MAP, "toggle_button");
 	ROW(PG_MAP, "pinball_live");
 #undef ROW
 	set_page(0);
@@ -8302,6 +8706,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		} else if (stateLoadKind == STATE_FILE_OTHER_CORE) {
 			/* (RetroArch's automatic state, from another of its GBA cores) */
 			ui_osd_long("Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.");
+		} else if (stateLoadBios == BIOS_REFUSAL_STATE_HAS_BIOS) {
+			ui_osd_long("Not resumed: the automatic state was saved with a GBA BIOS (RetroArch's core had one). To use your own, see Settings > System > GBA BIOS.");
+		} else if (stateLoadBios == BIOS_REFUSAL_CORE_HAS_BIOS) {
+			ui_osd_long("Not resumed: the automatic state was saved without a GBA BIOS, and GBA DS is set to use yours. Switch it off in Settings > System > GBA BIOS.");
 		}
 	} else {
 		ui_osd("Tap the screen or press HOME for the menu");
@@ -8486,6 +8894,26 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				 * finger lifts without having swiped) */
 				int ts = ui_touch_screen();
 				float u = ui_px(ts);
+				if (p.kind == 1 && toggle_btn_hit(p.screen, p.x, p.y)) {
+					/* the toggle button: its tap is its own, before "a tap opens the menu" */
+					tbDown = true, tbGX = p.x, tbGY = p.y;
+					barGesture = G_NONE;
+					continue;
+				}
+				if (tbDown) {
+					if (p.kind == 3 && p.screen == ts && p.y - tbGY <= -u * 10) {
+						/* a swipe up that began on it: the quick bar */
+						tbDown = false;
+						barOpen = true;
+						barSince = SDL_GetTicks();
+						barGesture = G_DONE;
+					} else if (p.kind == 2) {
+						bool in = toggle_btn_hit(p.screen, p.x, p.y);
+						tbDown = false;
+						if (in) toggle_press();
+					}
+					continue;
+				}
 				if (p.kind == 1) {
 					barGesture = G_NONE;
 					barDownOpen = barOpen;
@@ -8494,7 +8922,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						SDL_Point pt = { p.x, p.y };
 						barSince = SDL_GetTicks();
 						barBtn = bar_button_at(ts, p.x, p.y);
-						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : ctl_tap(ts, p.x, p.y) ? G_DONE : G_TRACK;
+						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : (ctl_tap(ts, p.x, p.y) || sun_tap(ts, p.x, p.y)) ? G_DONE : G_TRACK;
 						barGX = p.x, barGY = p.y;
 						continue;
 					}
@@ -8530,7 +8958,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						} else if (bb == BB_LOAD) {
 							if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
 							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true, barLit = bb, barLitAt = barSince; }
-							else ui_osd("Load failed.");
+							else ui_osd(load_failed_osd());
 						} else if (bb == BB_SETTINGS) {
 							open_menu();
 							ignorePointerUp = false;
@@ -8831,19 +9259,24 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		if (mod && !menuOpen && !ffMod) {
 			for (int i = 0; i < HK_COUNT; ++i) {
 				if (hkBtn[i] < 0 || !btn_pressed(hkBtn[i])) continue;
+				if (i == HK_TOGGLE && !cfg->toggle) continue; /* (off: HOME + its button is as it always was) */
 				comboUsed = true;
 				if (debug) fprintf(stderr, "hotkey: %s\n", hotkeyNames[i]);
 				switch (i) {
 				case HK_QUIT: exitTo = GAME_QUIT_APP, done = true; break;
+				/* (Close game: back to the game list; started straight into a
+				 * game, by a launcher or --rom, there is none: it closes GBA DS) */
+				case HK_GAME: exitTo = fromLibrary ? GAME_TO_LIBRARY : GAME_QUIT_APP, done = true; break;
 				/* (the quick state, as the quick bar's buttons) */
 				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved." : "Save failed."); break;
 				case HK_LOAD:
 					if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
 					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true; }
-					else ui_osd("Load failed.");
+					else ui_osd(load_failed_osd());
 					break;
 				case HK_BAR: bar_toggle(); break;
 				case HK_SWAP: swap_screens(); break;
+				case HK_TOGGLE: toggle_press(); break;
 				case HK_SHADER:
 					set_shader(cfg->shader != SH_OFF ? SH_OFF : cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID);
 					ui_osd("%s", shader_label(cfg->shader));
@@ -9315,7 +9748,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				const MapProfile* lp = mapcap_profile(mc);
 				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
 				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
-				if (lf) logoHolding = 60;
+				if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
 				else if (logoHolding > 0) --logoHolding;
 				lf = lf || logoHolding > 0;
 				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
@@ -9364,29 +9797,37 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			}
 			/* quick "no map here" failures (A Link to the Past indoors) cost little
 			 * and are expected, so they don't back off */
-			bool cheapFail = why && !strcmp(why, "map button did nothing");
+			bool cheapFail = why && !strncmp(why, "map button did nothing", 22); /* (Pokémon's menu failures say why in brackets) */
 			/* (a profile's own interval, when it's quicker: Swordcraft Story) */
 			const MapProfile* ip = mapcap_profile(mc);
 			int every = ip && ip->interval > 0 && ip->interval < cfg->mapInterval ? ip->interval : cfg->mapInterval;
 			int interval = cheapFail ? every : every << SDL_min(fails, 3);
 			/* after failures, a room change still triggers a try, but no more
 			 * often than the normal interval */
-			bool due = sinceMapRequest >= interval ||
+			bool due = sinceMapRequest >= interval || pressCap ||
 			           ((forceMap || roomChanged) && (!fails || sinceMapRequest >= every));
-			if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu)) {
+			if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu) && !(viewWait && tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
+				/* a new subject (a room, a loaded state) shows the game's own view again */
+				if (roomChanged || forceMap) viewAlt = false;
+				mapcap_set_alt(viewAlt && cfg->toggle);
 				if (mapcap_request(mc, &emu)) {
 					sinceMapRequest = 0;
 					lastRoomKey = rk;
+					capSubject = roomChanged || forceMap; /* (not a refresh of the same subject) */
 					forceMap = false;
+					if (pressCap) pressCap = false, tgCapWant = capDone + 1;
 				}
 			}
+			toggle_step();
 			bool fresh = mapcap_poll(mc, mapRes.serial, &mapRes);
 			if (fresh && mapcap_in_menu(mc, &emu)) {
 				/* a capture that finished after quitting to the title: drop it */
 			} else if (fresh) {
 				map_show_new(true);
-			} else if (map_anim() && mapRes.nFrames > 1 && mapShownIdx >= 0) {
-				int idx = map_anim_index();
+				++capDone;
+			} else if (((map_anim() && mapRes.nFrames > 1) || fadeUpload) && mapShownIdx >= 0) {
+				int idx = second_page();
+				fadeUpload = false;
 				upload_map_frame(idx);
 			}
 			/* a profile's own live picture (Mega Man Battle Network's maps on
@@ -9484,6 +9925,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			draw_rewind();
 			draw_hint(); /* (under the bar, as it comes up) */
 			draw_bar();
+			draw_toggle_btn();
 			/* (the keeper: the game and its sound go on if this is held up; not
 			 * for tests, whose frames are counted exactly) */
 			const bool keep = cfg->keepSound && audio && !ff && !rewinding && !noPace && !ui_scripted();
