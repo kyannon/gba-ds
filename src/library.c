@@ -607,6 +607,32 @@ static void scan_progress(void) {
 	ui_present();
 }
 
+/* A library folder named gba has its Game Boy and Game Boy Color folders beside it (gb, gbc: the
+ * way EmulationStation, Banana's list and Android's ROM folders lay them out), read the same way
+ * (issue #77), in the folder's own letter case (GBA / Gba / gba). Not there: noted as missing, so
+ * the list is made again if one turns up. */
+static void scan_siblings(Config* cfg, const char* d) {
+	char base[1024];
+	snprintf(base, sizeof(base), "%s", d);
+	size_t n = strlen(base);
+	while (n > 1 && base[n - 1] == '/') base[--n] = 0;
+	char* slash = strrchr(base, '/');
+	char* name = slash ? slash + 1 : base;
+	if (strcasecmp(name, "gba")) return;
+	bool upper = isupper((unsigned char) name[0]) && isupper((unsigned char) name[1]) && isupper((unsigned char) name[2]);
+	bool first = isupper((unsigned char) name[0]);
+	static const char* const sib[] = { "gb", "gbc" };
+	for (int i = 0; i < 2; ++i) {
+		char path[1024], leaf[8];
+		snprintf(leaf, sizeof(leaf), "%s", sib[i]);
+		for (char* c = leaf; *c; ++c) *c = (char) (upper || (first && c == leaf) ? toupper((unsigned char) *c) : *c);
+		snprintf(path, sizeof(path), "%.*s%s", (int) (name - base), base, leaf);
+		struct stat st;
+		if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) scan_dir(cfg, path, 0);
+		else dir_note(path, NULL);
+	}
+}
+
 static void scan(Config* cfg) {
 	free(games);
 	games = NULL;
@@ -622,7 +648,10 @@ static void scan(Config* cfg) {
 	code_cache_load(cfg);
 	rom_crc_load(cfg);
 	crcCfg = cfg;
-	for (char* d = strtok_r(dirs, ":", &save); d; d = strtok_r(NULL, ":", &save)) scan_dir(cfg, d, 0);
+	for (char* d = strtok_r(dirs, ":", &save); d; d = strtok_r(NULL, ":", &save)) {
+		scan_dir(cfg, d, 0);
+		scan_siblings(cfg, d);
+	}
 	code_cache_save(cfg);
 	qsort(games, nGames, sizeof(*games), cmp_games);
 	/* Region flags, only where the library holds the same game from more

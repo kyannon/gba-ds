@@ -19,7 +19,7 @@ This is an extension of the idea behind GBA DS (wiki/Philosophy.md, principle 1:
 
 **GB-3. The second screen.** The game is on one screen only. The second screen is idle: dark grey, as GEN-1 says for a screen with nothing live to show, with no logo (logos come later). *Until Phase 3 it is plain black.*
 
-**GB-4. Not supported means "single screen only".** A Game Boy / Game Boy Color game is listed like a GBA game with no second-screen profile: only with "Show all" on, marked "Single screen only: plays normally". "Supported" means a game with dual-screen support, not a game the emulator can run. The list takes `.gb`, `.gbc` (and `.sgb`, `.dmg`, `.cgb`) files and the same inside a `.zip` / `.7z`.
+**GB-4. Not supported means "single screen only".** A Game Boy / Game Boy Color game is listed like a GBA game with no second-screen profile: only with "Show all" on, marked "Single screen only: plays normally". "Supported" means a game with dual-screen support, not a game the emulator can run. The list takes `.gb`, `.gbc` (and `.sgb`, `.dmg`, `.cgb`) files and the same inside a `.zip` / `.7z`. A games folder named `gba` has its `gb` and `gbc` folders beside it read the same way (subfolders too, in the folder's own letter case: `GBA` / `GB` / `GBC`), so those games don't have to be moved into the GBA folder; nothing to set up, and a folder that isn't there is simply skipped (`library.c` `scan_siblings`).
 
 **GB-5. The game is never touched.** As GEN-2: nothing is paused, sent input or changed for the second screen. (There is nothing on the second screen to capture yet.)
 
