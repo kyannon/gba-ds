@@ -961,14 +961,19 @@ bool emu_is_archive_name(const char* name) {
 }
 
 bool emu_is_rom_name(const char* name) {
-	static const char* const exts[] = { ".gba", ".zip", ".7z", NULL };
+	static const char* const exts[] = { ".gba", ".gb", ".gbc", ".sgb", ".dmg", ".cgb", ".zip", ".7z", NULL };
 	return has_ext(name, exts);
 }
 
+/* A ROM inside an archive: a GBA one, or a Game Boy / Game Boy Color one (issue #77) */
+static bool any_rom(struct VFile* vf) {
+	return GBAIsROM(vf) || GBIsROM(vf);
+}
+
 bool emu_rom_header(const char* path, uint8_t* out, size_t n) {
-	if (n > 0xC0) n = 0xC0;
+	if (n > EMU_HEADER_MAX) n = EMU_HEADER_MAX;
 	struct VDir* archive = emu_is_archive_name(path) ? VDirOpenArchive(path) : NULL;
-	struct VFile* vf = archive ? VDirFindFirst(archive, GBAIsROM) : VFileOpen(path, O_RDONLY);
+	struct VFile* vf = archive ? VDirFindFirst(archive, any_rom) : VFileOpen(path, O_RDONLY);
 	bool ok = false;
 	if (vf) {
 		ok = vf->seek(vf, 0, SEEK_SET) == 0 && vf->read(vf, out, n) == (ssize_t) n;
@@ -978,9 +983,47 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n) {
 	return ok;
 }
 
+/* Game Boy / Game Boy Color header (0x100..): the Nintendo logo's first bytes at 0x104 */
+static bool header_is_gb(const uint8_t* h, size_t n) {
+	if (n >= 0xB3 && h[0xB2] == 0x96) return false; /* (a GBA header's fixed byte) */
+	return n >= 0x108 && h[0x104] == 0xCE && h[0x105] == 0xED && h[0x106] == 0x66 && h[0x107] == 0x66;
+}
+
+bool emu_rom_code(const uint8_t* h, size_t n, char code[5]) {
+	if (!header_is_gb(h, n) || n < 0x150) {
+		if (n < 0xB0) return false;
+		memcpy(code, h + 0xAC, 4); /* the GBA's game code */
+		code[4] = 0;
+		return true;
+	}
+	/* A Game Boy game has no 4-letter code the GBA way (many have none), so it gets one of its own:
+	 * "g" (plain Game Boy) or "c" (works on the Game Boy Color), then 3 base-36 digits of a hash of
+	 * the header from the title to the checksums. Lower case, so it never equals a GBA game's code
+	 * (those are capitals and digits) and no profile is found for it. */
+	uint32_t x = 2166136261u;
+	for (size_t i = 0x134; i < 0x150; ++i) x = (x ^ h[i]) * 16777619u;
+	x %= 46656u;
+	static const char d[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+	code[0] = h[0x143] & 0x80 ? 'c' : 'g';
+	code[1] = d[x / 1296], code[2] = d[x / 36 % 36], code[3] = d[x % 36], code[4] = 0;
+	return true;
+}
+
+void emu_rom_title(const uint8_t* h, size_t n, char title[17]) {
+	title[0] = 0;
+	size_t at = 0xA0, len = 12;
+	if (header_is_gb(h, n) && n >= 0x150) at = 0x134, len = h[0x143] & 0x80 ? 11 : 15;
+	if (n < at + len) return;
+	memcpy(title, h + at, len);
+	title[len] = 0;
+	for (size_t i = 0; i < len; ++i) {
+		if (title[i] && !isprint((unsigned char) title[i])) title[i] = '_';
+	}
+}
+
 uint8_t* emu_rom_read_all(const char* path, size_t* size) {
 	struct VDir* archive = emu_is_archive_name(path) ? VDirOpenArchive(path) : NULL;
-	struct VFile* vf = archive ? VDirFindFirst(archive, GBAIsROM) : VFileOpen(path, O_RDONLY);
+	struct VFile* vf = archive ? VDirFindFirst(archive, any_rom) : VFileOpen(path, O_RDONLY);
 	uint8_t* buf = NULL;
 	if (vf) {
 		ssize_t n = vf->size(vf);

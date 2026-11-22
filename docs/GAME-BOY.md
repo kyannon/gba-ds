@@ -1,6 +1,6 @@
 # Game Boy and Game Boy Color games (issue #77)
 
-Status: **in progress** on the branch `issue-77`. Phase 1 of the roadmap (`claude/issue-77-gb-gbc-roadmap.md` in the project) is done: the GB core is built in and a GB / GBC ROM starts and plays when given to GBA DS by path. Not done yet: the game list (Phase 2), the idle second screen and display options (Phase 3), saves / cheats / RetroArch states (Phase 4), ES-DE / BananaOS / Android launch, RetroAchievements and the wiki (Phase 5).
+Status: **in progress** on the branch `issue-77`. Phase 1 of the roadmap (`claude/issue-77-gb-gbc-roadmap.md` in the project) is done: the GB core is built in and a GB / GBC ROM starts and plays. The game list part of Phase 2 is done too (so a game can be started from the device's menu). Not done yet: the rest of Phase 2 (dump checksums, other launchers), the idle second screen and display options (Phase 3), saves / cheats / RetroArch states (Phase 4), ES-DE / BananaOS / Android launch, RetroAchievements and the wiki (Phase 5).
 
 This is an extension of the idea behind GBA DS (wiki/Philosophy.md, principle 1: a Game Boy Advance with two screens). A real GBA played Game Boy and Game Boy Color cartridges itself, so GBA DS does too: **on one screen first**, with the other idle. These are the platform's rules, in the player's terms; the rule comes first and the code follows it. They sit beside the [general rules](games/README.md#general-rules), which hold for these games as well, so far as they apply.
 
@@ -19,13 +19,14 @@ This is an extension of the idea behind GBA DS (wiki/Philosophy.md, principle 1:
 
 **GB-3. The second screen.** The game is on one screen only. The second screen is idle: dark grey, as GEN-1 says for a screen with nothing live to show, with no logo (logos come later). *Until Phase 3 it is plain black.*
 
-**GB-4. Not supported means "single screen only".** A Game Boy / Game Boy Color game is listed like a GBA game with no second-screen profile: only with "Show all" on, marked "Single screen only: plays normally". "Supported" means a game with dual-screen support, not a game the emulator can run. *Not done: the game list doesn't take these files yet (Phase 2).*
+**GB-4. Not supported means "single screen only".** A Game Boy / Game Boy Color game is listed like a GBA game with no second-screen profile: only with "Show all" on, marked "Single screen only: plays normally". "Supported" means a game with dual-screen support, not a game the emulator can run. The list takes `.gb`, `.gbc` (and `.sgb`, `.dmg`, `.cgb`) files and the same inside a `.zip` / `.7z`.
 
 **GB-5. The game is never touched.** As GEN-2: nothing is paused, sent input or changed for the second screen. (There is nothing on the second screen to capture yet.)
 
 ## Known limitations (so far)
 
-- The game list doesn't list `.gb` / `.gbc` files yet; start one by giving its path to GBA DS (ES-DE's `gba` system already lists those extensions).
-- The game's code is read from the GBA header position, so these games have an empty game code and share a patch folder and save names by file name only.
+- ES-DE / BananaOS / Android launchers don't hand `.gb` / `.gbc` games to GBA DS yet (Phase 5): start them from GBA DS's own game list.
+- A Game Boy game has no 4-letter code like a GBA game's, so it gets its own from its header: `g` (plain Game Boy) or `c` (works on the Game Boy Color) and 3 characters, in lower case (`src/emu.c` `emu_rom_code`). The patch folder is named from its title and that code.
+- The ROM checksum note under the list's logo ("Modified ROM") has no list of Game Boy dumps to compare with yet.
 - Battery saves, RTC games (Pokémon Gold / Silver / Crystal), cheats, RetroAchievements, RetroArch's shared states: not checked or not available yet. Rumble, the Game Boy Camera, the link cable and Super Game Boy borders are not planned.
 - mGBA's Game Boy core is mGBA's: timing-sensitive games may show problems that belong to it.

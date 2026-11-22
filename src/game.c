@@ -2037,9 +2037,9 @@ static void patch_pick_up(void) {
  * The patched ROM the same size as the one playing, and the battery save and
  * save states the same files. */
 static bool patch_live_ok(void) {
-	uint8_t h[0xB0];
+	uint8_t h[EMU_HEADER_MAX];
 	char code[5] = "????";
-	if (emu_rom_header(romPath, h, sizeof(h))) memcpy(code, h + 0xAC, 4);
+	if (emu_rom_header(romPath, h, sizeof(h))) emu_rom_code(h, sizeof(h), code);
 	size_t nowN = 0, newN = 0;
 	int nowR = PATCH_NONE, newR = PATCH_NONE;
 	free(emu_rom_read_played(romPath, &nowN, &nowR, NULL, NULL));
@@ -8199,9 +8199,9 @@ static void ss_switch(const char* rom, const char* code) {
  * say. */
 
 static void patches_setup(const char* rom) {
-	uint8_t h[0xB0];
+	uint8_t h[EMU_HEADER_MAX];
 	char code[5] = "????";
-	if (emu_rom_header(rom, h, sizeof(h))) memcpy(code, h + 0xAC, 4);
+	if (emu_rom_header(rom, h, sizeof(h))) emu_rom_code(h, sizeof(h), code);
 	patch_folder(cfg, rom, code, patchDir, sizeof(patchDir), true);
 	patch_choice_load(gp.patches, &patchChoice);
 	patchStarted = patchChoice;

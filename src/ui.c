@@ -2715,11 +2715,9 @@ void ui_notice(const char* title, const char* line) {
  * frames it froze the game for seconds (the whole file read and summed from the SD
  * card), so it's done here, with a screen saying so, before the game starts. */
 void ui_game_prepare(const Config* c, const char* rom) {
-	uint8_t h[0xB0];
-	if (!rom || !emu_rom_header(rom, h, sizeof(h))) return;
+	uint8_t h[EMU_HEADER_MAX];
 	char code[5];
-	memcpy(code, h + 0xAC, 4);
-	code[4] = 0;
+	if (!rom || !emu_rom_header(rom, h, sizeof(h)) || !emu_rom_code(h, sizeof(h), code)) return;
 	const MapProfile* prof = profile_find(code);
 	if (!prof || !prof->logoPerRom) return;
 	/* what the first start of a ROM file has to do: sum the file (above), and

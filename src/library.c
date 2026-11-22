@@ -172,13 +172,11 @@ static bool game_code(const char* path, const struct stat* st, char code[5]) {
 		memcpy(code, c->code, 5);
 		return true;
 	}
-	uint8_t hdr[0xB0];
-	if (!emu_rom_header(path, hdr, sizeof(hdr))) {
-		if (emu_is_archive_name(path)) fprintf(stderr, "library: no GBA ROM in %s\n", path);
+	uint8_t hdr[EMU_HEADER_MAX];
+	if (!emu_rom_header(path, hdr, sizeof(hdr)) || !emu_rom_code(hdr, sizeof(hdr), code)) {
+		if (emu_is_archive_name(path)) fprintf(stderr, "library: no GBA or Game Boy ROM in %s\n", path);
 		return false;
 	}
-	memcpy(code, hdr + 0xAC, 4);
-	code[4] = 0;
 	for (int i = 0; i < 4; ++i) {
 		if (!code[i] || !isprint((unsigned char) code[i])) code[i] = '_';
 	}

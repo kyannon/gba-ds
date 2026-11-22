@@ -76,11 +76,17 @@ typedef struct Emu {
 /* savePath may be NULL (no battery save attached). */
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio);
 /* ROMs may also be in a .zip or .7z (the first GBA ROM inside is used). */
-bool emu_is_rom_name(const char* name);   /* .gba, .zip, .7z */
+bool emu_is_rom_name(const char* name);   /* .gba, .gb, .gbc (.sgb .dmg .cgb), .zip, .7z */
 bool emu_is_archive_name(const char* name); /* .zip, .7z */
-/* Reads the first n bytes of the ROM header (n <= 0xC0), from inside an
- * archive if need be. */
+/* Reads the first n bytes of the ROM header (n <= EMU_HEADER_MAX: 0x150 reaches the end of a Game
+ * Boy header), from inside an archive if need be. */
+#define EMU_HEADER_MAX 0x150
 bool emu_rom_header(const char* path, uint8_t* out, size_t n);
+/* The game's 4-letter code from a header read with emu_rom_header (n >= EMU_HEADER_MAX): a GBA game's
+ * own; a Game Boy / Game Boy Color game's made from its header ("g" or "c" + 3 characters, lower case:
+ * issue #77). Its title (up to 15 characters, unprintable ones "_"). */
+bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
+void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
 void emu_frame(Emu* e, uint32_t keys);
 /* The same without drawing it (e->fb keeps the last picture): for waits on
