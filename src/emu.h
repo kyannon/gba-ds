@@ -54,6 +54,11 @@ typedef struct SpriteRule {
 typedef struct Emu {
 	struct mCore* core;
 	uint32_t* fb; /* GBA_W * GBA_H, mGBA native 32-bit color (XBGR8888, i.e. bytes R,G,B,X) */
+	/* The core's platform (mPlatform: mPLATFORM_GBA, mPLATFORM_GB). A Game Boy / Game Boy Color game
+	 * (issue #77) draws its 160x144 picture centred in the same GBA_W x GBA_H frame, at (picX, picY),
+	 * so the rest of the app sees a GBA-sized picture; for a GBA game it is the whole frame. */
+	int platform;
+	int picX, picY, picW, picH;
 	char gameCode[5];
 	uint32_t romCrc; /* the ROM's CRC32, as loaded, patched if it was (profile_dump) */
 	int patch; /* PatchResult (patch.h): a patch file beside the ROM, and whether it was applied (GEN-9) */
