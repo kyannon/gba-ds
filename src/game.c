@@ -1246,6 +1246,12 @@ static int hkBtn[HK_COUNT];
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
+/* Repeating a held direction in a menu: true on the frame the button goes down,
+ * then every 4th frame once it has been held for 20 (*frames counts them) */
+static bool key_repeat(int* frames, bool down) {
+	*frames = down ? *frames + 1 : 0;
+	return *frames == 1 || (*frames > 20 && *frames % 4 == 0);
+}
 static const char* pageNames[N_PAGES] = { "Game", N_("Display"), "Screens", "Controls", N_("Speed"), N_("Map")};
 /* Restart Game, Close Game and Close GBA DS ask first: chosen once, the
  * button says "Are You Sure?" (and the note what happens); chosen again,
@@ -8803,6 +8809,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	double next = SDL_GetPerformanceCounter() / freq;
 	double fpsT0 = next;
 	int fpsFrames = 0;
+	/* The health report's counts, for this session (not the last game's: its
+	 * last frame is the "slow" gap before this one's first, and its time in
+	 * the game list is not preemption of this one) */
+	int underruns = 0, slow = 0, captureBusy = 0, dropped = 0, healthFrames = 0;
+	int queueLo = 1 << 30, queueHi = -1, quietWindows = 0; /* the queue's range this window (ms) */
+	long preemptT0 = thread_preemptions();
+	Uint64 lastIter = 0;
 
 #ifdef __ANDROID__
 	/* a target well under the frame time: the system clocks the CPU so each
@@ -9297,8 +9310,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int held[2];
 			for (int k = 0; k < 2; ++k) {
 				int b = k ? B_DOWN : B_UP;
-				held[k] = btnNow[b] ? held[k] + 1 : 0;
-				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0)) ra_list_scroll(scr, (k ? 1 : -1) * ra_list_step(scr));
+				if (key_repeat(&held[k], btnNow[b])) ra_list_scroll(scr, (k ? 1 : -1) * ra_list_step(scr));
 			}
 			int page = ach_area(scr).h * 3 / 4;
 			if (btn_pressed(B_L)) ra_list_scroll(scr, -page);
@@ -9311,8 +9323,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int held[4];
 			const int dirs[4] = { B_UP, B_DOWN, B_LEFT, B_RIGHT };
 			for (int k = 0; k < 4; ++k) {
-				held[k] = btnNow[dirs[k]] ? held[k] + 1 : 0;
-				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0))
+				if (key_repeat(&held[k], btnNow[dirs[k]]))
 					note_move(ui_touch_screen(), k == 0 ? -1 : k == 1 ? 1 : 0, k == 2 ? -1 : k == 3 ? 1 : 0);
 			}
 			if (btn_pressed(B_A)) note_press(noteRow, noteCol);
@@ -9326,8 +9337,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int pheld[2];
 			for (int k = 0; k < 2; ++k) {
 				int b = k ? B_DOWN : B_UP;
-				pheld[k] = btnNow[b] ? pheld[k] + 1 : 0;
-				if (pheld[k] == 1 || (pheld[k] > 20 && pheld[k] % 4 == 0)) patch_move(k ? 1 : -1);
+				if (key_repeat(&pheld[k], btnNow[b])) patch_move(k ? 1 : -1);
 			}
 			CheatGeom g = cheat_geom(ui_touch_screen());
 			int page = SDL_max(1, g.listH / (g.rowH + g.gap) - 1);
@@ -9350,8 +9360,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int held[4];
 			const int dirs[4] = { B_UP, B_DOWN, B_LEFT, B_RIGHT };
 			for (int k = 0; k < 4; ++k) {
-				held[k] = btnNow[dirs[k]] ? held[k] + 1 : 0;
-				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0)) hex_move(k == 0 ? -1 : k == 1 ? 1 : 0, k == 2 ? -1 : k == 3 ? 1 : 0);
+				if (key_repeat(&held[k], btnNow[dirs[k]])) hex_move(k == 0 ? -1 : k == 1 ? 1 : 0, k == 2 ? -1 : k == 3 ? 1 : 0);
 			}
 			if (btn_pressed(B_A)) hex_press(hexRow, hexCol);
 			else if (btn_pressed(B_B)) {
@@ -9394,8 +9403,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int held[2];
 			for (int k = 0; k < 2; ++k) {
 				int b = k ? B_DOWN : B_UP;
-				held[k] = btnNow[b] ? held[k] + 1 : 0;
-				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0)) cheat_move(k ? 1 : -1);
+				if (key_repeat(&held[k], btnNow[b])) cheat_move(k ? 1 : -1);
 			}
 			CheatGeom g = cheat_geom(ui_touch_screen());
 			int page = SDL_max(1, g.listH / (g.rowH + g.gap) - 1);
@@ -9545,11 +9553,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		 * underruns (the queue ran dry = a crackle), slow loop iterations, and
 		 * how often the background map capture was running. */
 		{
-			static int underruns, slow, captureBusy, dropped, n;
-			static int queueLo = 1 << 30, queueHi = -1, quietWindows; /* the queue's range this window (ms) */
-			static long preemptT0 = -1;
-			if (preemptT0 < 0) preemptT0 = thread_preemptions();
-			static Uint64 lastIter;
 			Uint64 nowT = SDL_GetPerformanceCounter();
 			if (lastIter && !ff && (nowT - lastIter) * 1000 / SDL_GetPerformanceFrequency() > 25) ++slow;
 			lastIter = nowT;
@@ -9590,7 +9593,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			}
 			if (mc && mapcap_busy(mc)) ++captureBusy;
 			if (dropAudio && !ff) ++dropped; /* (the queue over 3x its target: this frame's sound thrown away, a gap) */
-			if (++n >= 300) {
+			if (++healthFrames >= 300) {
 #ifdef __ANDROID__
 				const bool report = true; /* performance on Android devices is still being measured */
 #else
@@ -9601,10 +9604,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				if (!show && audio && ++quietWindows >= 6) show = true;
 				if (show) quietWindows = 0;
 				if (show) {
-					double ms = 1000.0 / SDL_GetPerformanceFrequency() / n;
+					double ms = 1000.0 / SDL_GetPerformanceFrequency() / healthFrames;
 					fprintf(stderr, "frame %llu: last 5 s: %.1f fps, %d audio underrun(s), %d slow frame(s), map capture busy %d%%, "
 					                "audio queue %d ms; per frame: emulating %.2f ms, drawing %.2f ms; game thread preempted %ld time(s)",
-					        (unsigned long long) frameCount, fps, underruns, slow, captureBusy * 100 / n,
+					        (unsigned long long) frameCount, fps, underruns, slow, captureBusy * 100 / healthFrames,
 					        queuedNow * 1000 / want.freq, emuTicks * ms, drawTicks * ms, thread_preemptions() - preemptT0);
 					if (queueHi >= 0) fprintf(stderr, "; audio queue between %d and %d ms (sound delay %d ms)", queueLo, queueHi, audioMs);
 					if (stallCount) fprintf(stderr, "; %d stall(s) over %d ms, the longest %.0f ms", stallCount, STALL_MS, stallWorst);
@@ -9612,7 +9615,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					if (keptTotal) fprintf(stderr, "; %u frame(s) run while the screen held a frame up", keptTotal);
 					fputc('\n', stderr);
 				}
-				underruns = slow = captureBusy = dropped = n = 0;
+				underruns = slow = captureBusy = dropped = healthFrames = 0;
 				queueLo = 1 << 30, queueHi = -1;
 				stallCount = stallLogged = 0, stallWorst = 0;
 				keptTotal = 0;
