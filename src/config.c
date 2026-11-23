@@ -256,6 +256,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	}
 	BOOL("name_tags", nameTags)
 	STR("retroachievements", raMode)
+	BOOL("ra_hardcore", raHardcore)
 	STR("ra_username", raUser)
 	STR("ra_password", raPassword)
 	STR("ra_system_cfg", raSystemCfg)

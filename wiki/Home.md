@@ -26,6 +26,8 @@
 - **[[Languages]]**: the interface's languages, and how to fix or add one.
 - **[[Troubleshooting]]**: logs, and what to do when something doesn't work.
 - **[[Philosophy]]**: what GBA DS is meant to be, and why some feature requests get a no.
+- **[[Privacy]]**: what GBA DS sends over the network (RetroAchievements and update checks, nothing else) and what it keeps.
+- **[[Licenses]]**: GBA DS's license and what it is built from.
 
 ## For developers
 

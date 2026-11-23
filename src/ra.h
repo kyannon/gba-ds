@@ -22,6 +22,12 @@
 /* ra_account's answer */
 enum { RA_ACCOUNT_NONE, RA_ACCOUNT_BUSY, RA_ACCOUNT_OK, RA_ACCOUNT_FAILED, RA_ACCOUNT_OFF };
 
+/* Whether the pause menu offers Hardcore. RetroAchievements hasn't approved GBA DS for hardcore, so the
+ * owner's rule (Nov 22, 2026) is: hidden until and unless they do. Set to 1 when they do (while 0, the item
+ * still shows for a player who has ra_hardcore = 1 in gba-ds.cfg, to try it and to switch it off). */
+#define RA_HARDCORE_MENU 0
+static inline bool ra_hardcore_menu(bool pref) { return RA_HARDCORE_MENU || pref; }
+
 #ifdef GBADS_RA
 /* At start-up: reads the account and starts signing in. */
 void ra_init(const Config* cfg);
@@ -31,6 +37,11 @@ void ra_game_start(Emu* e, const char* romPath);
 /* A game played with a patch (GEN-9): no achievements (RetroAchievements
  * doesn't allow patched games), the banner says so instead */
 void ra_game_patched(void);
+bool ra_hardcore(void);                           /* hardcore is on for this game */
+void ra_start_mode(bool hardcore, bool casualOnly); /* before ra_game_start */
+void ra_set_hardcore(bool on);
+void ra_show_banner(void);                        /* the start banner again (the mode just switched) */
+bool ra_reset_wanted(void);                       /* switching to hardcore asks for a reset (once) */
 void ra_game_end(void);
 /* After each emulated frame. */
 void ra_frame(void);
@@ -66,6 +77,11 @@ static inline void ra_init(const Config* cfg) { (void) cfg; }
 static inline void ra_shutdown(void) {}
 static inline void ra_game_start(Emu* e, const char* romPath) { (void) e, (void) romPath; }
 static inline void ra_game_patched(void) {}
+static inline bool ra_hardcore(void) { return false; }
+static inline void ra_start_mode(bool hardcore, bool casualOnly) { (void) hardcore, (void) casualOnly; }
+static inline void ra_set_hardcore(bool on) { (void) on; }
+static inline bool ra_reset_wanted(void) { return false; }
+static inline void ra_show_banner(void) {}
 static inline void ra_game_end(void) {}
 static inline void ra_frame(void) {}
 static inline void ra_idle(void) {}

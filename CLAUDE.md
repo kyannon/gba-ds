@@ -600,8 +600,30 @@ release zip, which replaces the main install.
   no-op stubs elsewhere (Android: no curl yet). Test offline with
   `tools/ra_mock.py` (a stand-in server on 127.0.0.1:8099) and
   `--retroachievements=1 --ra-username=tester --ra-password=secret
-  --ra-host=http://127.0.0.1:8099`. Hardcore is not allowed before the app
-  has been public for 6 months (from Oct 13, 2026).
+  --ra-host=http://127.0.0.1:8099` (the mock also has game 777's Rich
+  Presence and a leaderboard; `touch /tmp/ra_mock_down` makes unlocks and
+  entries fail with HTTP 503). Hardcore (rule GEN-16: `ra_hardcore`
+  in prefs.cfg, the Game page's Hardcore item, hidden by `RA_HARDCORE_MENU 0` in ra.h until RetroAchievements approves (the owner's rule, Nov 22, 2026; set 1 then, and rewrite the wiki's Hardcore section and the changelog line); `ra_hardcore()` /
+  `ra_start_mode` / `ra_set_hardcore` / `ra_reset_wanted` in ra.c) is built
+  but not approved by RetroAchievements, which wants the app public for 6
+  months first (from Oct 13, 2026: Apr 13, 2027, unless they take libmgba as
+  the parent emulator); the plan and the rules page's checklist are in the
+  project's `claude/issue-82-progress.md`. Every state load goes through
+  game.c `state_load`, which refuses in hardcore; rewind and cheats are
+  gated beside it (`cheats_sync`). The regression suite doesn't cover RA
+  (no mock server in regress.py): test with `tools/ra_mock.py` and
+  `--ra_hardcore=1` (run it with `--update_check=0` from the game list: a
+  host run once updated itself over `build/host`). The compliance document for
+  RetroAchievements' team is `docs/RETROACHIEVEMENTS.md`.
+  Also in ra.c: the user agent (`GBADS/<numbers> (Linux|Android)
+  mgba/<numbers> rcheevos/<ver>`), the events for leaderboards, challenge and
+  progress indicators (drawn in the corners of the popup screen by
+  `draw_overlays`; leaderboards only run in hardcore, rc_client has no
+  softcore switch, so to see them on the host set the hardcore flag for a
+  local test build and put it back), and **`states/ra/pending.txt`**: every
+  unlock and leaderboard entry rc_client sends is kept (without the token) until the server
+  answers, then replayed at the next sign-in before the game loads
+  (`pending_track` / `pending_replay`; `replayBusy` holds `begin_load`).
 - `mapper.c` Settings > Map Buttons (Linux): asks for each button, builds an SDL mapping for that controller, kept in `<state_dir>/controllers.txt` and logged (bake device ones into `dist/gamecontrollerdb.txt`). Input scripts drive it with a virtual pad: `JOYBTN:n`, `JOYHAT:v`, `JOYAXIS:n,v`, `JOYBTN:-`.
 - `update.c` updates (Linux): GitHub's latest release, the notice and
   Settings > Updates (library.c), download through `http.c` (curl, or
