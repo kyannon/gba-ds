@@ -68,6 +68,7 @@ void config_defaults(Config* c) {
 	c->homeButton = -1;
 	c->leftStickDpad = true;
 	c->turboRate = 15;
+	c->rumbleStrength = 100;
 	c->brightTop = c->brightBottom = 100;
 	c->lcdStrength = 35;
 	strcpy(c->borderColor, "000000");
@@ -241,6 +242,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 		return true;
 	}
 	INT("turbo_rate", turboRate)
+	INT("rumble_strength", rumbleStrength)
 	INT("brightness_top", brightTop)
 	INT("brightness_bottom", brightBottom)
 	if (!strncmp(key, "button_", 7)) {
@@ -286,7 +288,7 @@ static const char* const perGameKeys[] = {
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
 	"map_interval", "custom_logos", "pinball_live", "toggle", "auto_rotate", "toggle_button", "rewind", "rewind_seconds",
 	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
-	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "brightness_top", "brightness_bottom", "button_right", "button_bottom", "button_top", "button_left",
+	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "rumble_strength", "brightness_top", "brightness_bottom", "button_right", "button_bottom", "button_top", "button_left",
 	"button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right",
 };
 
@@ -513,6 +515,7 @@ static const Setting settingsTable[] = {
 	{ "button_dpad_left", "D-pad left", SF_STR, OFFB(faceBtn[8]), ARR(chFace), 0, 0, 0, NULL, "What D-pad left gives the game." },
 	{ "button_dpad_right", "D-pad right", SF_STR, OFFB(faceBtn[9]), ARR(chFace), 0, 0, 0, NULL, "What D-pad right gives the game." },
 	{ "turbo_rate", "Turbo speed", SF_INT, OFFB(turboRate), ARR(chTurbo), 0, 0, 0, NULL, "How fast Turbo A and Turbo B press." },
+	{ "rumble_strength", "Rumble strength", SF_INT, OFFB(rumbleStrength), NULL, 0, 0, 100, 10, "%", "How hard the device's motor runs in games that rumble. 0% turns it off." },
 
 	{ "match_display", "Match display rate", SF_BOOL, OFFB(matchDisplay), ARR(chOnOff), 0, 0, 0, NULL, "Run at the display's rate: no small regular stutter." },
 	{ "frame_buffer", "Frame buffer", SF_BOOL, OFFB(frameBuffer), ARR(chOnOff), 0, 0, 0, NULL, "Smoother, one frame more input delay." },

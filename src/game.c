@@ -8085,6 +8085,8 @@ static void setting_applied(const Setting* st) {
 		gameTexAll = true;
 	} else if (!strcmp(k, "brightness_top") || !strcmp(k, "brightness_bottom")) {
 		ui_brightness(cfg->brightTop, cfg->brightBottom);
+	} else if (!strcmp(k, "rumble_strength")) {
+		ui_rumble_pulse(cfg->rumbleStrength / 100.0f, 250); /* a buzz to feel it by */
 	} else if (!strcmp(k, "match_display")) {
 		pacedFallback = false;
 		pacing_update();
@@ -8734,6 +8736,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_CONTROLS, "button_dpad_left");
 	ROW(PG_CONTROLS, "button_dpad_right");
 	ROW(PG_CONTROLS, "turbo_rate");
+	ROW(PG_CONTROLS, "rumble_strength");
 	ROW(PG_SPEED, "show_fps");
 	ROW(PG_SPEED, "match_display");
 	ROW(PG_SPEED, "frame_buffer");
@@ -9783,6 +9786,14 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		double emuCpu1 = thread_cpu_ms();
 		emuTicks += emuT1 - emuT0;
 		++frameCount;
+		/* the game's motor, at the player's strength (issue #83); not while rewinding or fast-forwarding
+		 * (a frame in the loop isn't a frame of the game's time), and a paused game stops by itself:
+		 * each request to the motor runs out after 120 ms */
+		ui_rumble((rewinding || ran > 1 || ffMax) ? 0.0f : emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
+		{ /* (the log says what the game did, for a device that doesn't buzz) */
+			static bool rumbleSaid;
+			if (!rumbleSaid && emu_rumble_level(&emu) > 0) rumbleSaid = true, fprintf(stderr, "rumble: the game asked for rumble (frame %llu, level %.2f, strength %d%%, motor %.2f)\n", (unsigned long long) frameCount, emu_rumble_level(&emu), cfg->rumbleStrength, emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
+		}
 		/* the rewind buffer: a state every second emulated frame */
 		if (cfg->rewind && !ra_hardcore() && !rewinding && (rewindTick += runs) >= 2) {
 			emu_rewind_append(&emu);
@@ -10128,6 +10139,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	webPlaying = false;
 #endif
 	twin_close();
+	ui_rumble(0);
 	emu_close(&emu); /* flushes the battery save */
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 		free(mapRes.frames[i]);

@@ -112,6 +112,7 @@ typedef struct Config {
 	char accent[16];      /* the menus' colour: purple | blue | teal | green | red | orange | pink (accent) */
 	bool lightTheme;      /* the light theme for the menus' buttons (theme = light) */
 	bool leftStickDpad;   /* the left stick also presses the D-pad in games (left_stick_dpad, issue #57) */
+	int rumbleStrength;   /* how hard the device's motor runs when a game rumbles, 0..100 %, 0 off (rumble_strength, issue #83) */
 	int turboRate;        /* Turbo A / Turbo B: presses a second, 10, 15 or 20 (turbo_rate, issue #55) */
 	char faceBtn[10][12]; /* what each button gives the game (button_right, _bottom, _top, _left, _l, _r, _dpad_up, _dpad_down, _dpad_left, _dpad_right: a, b, l, r, up, down, left, right, start, select, turbo_a, turbo_b, none); empty: the GBA's own (ab_swap's for A and B) */
 	/* RetroAchievements (casual mode): auto = on when ROCKNIX has an account
