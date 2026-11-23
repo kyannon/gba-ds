@@ -1433,7 +1433,8 @@ static int achPressY, achPressScroll;
 static bool achPressed;
 static int cheatSel;                 /* row index */
 static int cheatScroll;              /* pixels */
-static int cheatRows[CHEAT_MAX_FILES + 1024], nCheatRows; /* >= 0 cheat index, < 0 file header (-1 - file) */
+/* >= 0 cheat index, < 0 file header (-1 - file); room for every cheat the loader can read, plus a header per file */
+static int cheatRows[CHEAT_MAX_FILES * (CHEATS_PER_FILE_MAX + 1)], nCheatRows;
 static int cheatPressRow = -1, cheatPressY, cheatPressScroll;
 static bool cheatDragging;
 
@@ -1441,7 +1442,7 @@ static void build_cheat_rows(void) {
 	nCheatRows = 0;
 	for (int f = 0; f < cheats.nFiles; ++f) {
 		if (cheats.nFiles > 1) cheatRows[nCheatRows++] = -1 - f;
-		for (int i = 0; i < cheats.n && nCheatRows < (int) SDL_arraysize(cheatRows); ++i) {
+		for (int i = 0; i < cheats.n; ++i) {
 			if (cheats.items[i].file == f) cheatRows[nCheatRows++] = i;
 		}
 	}
@@ -7553,14 +7554,6 @@ static void rewind_setup(void) {
 	int secs = cfg->rewindSeconds < 5 ? 5 : cfg->rewindSeconds > 300 ? 300 : cfg->rewindSeconds;
 	emu_rewind_init(&emu, (size_t) secs * 30);
 	fprintf(stderr, "rewind: %d s (%d states)\n", secs, secs * 30);
-}
-
-/* ff_speed as gba-ds.cfg writes it: a number, or max (0, as atoi reads it) */
-static const char* ff_speed_name(const Config* c) {
-	static char s[12];
-	if (c->ffSpeed <= 0) return "max";
-	snprintf(s, sizeof(s), "%d", c->ffSpeed);
-	return s;
 }
 
 /* Display choices made in the menu are remembered for next time (and the

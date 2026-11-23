@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #define CHEAT_MAX_FILES 8
+#define CHEATS_PER_FILE_MAX 512 /* cheats read from one file, and switched on from it at once */
 
 typedef struct {
 	char path[1024];
@@ -30,9 +31,10 @@ typedef struct {
 	char prefs[1024]; /* where the on/off choices are kept */
 } Cheats;
 
-/* Finds the .cht files for this ROM in cfg->cheatDir (by title, and region
- * where the file names one), reads them, and restores the saved choices
- * (or the files' own cheatN_enable when nothing was saved yet). */
+/* Finds the .cht files for this ROM (by title, and region where the file
+ * names one) in GBA DS's own cheats folder (assetDir/cheats, not on Android)
+ * and then cfg->cheatDir's folders, reads them, and restores the saved
+ * choices (or the files' own cheatN_enable when nothing was saved yet). */
 void cheats_load(Cheats* c, const Config* cfg, const char* romPath, const char* gameCode, const char* prefsPath);
 /* Puts the switched-on cheats into the emulator (one set per file, in file order). */
 void cheats_apply(const Cheats* c, Emu* e);
