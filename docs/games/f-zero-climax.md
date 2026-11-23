@@ -7,7 +7,7 @@
 | Mods | `BFTJ` F-Zero Climax English Patch 1.1 `80366a0a` (tested) |
 | Profile | `src/profiles.c`: the `BFTJ` entry |
 | Tests | `tests/regress/f-zero-climax.json` (`tools/regress.py f-zero-climax`) |
-| Status | supported (Time Attack and Survival not checked yet: FZC-8) |
+| Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list f-zero-climax`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
@@ -33,7 +33,7 @@ It runs on F-Zero: GP Legend's engine, and its second screen is GP Legend's ([FZ
 
 **FZC-7. One screen.** With `layout = single` the HUD stays where the game draws it.
 
-**FZC-8. Other modes.** Grand Prix is checked at Novice: Mute City to the finish, and Sand Ocean and Big Blue racing. Time Attack and Survival open only once the game's story has gone far enough, and haven't been checked yet: their races run on the same engine, so the HUD's pieces they share with Grand Prix move the same way, and any piece of their own stays on the game screen (RANK moves only when it's there).
+**FZC-8. Other modes.** Grand Prix is checked at Novice: Mute City to the finish, and Sand Ocean and Big Blue racing. Time Attack and Survival open only once the game's story has gone far enough, so they weren't checked in a session; the player who contributed the game support has tried them, and Course Edit's TEST RUN, and reports that all three work well (Nov 23, 2026). Their races run on the same engine, so the HUD's pieces they share with Grand Prix move the same way, and any piece of their own stays on the game screen (RANK moves only when it's there). No fixtures or cases for these modes: the checks are the player's.
 
 **FZC-9. The English translation.** On the English Patch 1.1 (as a patched ROM or with its IPS on the Japanese ROM, GEN-9) FZC-1 to FZC-8 hold as they are: the race HUD is the Japanese game's, sprite for sprite. Its logo is the translation's own title, F-ZERO CLIMAX without the katakana line, taken the same way.
 
@@ -47,8 +47,7 @@ It runs on F-Zero: GP Legend's engine, and its second screen is GP Legend's ([FZ
 
 ## Not covered yet
 
-- Time Attack and Survival (FZC-8): locked on a new save. A save with them open would let their HUDs be checked.
-- Course Edit's TEST RUN (it needs a finished course of the player's own).
+- Time Attack, Survival and Course Edit's TEST RUN (FZC-8): tried and working according to the player who contributed the game support, but with no state or case here (Time Attack and Survival are locked on a new save, and the test run needs a finished course of the player's own). A save with them open would let a case be written.
 
 ## Notes
 
