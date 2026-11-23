@@ -252,9 +252,10 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
 
 ### Hardcore mode
 
-**Pause menu → Hardcore** (on the Game page, with an account signed in). Choose it twice to switch on: **the game starts over**, because RetroAchievements only counts a whole run. While it's on:
+**Pause menu → Hardcore** (on the Game page, with an account signed in). Choose it twice to switch on (or off): **the game starts over**, because RetroAchievements only counts a whole run. While it's on:
 
 - **No loading states** (the menu, the quick bar, the quick state, RetroArch's states): saving is still fine.
+- **No bug reports** (they load an older moment into the game; the button is greyed out).
 - **No rewind**, and **no cheats** (the Cheats button is greyed out; the ones you had on come back when you switch hardcore off).
 - **Super Mario Advance 2's SNES layout can't pan the camera** with its extra buttons (GBA DS would have to write into the game to do it); the game's own L and R still pan.
 - **Resuming starts casual.** A game that starts from a saved state (Auto-Load, or a patch change) starts in casual mode and says so. Choose Hardcore in the menu to start over in hardcore.
@@ -262,7 +263,7 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
 - Fast forward still works (RetroAchievements allows it on other emulators; this is still to be confirmed for GBA DS).
 - A game without achievements (unrecognised, or started offline) plays as always.
 
-Switching back to casual doesn't restart anything. **RetroAchievements hasn't approved GBA DS for hardcore yet**: until it has, don't count on hardcore credit on your profile.
+Switching back to casual restarts the game too, and the banner comes up again to say which mode you're in. **RetroAchievements hasn't approved GBA DS for hardcore yet**: until it has, don't count on hardcore credit on your profile.
 
 ## Logos
 

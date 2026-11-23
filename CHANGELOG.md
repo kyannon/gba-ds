@@ -13,7 +13,7 @@
 - **Challenge and progress indicators**: while an achievement's challenge is under way its badge sits at the bottom left of the second screen, and a measured achievement shows its progress (50/5,000) for a few seconds when it changes.
 - **Leaderboard popups and a running value** are ready (started, failed, submitted, your rank) but only appear in hardcore mode, which isn't on yet.
 - **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.5.8 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
-- **Hardcore mode** (pause menu → Hardcore, choose it twice): no loading states, no rewind, no cheats, and the game starts over when you switch it on; resuming a game starts casual. Leaderboards run in it. RetroAchievements hasn't approved GBA DS for hardcore yet, so it may not count as hardcore on your profile until it does.
+- **Hardcore mode** (pause menu → Hardcore, choose it twice, either way): the game starts over and the banner confirms the mode. In hardcore: no loading states, no rewind, no cheats, no bug reports; resuming a game starts casual. Leaderboards run in it. RetroAchievements hasn't approved GBA DS for hardcore yet, so it may not count as hardcore on your profile until it does.
 - New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
 
 ### Interface

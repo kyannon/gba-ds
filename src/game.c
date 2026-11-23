@@ -1168,7 +1168,7 @@ static int menuItems[MENU_MAX_ITEMS], nMenuItems;
 static int itemRow[MENU_MAX_ITEMS], itemSide[MENU_MAX_ITEMS], nMenuRows;
 static bool half_item(int item) {
 	return item == M_RESUME || item == M_RESTART || item == M_SAVE || item == M_LOAD || item == M_AUTOSAVE || item == M_AUTOLOAD || item == M_REWIND || item == M_FF ||
-	       item == M_COLOR || item == M_GHOST || item == M_HARDCORE || item == M_CHEATS || item == M_PATCHES || item == M_SHOT || item == M_BUG;
+	       item == M_COLOR || item == M_GHOST || item == M_ACH || item == M_HARDCORE || item == M_CHEATS || item == M_PATCHES || item == M_SHOT || item == M_BUG;
 }
 /* Close Game and Close GBA DS are double height: two rows tall, side by side
  * when both are there, else the one across the whole row */
@@ -1237,7 +1237,7 @@ static int armedItem = -1;
 static void rebuild_textures(void);
 static void commit_current(const char* key);
 static bool confirm_item(int item) {
-	return item == M_RESTART || item == M_LIBRARY || item == M_EXIT || (item == M_HARDCORE && !ra_hardcore());
+	return item == M_RESTART || item == M_LIBRARY || item == M_EXIT || item == M_HARDCORE;
 }
 static bool menuOpen;
 static int menuSel;
@@ -1398,6 +1398,7 @@ static void slot_step(int d) {
 static bool item_enabled(int item) {
 	if (item == M_CHEATS) return cheats.n > 0 && !ra_hardcore();
 	if (item == M_LOAD && ra_hardcore()) return false; /* (hardcore: no state loads) */
+	if (item == M_BUG && ra_hardcore()) return false;  /* (nor bug reports: they load an older state into the game) */
 	if (item == M_SHAPES) return ui_screens_differ(); /* (two screens of a shape: nothing to match) */
 	if (item == M_PLACE) return nScreens == 2;         /* (one screen: no gap) */
 	if (item == M_FRAMEBUF) return !tallProf;          /* (always on in the pinball games' two-screen view) */
@@ -7964,7 +7965,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 	if (confirm_item(item) && armedItem != item) {
 		armedItem = item;
 		const char* lost = cfg->autoSave ? N_("your place is saved"): N_("unsaved progress is lost");
-		if (item == M_HARDCORE) snprintf(menuNote, sizeof(menuNote), tr("Again for hardcore: restarts, no cheats or loads"));
+		if (item == M_HARDCORE) snprintf(menuNote, sizeof(menuNote), ra_hardcore() ? tr("Again for casual: the game restarts") : tr("Again for hardcore: restarts, no cheats or loads"));
 		else if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), tr("Choose it again to restart: unsaved progress is lost"));
 		else snprintf(menuNote, sizeof(menuNote), tr("Choose it again to close %s: %s"), item == M_EXIT ? "GBA DS" : tr("the game"), lost);
 		return false;
@@ -8033,7 +8034,8 @@ static bool activate(int item, enum GameExit* exitTo) {
 	case M_BUG: {
 		/* the moment the menu opened, and the 10 seconds before it */
 		char what[200];
-		if (bug_report(what, sizeof(what))) note_open(false); /* (a note, then it's saved) */
+		if (ra_hardcore()) snprintf(menuNote, sizeof(menuNote), tr("Not in hardcore mode (Achievements)"));
+		else if (bug_report(what, sizeof(what))) note_open(false); /* (a note, then it's saved) */
 		else snprintf(menuNote, sizeof(menuNote), "%s", what);
 		break;
 	}
@@ -8043,20 +8045,20 @@ static bool activate(int item, enum GameExit* exitTo) {
 		ui_osd("Game restarted");
 		break;
 	case M_HARDCORE: {
+		/* either way the game starts over (a whole run counts as one mode), and the
+		 * banner comes up again to say which */
 		bool on = !ra_hardcore();
 		cfg->raHardcore = on;
 		save_prefs();
 		ra_set_hardcore(on);
-		cheats_sync(); /* (off in hardcore, back after it) */
-		if (on && ra_hardcore()) {
-			/* casual -> hardcore: the game starts over (rc_client's reset event) */
-			if (ra_reset_wanted()) restart_game();
+		ra_reset_wanted(); /* (rc_client asks for it on switching on: done below for both) */
+		cheats_sync();     /* (off in hardcore, back after it) */
+		if (!on || ra_hardcore()) {
+			restart_game();
 			menuOpen = false;
-			ui_osd("Hardcore: the game restarted");
-		} else if (on) {
-			snprintf(menuNote, sizeof(menuNote), tr("Hardcore needs this game's achievements"));
+			ra_show_banner();
 		} else {
-			ui_osd("Casual mode");
+			snprintf(menuNote, sizeof(menuNote), tr("Hardcore needs this game's achievements"));
 		}
 		break;
 	}
@@ -8730,7 +8732,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						} else if (bb == BB_BUG) {
 							char what[200];
 							/* the moment now, then the game paused for a note */
-							if (bug_report(what, sizeof(what))) barLit = bb, barLitAt = barSince, open_menu(), note_open(true);
+							if (ra_hardcore()) ui_osd("Bug reports aren't available in hardcore mode.");
+							else if (bug_report(what, sizeof(what))) barLit = bb, barLitAt = barSince, open_menu(), note_open(true);
 							else ui_osd("%s", what);
 						} else if (bb == BB_EXIT) {
 							if (!barExitArmed) {

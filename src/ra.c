@@ -1130,6 +1130,24 @@ static void apply_progress(const char* statePath) {
 	free(buf);
 }
 
+/* The banner at the top of the second screen: the game, its progress and the mode
+ * (as a game starts, and again when the player switches hardcore on or off). */
+static void game_banner(void) {
+	fprintf(stderr, "ra: banner: %s\n", ra_hardcore() ? "hardcore" : "casual");
+	const rc_client_game_t* g = rc_client_get_game_info(client);
+	rc_client_user_game_summary_t sum;
+	rc_client_get_user_game_summary(client, &sum);
+	char desc[200];
+	if (!sum.num_core_achievements) {
+		snprintf(desc, sizeof(desc), tr("This game has no achievements yet"));
+	} else if (sum.num_unlocked_achievements == sum.num_core_achievements) {
+		snprintf(desc, sizeof(desc), tr("All %u achievements unlocked"), sum.num_core_achievements);
+	} else {
+		snprintf(desc, sizeof(desc), tr("%u of %u achievements unlocked"), sum.num_unlocked_achievements, sum.num_core_achievements);
+	}
+	popup_add(POP_GAME, ra_hardcore() ? tr("RETROACHIEVEMENTS \xC2\xB7 HARDCORE") : tr("RETROACHIEVEMENTS \xC2\xB7 CASUAL"), g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
+}
+
 static void load_done(int result, const char* error, rc_client_t* c, void* ud) {
 	(void) c, (void) ud;
 	if (!gameWanted) return; /* ended meanwhile */
@@ -1155,15 +1173,7 @@ static void load_done(int result, const char* error, rc_client_t* c, void* ud) {
 	rc_client_get_user_game_summary(client, &sum);
 	fprintf(stderr, "ra: %s (game %u): %u of %u achievements, %u of %u points\n", g ? g->title : "?", g ? g->id : 0,
 	        sum.num_unlocked_achievements, sum.num_core_achievements, sum.points_unlocked, sum.points_core);
-	char desc[200];
-	if (!sum.num_core_achievements) {
-		snprintf(desc, sizeof(desc), tr("This game has no achievements yet"));
-	} else if (sum.num_unlocked_achievements == sum.num_core_achievements) {
-		snprintf(desc, sizeof(desc), tr("All %u achievements unlocked"), sum.num_core_achievements);
-	} else {
-		snprintf(desc, sizeof(desc), tr("%u of %u achievements unlocked"), sum.num_unlocked_achievements, sum.num_core_achievements);
-	}
-	popup_add(POP_GAME, ra_hardcore() ? tr("RETROACHIEVEMENTS \xC2\xB7 HARDCORE") : tr("RETROACHIEVEMENTS \xC2\xB7 CASUAL"), g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
+	game_banner();
 	/* the badges, so popups have them right away */
 	rc_client_achievement_list_t* list =
 	    rc_client_create_achievement_list(client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE, RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_LOCK_STATE);
@@ -1471,6 +1481,10 @@ void ra_set_hardcore(bool on) {
 	if (!client) return;
 	fprintf(stderr, "ra: %s mode\n", on ? "hardcore" : "casual");
 	rc_client_set_hardcore_enabled(client, on);
+}
+
+void ra_show_banner(void) {
+	if (client && gameLoaded) game_banner();
 }
 
 bool ra_reset_wanted(void) {

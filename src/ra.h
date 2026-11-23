@@ -41,6 +41,7 @@ void ra_game_patched(void);
 bool ra_hardcore(void);                           /* hardcore is on for this game */
 void ra_start_mode(bool hardcore, bool casualOnly); /* before ra_game_start */
 void ra_set_hardcore(bool on);
+void ra_show_banner(void);                        /* the start banner again (the mode just switched) */
 bool ra_reset_wanted(void);                       /* switching to hardcore asks for a reset (once) */
 void ra_game_end(void);
 /* After each emulated frame. */
@@ -81,6 +82,7 @@ static inline bool ra_hardcore(void) { return false; }
 static inline void ra_start_mode(bool hardcore, bool casualOnly) { (void) hardcore, (void) casualOnly; }
 static inline void ra_set_hardcore(bool on) { (void) on; }
 static inline bool ra_reset_wanted(void) { return false; }
+static inline void ra_show_banner(void) {}
 static inline void ra_game_end(void) {}
 static inline void ra_frame(void) {}
 static inline void ra_idle(void) {}
