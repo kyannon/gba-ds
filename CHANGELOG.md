@@ -3,7 +3,7 @@
 ## v1.6.1 (not yet released)
 
 ### Menus and interface
-- **Rumble** (issue #83). Games that rumble now rumble the device's own motor (or a connected controller's), with a new **Rumble strength** setting (Settings > Controls, and the pause menu's Controls tab; 100% by default, 0% turns it off, and it buzzes once when you change it). It works with the cartridge's own rumble (Drill Dozer, WarioWare: Twisted) and the Game Boy Player's (Mario & Luigi: Superstar Saga, Pokémon Pinball: Ruby & Sapphire, Super Mario Advance 4), with no switch to flip. Known: it needs a motor the system gives to apps (the RG DS Plus's hasn't been tried yet), games with a rumble patch of their own are only covered where the patch uses one of those two ways, and there is none while rewinding or fast-forwarding.
+- **Rumble** (issue #83). Games that use the cartridge's rumble now rumble the device's own motor (or a connected controller's), with a new **Rumble strength** setting (Settings > Controls, and the pause menu's Controls tab; 100% by default, 0% turns it off, and it buzzes once when you change it). That covers Drill Dozer, WarioWare: Twisted and romhacks with a rumble patch that uses the cartridge's rumble (the Pokémon Pinball: Ruby & Sapphire rumble patch has been tried on the RG DS Plus). Known: Game Boy Player rumble (Mario & Luigi: Superstar Saga, Pokémon Pinball: Ruby & Sapphire and Super Mario Advance 4, without a patch) doesn't work yet; there is no rumble while rewinding or fast-forwarding.
 
 ## v1.6 (2026-11-22)
 

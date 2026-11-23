@@ -82,12 +82,11 @@ void emu_frame(Emu* e, uint32_t keys);
 
 /* Rumble (issue #83): how hard the game is asking its motor to run right now, 0 to 1
  * (the share of the last frame it was on). Cartridge rumble (Drill Dozer, WarioWare
- * Twisted) and Game Boy Player rumble (Mario & Luigi, Pokemon Pinball R&S, SMA4)
- * both land here; only the live game (emu_open with audio) has it, 0 otherwise.
+ * Twisted, and romhacks that use the same pin) lands here; Game Boy Player rumble
+ * (Mario & Luigi, Pokemon Pinball R&S, SMA4) doesn't reach it yet, see
+ * docs/TESTING.md. Only the live game (emu_open with audio) has it, 0 otherwise.
  * May be read from another thread than the one running frames. */
 float emu_rumble_level(const Emu* e);
-/* whether the game has found the (emulated) Game Boy Player: its start-up logo was shown and it answered */
-bool emu_gbp_found(const Emu* e);
 /* The same without drawing it (e->fb keeps the last picture): for waits on
  * a hidden copy. */
 void emu_frame_blind(Emu* e, uint32_t keys);

@@ -9727,8 +9727,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		 * each request to the motor runs out after 120 ms */
 		ui_rumble((rewinding || ran > 1 || ffMax) ? 0.0f : emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
 		{ /* (the log says what the game did, for a device that doesn't buzz) */
-			static bool gbpSaid, rumbleSaid;
-			if (!gbpSaid && emu_gbp_found(&emu)) gbpSaid = true, fprintf(stderr, "rumble: the game found the Game Boy Player (frame %llu)\n", (unsigned long long) frameCount);
+			static bool rumbleSaid;
 			if (!rumbleSaid && emu_rumble_level(&emu) > 0) rumbleSaid = true, fprintf(stderr, "rumble: the game asked for rumble (frame %llu, level %.2f, strength %d%%, motor %.2f)\n", (unsigned long long) frameCount, emu_rumble_level(&emu), cfg->rumbleStrength, emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
 		}
 		/* the rewind buffer: a state every second emulated frame */

@@ -397,11 +397,6 @@ float emu_rumble_level(const Emu* e) {
 	return e->rumble ? ((EmuRumble*) e->rumble)->level : 0.0f;
 }
 
-bool emu_gbp_found(const Emu* e) {
-	const struct GBA* gba = e->core->board;
-	return (gba->memory.hw.devices & HW_GB_PLAYER) != 0;
-}
-
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
@@ -425,12 +420,6 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->core->setVideoBuffer(e->core, (mColor*) e->fb, GBA_W);
 	e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
 	if (audio) { /* only the game being played has a motor; the hidden copies stay quiet */
-		/* Game Boy Player detection for the live game only: a game that shows the Game Boy Player's
-		 * start-up logo and asks for rumble over the link port (Mario & Luigi, Pokemon Pinball R&S,
-		 * SMA4) gets the answer it looks for. It costs a palette compare a frame, and nothing happens
-		 * in games that never show that logo. The copies that extract the logo and the maps run
-		 * without it: with it the logo came out a little different (issue #83). */
-		mCoreConfigSetOverrideIntValue(&e->core->config, "gba.forceGbp", 1);
 		EmuRumble* r = calloc(1, sizeof(*r));
 		if (r) {
 			mRumbleIntegratorInit(&r->integrator);

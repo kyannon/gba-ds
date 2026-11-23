@@ -260,10 +260,14 @@ off, runs it headless at `rumble_strength` 100, 50 and 0, and checks the log's
 "rumble: the game asked for rumble (..., motor X)" line: the motor is asked for the game's level
 times the strength. It needs llvm-mc and llvm-objcopy and no fixtures. The motor itself (a
 controller's, or the device's through SDL's haptics) can only be tried on a device: the log
-says what was found at start ("rumble: haptic 0 (...): usable") and, for the Game Boy Player
-games, "rumble: the game found the Game Boy Player" (Game Boy Player detection is on for the
-live game only: the hidden copies and the logo extraction run without it, as with it the
-extracted logos came out a little different).
+says what was found at start ("rumble: haptic 0 (...): usable") and the first time a game
+asks for rumble ("rumble: the game asked for rumble (..., motor X)").
+
+Game Boy Player rumble (Mario & Luigi, Pokemon Pinball R&S, SMA4) is not supported: with mGBA's
+`gba.forceGbp` the emulated Game Boy Player is found at the logo screen, but the games never
+start the link-port exchange that carries the rumble commands (traced Nov 22, 2026: no SIOCNT
+write in Normal 32-bit mode in 2500 frames of any of the three), and forcing it on a copy that
+extracts logos changed the logos. A future feature: find out what the games' own check wants.
 
 ## Rules checked by hand
 
