@@ -1,6 +1,8 @@
 # Changelog
 
-## v1.6 (not yet released)
+## v1.6.1 (not yet released)
+
+## v1.6 (2026-11-22)
 
 ### New games
 - **Kirby & The Amazing Mirror** (USA, Europe and Japan): in an area, the second screen shows its Area map, kept up to date room by room. While the game's own pause screen is open the second screen shows the logo, so the map is never on both screens; the game's pause screen itself is untouched. Checked in the Rainbow Route in the USA release; the Europe and Japan releases have been tried on saved states (the title, file select, tutorial and the pause screen's maps) but not in an area yet.
