@@ -11,6 +11,9 @@
 - **Hardcore rules are built, but hidden for now.** GBA DS can already play by RetroAchievements' hardcore rules (no loading states, rewind, cheats or bug reports, and the game starts over when the mode changes), but RetroAchievements hasn't approved it yet, so the menu item stays out of sight until they do. GBA DS earns casual achievements as before.
 - New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
 
+### Changes
+- **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
+
 ## v1.6.1 (2026-11-22)
 
 ### Menus and interface
