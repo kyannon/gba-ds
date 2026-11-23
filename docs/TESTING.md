@@ -253,6 +253,22 @@ When a change is meant to alter what a game shows:
 A golden that changes without a rule changing is a regression until shown
 otherwise.
 
+## Rumble (issue #83)
+
+`tools/rumble_test.py` builds a tiny test ROM that switches the cartridge's rumble pin on and
+off, runs it headless at `rumble_strength` 100, 50 and 0, and checks the log's
+"rumble: the game asked for rumble (..., motor X)" line: the motor is asked for the game's level
+times the strength. It needs llvm-mc and llvm-objcopy and no fixtures. The motor itself (a
+controller's, or the device's through SDL's haptics) can only be tried on a device: the log
+says what was found at start ("rumble: haptic 0 (...): usable") and the first time a game
+asks for rumble ("rumble: the game asked for rumble (..., motor X)").
+
+Game Boy Player rumble (Mario & Luigi, Pokemon Pinball R&S, SMA4) is not supported: with mGBA's
+`gba.forceGbp` the emulated Game Boy Player is found at the logo screen, but the games never
+start the link-port exchange that carries the rumble commands (traced Nov 22, 2026: no SIOCNT
+write in Normal 32-bit mode in 2500 frames of any of the three), and forcing it on a copy that
+extracts logos changed the logos. A future feature: find out what the games' own check wants.
+
 ## Rules checked by hand
 
 A rule the tests can't reach (a link cable, behaviour that never shows on

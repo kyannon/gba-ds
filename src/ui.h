@@ -167,6 +167,8 @@ enum { AC_BG, AC_HEADER, AC_ROW, AC_BTN, AC_BTN_SEL, AC_EDGE, AC_HI, AC_HI_INK, 
 #define ACCENT_COUNT 7
 void ui_accent(const char* id);              /* by its name in the config ("purple"...); unknown: purple */
 SDL_Color ui_accent_color(int role);
+void ui_rumble(float level); /* the motor's level now, 0..1 (rumble_strength already in it); called every frame, cheap */
+void ui_rumble_pulse(float level, int ms); /* a short buzz, to feel a setting's strength */
 void ui_brightness(int top, int bottom); /* each screen's brightness, 20..100: dims this app's picture only */
 bool ui_theme_light(void);
 SDL_Color ui_key_ink(void);          /* text and icons on a key */

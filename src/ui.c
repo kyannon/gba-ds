@@ -380,6 +380,86 @@ static void script_joy(const char* a) {
 	}
 }
 
+/* Rumble (issue #83). The motor is the controller's own when it has one (an external pad), else the
+ * device's (the RG DS Plus's vibration motor shows up as a force-feedback input device of its own,
+ * which SDL lists as a haptic device). ui_rumble(level) is called every frame with how hard the
+ * game wants it (0..1), times the player's strength; it only talks to the motor when the level
+ * moves a step or the last request is about to run out, so it isn't an ioctl a frame. */
+static SDL_Haptic* rumbleHaptic;
+static bool rumbleHapticTried;
+static float rumbleSent;     /* the level the motor was last asked for */
+static Uint32 rumbleSentAt;  /* when (SDL_GetTicks) */
+static bool rumbleOnPad;     /* the last request went to a controller */
+
+static void rumble_haptic_open(void) {
+	if (rumbleHapticTried) return;
+	rumbleHapticTried = true;
+#ifndef __wasi__
+	if (SDL_InitSubSystem(SDL_INIT_HAPTIC) != 0) {
+		fprintf(stderr, "rumble: no haptic support (%s)\n", SDL_GetError());
+		return;
+	}
+	int n = SDL_NumHaptics();
+	for (int i = 0; i < n; ++i) {
+		SDL_Haptic* h = SDL_HapticOpen(i);
+		if (!h) {
+			fprintf(stderr, "rumble: haptic %d (%s): can't open (%s)\n", i, SDL_HapticName(i), SDL_GetError());
+			continue;
+		}
+		bool ok = SDL_HapticRumbleSupported(h) && SDL_HapticRumbleInit(h) == 0;
+		fprintf(stderr, "rumble: haptic %d (%s): %s\n", i, SDL_HapticName(i), ok ? "usable" : "no rumble");
+		if (ok && !rumbleHaptic) rumbleHaptic = h;
+		else SDL_HapticClose(h);
+	}
+	if (!rumbleHaptic) fprintf(stderr, "rumble: no haptic motor found (%d device%s)\n", n, n == 1 ? "" : "s");
+#endif
+}
+
+/* One request to whichever motor there is, for ms. */
+static bool rumble_send(float level, Uint32 ms) {
+	bool onPad = false;
+#ifndef __wasi__
+	if (level > 0) {
+		Uint16 v = (Uint16) (level * 65535.0f);
+		for (int i = 0; i < 8; ++i)
+			if (pads[i] && SDL_GameControllerRumble(pads[i], v, v, ms) == 0) onPad = true;
+	} else {
+		for (int i = 0; i < 8; ++i) if (pads[i] && rumbleOnPad) SDL_GameControllerRumble(pads[i], 0, 0, 0);
+	}
+	if (!onPad) {
+		rumble_haptic_open();
+		if (rumbleHaptic) {
+			if (level > 0) SDL_HapticRumblePlay(rumbleHaptic, level, ms);
+			else SDL_HapticRumbleStop(rumbleHaptic);
+		}
+	} else if (rumbleHaptic) {
+		SDL_HapticRumbleStop(rumbleHaptic);
+	}
+#else
+	(void) level, (void) ms;
+#endif
+	rumbleOnPad = onPad;
+	return onPad;
+}
+
+void ui_rumble(float level) {
+	if (level < 0) level = 0;
+	if (level > 1) level = 1;
+	level = floorf(level * 20.0f + 0.5f) / 20.0f; /* steps of 5 % */
+	Uint32 now = SDL_GetTicks();
+	if ((int) (now - rumbleSentAt) < 0) return; /* a pulse is still running */
+	if (level == rumbleSent && (level == 0 || now - rumbleSentAt < 60)) return;
+	rumbleSent = level;
+	rumbleSentAt = now;
+	if (level > 0 || rumbleOnPad || rumbleHaptic) rumble_send(level, 120); /* (each request runs out by itself if we stop asking) */
+}
+
+void ui_rumble_pulse(float level, int ms) {
+	rumble_send(level, (Uint32) ms);
+	rumbleSent = level;
+	rumbleSentAt = SDL_GetTicks() + (Uint32) ms; /* (the next ui_rumble doesn't cut it short) */
+}
+
 static void open_pads(void) {
 	for (int i = 0; i < SDL_NumJoysticks() && i < 8; ++i) {
 		if (!pads[i] && SDL_IsGameController(i)) {
@@ -534,6 +614,8 @@ void ui_textures_reset(void) {
 }
 
 void ui_shutdown(void) {
+	ui_rumble(0);
+	if (rumbleHaptic) SDL_HapticClose(rumbleHaptic), rumbleHaptic = NULL;
 	for (int v = 0; v < 2; ++v) {
 		for (int i = 0; i < PIPE_CACHE; ++i) {
 			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
