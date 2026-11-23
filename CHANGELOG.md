@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.6.2 (not yet released)
+
 ## v1.6.1 (2026-11-22)
 
 ### Menus and interface
