@@ -1,24 +1,33 @@
 # Changelog
 
-## v1.5.8 (not yet released)
-
-### New games
-- **Kirby & The Amazing Mirror** (USA, Europe and Japan): in an area, the second screen shows its Area map, kept up to date room by room. While the game's own pause screen is open the second screen shows the logo, so the map is never on both screens; the game's pause screen itself is untouched. Checked in the Rainbow Route in the USA release; the Europe and Japan releases have been tried on saved states (the title, file select, tutorial and the pause screen's maps) but not in an area yet.
-- **Kirby: Nightmare in Dream Land** (USA, Europe and Japan): in a level, the second screen shows the pause page for Kirby's copy ability, kept up to date as he copies and drops abilities. While the game's own pause page is open, and everywhere outside a level, it shows the logo. Checked in Vegetable Valley in the USA release; the Europe and Japan releases have been tried on saved states.
-- **F-Zero Climax** (Japan, and in English with the F-Zero Climax English Patch 1.1): the race HUD moves to the second screen as in F-Zero: GP Legend, with the course map twice as big. Grand Prix is checked; Time Attack and Survival haven't been yet.
+## v1.6.1 (not yet released)
 
 ### RetroAchievements
 - **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
 - **Rich Presence** shows under your totals in the Achievements page: the line RetroAchievements shows on your profile for the game.
 - **Challenge and progress indicators**: while an achievement's challenge is under way its badge sits at the bottom left of the second screen, and a measured achievement shows its progress (50/5,000) for a few seconds when it changes.
 - **Leaderboard popups and a running value** are ready (started, failed, submitted, your rank) but only appear in hardcore mode, which isn't on yet.
-- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.5.8 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
+- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.6.1 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
 - **Hardcore mode** (pause menu → Hardcore, choose it twice, either way): the game starts over and the banner confirms the mode. In hardcore: no loading states, no rewind, no cheats, no bug reports; resuming a game starts casual. Leaderboards run in it. RetroAchievements hasn't approved GBA DS for hardcore yet, so it may not count as hardcore on your profile until it does.
 - New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
 
-### Interface
+## v1.6 (2026-11-22)
+
+### New games
+- **Kirby & The Amazing Mirror** (USA, Europe and Japan): in an area, the second screen shows its Area map, kept up to date room by room. While the game's own pause screen is open the second screen shows the logo, so the map is never on both screens; the game's pause screen itself is untouched. Checked in the Rainbow Route in the USA release; the Europe and Japan releases have been tried on saved states (the title, file select, tutorial and the pause screen's maps) but not in an area yet.
+- **Kirby: Nightmare in Dream Land** (USA, Europe and Japan): in a level, the second screen shows the pause page for Kirby's copy ability, kept up to date as he copies and drops abilities. While the game's own pause page is open, and everywhere outside a level, it shows the logo. Checked in Vegetable Valley in the USA release; the Europe and Japan releases have been tried on saved states.
+- **F-Zero Climax** (Japan, and in English with the F-Zero Climax English Patch 1.1): the race HUD moves to the second screen as in F-Zero: GP Legend, with the course map twice as big. Grand Prix is checked; Time Attack and Survival haven't been yet.
+
+### Menus and interface
+- **Turn the second screen by hand** (issue #37). Settings > Second screen > **Contextual toggle** (off by default) lets you turn the second screen's pages, or switch it between two views, yourself: press HOME + A, or tap the small key under the picture (**Toggle button**: left, center, right or off; **Auto-rotate** keeps timed pages turning by themselves, or off holds a page until you turn it). In Fire Emblem, Tactics Ogre, Final Fantasy Tactics Advance, Golden Sun, Summon Night, Rebelstar and Banjo-Kazooie: Grunty's Revenge it turns a unit's, a character's or the party's pages (Pokémon: the Party and the Map). In Final Fantasy I and II, IV, V and VI and Breath of Fire I and II it switches between the party screen and the world map. In Harvest Moon: Friends of Mineral Town it switches between the town map and the whole Farm Map (stitched from the game's own scrolling Farm Map and shrunk to fit one screen, without its arrows and heads); in The Minish Cap, between the Map and the Quest Status; in Mother 3, between the area map and the Status, whose party members then turn one by one before the map returns; in Mario & Luigi: Superstar Saga, between the two brothers' Bros. Info. Where a view has to be opened first, the picture fades to black while it is taken (a few seconds) and the old view returns if it can't be (a conversation, an event, a menu). Known: the party picture in the Final Fantasy and Breath of Fire games is the one taken a few refreshes ago, not this instant. Zoids: Legacy, Kingdom Hearts: Chain of Memories and Boktai have nothing worth turning to (their other screens are interactive or never available together), and the toggle's rows, and Pinball two-screen view in games that aren't pinball, are greyed out as not available in games that don't have them.
 - **RetroArch's zstd save states load** (issue #78). States RetroArch 1.21 and later compress with zstd (RZIP version 2) now load, shared or from its folder; GBA DS still saves RetroArch's zlib ones, which every RetroArch reads.
 - **A state saved with a GBA BIOS says so, and there's an option for it** (issue #78). A state from RetroArch's mGBA core with a BIOS file set, saved while the game was inside the BIOS, couldn't load and said only "Load failed". It now says "Saved with a GBA BIOS". New, and off by default: Settings > System > **GBA BIOS** (Linux and Android) runs games with your own BIOS, a file you put in the `bios` folder of GBA DS's data folder as `gba_bios.bin` (GBA DS has none and never looks for one itself). Known: with it on, states saved without a BIOS may not load, and a BIOS applies to games started after switching it.
+
+### Fixes
+- **Kingdom Hearts: Chain of Memories: the menu's World Cards screen no longer shows on the second screen** (found while testing the toggle). It was taken for the World Map and stayed until the next room or until you opened the map.
+
+### Known issues
+- **Turning the second screen by hand:** the button on Android hasn't been looked at, and the Retroid Pocket Duo and Duo Lite, where both screens take touch, haven't been tried. The party picture in the Final Fantasy and Breath of Fire games is the one taken a few refreshes ago, not this instant.
 
 ## v1.5.7 (2026-11-21)
 

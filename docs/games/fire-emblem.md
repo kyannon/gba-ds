@@ -6,6 +6,7 @@
 | Dumps | `AE7E` cartridge `2a524221` (tested), Virtual Console `1b8713c7` · `AE7X` cartridge `4a805ed1` (tested), Virtual Console `335c5855` · `AE7Y` cartridge `9decc754` (tested), Virtual Console `93d3b218` · `AE7J` cartridge `f0c10e72` (tested), Virtual Console `0ba2fd1f` |
 | Profile | `src/profiles.c`: the `AE7E` entry; variants `AE7X`, `AE7Y`, `AE7J` |
 | Tests | `tests/regress/fire-emblem.json` (`tools/regress.py fire-emblem`) |
+| Toggle | `pages`: a unit's three pages (FE-3) · GEN-14 |
 | Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list fire-emblem`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

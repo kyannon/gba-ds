@@ -3998,6 +3998,104 @@
     "riding": 500,
     "jump": 900
    }
+  },
+  {
+   "id": "ml-us-toggle-view",
+   "rom": "A88E",
+   "state": "mario-and-luigi-superstar-saga/us-field.ss",
+   "desc": "the toggle on, walking about with Mario in front: HOME + A fades to black while the hidden copy takes Luigi's Bros. Info page, then shows it; again, back to Mario's",
+   "rules": [
+    "GEN-14",
+    "ML-2"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     300,
+     "HOME+A"
+    ],
+    [
+     304,
+     "-"
+    ],
+    [
+     900,
+     "HOME+A"
+    ],
+    [
+     904,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 290,
+    "after": 800,
+    "back": 1400
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "the other brother's page",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a second press brings the first back",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the first press asks for the view",
+     "type": "log",
+     "match": "toggle: view 2 asked for"
+    },
+    {
+     "rule": "GEN-14",
+     "what": "and it came",
+     "type": "log",
+     "match": "toggle: view 2$"
+    }
+   ]
   }
  ]
 }

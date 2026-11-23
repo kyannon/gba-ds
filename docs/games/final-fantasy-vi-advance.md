@@ -6,6 +6,7 @@
 | Dumps | `BZ6E` cartridge `d708f5ab` (tested) · `BZ6P` cartridge `d15deba5` (tested) · `BZ6J` cartridge `d67478fe` (tested), Virtual Console `c8d9aacb` |
 | Profile | `src/profiles.c`: the `BZ6E` entry (`ff6_compose`) |
 | Tests | `tests/regress/final-fantasy-vi-advance.json` (`tools/regress.py final-fantasy-vi-advance`) |
+| Toggle | `views`, `HELD`: the party screen (FF6-4) and the world minimap (FF6-10), where both exist; the party picture is already kept (FF6-7) · GEN-14 |
 | Status | supported (merged into dev Nov 18, 2026, for v1.5.6; tested on the device) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list final-fantasy-vi-advance`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

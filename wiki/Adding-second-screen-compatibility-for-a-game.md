@@ -111,7 +111,7 @@ Script lines: `TICK BUTTONS` (`A`, `B+UP`, `-`), `TICK SHOT:file.bmp` (both scre
 
 ## A typical workflow
 
-0. Write what the game should show as numbered rules in `docs/games/<slug>.md` (see `docs/games/README.md`), with its Releases row: the rules come first, then the profile, then the tests.
+0. Write what the game should show as numbered rules in `docs/games/<slug>.md` (see `docs/games/README.md`), with its Releases row: the rules come first, then the profile, then the tests. Fill its **Toggle** row too (GEN-14): `pages` if the second screen turns through several pages, `views` (with `HELD` if the other view is already kept, else `ONPRESS`) if there's another picture to show by hand, `none` if neither. The first page is what shows with the toggle off, and the pages come in a stable order.
 1. Play to a point where the map can be opened and make a save state in GBA DS; copy it into the harness's OUTDIR as `NAME.ss` and `load NAME`.
 2. With the harness, `hold` the map button, `shot` until the map is up, and note how many frames it takes.
 3. `dumpram` with the map open and closed in a few places; `ramdiff.py` gives the `mem` candidates. Check them with `peek`.

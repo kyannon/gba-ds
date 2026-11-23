@@ -567,7 +567,7 @@ release zip, which replaces the main install.
   `hud.freeze` (the HUD picture held as it is while they match: SMA4's
   status bar sliding off), `hud.offAfter` (the HUD off from when they match
   until `on[0]` stops: Superstar Saga's results and level-ups, to the
-  battle's end). Adding a game mostly means a profile.
+  battle's end). A profile whose `composePages` gives pages that turn on a timer (a status screen's three pages, the party's members) sets `pages` (not a marker's blinking frames: they restart with each capture, pages keep their place); it is also what a Toggle row `pages` means (GEN-14), and game.c's `second_page()` is the one place that says which page is up. Adding a game mostly means a profile.
 - `mapcap.c` map capture on a hidden second core in a background thread.
   A `room` key change starts one once it has held 3 frames (game.c), calling
   off one still running (`mapcap_cancel`: the shadow's frames stop running,
@@ -584,6 +584,12 @@ release zip, which replaces the main install.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
   snapshot), the quick bar (Controls picker, buttons, bug reports), pause
   menu, cheats screen, screenshots.
+  The contextual toggle (GEN-14, issue #37; settings `toggle`, `auto_rotate`,
+  `toggle_button`, hotkey action `HK_TOGGLE`, HOME + A): `toggle_ready()` is the one
+  gate, `toggle_press()` / `toggle_step()` the state machine (a turn that waits
+  fades the picture: `fadeLevel`), `toggle_new_subject()` starts the pages again
+  at the first when a capture was for a new subject (`capSubject`), `second_page()`
+  says which page is up. The button: `toggle_btn_screen()` / `toggle_btn_geom()` / `draw_toggle_btn()` (its own 240x176 canvas, so it can sit in the margin under the picture; `cv_put` draws on `cvBuf`), the tap claimed in the pointer loop before "a tap opens the menu". Views (Step 4): a profile with `views` (FF4 first) gives `composePages` pictures the toggle turns to, the first being what shows (no timer); `second_page()` returns `pageOffset` for them. A profile with `onPress` (and `altHere`, whether the other view exists here) has its other view captured on the press: `viewAlt`, `pressCap`, `viewWait`, `fadeUpload` (the old view fades out, the capture is asked for once it's dark, `mapcap_set_alt` before `mapcap_request`, composers read `mapcap_alt_view()`; a refresh still running is called off by the press; `tg_view_mode` says view or pages, the last page of a paged other view bringing the first back; no answer in 600 frames and the old view returns): Minish Cap, Mother 3, Mario & Luigi, Harvest Moon (`hm_farm`: the Farm Map scrolled in stops of 200 x 100 pixels by BG1's scroll, stitched, all sprites hidden, shrunk). In-game settings rows the game can't use (`toggle_supported`, `tallSupported`) are greyed out (`row_disabled`). `tools/regress.py` lints the Toggle rows (`toggle_lint`). Tests: `GBADS_TOGGLE_WAIT=N` (a case's `env`) forces a wait.
 - `ra.c` RetroAchievements (casual only) via rcheevos' rc_client, vendored in
   `third_party/rcheevos` (v12.5.0, trimmed: no hashing beyond md5.c, no
   libretro/RAIntegration). Server calls run the system `curl` in a worker

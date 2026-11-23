@@ -6,6 +6,7 @@
 | Dumps | `BZME` cartridge `abcebbb1` (tested) · `BZMP` cartridge `e8637292` (tested) · `BZMJ` cartridge `6ce771a5` (tested) |
 | Profile | `src/profiles.c`: the `BZME` entry (`tmc_compose`); variants `BZMP`, `BZMJ` |
 | Tests | `tests/regress/zelda-the-minish-cap.json` (`tools/regress.py zelda-the-minish-cap`) |
+| Toggle | `views`, `ONPRESS`: the map (TMC-1, TMC-2) and the Quest Status tab (TMC-4), the one the game doesn't show · GEN-14 |
 | Status | working (tested on the device: USA, Europe and Japan) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list zelda-the-minish-cap`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

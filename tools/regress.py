@@ -326,6 +326,7 @@ def run_app(case, args, workdir):
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)
         env.update(GBADS_NOPACE="1", GBADS_DRAW_SHOTS_ONLY="1")
+    env.update({k: str(v) for k, v in case.get("env", {}).items()})  # (a case's own: GBADS_TOGGLE_WAIT...)
     try:
         p = subprocess.run(cmd, env=env, capture_output=True, text=True, errors="replace", timeout=args.timeout)
         r.log = p.stdout + p.stderr
@@ -537,6 +538,29 @@ figure{display:inline-block;margin:4px}small{font-weight:normal;color:#666}</sty
     open(os.path.join(outdir, "index.html"), "w").write(page)
 
 
+def toggle_lint(cases):
+    """GEN-14: a case that turns the toggle on needs its game's rules file to say what the toggle does
+    (a Toggle row that isn't `none`), and every Toggle row says `pages`, `views` or `none`."""
+    bad, seen = [], {}
+    for c in cases:
+        slug = c["slug"]
+        if slug not in seen:
+            f = os.path.join(ROOT, "docs", "games", slug + ".md")
+            row = None
+            if os.path.exists(f):
+                for line in open(f, encoding="utf-8"):
+                    if line.startswith("| Toggle |"):
+                        row = line.split("|")[2].strip()
+                        break
+            seen[slug] = row
+            if row is not None and not row.lstrip("`").startswith(("pages", "views", "none")):
+                bad.append("%s.md: the Toggle row starts with `pages`, `views` or `none`, not %r" % (slug, row[:30]))
+        row = seen[slug]
+        if (c.get("config") or {}).get("toggle") == "1" and (row is None or row.lstrip("`").startswith("none")):
+            bad.append("%s: turns the toggle on, but %s.md has no Toggle row saying what it does" % (c["id"], slug))
+    return sorted(set(bad))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("only", nargs="*", help="game slugs, case ids or globs")
@@ -583,6 +607,12 @@ def main():
                 return
             args.only = (args.only or []) + slugs
     cases = load_cases(args.only)
+    bad = toggle_lint(cases)
+    if bad:
+        print("Toggle lint (GEN-14):")
+        for b in bad:
+            print("  " + b)
+        sys.exit(1)
     if args.shard:
         i, n = (int(v) for v in args.shard.split("/"))
         # (dealt round-robin by game then case, so each share gets a mix of slow and quick games)
@@ -662,6 +692,8 @@ def main():
                     need.add("states/" + keys[5:])
             for fx in c.get("retroarch", {}).get("states", {}).values():  # (GEN-13's stand-in RetroArch folder)
                 need.add("states/" + fx)
+            if c.get("bios"):  # (GEN-15's player-supplied GBA BIOS)
+                need.add("bios/" + c["bios"])
         print("\n".join(sorted(need)))
         return
     if args.list:

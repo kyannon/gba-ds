@@ -181,6 +181,7 @@ app case runs with its own `--patch_dir`.
  "rules": ["FE-1", "FE-2", "FE-3"],
  "input": [[150, "START"], [154, "-"]],
  "config": {"layout": "single"},
+ "env": {"GBADS_TOGGLE_WAIT": "30"},
  "shots": {"start": 60, "page2": 420, "end": 720},
  "checks": [
   {"rule": "FE-2", "what": "the minimap at the bottom right",
@@ -190,6 +191,7 @@ app case runs with its own `--patch_dir`.
 }
 ```
 
+- `env` (optional) sets environment variables for the run: `GBADS_TOGGLE_WAIT=N` makes a page turn by hand wait N frames behind the fade (GEN-14), the way a view that has to be captured will.
 - `rom` is the release's game code (`roms/<rom>.zip`); `state` is relative
   to the fixtures' `states/`; `save` (optional) is a battery save from
   `saves/`, put beside the ROM.
