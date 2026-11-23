@@ -159,7 +159,10 @@ and takes its shots and input as an app case does (GEN-8: what the panel
 says about the ROM). The game list shows the app's version at the top
 screen's bottom right, so these cases leave it out of the comparison:
 `"golden_mask": [[700, 720, 1024, 768]]` (rects painted over in both
-pictures before they're compared; any case can use it).
+pictures before they're compared; any case can use it). A fifth item, a shot's name
+(or a list of names), keeps a rect to those shots: `[40, 1440, 800, 1474, "system-language"]`
+leaves out the Updates row's note ("This is v<version>...") in that shot only, so a version
+change doesn't touch the case's other pictures (`aw-retroarch-settings`).
 
 A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS,
 BPS or xdelta) beside its ROM, named as the ROM with the patch's extension, so the app

@@ -1,6 +1,8 @@
 # Changelog
 
-## v1.6.1 (not yet released)
+## v1.6.2 (not yet released)
+
+## v1.6.1 (2026-11-22)
 
 ### RetroAchievements
 - **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
