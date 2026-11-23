@@ -8637,8 +8637,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	if (emu.patch != PATCH_NONE) {
 		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
 	} else {
-		/* (a game that starts from a saved state, resuming included, starts casual) */
-		bool fromState = cfg->loadState[0] || (patchHandoff[0] && file_exists(patchHandoff)) || (cfg->autoLoad && !patchReload && file_exists(gp.autoState));
+		/* (a game that starts from a saved state or with an input script, resuming included, starts casual) */
+		bool fromState = cfg->loadState[0] || cfg->inputScript[0] /* (a script plays recorded input: a testing option, never hardcore) */ || (patchHandoff[0] && file_exists(patchHandoff)) || (cfg->autoLoad && !patchReload && file_exists(gp.autoState));
 		ra_start_mode(cfg->raHardcore, fromState);
 		ra_game_start(&emu, rom);
 		if (ra_loading()) {

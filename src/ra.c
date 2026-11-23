@@ -1375,7 +1375,7 @@ void ra_init(const Config* c) {
 		sys_setting("global.retroachievements.token", sysToken, sizeof(sysToken));
 		char hc[16] = "";
 		sys_setting("global.retroachievements.hardcore", hc, sizeof(hc));
-		if (!strcmp(hc, "1") && !cfg->raHardcore) fprintf(stderr, "ra: EmulationStation's hardcore setting isn't used: switch Hardcore on in GBA DS's menu\n");
+		if (!strcmp(hc, "1") && !cfg->raHardcore) fprintf(stderr, "ra: EmulationStation's hardcore setting isn't used (hardcore is a GBA DS setting: ra_hardcore)\n");
 		if (strcmp(enabled, "1") && strcmp(cfg->raMode, "1")) {
 			if (raUser[0]) fprintf(stderr, "ra: off (RetroAchievements is switched off in EmulationStation)\n");
 			raUser[0] = 0;
@@ -1472,7 +1472,7 @@ void ra_start_mode(bool hardcore, bool casualOnly) {
 	if (!client) return;
 	rc_client_set_hardcore_enabled(client, hardcore && !casualOnly);
 	resetWanted = false; /* (nothing loaded yet: no reset to ask for) */
-	if (hardcore && casualOnly) fprintf(stderr, "ra: starting in casual mode (the game starts from a saved state)\n");
+	if (hardcore && casualOnly) fprintf(stderr, "ra: starting in casual mode (the game starts from a saved state or an input script)\n");
 }
 
 /* The menu's Hardcore switch. Switching on with a game loaded starts it over

@@ -236,7 +236,7 @@ GBA DS applies patches (`.ips`, `.ups`, `.bps` and `.xdelta` files: romhacks, co
 
 ## RetroAchievements
 
-GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (softcore) mode** by default, and has a [hardcore mode](#hardcore-mode).
+GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (softcore) mode** by default, and will get a [hardcore mode](#hardcore-mode) once RetroAchievements approves it.
 
 - **Signing in:**
   - ROCKNIX: GBA DS uses the account signed in under EmulationStation's RetroAchievements settings, when RetroAchievements is switched on there. `ra_username` and `ra_password` in `gba-ds.cfg` use another account.
@@ -248,23 +248,21 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
 - **Leaderboards** run in [hardcore mode](#hardcore-mode) only (RetroAchievements doesn't count them otherwise). In hardcore, an attempt, its running value, the submission and your rank show on the same screen.
 - **Save states** keep the achievements' progress beside them (`<state>.ra`), so loading an old state doesn't unlock anything by mistake. Cheats are allowed in casual mode.
 - **Offline**, the game plays on; unlocks earned while the connection is down are sent once it's back, even if you close GBA DS first: they wait in `states/ra/pending.txt` and go out the next time you sign in, before the game's achievements load. A game has to start online to have achievements. What GBA DS sends and keeps: [[Privacy]].
-- **Hardcore mode:** see below. EmulationStation's own hardcore setting isn't used: switch it on in GBA DS's menu.
+- **Hardcore mode:** see below. EmulationStation's own hardcore setting isn't used, and GBA DS plays in casual mode.
 - `retroachievements = 0` in `gba-ds.cfg` turns it off. Badges are cached in `states/ra/badges/`.
 
 ### Hardcore mode
 
-**Pause menu → Hardcore** (on the Game page, with an account signed in). Choose it twice to switch on (or off): **the game starts over**, because RetroAchievements only counts a whole run. While it's on:
+**Not available yet.** RetroAchievements has to approve an emulator before its hardcore unlocks count, and hasn't approved GBA DS, so the menu item is hidden. This is how it works, ready for when they do (to try it now, put `ra_hardcore = 1` in `gba-ds.cfg`: **Hardcore** then shows on the pause menu's Game page, next to Achievements, and unlocks won't count as hardcore on your profile):
 
+- **Choosing Hardcore** (twice, to confirm) **restarts the game**, because RetroAchievements only counts a whole run. Switching back to casual restarts it too, and the banner as the game starts again says which mode you're in.
 - **No loading states** (the menu, the quick bar, the quick state, RetroArch's states): saving is still fine.
-- **No bug reports** (they load an older moment into the game; the button is greyed out).
-- **No rewind**, and **no cheats** (the Cheats button is greyed out; the ones you had on come back when you switch hardcore off).
+- **No rewind, no cheats and no bug reports** (the buttons are greyed out; your cheats come back when you switch hardcore off).
 - **Super Mario Advance 2's SNES layout can't pan the camera** with its extra buttons (GBA DS would have to write into the game to do it); the game's own L and R still pan.
-- **Resuming starts casual.** A game that starts from a saved state (Auto-Load, or a patch change) starts in casual mode and says so. Choose Hardcore in the menu to start over in hardcore.
-- Leaderboards run, and the banner as the game starts and the Achievements page say **Hardcore**.
-- Fast forward still works (RetroAchievements allows it on other emulators; this is still to be confirmed for GBA DS).
+- **Resuming starts casual.** A game that starts from a saved state (Auto-Load, or a patch change) starts in casual mode and says so.
+- Leaderboards run, and the Achievements page says **Hardcore**.
+- Fast forward still works (it isn't on RetroAchievements' list of things to block; GBA DS will ask them to confirm).
 - A game without achievements (unrecognised, or started offline) plays as always.
-
-Switching back to casual restarts the game too, and the banner comes up again to say which mode you're in. **RetroAchievements hasn't approved GBA DS for hardcore yet**: until it has, don't count on hardcore credit on your profile.
 
 ## Logos
 
