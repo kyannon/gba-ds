@@ -190,7 +190,7 @@ typedef struct {
 } Twin;
 static Twin twins[TWINS];
 static bool twinOpen;
-static uint64_t twinSeq; /* run_frames; jumps on a load or rewind (bug_reset) */
+static uint64_t twinSeq; /* counts run_frame calls; jumps on a load or rewind (bug_reset) */
 static bool twinNoObj; /* (carry) the copies draw no sprites (profile carry.noObj, in the game) */
 static bool twinRun;       /* the copies are to run (a table they know, its sweep over, a ball) */
 static int twinArmed;      /* frames on a table they know, with no sweep of the table going on */
@@ -1275,7 +1275,7 @@ static SDL_Rect tab_rect(int scr, int t);
 static SDL_Rect ach_area(int scr);
 
 /* Every label a pause-menu button can show, for sizing the text so the
- * widest fits (item_label gives the current one). */
+ * widest fits (menu_geom). */
 static const char* const allLabels[] = {
 	N_("Resume"), N_("Restart Game"), N_("Are You Sure?"), N_("Save State"), N_("Load State"), "Cheats", "Patches", "Achievements",
 	N_("Take Screenshot"), N_("Close Game"), N_("Close GBA DS"), N_("Submit a Bug Report"),
