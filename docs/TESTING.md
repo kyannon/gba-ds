@@ -253,6 +253,18 @@ When a change is meant to alter what a game shows:
 A golden that changes without a rule changing is a regression until shown
 otherwise.
 
+## Rumble (issue #83)
+
+`tools/rumble_test.py` builds a tiny test ROM that switches the cartridge's rumble pin on and
+off, runs it headless at `rumble_strength` 100, 50 and 0, and checks the log's
+"rumble: the game asked for rumble (..., motor X)" line: the motor is asked for the game's level
+times the strength. It needs llvm-mc and llvm-objcopy and no fixtures. The motor itself (a
+controller's, or the device's through SDL's haptics) can only be tried on a device: the log
+says what was found at start ("rumble: haptic 0 (...): usable") and, for the Game Boy Player
+games, "rumble: the game found the Game Boy Player" (Game Boy Player detection is on for the
+live game only: the hidden copies and the logo extraction run without it, as with it the
+extracted logos came out a little different).
+
 ## Rules checked by hand
 
 A rule the tests can't reach (a link cable, behaviour that never shows on

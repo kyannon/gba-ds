@@ -59,7 +59,7 @@ Per-game keys: `swap`, `scale`, `map_scale`, `smooth`, `border_color`,
 `map_interval`, `custom_logos`, `pinball_live`, `rewind`,
 `rewind_seconds`, `fast_forward`, `ff_speed`, `ab_swap`, `show_fps`,
 `audio_latency`, `save_on_quit`, `auto_load`, and the new `brightness_top`,
-`brightness_bottom`, `left_stick_dpad`, `turbo_rate`, `button_right`,
+`brightness_bottom`, `left_stick_dpad`, `turbo_rate`, `rumble_strength`, `button_right`,
 `button_bottom`, `button_top`, `button_left`, `button_l`, `button_r`, `button_dpad_up`,
 `button_dpad_down`, `button_dpad_left`, `button_dpad_right`. For all games only: folders,
 accounts, updates, `layout`, `touch_*`, `sway`, `vsync`, hotkeys,
@@ -100,7 +100,7 @@ returns one step. B/Back and HOME work as now.
 |---|---|
 | **Games** | Show all games: Supported only / All games (#54), Game name tags, Game folders (Android: choose; Linux: shown), Logo folder, Custom logos |
 | **Display** | Scale (game, second screen), Shader and strength, Brightness: top, Brightness: bottom (#56), Color correction, LCD ghosting, Smooth scaling, Swap screens, Screen shapes, Screen placement, Overlays and bezel, Border colour |
-| **Controls** | Left stick as D-pad (#57), Face buttons (#55), Turbo rate, GBA A/B swap, Map Buttons, Hotkeys, menu combo |
+| **Controls** | Left stick as D-pad (#57), Face buttons (#55), Turbo rate, Rumble strength (#83), GBA A/B swap, Map Buttons, Hotkeys, menu combo |
 | **Speed and sound** | Show FPS, Performance, Frame buffer, Match display rate, Rewind and its length, Fast forward and its speed, Sound delay |
 | **Second screen** | Map on/off, Map refresh, Pinball live view |
 | **Saves** | Save on quit, Auto-load, Save folder and type, GBA DS data folder |

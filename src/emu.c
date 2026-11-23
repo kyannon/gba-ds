@@ -382,6 +382,26 @@ BiosFile emu_bios_check(const char* path) {
 	return why;
 }
 
+/* Rumble (issue #83): mGBA's integrator turns the game's on/off pin writes into a 0..1 share
+ * of each frame; we keep the last one for the app to hand to the motor. */
+typedef struct {
+	struct mRumbleIntegrator integrator;
+	volatile float level;
+} EmuRumble;
+
+static void emu_rumble_set(struct mRumbleIntegrator* i, float v) {
+	((EmuRumble*) i)->level = v;
+}
+
+float emu_rumble_level(const Emu* e) {
+	return e->rumble ? ((EmuRumble*) e->rumble)->level : 0.0f;
+}
+
+bool emu_gbp_found(const Emu* e) {
+	const struct GBA* gba = e->core->board;
+	return (gba->memory.hw.devices & HW_GB_PLAYER) != 0;
+}
+
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
@@ -404,6 +424,21 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
 	e->core->setVideoBuffer(e->core, (mColor*) e->fb, GBA_W);
 	e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
+	if (audio) { /* only the game being played has a motor; the hidden copies stay quiet */
+		/* Game Boy Player detection for the live game only: a game that shows the Game Boy Player's
+		 * start-up logo and asks for rumble over the link port (Mario & Luigi, Pokemon Pinball R&S,
+		 * SMA4) gets the answer it looks for. It costs a palette compare a frame, and nothing happens
+		 * in games that never show that logo. The copies that extract the logo and the maps run
+		 * without it: with it the logo came out a little different (issue #83). */
+		mCoreConfigSetOverrideIntValue(&e->core->config, "gba.forceGbp", 1);
+		EmuRumble* r = calloc(1, sizeof(*r));
+		if (r) {
+			mRumbleIntegratorInit(&r->integrator);
+			r->integrator.setRumble = emu_rumble_set;
+			e->rumble = r;
+			e->core->setPeripheral(e->core, mPERIPH_RUMBLE, &r->integrator.d);
+		}
+	}
 	/* (testing: GBADS_RTC_FIXED=<unix seconds> holds the cartridge clock still, for games
 	 * that look at the time of day: Boktai's areas change with it) */
 	rtc_pin(e);
@@ -485,6 +520,8 @@ void emu_close(Emu* e) {
 	}
 	free(e->fb);
 	e->fb = NULL;
+	free(e->rumble);
+	e->rumble = NULL;
 }
 
 bool emu_cancelled(const Emu* e) {
