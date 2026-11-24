@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.2 (not yet released)
+## v1.6.1.1 (not yet released)
 
 ### New: Game Boy and Game Boy Color games (issue #77)
 - **GBA DS plays Game Boy and Game Boy Color games**, on one screen with the other idle dark grey, as a GBA played them. Put `.gb` and `.gbc` files (or zips) in your GBA folder or in `gb` / `gbc` folders beside it, set **Games shown** to **All**, and start them from GBA DS's own game list. Saves, save states, rewind and cheats work as for GBA games. Details on the new wiki page, [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games).
@@ -12,14 +12,13 @@
 - **Rich Presence** shows under your totals in the Achievements page: the line RetroAchievements shows on your profile for the game.
 - **Challenge and progress indicators**: while an achievement's challenge is under way its badge sits at the bottom left of the second screen, and a measured achievement shows its progress (50/5,000) for a few seconds when it changes.
 - **Leaderboard popups and a running value** are ready (started, failed, submitted, your rank) but only appear in hardcore mode, which isn't on yet.
-- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.6.2 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
+- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.6.1.1 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
 - **Hardcore rules are built, but hidden for now.** GBA DS can already play by RetroAchievements' hardcore rules (no loading states, rewind, cheats or bug reports, and the game starts over when the mode changes), but RetroAchievements hasn't approved it yet, so the menu item stays out of sight until they do. GBA DS earns casual achievements as before.
 - New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
 
 ### Changes
 - **Rewind and fast forward can go on other buttons** (issue #88). Settings > Controls > Hotkeys has Rewind (hold) and Fast forward (hold), L2 and R2 at first (HOME + L2 and HOME + R2 work too), and two new shortcuts, Rewind on/off and Fast forward on/off, that keep going until you press them again (no button until you give them one). The Hotkeys list now scrolls, and its last row is no longer hidden under the note at the bottom. Map buttons and Hotkeys are now at the top of Controls, and they (and the state folder picker) show on the menu's screen only, not on both.
 - **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
-
 - **Android: a second screen on a USB-C display is chosen more carefully, and `launch.log` lists the screens** (issue #65, AYN Odin 2 with the Retroid Dual Screen Add-on). GBA DS now prefers the display Android marks for presentations, then one that is switched on, instead of the first one listed, and `launch.log` has a line for each display Android reports (name, size, flags, state) and which one was used. Known: a screen plugged in after the game has started isn't picked up until the game is started again.
 
 ### Fixes
