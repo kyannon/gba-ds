@@ -76,7 +76,7 @@ msgid_plural "%d RetroArch states here"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/game.c:6943 src/game.c:9424 src/game.c:9763 src/game.c:9767
+#: src/game.c:6943 src/game.c:9424 src/game.c:9766 src/game.c:9770
 #, c-format
 msgid "%s"
 msgstr ""
@@ -249,7 +249,7 @@ msgid "Again for casual: the game restarts"
 msgstr ""
 
 #: src/game.c:8502
-msgid "Again for hardcore: restarts, no cheats or loads"
+msgid "Again for hardcore: restarts, no cheats, loads or fast forward"
 msgstr ""
 
 #: src/library.c:993
@@ -867,8 +867,12 @@ msgstr ""
 msgid "Fast forward (hold)"
 msgstr ""
 
-#: src/game.c:9755
+#: src/game.c:9758
 msgid "Fast forward is off in the settings."
+msgstr ""
+
+#: src/game.c:9757
+msgid "Fast forward isn't available in hardcore mode."
 msgstr ""
 
 #: src/hotkeys.c:23
@@ -886,6 +890,10 @@ msgstr ""
 
 #: src/game.c:4249
 msgid "Fast Forward: Off"
+msgstr ""
+
+#: src/game.c:4249
+msgid "Fast Forward: Off in hardcore"
 msgstr ""
 
 #: src/game.c:3118
@@ -1622,7 +1630,7 @@ msgstr ""
 msgid "No patches here yet"
 msgstr ""
 
-#: src/game.c:9413 src/game.c:9741
+#: src/game.c:9413 src/game.c:9743
 msgid "No quick state saved yet."
 msgstr ""
 
@@ -2169,11 +2177,11 @@ msgstr ""
 msgid "Rewind (hold)"
 msgstr ""
 
-#: src/game.c:9751
+#: src/game.c:9753
 msgid "Rewind is off in the settings."
 msgstr ""
 
-#: src/game.c:9750
+#: src/game.c:9752
 msgid "Rewind isn't available in hardcore mode."
 msgstr ""
 
@@ -2247,7 +2255,7 @@ msgstr ""
 msgid "Save failed"
 msgstr ""
 
-#: src/game.c:9410 src/game.c:9739
+#: src/game.c:9410 src/game.c:9741
 msgid "Save failed."
 msgstr ""
 
@@ -2631,7 +2639,7 @@ msgstr ""
 msgid "Starting over: the colors were changed since the game was last played"
 msgstr ""
 
-#: src/game.c:9414 src/game.c:9742
+#: src/game.c:9414 src/game.c:9744
 msgid "State loaded."
 msgstr ""
 
@@ -2640,7 +2648,7 @@ msgstr ""
 msgid "State saved to slot %d"
 msgstr ""
 
-#: src/game.c:9410 src/game.c:9739
+#: src/game.c:9410 src/game.c:9741
 msgid "State saved."
 msgstr ""
 
