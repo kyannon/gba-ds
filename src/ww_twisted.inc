@@ -10,9 +10,22 @@
  * the game's main menu wheel, taken once from a hidden copy of the game, turned to the dial's angle;
  * a Gyro! button goes back, with a sensitivity slider beside it. */
 
+/* (the web build has no sensors, and no <unistd.h> here: Touch mode only) */
+#ifndef __wasi__
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
+#define WW_SENSORS 1
+#if SDL_VERSION_ATLEAST(2, 0, 9)
+#define WW_SDL_SENSOR 1
+#endif
+#endif
+#ifndef WW_SDL_SENSOR
+#define WW_SDL_SENSOR 0
+#endif
+#ifndef WW_SENSORS
+#define WW_SENSORS 0
+#endif
 
 #define WW_FPS 59.7275f
 /* mGBA's gyro value is 2^21 to a count of the cartridge's 12-bit sample; RetroArch's mGBA core gives
@@ -115,15 +128,18 @@ static void ww_cfg_save(void) {
 /* ---- the sensor (WWT-6): an IIO gyro (the RG DS's, as Linux gives it), else an SDL gyro sensor
  * (Android's); the tests give a constant rate (GBADS_GYRO_RATE, degrees a second) */
 static void ww_sensor_close(void) {
+#if WW_SENSORS
 	if (ww.fd >= 0) close(ww.fd);
+#endif
 	ww.fd = -1;
-#if SDL_VERSION_ATLEAST(2, 0, 9)
+#if WW_SDL_SENSOR
 	if (ww.sdl) SDL_SensorClose((SDL_Sensor*) ww.sdl);
 #endif
 	ww.sdl = NULL;
 	ww.skind = WWS_NONE;
 }
 
+#if WW_SENSORS
 static double ww_read_number(const char* path, bool* ok) {
 	char buf[64] = "";
 	int fd = open(path, O_RDONLY);
@@ -137,6 +153,8 @@ static double ww_read_number(const char* path, bool* ok) {
 	return atof(buf);
 }
 
+#endif
+
 static void ww_sensor_open(void) {
 	ww_sensor_close();
 	ww.bias = 0, ww.biasKnown = false, ww.still = 0, ww.logged = false;
@@ -146,6 +164,7 @@ static void ww_sensor_open(void) {
 		fprintf(stderr, "gyro: test rate %.1f deg/s\n", ww.testRate);
 		return;
 	}
+#if WW_SENSORS
 	/* Linux: /sys/bus/iio/devices/iio:deviceN with in_anglvel_<axis>_raw (and its scale, radians a second) */
 	char dirs[8][512];
 	int nd = 0;
@@ -186,7 +205,8 @@ static void ww_sensor_open(void) {
 		fprintf(stderr, "gyro: IIO sensor %s (%s), axis %c, %g radians a second to a unit\n", dirs[i], ww.name[0] ? ww.name : "unnamed", ww.axis, sc);
 		return;
 	}
-#if SDL_VERSION_ATLEAST(2, 0, 9)
+#endif
+#if WW_SDL_SENSOR
 	SDL_InitSubSystem(SDL_INIT_SENSOR);
 	for (int i = 0; i < SDL_NumSensors(); ++i) {
 		if (SDL_SensorGetDeviceType(i) != SDL_SENSOR_GYRO) continue;
@@ -208,14 +228,17 @@ static float ww_sensor_rate(void) {
 	if (ww.skind == WWS_TEST) {
 		raw = ww.testRate;
 		return raw;
-	} else if (ww.skind == WWS_IIO && ww.fd >= 0) {
+	}
+#if WW_SENSORS
+	else if (ww.skind == WWS_IIO && ww.fd >= 0) {
 		char buf[40] = "";
 		ssize_t n = pread(ww.fd, buf, sizeof(buf) - 1, 0);
 		if (n <= 0) return 0;
 		buf[n] = 0;
 		raw = (float) (atof(buf) * ww.sscale * (180.0 / M_PI));
 	}
-#if SDL_VERSION_ATLEAST(2, 0, 9)
+#endif
+#if WW_SDL_SENSOR
 	else if (ww.skind == WWS_SDL && ww.sdl) {
 		float v[3] = { 0, 0, 0 };
 		if (SDL_SensorGetData((SDL_Sensor*) ww.sdl, v, 3) < 0) return 0;
