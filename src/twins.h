@@ -99,4 +99,9 @@ extern char tallLog[TALL_LOG][176];
 extern unsigned tallLogN;
 void update_tall(const TallEnv* env);
 
+/* the copies' part of game.c's run_frame, in its order */
+bool twins_before(uint32_t keys);
+void twins_second_start(uint32_t keys);
+void twins_after(bool live);
+
 #endif

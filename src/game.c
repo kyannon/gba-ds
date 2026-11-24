@@ -183,58 +183,12 @@ static void run_frame(uint32_t keys) {
 			if (!told) told = true, fprintf(stderr, "camera pan: not now (game mode %02x, paused %02x)\n", emu_read8(&emu, sn->when[0].addr), emu_read8(&emu, sn->when[2].addr));
 		}
 	}
-	bool live = twinOpen && tallOn;
-	bool run = live && twinRun && twinHave > 0;
-	++twinSeq;
-	if (!run) for (int i = 0; i < TWINS; ++i) twins[i].up = false;
-	nTallFixed = 0;
-	if (run) {
-		/* the copies' first frame (the game's frame before again, at their
-		 * own cameras), then which of their sprites to leave out, and the
-		 * game's fixed to the screen, for the HUD split to draw */
-		game_oam_take();
-		for (int i = 0; i < TWINS; ++i) twins[i].up = false;
-		if (twins[0].need) worker_start(0, twin_first, &twins[0]);
-		twin_first(&twins[1]);
-		if (twins[0].need) worker_wait(0);
-		if (!twinProf->tall.live.carry.keepObj)
-			for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_hide(&twins[i]);
-		/* (only while a copy's rows are on the top screen this frame) */
-		bool topCopy = tall_view(twinProf, &emu) - tall_shake(twinProf, &emu) > tall_rows_of(twinProf, &emu) - 2 * GBA_H;
-		emu_hud_keep_exact(tallFixed, topCopy ? nTallFixed : 0);
-		/* (carry: and left out of the game's picture, which can be on the
-		 * bottom screen) */
-		if (tall_carry(twinProf)) {
-			nTallBandFixed = 0;
-			/* (whichever is on the top screen: the game's own picture is
-			 * laid over by the boxes too, which would cover a sprite drawn
-			 * on them, such as the pause menu's arrow) */
-			for (int i = 0; i < nTallFixed; ++i) {
-				int y = tallFixed[i][0] & 0xFF, h = obj_height(tallFixed[i][0], tallFixed[i][1]);
-				if (y >= GBA_H) y -= 256;
-				if (tallBandY0 >= 0 && y < tallBandY1 + 1 && y + h > tallBandY0) memcpy(tallBandFixed[nTallBandFixed++], tallFixed[i], sizeof(tallFixed[i]));
-			}
-			emu_hud_keep_exact(tallBandFixed, nTallBandFixed);
-			emu_hide_exact(&emu, tallBandFixed, nTallBandFixed);
-		}
-	} else if (live) {
-		emu_hud_keep_exact(tallFixed, 0);
-		if (tall_carry(twinProf)) emu_hide_exact(&emu, tallFixed, 0);
-	}
-	if (live) {
-		/* the game's state from before this frame, for next frame's copies */
-		twinCur ^= 1;
-		if (emu_state_save(&emu, twinStates[twinCur])) twinKeys[twinCur] = keys, twinHave = 1;
-		else twinHave = 0;
-	}
-	/* the copies' second frame (this one), alongside the game's */
-	twinFrameKeys = keys;
-	for (int i = 0; i < TWINS; ++i) if (twins[i].up) worker_start(i, twin_second, &twins[i]);
+	bool live = twins_before(keys);
+	twins_second_start(keys);
 	ww_step();
 	emu_frame(&emu, keys & 0x3FF);
 	++bugFrame;
-	for (int i = 0; i < TWINS; ++i) if (twins[i].up) worker_wait(i);
-	if (live) twin_step();
+	twins_after(live);
 }
 
 /* Start the bug log again from here (the frames before belong to another moment). */
