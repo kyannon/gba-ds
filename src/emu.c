@@ -1496,6 +1496,11 @@ static void split_release(Emu* e) {
 	pthread_mutex_unlock(&hideLock);
 	split.hud.d.deinit(&split.hud.d);
 	memset(&split, 0, sizeof(split));
+	/* (and what the last game set beside it: Pokemon Pinball's tall view leaves the HUD's
+	 * layers on the game (emu_hud_copy, emu_hud_copy_above), and a game started after it in
+	 * the same run kept its HUD on both screens) */
+	splitCopying = false;
+	copyAbove = 0;
 }
 
 bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int nObjs, uint32_t* hud) {
@@ -1505,6 +1510,7 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 	if (!split.installed) {
 		if (!on) return true;
 		memset(&split, 0, sizeof(split));
+		splitCopying = false; /* (emu_hud_copy needs the split installed: nothing to keep) */
 		GBAVideoSoftwareRendererCreate(&split.hud);
 		split.hud.outputBuffer = (mColor*) hud;
 		split.hudBuf = hud;
