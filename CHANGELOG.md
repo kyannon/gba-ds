@@ -14,6 +14,9 @@
 ### Changes
 - **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
 
+### Fixes
+- **Pokémon Pinball: Ruby & Sapphire's rumble patch rumbles again** (issue #83; it didn't in v1.6.1). GBA DS now listens to the cartridge's rumble for any game that uses it, including patches that switch the motor a byte at a time, as that one does. Two things the game itself needs: turn **Rumble** on in the game's own Options, and after switching the patch on, use **Restart Game** once, because a game resumed from a state saved before the patch was on hasn't set its rumble up.
+
 ## v1.6.1 (2026-11-22)
 
 ### Menus and interface
