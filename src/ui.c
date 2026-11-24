@@ -1,5 +1,6 @@
 #include <limits.h>
 #include "ui.h"
+#include "second_shm.h"
 
 /* the left stick presses the D-pad (issue #57): game.c turns it off for a game
  * with left_stick_dpad = 0, and on again for its menus and the game list */
@@ -571,7 +572,26 @@ bool ui_init(Config* c, bool wantDual) {
 		fprintf(stderr, "  display %d: %s, %dx%d at %d,%d\n", i, name ? name : "?", b.w, b.h, b.x, b.y);
 	}
 	fprintf(stderr, "touch devices: %d\n", SDL_GetNumTouchDevices());
-	if (dual && displays >= 2) {
+	int shmW, shmH;
+	if (!strcmp(cfg->secondScreen, "shm") && strcmp(cfg->layout, "single") && second_shm_parse_size(cfg->secondSize, &shmW, &shmH)) {
+		/* Another compositor owns the other panel (Armada OS, issue #86): the
+		 * game's window is the first screen, the second one is drawn with a
+		 * software renderer into a surface (no window, as on Android) and
+		 * published at ui_present for `gba-ds --present-second` */
+		nViews = 1;
+		if (!create_view(&views[0], 0, "GBA DS", fullscreen, 720, 480)) return false;
+		views[1].surf = SDL_CreateRGBSurfaceWithFormat(0, shmW, shmH, 32, SDL_PIXELFORMAT_ABGR8888);
+		views[1].ren = views[1].surf ? SDL_CreateSoftwareRenderer(views[1].surf) : NULL;
+		if (views[1].ren && second_shm_open(shmW, shmH)) {
+			SDL_SetRenderDrawBlendMode(views[1].ren, SDL_BLENDMODE_BLEND);
+			nViews = 2;
+		} else {
+			fprintf(stderr, "second screen (shm): %s; one screen\n", views[1].ren ? "no shared memory" : SDL_GetError());
+			if (views[1].ren) SDL_DestroyRenderer(views[1].ren);
+			if (views[1].surf) SDL_FreeSurface(views[1].surf);
+			views[1] = (View) { 0 };
+		}
+	} else if (dual && displays >= 2) {
 		nViews = 2;
 		if (!create_view(&views[0], 0, "GBA DS", true, 720, 480) ||
 		    !create_view(&views[1], 1, "GBA DS map", true, 720, 480)) {
@@ -628,6 +648,7 @@ void ui_shutdown(void) {
 		if (views[i].surf) SDL_FreeSurface(views[i].surf);
 		views[i] = (View) { 0 };
 	}
+	second_shm_close();
 	SDL_Quit();
 }
 
@@ -1872,7 +1893,8 @@ void ui_present(void) {
 #else
 	for (int i = 0; i < nViews; ++i) {
 		Uint64 vt0 = SDL_GetPerformanceCounter();
-		SDL_RenderPresent(views[i].ren);
+		if (views[i].surf) second_shm_publish(views[i].surf); /* (drawn into the surface already) */
+		else SDL_RenderPresent(views[i].ren);
 		lastPresentMs[i] = (double) (SDL_GetPerformanceCounter() - vt0) * 1000.0 / (double) SDL_GetPerformanceFrequency();
 	}
 	lastRedraws = (1 << nViews) - 1;

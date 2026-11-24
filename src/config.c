@@ -19,6 +19,8 @@ static const char* const holdDefaults[HOLD_COUNT] = { "l2", "r2" };
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
 	strcpy(c->layout, "auto");
+	strcpy(c->secondScreen, "window");
+	strcpy(c->secondSize, "1240x1080");
 	strcpy(c->saveExt, "sav");
 	strcpy(c->stateFolder, "gbads");
 	strcpy(c->scale, "integer");
@@ -107,6 +109,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 		return true; \
 	}
 	STR("layout", layout)
+	STR("second_screen", secondScreen)
+	STR("second_size", secondSize)
 	BOOL("swap", swap)
 	STR("scale", scale)
 	STR("map_scale", mapScale)
@@ -420,6 +424,9 @@ void config_usage(const char* argv0) {
 	        "  --patch-dir=DIR        patches, a folder per game (default: patches beside the app)\n"
 	        "  --screenshot-dir=DIR   where Take Screenshot saves (/storage/roms/screenshots)\n"
 	        "  --layout=auto|span-h|span-v|dual|single   screen arrangement (auto)\n"
+	        "  --second-screen=window|shm   shm: draw the second screen into shared memory, for\n"
+	        "                         `--present-second` on another display (Armada OS, AYN Thor)\n"
+	        "  --second-size=WxH      that screen's size (1240x1080)\n"
 	        "  --swap                 show the map on the first screen\n"
 	        "  --touch-screen=first|second   which screen has the touch panel (second)\n"
 	        "  --touch-map=window|screen     touch coordinates span the window or one screen\n"

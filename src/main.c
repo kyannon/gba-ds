@@ -16,6 +16,7 @@
 #include "logo.h"
 #include "paths.h"
 #include "ui.h"
+#include "second_shm.h"
 #include "ra.h"
 #include "update.h"
 #include "clocks.h"
@@ -84,6 +85,8 @@ int main(int argc, char** argv) {
 			printf("GBA DS %s\n", GBADS_VERSION);
 			return 0;
 		}
+		/* --present-second: the other panel's picture, on another compositor (issue #86) */
+		if (!strcmp(argv[i], "--present-second")) return second_shm_present_main(argc, argv);
 		/* --supported ROM: exit 0 if GBA DS has second-screen support for the
 		 * game (a profile for its code), 1 if not, 2 if it can't be read
 		 * (BananaOS's banana-play.sh: other games go to RetroArch) */

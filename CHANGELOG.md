@@ -2,6 +2,9 @@
 
 ## v1.6.2 (not yet released)
 
+### New
+- **AYN Thor on Armada OS: the second screen can reach the bottom panel** (issue #86, from a player's proof of concept). Armada OS runs each panel under its own compositor, so GBA DS never found the second screen. With the new `second_screen = shm` setting GBA DS draws it into shared memory, and `gba-ds --present-second`, started on the bottom panel's display, shows it there. Experimental and not tried on the device yet; the panel's touch doesn't reach the game yet. See the wiki page [Install on Armada OS](https://github.com/kyannon/gba-ds/wiki/Install-on-Armada-OS).
+
 ## v1.6.1.1 (2026-11-23)
 
 ### New: Game Boy and Game Boy Color games (issue #77)

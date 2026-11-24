@@ -40,6 +40,8 @@ enum { CL_PIXELATED, CL_FULL, CL_OFF };
 
 typedef struct Config {
 	char layout[16];   /* auto | span-h | span-v | dual | single */
+	char secondScreen[8]; /* window (a window per display) | shm (Linux: drawn into shared memory for `--present-second` on another compositor, issue #86) */
+	char secondSize[16];  /* second_screen = shm: the other panel's size, WxH */
 	bool swap;         /* map on the first (left/top) screen instead of the second */
 	char scale[16];    /* game: integer | fit | stretch */
 	char mapScale[16]; /* map:  integer | fit | stretch */
