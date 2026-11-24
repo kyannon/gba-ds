@@ -339,6 +339,65 @@
     }
    ],
    "patch_on": "Castlevania - AoS (USA) - Symphony of the Colors by Jonata Guitar v1.0.bps"
+  },
+  {
+   "id": "cva-us-single-side",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-play.ss",
+   "desc": "one landscape display, both screens side by side, the second 40%",
+   "rules": [
+    "GEN-18",
+    "CVA-1"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "side",
+    "single_size": "medium"
+   },
+   "env": {
+    "GBADS_WINDOW": "1920x1200"
+   },
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "GEN-18",
+     "what": "both screens cut from the display",
+     "type": "log",
+     "match": "both on one display, 1920x1200 side 40% swap 0"
+    }
+   ]
+  },
+  {
+   "id": "cva-us-single-stacked-swap",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-play.ss",
+   "desc": "one display, auto picks stacked on a tall one, game below, the second 30%",
+   "rules": [
+    "GEN-18",
+    "CVA-1"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "auto",
+    "single_size": "small",
+    "swap": "1"
+   },
+   "env": {
+    "GBADS_WINDOW": "1200x1920"
+   },
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "GEN-18",
+     "what": "stacked, swapped",
+     "type": "log",
+     "match": "both on one display, 1200x1920 stacked 30% swap 1"
+    }
+   ]
   }
  ]
 }
