@@ -1266,7 +1266,7 @@ static bool menuOpen;
 static int menuSel;
 static int menuPressed = -1;      /* item under a finger that went down in the menu */
 static bool ignorePointerUp;      /* the tap that opened the menu */
-static char menuNote[64];
+static char menuNote[200]; /* (translated notes run longer than English ones; the drawing shrinks one to fit) */
 static bool pacedFallback; /* Match Display Rate fell back to the GBA's rate (pacing_update) */
 
 #define C_BTN ui_accent_color(AC_BTN)
