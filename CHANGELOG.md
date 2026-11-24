@@ -2,6 +2,11 @@
 
 ## v1.6.2 (not yet released)
 
+### New: Game Boy and Game Boy Color games (issue #77)
+- **GBA DS plays Game Boy and Game Boy Color games**, on one screen with the other idle dark grey, as a GBA played them. Put `.gb` and `.gbc` files (or zips) in your GBA folder or in `gb` / `gbc` folders beside it, set **Games shown** to **All**, and start them from GBA DS's own game list. Saves, save states, rewind and cheats work as for GBA games. Details on the new wiki page, [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games).
+- **New Game Boy rows** in the pause menu's Display page (and Settings > Display), for these games only: **Game Boy size** (the GBA frame, or the Game Boy's 160×144 picture as the whole screen) and **scale** (Pixel Perfect, Fit, Stretch); **palette** for monochrome games (Game's own, DMG, Pocket, Light, Grayscale, Super Game Boy); **Dual-mode games** in colour or in monochrome; **color correction** (as GBA, off, Game Boy Color, Game Boy Advance); **ghosting** (as GBA, off, light, smart, strong); and a **shader**, with a **Dot matrix** look. The ones that don't apply to the game are greyed out. Palette and dual-mode changes count from the next start: closing the menu asks to **restart now** or **discard changes**, and a resume point made with other colours isn't resumed.
+- Known: the shades, the Game Boy Color's colour matrix and the dot matrix are first guesses; screenshots and the quick bar's pictures use the GBA frame; no Super Game Boy borders, rumble, camera or link cable; no RetroAchievements; EmulationStation, BananaOS and Android frontends don't start these games yet; no list of known dumps yet (no "Modified ROM" note).
+
 ### RetroAchievements
 - **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
 - **Rich Presence** shows under your totals in the Achievements page: the line RetroAchievements shows on your profile for the game.
@@ -14,6 +19,8 @@
 ### Changes
 - **Rewind and fast forward can go on other buttons** (issue #88). Settings > Controls > Hotkeys has Rewind (hold) and Fast forward (hold), L2 and R2 at first (HOME + L2 and HOME + R2 work too), and two new shortcuts, Rewind on/off and Fast forward on/off, that keep going until you press them again (no button until you give them one). The Hotkeys list now scrolls, and its last row is no longer hidden under the note at the bottom. Map buttons and Hotkeys are now at the top of Controls, and they (and the state folder picker) show on the menu's screen only, not on both.
 - **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
+
+- **Android: a second screen on a USB-C display is chosen more carefully, and `launch.log` lists the screens** (issue #65, AYN Odin 2 with the Retroid Dual Screen Add-on). GBA DS now prefers the display Android marks for presentations, then one that is switched on, instead of the first one listed, and `launch.log` has a line for each display Android reports (name, size, flags, state) and which one was used. Known: a screen plugged in after the game has started isn't picked up until the game is started again.
 
 ### Fixes
 - **The pause menu's notes are no longer cut off in other languages.** A long translated note (French, German...) stopped mid-word, and the end of "Choose it again to close GBA DS: your place is saved" stayed in English in every language.
