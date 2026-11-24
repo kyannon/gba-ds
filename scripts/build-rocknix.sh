@@ -77,7 +77,7 @@ if [ -n "$SIDE" ]; then
 		SIDE_CODES=""
 	else
 	SIDE_NAME="${GBADS_SIDE_NAME:-$(sed -n '1s/^# *//p' "$RULES" 2>/dev/null)}"
-	SIDE_CODES="${GBADS_SIDE_CODES:-$(grep -m1 '^| Releases |' "$RULES" 2>/dev/null | grep -o '`[A-Z0-9]\{4\}`' | tr -d '`' | tr '\n' ' ' | sed 's/ *$//')}"
+	SIDE_CODES="${GBADS_SIDE_CODES:-$(grep -m1 '^| Releases |' "$RULES" 2>/dev/null | grep -o '`[A-Za-z0-9]\{4\}`' | tr -d '`' | tr '\n' ' ' | sed 's/ *$//')}"
 	if [ -z "$SIDE_NAME" ] || [ -z "$SIDE_CODES" ]; then
 		echo "GBADS_SIDE: $RULES needs its title (# Name) and a Releases row with the codes (\`A2NE\`), or set GBADS_SIDE_NAME and GBADS_SIDE_CODES" >&2
 		exit 1
