@@ -190,7 +190,7 @@ typedef struct {
 } Twin;
 static Twin twins[TWINS];
 static bool twinOpen;
-static uint64_t twinSeq; /* run_frames; jumps on a load or rewind (bug_reset) */
+static uint64_t twinSeq; /* counts run_frame calls; jumps on a load or rewind (bug_reset) */
 static bool twinNoObj; /* (carry) the copies draw no sprites (profile carry.noObj, in the game) */
 static bool twinRun;       /* the copies are to run (a table they know, its sweep over, a ball) */
 static int twinArmed;      /* frames on a table they know, with no sweep of the table going on */
@@ -1255,6 +1255,12 @@ static bool hk_is_action(int b) {
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
 }
+/* Repeating a held direction in a menu: true on the frame the button goes down,
+ * then every 4th frame once it has been held for 20 (*frames counts them) */
+static bool key_repeat(int* frames, bool down) {
+	*frames = down ? *frames + 1 : 0;
+	return *frames == 1 || (*frames > 20 && *frames % 4 == 0);
+}
 static const char* pageNames[N_PAGES] = { "Game", N_("Display"), "Screens", "Controls", N_("Speed"), N_("Map")};
 /* Restart Game, Close Game and Close GBA DS ask first: chosen once, the
  * button says "Are You Sure?" (and the note what happens); chosen again,
@@ -1269,7 +1275,7 @@ static bool menuOpen;
 static int menuSel;
 static int menuPressed = -1;      /* item under a finger that went down in the menu */
 static bool ignorePointerUp;      /* the tap that opened the menu */
-static char menuNote[64];
+static char menuNote[200]; /* (translated notes run longer than English ones; the drawing shrinks one to fit) */
 static bool pacedFallback; /* Match Display Rate fell back to the GBA's rate (pacing_update) */
 
 #define C_BTN ui_accent_color(AC_BTN)
@@ -1284,7 +1290,7 @@ static SDL_Rect tab_rect(int scr, int t);
 static SDL_Rect ach_area(int scr);
 
 /* Every label a pause-menu button can show, for sizing the text so the
- * widest fits (item_label gives the current one). */
+ * widest fits (menu_geom). */
 static const char* const allLabels[] = {
 	N_("Resume"), N_("Restart Game"), N_("Are You Sure?"), N_("Save State"), N_("Load State"), "Cheats", "Patches", "Achievements",
 	N_("Take Screenshot"), N_("Close Game"), N_("Close GBA DS"), N_("Submit a Bug Report"),
@@ -1444,7 +1450,8 @@ static int achPressY, achPressScroll;
 static bool achPressed;
 static int cheatSel;                 /* row index */
 static int cheatScroll;              /* pixels */
-static int cheatRows[CHEAT_MAX_FILES + 1024], nCheatRows; /* >= 0 cheat index, < 0 file header (-1 - file) */
+/* >= 0 cheat index, < 0 file header (-1 - file); room for every cheat the loader can read, plus a header per file */
+static int cheatRows[CHEAT_MAX_FILES * (CHEATS_PER_FILE_MAX + 1)], nCheatRows;
 static int cheatPressRow = -1, cheatPressY, cheatPressScroll;
 static bool cheatDragging;
 
@@ -1452,7 +1459,7 @@ static void build_cheat_rows(void) {
 	nCheatRows = 0;
 	for (int f = 0; f < cheats.nFiles; ++f) {
 		if (cheats.nFiles > 1) cheatRows[nCheatRows++] = -1 - f;
-		for (int i = 0; i < cheats.n && nCheatRows < (int) SDL_arraysize(cheatRows); ++i) {
+		for (int i = 0; i < cheats.n; ++i) {
 			if (cheats.items[i].file == f) cheatRows[nCheatRows++] = i;
 		}
 	}
@@ -3203,20 +3210,11 @@ static int item_at(int scr, int x, int y) {
 	return -1;
 }
 
-/* Display > Shader: the label and the note under the buttons, by SH_* */
+/* Display > Shader: the label, by SH_* */
 #define SHADER_ON (cfg->shader != SH_OFF)
 static const char* const shaderLabels[SH_COUNT] = {
 	N_("Shader: Off"), N_("Shader: LCD Grid"), N_("Shader: Scanlines"), N_("Shader: Soft Cells"),
 	N_("Shader: Subpixels (Light)"), N_("Shader: Subpixels"), N_("Shader: Subpixels (Strong)"),
-};
-static const char* const shaderNotes[SH_COUNT] = {
-	N_("The game's pixels as they are"),
-	N_("Lines between the pixels, like a GBA's screen"),
-	N_("A dark line under each row of pixels"),
-	N_("Each pixel a little darker toward its edges"),
-	N_("Red, green and blue stripes, gentle: for dim screens"),
-	N_("Red, green and blue stripes, like a GBA's screen"),
-	N_("Red, green and blue stripes, strong: for bright screens"),
 };
 static const char* shader_label(int sh) {
 	return shaderLabels[sh >= 0 && sh < SH_COUNT ? sh : 0];
@@ -7601,14 +7599,6 @@ static void rewind_setup(void) {
 	fprintf(stderr, "rewind: %d s (%d states)\n", secs, secs * 30);
 }
 
-/* ff_speed as gba-ds.cfg writes it: a number, or max (0, as atoi reads it) */
-static const char* ff_speed_name(const Config* c) {
-	static char s[12];
-	if (c->ffSpeed <= 0) return "max";
-	snprintf(s, sizeof(s), "%d", c->ffSpeed);
-	return s;
-}
-
 /* Display choices made in the menu are remembered for next time (and the
  * game list's Performance setting: prefs_save from library.c). */
 static void save_prefs(void) {
@@ -8251,7 +8241,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		const char* lost = cfg->autoSave ? N_("your place is saved"): N_("unsaved progress is lost");
 		if (item == M_HARDCORE) snprintf(menuNote, sizeof(menuNote), ra_hardcore() ? tr("Again for casual: the game restarts") : tr("Again for hardcore: restarts, no cheats or loads"));
 		else if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), tr("Choose it again to restart: unsaved progress is lost"));
-		else snprintf(menuNote, sizeof(menuNote), tr("Choose it again to close %s: %s"), item == M_EXIT ? "GBA DS" : tr("the game"), lost);
+		else snprintf(menuNote, sizeof(menuNote), tr("Choose it again to close %s: %s"), item == M_EXIT ? "GBA DS" : tr("the game"), tr(lost));
 		return false;
 	}
 	armedItem = -1;
@@ -8589,6 +8579,167 @@ static void logo_refresh(void) {
 	}
 }
 
+/* The 5-second health report and the sound delay's automatic raising. One per
+ * game session, from health_init: the counts (its own and the stall, keeper,
+ * timing and slow-frame counts it reports) are the session's own (not the
+ * last game's: its last frame is the "slow" gap before this one's first, and
+ * its time in the game list is not preemption of this one). */
+typedef struct {
+	int audioMs;                /* the sound delay in use: the setting, raised a step when the sound keeps running dry (audio_auto; only for this run, the setting is left alone) */
+	int targetQueued;           /* the queue's target, in sample frames */
+	uint64_t quietUntil;        /* no dry-queue counting before this frame: the sound was being started again (a menu, a rewind) */
+	uint64_t dryWindowStart;
+	int dryQueueBefore, dryEvents;
+	int underruns, slow, captureBusy, dropped, frames, quietWindows;
+	int queueLo, queueHi;       /* the queue's range this window (ms) */
+	long preemptT0;
+	Uint64 lastIter;
+} Health;
+typedef struct {
+	uint64_t frame;
+	int queuedNow, freq;        /* the sound queue, in sample frames; the device's rate */
+	bool audio, ff, rewinding;
+	bool dropAudio;             /* the queue is over 3x its target: this frame's sound is thrown away */
+	bool mapBusy;               /* a map capture was running this frame */
+	bool autoRaise;             /* cfg->audioAuto */
+} HealthFrame;
+static void health_init(Health* h, int audioLatencyMs, int freq) {
+	*h = (Health) { .audioMs = audioLatencyMs, .targetQueued = freq * audioLatencyMs / 1000, .dryQueueBefore = 1,
+		            .queueLo = 1 << 30, .queueHi = -1, .preemptT0 = thread_preemptions() };
+	/* (the file-wide counts the reports read start again too: a game closed
+	 * before its first report left its stalls and times in them) */
+	stallCount = stallLogged = 0, stallWorst = 0;
+	keptTotal = 0;
+	emuTicks = drawTicks = 0;
+	slowCount = 0, slowWorst.total = 0;
+}
+static void health_frame(Health* h, const HealthFrame* in) {
+	const uint64_t frameCount = in->frame;
+	const int queuedNow = in->queuedNow;
+	const bool audio = in->audio, ff = in->ff, rewinding = in->rewinding, dropAudio = in->dropAudio;
+	Uint64 nowT = SDL_GetPerformanceCounter();
+	if (h->lastIter && !ff && (nowT - h->lastIter) * 1000 / SDL_GetPerformanceFrequency() > 25) ++h->slow;
+	h->lastIter = nowT;
+	if (audio && frameCount > 120 && queuedNow == 0 && !ff) ++h->underruns;
+	/* The sound keeps running dry (a queue that had sound in it a frame ago and has
+	 * none now, three times in about 10 s): the sound delay goes up a step. Not while
+	 * fast-forwarding or rewinding, nor for 2.5 s after either or after the menu
+	 * (the queue is being filled again then). */
+	if (ff || rewinding || dropAudio) h->quietUntil = frameCount + 150;
+	if (audio && in->autoRaise && frameCount > 120 && frameCount >= h->quietUntil) {
+		if (queuedNow == 0 && h->dryQueueBefore > 0) {
+			if (!h->dryEvents || frameCount - h->dryWindowStart > 600) h->dryWindowStart = frameCount, h->dryEvents = 0;
+			if (++h->dryEvents >= 3) {
+				static const int steps[] = { 32, 64, 96, 128, 192 };
+				int to = h->audioMs;
+				for (size_t k = 0; k < sizeof(steps) / sizeof(steps[0]); ++k)
+					if (steps[k] > h->audioMs) { to = steps[k]; break; }
+				if (to != h->audioMs) {
+					fprintf(stderr, "frame %llu: the sound ran dry %d times in %.0f s: sound delay raised from %d to %d ms "
+					                "for this run (audio_auto = 0 turns this off)\n",
+					        (unsigned long long) frameCount, h->dryEvents, (double) (frameCount - h->dryWindowStart) / 60.0, h->audioMs, to);
+					h->audioMs = to;
+					h->targetQueued = in->freq * h->audioMs / 1000;
+					ui_osd_long("Sound delay raised to %d ms: the sound kept breaking up", h->audioMs);
+				}
+				h->dryEvents = 0;
+				h->quietUntil = frameCount + 150; /* (the queue climbs to the new level first) */
+			}
+		}
+		h->dryQueueBefore = queuedNow;
+	} else {
+		h->dryQueueBefore = 1;
+	}
+	if (audio && frameCount > 120 && !ff && !rewinding) {
+		int qMs = queuedNow * 1000 / in->freq;
+		if (qMs < h->queueLo) h->queueLo = qMs;
+		if (qMs > h->queueHi) h->queueHi = qMs;
+	}
+	if (in->mapBusy) ++h->captureBusy;
+	if (dropAudio && !ff) ++h->dropped; /* (the queue over 3x its target: this frame's sound thrown away, a gap) */
+	if (++h->frames >= 300) {
+#ifdef __ANDROID__
+		const bool report = true; /* performance on Android devices is still being measured */
+#else
+		const bool report = h->underruns || h->slow || h->dropped || stallCount || keptTotal || debug;
+#endif
+		/* (all well: the line still comes every 30 s, for the queue's range) */
+		bool show = report;
+		if (!show && audio && ++h->quietWindows >= 6) show = true;
+		if (show) h->quietWindows = 0;
+		if (show) {
+			double ms = 1000.0 / SDL_GetPerformanceFrequency() / h->frames;
+			fprintf(stderr, "frame %llu: last 5 s: %.1f fps, %d audio underrun(s), %d slow frame(s), map capture busy %d%%, "
+			                "audio queue %d ms; per frame: emulating %.2f ms, drawing %.2f ms; game thread preempted %ld time(s)",
+			        (unsigned long long) frameCount, fps, h->underruns, h->slow, h->captureBusy * 100 / h->frames,
+			        queuedNow * 1000 / in->freq, emuTicks * ms, drawTicks * ms, thread_preemptions() - h->preemptT0);
+			if (h->queueHi >= 0) fprintf(stderr, "; audio queue between %d and %d ms (sound delay %d ms)", h->queueLo, h->queueHi, h->audioMs);
+			if (stallCount) fprintf(stderr, "; %d stall(s) over %d ms, the longest %.0f ms", stallCount, STALL_MS, stallWorst);
+			if (h->dropped) fprintf(stderr, "; sound thrown away on %d frame(s) (queue too long)", h->dropped);
+			if (keptTotal) fprintf(stderr, "; %u frame(s) run while the screen held a frame up", keptTotal);
+			fputc('\n', stderr);
+		}
+		h->underruns = h->slow = h->captureBusy = h->dropped = h->frames = 0;
+		h->queueLo = 1 << 30, h->queueHi = -1;
+		stallCount = stallLogged = 0, stallWorst = 0;
+		keptTotal = 0;
+		h->preemptT0 = thread_preemptions();
+		emuTicks = drawTicks = 0;
+	}
+}
+
+/* Opens the sound device the game plays through (0 when none will open), in
+ * *want: its format (the rate it runs at is fixed; see game_run_inner). Falls
+ * back from the device launch.sh asked for (AUDIODEV), then through the other
+ * drivers, and logs what it got. */
+static SDL_AudioDeviceID open_game_audio(SDL_AudioSpec* want) {
+	SDL_AudioSpec have;
+	*want = (SDL_AudioSpec) { 0 };
+	want->freq = 48000;
+	want->format = AUDIO_S16SYS;
+	want->channels = 2;
+	/* GBADS_AUDIO_SAMPLES: testing only (SDL's dummy driver keeps exact time
+	 * only when the buffer is a whole number of milliseconds, e.g. 480) */
+	want->samples = getenv("GBADS_AUDIO_SAMPLES") ? atoi(getenv("GBADS_AUDIO_SAMPLES")) : 512;
+	SDL_AudioDeviceID audio = SDL_OpenAudioDevice(NULL, 0, want, &have, 0);
+#if !defined(__wasi__) && !defined(__ANDROID__)
+	if (!audio && getenv("AUDIODEV")) {
+		/* the device launch.sh asked for (the RG DS Plus's Stock Linux OS: ALSA's pulse)
+		 * won't open: the driver's own default instead */
+		fprintf(stderr, "no audio on %s (%s): the default device instead\n", getenv("AUDIODEV"), SDL_GetError());
+		unsetenv("AUDIODEV");
+		SDL_AudioQuit();
+		SDL_AudioInit(NULL);
+		audio = SDL_OpenAudioDevice(NULL, 0, want, &have, 0);
+	}
+#endif
+#ifndef __wasi__
+	if (!audio) {
+		/* (a player on ROCKNIXDS heard nothing: the driver SDL picked may
+		 * not reach the sound server; the others, in turn) */
+		fprintf(stderr, "no audio with %s: %s\n", SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver() : "no driver", SDL_GetError());
+		static const char* const tryDrivers[] = { "pipewire", "pulseaudio", "alsa" };
+		const char* first = SDL_GetCurrentAudioDriver();
+		for (int i = 0; i < 3 && !audio; ++i) {
+			if (first && !strcmp(first, tryDrivers[i])) continue;
+			SDL_AudioQuit();
+			if (SDL_AudioInit(tryDrivers[i]) != 0) continue;
+			audio = SDL_OpenAudioDevice(NULL, 0, want, &have, 0);
+			if (!audio) fprintf(stderr, "no audio with %s: %s\n", tryDrivers[i], SDL_GetError());
+		}
+		if (!audio) SDL_AudioQuit(), SDL_AudioInit(NULL);
+	}
+#endif
+	if (audio) {
+		SDL_PauseAudioDevice(audio, 0);
+		fprintf(stderr, "audio: %s%s%s, %d Hz, %d channels, %d samples\n", SDL_GetCurrentAudioDriver(), getenv("AUDIODEV") ? " on " : "",
+		        getenv("AUDIODEV") ? getenv("AUDIODEV") : "", have.freq, have.channels, have.samples);
+	} else {
+		fprintf(stderr, "no audio: %s\n", SDL_GetError());
+	}
+	return audio;
+}
+
 static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary);
 
 /* A game's own settings (issue #53, states/<game>.cfg) are put over the
@@ -8798,58 +8949,12 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	 * running...) and can change at any moment, so samples go through a
 	 * converter that is rebuilt whenever it does. Opening the device at the
 	 * rate of the moment made resumed games starve and fresh boots overflow. */
-	SDL_AudioSpec want = { 0 }, have;
-	want.freq = 48000;
-	want.format = AUDIO_S16SYS;
-	want.channels = 2;
-	/* GBADS_AUDIO_SAMPLES: testing only (SDL's dummy driver keeps exact time
-	 * only when the buffer is a whole number of milliseconds, e.g. 480) */
-	want.samples = getenv("GBADS_AUDIO_SAMPLES") ? atoi(getenv("GBADS_AUDIO_SAMPLES")) : 512;
-	SDL_AudioDeviceID audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-#if !defined(__wasi__) && !defined(__ANDROID__)
-	if (!audio && getenv("AUDIODEV")) {
-		/* the device launch.sh asked for (the RG DS Plus's Stock Linux OS: ALSA's pulse)
-		 * won't open: the driver's own default instead */
-		fprintf(stderr, "no audio on %s (%s): the default device instead\n", getenv("AUDIODEV"), SDL_GetError());
-		unsetenv("AUDIODEV");
-		SDL_AudioQuit();
-		SDL_AudioInit(NULL);
-		audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-	}
-#endif
-#ifndef __wasi__
-	if (!audio) {
-		/* (a player on ROCKNIXDS heard nothing: the driver SDL picked may
-		 * not reach the sound server; the others, in turn) */
-		fprintf(stderr, "no audio with %s: %s\n", SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver() : "no driver", SDL_GetError());
-		static const char* const tryDrivers[] = { "pipewire", "pulseaudio", "alsa" };
-		const char* first = SDL_GetCurrentAudioDriver();
-		for (int i = 0; i < 3 && !audio; ++i) {
-			if (first && !strcmp(first, tryDrivers[i])) continue;
-			SDL_AudioQuit();
-			if (SDL_AudioInit(tryDrivers[i]) != 0) continue;
-			audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-			if (!audio) fprintf(stderr, "no audio with %s: %s\n", tryDrivers[i], SDL_GetError());
-		}
-		if (!audio) SDL_AudioQuit(), SDL_AudioInit(NULL);
-	}
-#endif
-	if (audio) {
-		SDL_PauseAudioDevice(audio, 0);
-		fprintf(stderr, "audio: %s%s%s, %d Hz, %d channels, %d samples\n", SDL_GetCurrentAudioDriver(), getenv("AUDIODEV") ? " on " : "",
-		        getenv("AUDIODEV") ? getenv("AUDIODEV") : "", have.freq, have.channels, have.samples);
-	} else {
-		fprintf(stderr, "no audio: %s\n", SDL_GetError());
-	}
+	SDL_AudioSpec want;
+	SDL_AudioDeviceID audio = open_game_audio(&want);
 	SDL_AudioStream* audioConv = NULL;
 	int convFrom = 0;
-	/* The sound delay in use: the setting, raised a step when the sound keeps
-	 * running dry (audio_auto; only for this run, the setting is left alone) */
-	int audioMs = cfg->audioLatency;
-	int targetQueued = want.freq * audioMs / 1000;
-	uint64_t audioQuietUntil = 0; /* no dry-queue counting before this frame: the sound was being started again */
-	uint64_t dryWindowStart = 0;
-	int dryQueueBefore = 1, dryEvents = 0;
+	Health hl; /* (the sound delay in use, and the health report's counts: for this session) */
+	health_init(&hl, cfg->audioLatency, want.freq);
 	/* testing only: GBADS_TEST_STARVE=1 throws away the sound of 20 frames in every 100 (after frame 200) */
 	const bool testStarve = getenv("GBADS_TEST_STARVE") && atoi(getenv("GBADS_TEST_STARVE"));
 
@@ -8884,7 +8989,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	double next = SDL_GetPerformanceCounter() / freq;
 	double fpsT0 = next;
 	int fpsFrames = 0;
-
 #ifdef __ANDROID__
 	/* a target well under the frame time: the system clocks the CPU so each
 	 * frame's work takes about this long, leaving room for heavier frames
@@ -9390,8 +9494,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int held[2];
 			for (int k = 0; k < 2; ++k) {
 				int b = k ? B_DOWN : B_UP;
-				held[k] = btnNow[b] ? held[k] + 1 : 0;
-				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0)) ra_list_scroll(scr, (k ? 1 : -1) * ra_list_step(scr));
+				if (key_repeat(&held[k], btnNow[b])) ra_list_scroll(scr, (k ? 1 : -1) * ra_list_step(scr));
 			}
 			int page = ach_area(scr).h * 3 / 4;
 			if (btn_pressed(B_L)) ra_list_scroll(scr, -page);
@@ -9404,8 +9507,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int held[4];
 			const int dirs[4] = { B_UP, B_DOWN, B_LEFT, B_RIGHT };
 			for (int k = 0; k < 4; ++k) {
-				held[k] = btnNow[dirs[k]] ? held[k] + 1 : 0;
-				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0))
+				if (key_repeat(&held[k], btnNow[dirs[k]]))
 					note_move(ui_touch_screen(), k == 0 ? -1 : k == 1 ? 1 : 0, k == 2 ? -1 : k == 3 ? 1 : 0);
 			}
 			if (btn_pressed(B_A)) note_press(noteRow, noteCol);
@@ -9419,8 +9521,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int pheld[2];
 			for (int k = 0; k < 2; ++k) {
 				int b = k ? B_DOWN : B_UP;
-				pheld[k] = btnNow[b] ? pheld[k] + 1 : 0;
-				if (pheld[k] == 1 || (pheld[k] > 20 && pheld[k] % 4 == 0)) patch_move(k ? 1 : -1);
+				if (key_repeat(&pheld[k], btnNow[b])) patch_move(k ? 1 : -1);
 			}
 			CheatGeom g = cheat_geom(ui_touch_screen());
 			int page = SDL_max(1, g.listH / (g.rowH + g.gap) - 1);
@@ -9443,8 +9544,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int held[4];
 			const int dirs[4] = { B_UP, B_DOWN, B_LEFT, B_RIGHT };
 			for (int k = 0; k < 4; ++k) {
-				held[k] = btnNow[dirs[k]] ? held[k] + 1 : 0;
-				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0)) hex_move(k == 0 ? -1 : k == 1 ? 1 : 0, k == 2 ? -1 : k == 3 ? 1 : 0);
+				if (key_repeat(&held[k], btnNow[dirs[k]])) hex_move(k == 0 ? -1 : k == 1 ? 1 : 0, k == 2 ? -1 : k == 3 ? 1 : 0);
 			}
 			if (btn_pressed(B_A)) hex_press(hexRow, hexCol);
 			else if (btn_pressed(B_B)) {
@@ -9487,8 +9587,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			static int held[2];
 			for (int k = 0; k < 2; ++k) {
 				int b = k ? B_DOWN : B_UP;
-				held[k] = btnNow[b] ? held[k] + 1 : 0;
-				if (held[k] == 1 || (held[k] > 20 && held[k] % 4 == 0)) cheat_move(k ? 1 : -1);
+				if (key_repeat(&held[k], btnNow[b])) cheat_move(k ? 1 : -1);
 			}
 			CheatGeom g = cheat_geom(ui_touch_screen());
 			int page = SDL_max(1, g.listH / (g.rowH + g.gap) - 1);
@@ -9533,7 +9632,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			fpsFrames = 0;
 			pacedMisses = pacedMissSecs = 0; /* (the menu's time isn't the game's) */
 			forceMap = true;
-			audioQuietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
+			hl.quietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
 		}
 		wasMenu = menuOpen;
 
@@ -9638,86 +9737,12 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		 * makes PulseAudio/PipeWire grow their buffers after each underrun,
 		 * which is what made the lag worse every time. */
 		int queuedNow = audio ? (int) (SDL_GetQueuedAudioSize(audio) / 4) : 0;
-		bool dropAudio = queuedNow > targetQueued * 3; /* hard cap on drift */
-		/* Health report (always on, every 5 s when something went wrong): audio
-		 * underruns (the queue ran dry = a crackle), slow loop iterations, and
-		 * how often the background map capture was running. */
-		{
-			static int underruns, slow, captureBusy, dropped, n;
-			static int queueLo = 1 << 30, queueHi = -1, quietWindows; /* the queue's range this window (ms) */
-			static long preemptT0 = -1;
-			if (preemptT0 < 0) preemptT0 = thread_preemptions();
-			static Uint64 lastIter;
-			Uint64 nowT = SDL_GetPerformanceCounter();
-			if (lastIter && !ff && (nowT - lastIter) * 1000 / SDL_GetPerformanceFrequency() > 25) ++slow;
-			lastIter = nowT;
-			if (audio && frameCount > 120 && queuedNow == 0 && !ff) ++underruns;
-			/* The sound keeps running dry (a queue that had sound in it a frame ago and has
-			 * none now, three times in about 10 s): the sound delay goes up a step. Not while
-			 * fast-forwarding or rewinding, nor for 2.5 s after either or after the menu
-			 * (the queue is being filled again then). */
-			if (ff || rewinding || dropAudio) audioQuietUntil = frameCount + 150;
-			if (audio && cfg->audioAuto && frameCount > 120 && frameCount >= audioQuietUntil) {
-				if (queuedNow == 0 && dryQueueBefore > 0) {
-					if (!dryEvents || frameCount - dryWindowStart > 600) dryWindowStart = frameCount, dryEvents = 0;
-					if (++dryEvents >= 3) {
-						static const int steps[] = { 32, 64, 96, 128, 192 };
-						int to = audioMs;
-						for (size_t k = 0; k < sizeof(steps) / sizeof(steps[0]); ++k)
-							if (steps[k] > audioMs) { to = steps[k]; break; }
-						if (to != audioMs) {
-							fprintf(stderr, "frame %llu: the sound ran dry %d times in %.0f s: sound delay raised from %d to %d ms "
-							                "for this run (audio_auto = 0 turns this off)\n",
-							        (unsigned long long) frameCount, dryEvents, (double) (frameCount - dryWindowStart) / 60.0, audioMs, to);
-							audioMs = to;
-							targetQueued = want.freq * audioMs / 1000;
-							ui_osd_long("Sound delay raised to %d ms: the sound kept breaking up", audioMs);
-						}
-						dryEvents = 0;
-						audioQuietUntil = frameCount + 150; /* (the queue climbs to the new level first) */
-					}
-				}
-				dryQueueBefore = queuedNow;
-			} else {
-				dryQueueBefore = 1;
-			}
-			if (audio && frameCount > 120 && !ff && !rewinding) {
-				int qMs = queuedNow * 1000 / want.freq;
-				if (qMs < queueLo) queueLo = qMs;
-				if (qMs > queueHi) queueHi = qMs;
-			}
-			if (mc && mapcap_busy(mc)) ++captureBusy;
-			if (dropAudio && !ff) ++dropped; /* (the queue over 3x its target: this frame's sound thrown away, a gap) */
-			if (++n >= 300) {
-#ifdef __ANDROID__
-				const bool report = true; /* performance on Android devices is still being measured */
-#else
-				const bool report = underruns || slow || dropped || stallCount || keptTotal || debug;
-#endif
-				/* (all well: the line still comes every 30 s, for the queue's range) */
-				bool show = report;
-				if (!show && audio && ++quietWindows >= 6) show = true;
-				if (show) quietWindows = 0;
-				if (show) {
-					double ms = 1000.0 / SDL_GetPerformanceFrequency() / n;
-					fprintf(stderr, "frame %llu: last 5 s: %.1f fps, %d audio underrun(s), %d slow frame(s), map capture busy %d%%, "
-					                "audio queue %d ms; per frame: emulating %.2f ms, drawing %.2f ms; game thread preempted %ld time(s)",
-					        (unsigned long long) frameCount, fps, underruns, slow, captureBusy * 100 / n,
-					        queuedNow * 1000 / want.freq, emuTicks * ms, drawTicks * ms, thread_preemptions() - preemptT0);
-					if (queueHi >= 0) fprintf(stderr, "; audio queue between %d and %d ms (sound delay %d ms)", queueLo, queueHi, audioMs);
-					if (stallCount) fprintf(stderr, "; %d stall(s) over %d ms, the longest %.0f ms", stallCount, STALL_MS, stallWorst);
-					if (dropped) fprintf(stderr, "; sound thrown away on %d frame(s) (queue too long)", dropped);
-					if (keptTotal) fprintf(stderr, "; %u frame(s) run while the screen held a frame up", keptTotal);
-					fputc('\n', stderr);
-				}
-				underruns = slow = captureBusy = dropped = n = 0;
-				queueLo = 1 << 30, queueHi = -1;
-				stallCount = stallLogged = 0, stallWorst = 0;
-				keptTotal = 0;
-				preemptT0 = thread_preemptions();
-				emuTicks = drawTicks = 0;
-			}
-		}
+		bool dropAudio = queuedNow > hl.targetQueued * 3; /* hard cap on drift */
+		/* Health report (always on, every 5 s when something went wrong), and the sound delay
+		 * raised when the sound keeps running dry */
+		health_frame(&hl, &(HealthFrame) { .frame = frameCount, .queuedNow = queuedNow, .freq = want.freq, .audio = audio != 0,
+		                                   .ff = ff, .rewinding = rewinding, .dropAudio = dropAudio,
+		                                   .mapBusy = mc && mapcap_busy(mc), .autoRaise = cfg->audioAuto });
 		if (debug && audio && frameCount % 30 == 0) {
 			fprintf(stderr, "audio queue %d ms%s\n", queuedNow * 1000 / want.freq, ff ? " (ff)" : "");
 		}
@@ -9790,8 +9815,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					 * the queue is a quarter off its target. */
 					if (pacedHz > 0 && bytes >= 8) {
 						int q = (int) (SDL_GetQueuedAudioSize(audio) / 4);
-						if (q > targetQueued * 5 / 4) bytes -= 4;
-						else if (q < targetQueued * 3 / 4 && bytes + 4 <= (int) sizeof(conv)) {
+						if (q > hl.targetQueued * 5 / 4) bytes -= 4;
+						else if (q < hl.targetQueued * 3 / 4 && bytes + 4 <= (int) sizeof(conv)) {
 							memcpy((char*) conv + bytes, (char*) conv + bytes - 4, 4);
 							bytes += 4;
 						}
@@ -10031,7 +10056,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			/* (the keeper: the game and its sound go on if this is held up; not
 			 * for tests, whose frames are counted exactly) */
 			const bool keep = cfg->keepSound && audio && !ff && !rewinding && !noPace && !ui_scripted();
-			if (keep) keeper_arm(keys, audio, want.freq, targetQueued * 3, aheadInFlight ? 1 : 0);
+			if (keep) keeper_arm(keys, audio, want.freq, hl.targetQueued * 3, aheadInFlight ? 1 : 0);
 			ui_present();
 			if (keep) {
 				int kept = keeper_disarm();
@@ -10119,8 +10144,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		next += pacedHz > 0 ? frameSec / 1.005 : frameSec;
 		if (audio) {
 			int queued = (int) (SDL_GetQueuedAudioSize(audio) / 4);
-			if (queued > targetQueued * 3 / 2) next += frameSec * 0.015;
-			else if (queued < targetQueued / 2) next -= frameSec * 0.015;
+			if (queued > hl.targetQueued * 3 / 2) next += frameSec * 0.015;
+			else if (queued < hl.targetQueued / 2) next -= frameSec * 0.015;
 		}
 		if (next < now - 4 * frameSec) next = now;
 		if (noPace) next = now; /* benchmarking: run as fast as possible */

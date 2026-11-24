@@ -2192,6 +2192,10 @@ static void states_dir_pick(Config* cfg) {
 	                           sizeof(chosen));
 	if (r == FOLDER_CANCEL) return;
 	if (r == FOLDER_CHOSEN) {
+		if (strlen(chosen) >= sizeof(cfg->raStateDir)) { /* (a cut-off path would be another folder) */
+			snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("That folder's path is too long."));
+			return;
+		}
 		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
 		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
 		snprintf(settingsMsg, sizeof(settingsMsg), tr("Slots 0-9 and the automatic state are now shared with RetroArch, in %s."), path_tail(chosen));

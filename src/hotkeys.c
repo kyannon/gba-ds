@@ -80,9 +80,8 @@ void hotkeys_resolve_holds(const Config* cfg, int mod, int hold[HOLD_COUNT], boo
 /* ---------------------------------------------------------------- the screen */
 
 static const SDL_Color C_BG = { 14, 14, 26, 255 };
-static const SDL_Color C_ROW = { 22, 22, 38, 255 };
-static const SDL_Color C_SEL = { 92, 52, 140, 255 };
-static const SDL_Color C_EDGE = { 150, 120, 210, 255 };
+static const SDL_Color C_ROW = { 22, 22, 38, 255 };    /* the scroll bar's track */
+static const SDL_Color C_EDGE = { 150, 120, 210, 255 }; /* and its thumb */
 static const SDL_Color C_TEXT = { 236, 236, 244, 255 };
 static const SDL_Color C_DIM = { 140, 140, 172, 255 };
 static const SDL_Color C_GOLD = { 232, 200, 120, 255 };

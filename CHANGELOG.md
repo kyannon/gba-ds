@@ -12,8 +12,13 @@
 - New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
 
 ### Changes
-- **Rewind and fast forward can go on other buttons** (issue #88). Settings > Controls > Hotkeys has Rewind (hold) and Fast forward (hold), L2 and R2 at first (HOME + L2 and HOME + R2 work too), and two new shortcuts, Rewind on/off and Fast forward on/off, that keep going until you press them again (no button until you give them one). The Hotkeys list now scrolls, and its last row is no longer hidden under the note at the bottom.
+- **Rewind and fast forward can go on other buttons** (issue #88). Settings > Controls > Hotkeys has Rewind (hold) and Fast forward (hold), L2 and R2 at first (HOME + L2 and HOME + R2 work too), and two new shortcuts, Rewind on/off and Fast forward on/off, that keep going until you press them again (no button until you give them one). The Hotkeys list now scrolls, and its last row is no longer hidden under the note at the bottom. Map buttons and Hotkeys are now at the top of Controls, and they (and the state folder picker) show on the menu's screen only, not on both.
 - **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
+
+### Fixes
+- **The pause menu's notes are no longer cut off in other languages.** A long translated note (French, German...) stopped mid-word, and the end of "Choose it again to close GBA DS: your place is saved" stayed in English in every language.
+- **Cheats with the same name are remembered separately.** When a cheat file had two cheats with the same name, switching one on brought both back on the next time the game started. Your existing choices still load as before.
+- **Choosing a RetroArch state folder with a very long path** (over 511 characters) now says the path is too long, instead of quietly saving a cut-off path that pointed somewhere else.
 
 ## v1.6.1 (2026-11-22)
 
