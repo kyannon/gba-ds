@@ -1,0 +1,330 @@
+{
+ "game": "Pokemon Pinball (Game Boy Color)",
+ "rules": "docs/games/pokemon-pinball-gbc.md",
+ "cases": [
+  {
+   "id": "ppg-us-title",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-title.ss",
+   "desc": "the title",
+   "rules": [
+    "PPG-4"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-4",
+     "what": "the second screen idle",
+     "type": "uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-us-menu",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-menu.ss",
+   "desc": "the menu",
+   "rules": [
+    "PPG-4"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-4",
+     "what": "the second screen idle",
+     "type": "uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-us-field-select",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-field-select.ss",
+   "desc": "the field select",
+   "rules": [
+    "PPG-4"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-4",
+     "what": "the second screen idle",
+     "type": "uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-us-table-wait",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-table-wait.ss",
+   "desc": "the ball waiting at the plunger",
+   "rules": [
+    "PPG-4"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-4",
+     "what": "the second screen idle",
+     "type": "uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-us-launch",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-launch.ss",
+   "desc": "the ball just launched",
+   "rules": [
+    "PPG-1"
+   ],
+   "shots": {
+    "early": 90,
+    "end": 150
+   },
+   "checks": [
+    {
+     "rule": "PPG-1",
+     "what": "the bottom half is live",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-us-top-in-play",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-top-in-play.ss",
+   "desc": "the ball in play",
+   "rules": [
+    "PPG-1",
+    "PPG-3"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-1",
+     "what": "the bottom half is live",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-us-top-in-play-2",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-top-in-play-2.ss",
+   "desc": "the ball in play, a little later",
+   "rules": [
+    "PPG-1"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-1",
+     "what": "the bottom half is live",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-us-later",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-later.ss",
+   "desc": "the ball in play, much later",
+   "rules": [
+    "PPG-1",
+    "PPG-2"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": []
+  },
+  {
+   "id": "ppg-eu-launch",
+   "rom": "cjl9",
+   "state": "pokemon-pinball-gbc/eu-launch.ss",
+   "desc": "Europe: the ball just launched",
+   "rules": [
+    "PPG-1"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-1",
+     "what": "the bottom half is live",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-eu-top-in-play",
+   "rom": "cjl9",
+   "state": "pokemon-pinball-gbc/eu-top-in-play.ss",
+   "desc": "Europe: the ball in play",
+   "rules": [
+    "PPG-1"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-1",
+     "what": "the bottom half is live",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-jp-launch",
+   "rom": "c9wf",
+   "state": "pokemon-pinball-gbc/jp-launch.ss",
+   "desc": "Japan: the ball just launched",
+   "rules": [
+    "PPG-1"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-1",
+     "what": "the bottom half is live",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "ppg-jp-top-in-play",
+   "rom": "c9wf",
+   "state": "pokemon-pinball-gbc/jp-top-in-play.ss",
+   "desc": "Japan: the ball in play",
+   "rules": [
+    "PPG-1"
+   ],
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-1",
+     "what": "the bottom half is live",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ]
+  }
+ ]
+}

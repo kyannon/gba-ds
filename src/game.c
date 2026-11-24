@@ -21,6 +21,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include <strings.h>
 #include <math.h>
 #include "profiles.h"
+#include "gbpin.h"
 #include "patch.h"
 #include "cheats.h"
 
@@ -152,6 +153,13 @@ static struct {
 } bugSnap[BUG_SNAPS];
 static uint64_t frameCount;
 static bool tallOn;        /* the table's up: the screens show it */
+/* Pokemon Pinball (Game Boy Color): the table's two halves over both screens, from the game and a hidden
+ * copy of it (gbpin.c, docs/games/pokemon-pinball-gbc.md) */
+static GbPin* gbp;
+static bool gbpLive;                       /* the halves are up (the table, not a menu or a bonus stage) */
+static uint32_t gbpHalf[2][GBA_W * GBA_H]; /* top and bottom half, as the screens show them */
+static SDL_Texture* gbpTex[2];             /* the other screen's picture */
+static void gbp_publish(void);
 /* profile tall.live: two more copies of the game drawing the table's rows
  * the game's camera doesn't (update_tall). twins[0] is held at the top of
  * the lower view (row tall.rows - 320), twins[1] 160 rows below the view's
@@ -815,7 +823,10 @@ static void run_frame(uint32_t keys) {
 	twinFrameKeys = keys;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_start(i, twin_second, &twins[i]);
 	ww_step();
+	gbpin_before(gbp, &emu, keys & 0x3FF);
 	emu_frame(&emu, keys & 0x3FF);
+	gbpin_after(gbp, &emu);
+	if (gbp) gbp_publish();
 	++bugFrame;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_wait(i);
 	if (live) twin_step();
@@ -978,6 +989,20 @@ static const uint32_t* game_tex_px(const uint32_t* fb) {
 }
 static const char* game_scale(void) {
 	return gb_native() ? cfg->gbScale : cfg->scale;
+}
+/* The halves of the table, taken from gbpin each frame; the screen the game is not on gets its own */
+static void gbp_upload(void) {
+	const uint32_t* second = cfg->swap ? gbpHalf[0] : gbpHalf[1]; /* (the table keeps its way up: PP-5) */
+	for (int i = 0; i < nViews; ++i)
+		if (gbpTex[i]) ui_update_texture(gbpTex[i], game_tex_px(second), GBA_W * 4);
+}
+static void gbp_publish(void) {
+	const uint32_t *top, *bot;
+	gbpLive = gbpin_table(gbp, &top, &bot);
+	if (!gbpLive) return;
+	memcpy(gbpHalf[0], top, sizeof(gbpHalf[0]));
+	memcpy(gbpHalf[1], bot, sizeof(gbpHalf[1]));
+	gbp_upload();
 }
 static SDL_Texture* mapTex[2];
 /* profile.combat: in a fight, the second screen is the map's background
@@ -8114,7 +8139,7 @@ static void make_combat_canvas(void) {
 #include "ww_twisted.inc"
 
 static void draw_game(void) {
-	bool mapOn = (mc || logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
+	bool mapOn = (mc || logoOnly) && cfg->map && !gbp; /* logo-only games: the logo stands in for the map */
 	for (int s = 0; s < nScreens; ++s) {
 		bool showGame = nScreens == 1 ? !(singleShowsMap && mapOn) : (s == game_screen() || !mapOn);
 		SDL_Rect r = screens[s].rect;
@@ -8122,7 +8147,9 @@ static void draw_game(void) {
 			if (nScreens == 2 && !mapOn && s != game_screen()) {
 				/* no map: the other screen black, in its bezel if it has one (a Game Boy game's:
 				 * idle grey, the same as a logo's, with no logo: GB-3) */
-				if (emu_is_gb(&emu) && (logoCanvasTex[0] || logoCanvasTex[1]))
+				if (gbpLive && gbpTex[0])
+					ui_image_pixels(s, gbpTex, game_tex_w(), game_tex_h(), game_scale(), SHADER_ON); /* the table's other half, as the game's */
+				else if (emu_is_gb(&emu) && (logoCanvasTex[0] || logoCanvasTex[1]))
 					ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
 				if (overlay_on(s)) draw_overlay(s, 1);
 				continue;
@@ -8650,6 +8677,9 @@ static void ss_setup(const char* rom, const char* code) {
 	tallProf = NULL;
 	tallOn = false;
 	tallLive = false;
+	if (gbp) gbpin_close(gbp);
+	gbp = NULL;
+	gbpLive = false;
 	hudProf = NULL;
 	hudOn = false;
 	{
@@ -8676,6 +8706,12 @@ static void ss_setup(const char* rom, const char* code) {
 		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
 		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
 		else twin_close();
+		/* Pokemon Pinball (Game Boy Color): the table's two halves (pinball_live = 0 turns it off, as for Ruby & Sapphire) */
+		if (lp && lp->gbpin && nScreens > 1 && cfg->tallLive && emu_is_gb(&emu)) {
+			const char* sy = getenv("GBADS_SYNC");
+			gbp = gbpin_open(rom, sy && atoi(sy));
+			if (!gbp) fprintf(stderr, "table view: not this ROM's code (the game plays on one screen)\n");
+		}
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
@@ -8756,9 +8792,15 @@ static void rebuild_textures(void) {
 		if (gameTex[i]) SDL_DestroyTexture(gameTex[i]);
 		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
 		if (gameTex[i]) SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
+		if (gbp) {
+			if (gbpTex[i]) SDL_DestroyTexture(gbpTex[i]);
+			gbpTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
+			if (gbpTex[i]) SDL_SetTextureBlendMode(gbpTex[i], SDL_BLENDMODE_NONE);
+		}
 	}
 	ss_textures();
 	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
+	if (gbp && gbpLive) gbp_upload();
 	if (mapShownIdx >= 0) {
 		int idx = mapShownIdx;
 		overDirty = true;
@@ -9109,6 +9151,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	for (int i = 0; i < nViews; ++i) {
 		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
 		SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
+		if (gbp) {
+			gbpTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
+			if (gbpTex[i]) SDL_SetTextureBlendMode(gbpTex[i], SDL_BLENDMODE_NONE);
+		}
 	}
 	ss_textures();
 	unsigned bc = (unsigned) strtoul(cfg->borderColor, NULL, 16);
@@ -10327,6 +10373,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
 		if (tallLive) shownFb = cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's upper half on the top screen) */
+		if (gbpLive) shownFb = cfg->swap ? gbpHalf[1] : gbpHalf[0]; /* (profile.gbpin: the same, the table's halves) */
 		if (ghost_mode() != GH_OFF) shownFb = ghost_frame(shownFb, ghost_mode());
 		if (dots_on()) shownFb = dots_filter(shownFb);
 		/* only the view the game is on needs it (all of them right after a swap,
@@ -10497,6 +10544,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	webPlaying = false;
 #endif
 	twin_close();
+	if (gbp) gbpin_close(gbp);
+	gbp = NULL;
+	gbpLive = false;
 	ui_rumble(0);
 	emu_close(&emu); /* flushes the battery save */
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
@@ -10510,7 +10560,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		SDL_DestroyTexture(gameTex[i]);
 		SDL_DestroyTexture(mapTex[i]);
 		if (hudTex[i]) SDL_DestroyTexture(hudTex[i]);
-		gameTex[i] = mapTex[i] = hudTex[i] = NULL;
+		if (gbpTex[i]) SDL_DestroyTexture(gbpTex[i]);
+		gameTex[i] = mapTex[i] = hudTex[i] = gbpTex[i] = NULL;
 	}
 	ui_free_image(logoTex);
 	ui_free_image(combatTex);

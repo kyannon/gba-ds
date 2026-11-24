@@ -10411,6 +10411,15 @@ static const MapProfile profiles[] = {
 		.logo = { .wait = 800, .pressStart = true, .wait2 = 200, .layers = 0x1C, .maxY = 146, .objMaxY = 124, .rev = 1 },
 	},
 	{
+		/* Pokemon Pinball for the Game Boy Color: the table's two halves, one on each screen (gbpin.c). The
+		 * game list's code for a Game Boy game is made from its header (emu_rom_code): the USA release's
+		 * is cjng; the codes mGBA reads from the cartridge (VPHE...) are variants, below. */
+		.codes = { "cjng" },
+		.title = "Pokemon Pinball",
+		.logoOnly = true,
+		.gbpin = true,
+	},
+	{
 		/* the table over both screens, live (see profiles.h tall); the
 		 * score bar (BG0) on the second screen */
 		.codes = { "BPPE" },
@@ -13604,6 +13613,12 @@ static const Variant variants[] = {
 	 * for profile_ram_moved; the profile reads nothing at the shifted addresses) */
 	{ "BPPJ", "BPPE", -0x10A0, pp_jpn },
 	{ "BPPP", "BPPE", 0x120, pp_eur },
+	/* (Pokemon Pinball, Game Boy Color: the game list's code and the cartridge's, for each release) */
+	{ "VPHE", "cjng", 0, NULL },
+	{ "cjl9", "cjng", 0, NULL },
+	{ "VPHP", "cjng", 0, NULL },
+	{ "c9wf", "cjng", 0, NULL },
+	{ "VPHJ", "cjng", 0, NULL },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];
