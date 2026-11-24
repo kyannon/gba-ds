@@ -104,6 +104,8 @@ int main(int argc, char** argv) {
 		sscanf(p, "%31s %255s %1399s %63s", cmd, a1, a2, a3);
 		if (!strcmp(cmd, "hold")) {
 			run(parse_keys(a1), atoi(a2));
+		} else if (!strcmp(cmd, "gyro")) { /* gyro COUNTS: the cartridge's gyro reads this many counts from rest (WarioWare: Twisted!) */
+			emu_set_gyro(&emu, (int32_t) ((int64_t) atoi(a1) * (1 << 21)));
 		} else if (!strcmp(cmd, "wait")) {
 			run(0, atoi(a1));
 		} else if (!strcmp(cmd, "tap")) {

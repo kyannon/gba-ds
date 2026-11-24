@@ -191,6 +191,10 @@ typedef struct MapProfile {
 	/* No map yet: the game is listed and the second screen shows its logo,
 	 * but nothing is captured. */
 	bool logoOnly;
+	/* The game is played by turning the console (a cartridge gyro: WarioWare: Twisted!): the
+	 * device's gyro goes to the game, and the touchscreen can stand in for it as a dial, the
+	 * second screen showing the game's menu wheel turning with it (src/ww_twisted.inc). */
+	bool gyroDial;
 	/* Logo-only games: screens worth copying to the second screen (Tony
 	 * Hawk's goal sheets). When `show` matches (at least showMin probes, for
 	 * `stable` frames) the game screen is copied there and stays through play,

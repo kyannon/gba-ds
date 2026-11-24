@@ -11739,6 +11739,22 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* WarioWare: Twisted! (USA; Japan, Mawaru Made in Wario: the RZWJ variant: no health
+		 * and safety screen first). A button press at power-on gets past the health and safety
+		 * screen (USA) and the intro, and the title is up some 500 frames in; its lettering is
+		 * BG0 (WarioWare and the vortex, with the copyright line from row 151) and BG2
+		 * (TWISTED!), the rings behind it BG1, PRESS START! sprites (WWT-1). The cartridge's gyro
+		 * is the game's controls: see src/ww_twisted.inc (WWT-2 to WWT-9). */
+		.codes = { "RZWE" },
+		.title = "WarioWare: Twisted!",
+		.logo = { .steps = { { 0, 200 },
+		                     { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 },
+		                     { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { 0, 20 } },
+		          .layers = 0x5, .maxY = 151, .rev = 1 },
+		.logoOnly = true,
+		.gyroDial = true,
+	},
+	{
 		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
 		 * addresses and screens). The pause screen (START) slides down
 		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
@@ -13001,6 +13017,17 @@ static void bof2_jp(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 	p->logo.layers = 0x18;
 }
+/* WarioWare: Twisted! in Japan: no health and safety screen, so the title is up some 250 frames
+ * in; its lettering is メイドインワリオ (BG0, above the copyright box from row 139) and まわる (BG2) */
+static void ww_jpn(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 100 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { 0, 100 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->logo.maxY = 139;
+	/* the lettering's soft edge, black blended into the title's yellow-green: left out, as Mario & Luigi's sky */
+	p->logo.edgeClear[0] = 0xC6D600, p->logo.edgeClear[1] = 0xADC600, p->logo.edgeClear[2] = 0x8C9C08, p->logo.edgeClear[3] = 0x526300;
+	p->logo.rev = 1;
+}
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
 }
@@ -13519,6 +13546,7 @@ static const Variant variants[] = {
 	{ "BKZS", "BKZE", 0, bk_eu },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
+	{ "RZWJ", "RZWE", 0, ww_jpn }, /* (its title is up ~250 frames in, its lettering BG0 and BG2 above the copyright box: WWT-1) */
 	{ "BM5P", "BM5E", 0, mvdk_eur }, /* (its state moved: mvdk_eur, mvdk_state) */
 	{ "BM5J", "BM5E", 0, mvdk_jpn },
 	/* Super Mario Advance 3 in Europe: its language menu first */
