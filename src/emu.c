@@ -448,6 +448,23 @@ static void gpio_store16(struct ARMCore* cpu, uint32_t address, int16_t value, i
 
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
+/* The cartridge's gyro (WarioWare: Twisted!; mGBA knows it by game code). Every GBA core has a
+ * source that reads what emu_set_gyro last gave it, 0 (the sensor's resting value) until then, so
+ * the hidden copies' games sit still. The value is mGBA's own: the cartridge reads its top
+ * bits (a 12-bit sample, 0x700 at rest, 2^21 to a count). Only the game being played is given
+ * anything (src/ww_twisted.inc). */
+typedef struct { struct mRotationSource d; int32_t value; } EmuGyro;
+static int32_t gyro_read_z(struct mRotationSource* s) {
+	return ((EmuGyro*) s)->value;
+}
+static int32_t gyro_read_tilt(struct mRotationSource* s) {
+	(void) s;
+	return 0;
+}
+void emu_set_gyro(Emu* e, int32_t value) {
+	if (e->gyro) ((EmuGyro*) e->gyro)->value = value;
+}
+
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
 	mLogSetDefaultLogger(&quietLogger);
@@ -500,6 +517,15 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	}
 	e->core->setVideoBuffer(e->core, (mColor*) (e->fb + e->picY * GBA_W + e->picX), GBA_W);
 	if (e->platform == mPLATFORM_GBA) e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
+	if (e->platform == mPLATFORM_GBA) {
+		EmuGyro* g = calloc(1, sizeof(*g));
+		if (g) {
+			g->d.readGyroZ = gyro_read_z;
+			g->d.readTiltX = g->d.readTiltY = gyro_read_tilt;
+			e->gyro = g;
+			e->core->setPeripheral(e->core, mPERIPH_ROTATION, &g->d);
+		}
+	}
 	if (audio) { /* only the game being played has a motor; the hidden copies stay quiet */
 		EmuRumble* r = calloc(1, sizeof(*r));
 		if (r) {
@@ -596,6 +622,8 @@ void emu_close(Emu* e) {
 	e->fb = NULL;
 	free(e->rumble);
 	e->rumble = NULL;
+	free(e->gyro);
+	e->gyro = NULL;
 }
 
 bool emu_cancelled(const Emu* e) {
