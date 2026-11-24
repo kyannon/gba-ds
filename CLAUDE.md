@@ -128,9 +128,13 @@ it lives here:
   so it needs no run of its own and CI starts none. If anything else has to
   change after the full run, run the full suite again on the new last
   commit.
-- Test builds for the device: `dist/gba-ds-vX.Y.Z-dev-linux-aarch64.zip`,
-  sent to the owner after each change; Android test APKs are the artifacts
-  of the workflow runs on `android` / `dev` (link the run).
+- Test builds for the device, sent to the owner after each change: a build
+  of `dev` itself (the final dev build, a release's preparation) is the plain
+  `dist/gba-ds-vX.Y.Z-dev-linux-aarch64.zip`; **a build of any other branch
+  is a side build** (see "Side builds" below): a test build for an issue, a
+  topic branch or a game branch never replaces the owner's GBA DS install.
+  Android test APKs are the artifacts of the workflow runs on `android` /
+  `dev` (link the run).
 - **Final dev build** (the last test zip before a release; the owner asks
   for it once the release's games and changes are all merged): a checklist of
   what to confirm on the device, and a zip that carries the test save states.
@@ -216,7 +220,8 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   from the latest `dev` and pushes it (sessions can create branches; only the
   owner can delete them, after the merge). If it already exists, carry on on
   it, merging `dev` in first.
-- **Test builds are side builds:** `GBADS_SIDE=<slug>
+- **Test builds are side builds** (the general rule is "Side builds" below):
+  `GBADS_SIDE=<slug>
   GBADS_WEB_WORK=<scratch dir>/wasm scripts/build-rocknix.sh` gives
   `dist/gba-ds-vX.Y.Z-dev-<slug>-linux-aarch64.zip`. It unzips into the Ports
   folder beside the main install: its own folder (`gba-ds-<slug>/`) and its
@@ -256,6 +261,34 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   against the merge's first parent), never the full suite (that runs once,
   at release). Build a normal test zip from `dev` and send it. Tell the
   owner the branch can be deleted.
+
+### Side builds: every build of a branch other than `dev`
+
+The owner's rule (Nov 21, 2026): **a test build made to address a specific
+issue, or any build based on a branch other than `dev`, is a side build**: its
+ZIP installs alongside GBA DS itself, in the same fashion as an individual
+game's branch (above), and is never a plain build. Only `dev` (the final dev
+build, the release) gives the plain `gba-ds-vX.Y.Z-dev-linux-aarch64.zip` /
+release zip, which replaces the main install.
+
+- **Command:** `GBADS_SIDE=<slug> GBADS_WEB_WORK=<scratch dir>/wasm
+  scripts/build-rocknix.sh`, output `dist/gba-ds-vX.Y.Z-dev-<slug>-linux-aarch64.zip`.
+  `<slug>` is the branch's name in lower-case with slashes made dashes
+  (`issue-61`, `menu-brightness`, `release-v1-5-6-final-dev-build`), or
+  `game/<slug>`'s own slug. A game branch: as above (the game's name and its
+  releases only). **Any other branch** has no rules file, so the build keeps
+  every game in the list and names the Ports entry "GBA DS <slug> testing"
+  (`GBADS_SIDE_NAME="Menu brightness"` for a nicer name).
+- **What that gives the owner:** the folder `gba-ds-<slug>/` and its own Ports
+  entry beside the main install, with its own settings, states and logos; the
+  system's battery saves are shared with the main install. The version reads
+  `X.Y.Z-dev+<slug>`, there are no updates and no EmulationStation / BananaOS
+  integration. Say in the note that it is a side build, and that it can be
+  deleted (folder and Ports entry) once the issue or branch is merged.
+- **Unzipping it can't touch the main install**, so the test note doesn't need
+  "back up your settings" for it. The final dev build, built from `dev`, still
+  replaces the install (and its test states replace slot files: say so).
+- **Android** test builds are the workflow's APKs and are unchanged by this.
 
 ## Building
 
@@ -344,7 +377,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `poke ADDR LEN VAL`, `io OFFSET N` (I/O registers), `dumpram NAME`, `layershot NAME` (each BG layer and
   OBJ alone), `map NAME` (run a map capture), `logo NAME`. It writes the
   game's battery save beside the ROM (`ROM.sav`): don't run it on the fixtures'
-  ROMs in place, or delete those `.sav` files after (never commit them). `HARNESS_SAVE=PATH` runs it with that battery save instead (written to as the game saves; `tools/pokemon/saves.py state` uses it).
+  ROMs in place, or delete those `.sav` files after (never commit them). `HARNESS_BIOS=FILE` runs it with that GBA BIOS (the fixtures' `bios/gba_bios.bin`, issue #78), `HARNESS_SAVE=PATH` with that battery save instead (written to as the game saves; `tools/pokemon/saves.py state` uses it).
 - **Players' bug reports** (the quick bar's bug button or Extras > Submit
   a Bug Report, `bug-reports/*.zip`): `GAME-DATE-info.txt` (the player's note, typed on the keyboard that comes up after the button, if any; device, system,
   screens, settings, the second screen's state, the last 48 KB of the log
@@ -499,7 +532,8 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `split off` and `hudshot NAME`.
   State files (issue #39): loading (and `emu_state_file_kind` /
   `_rom_crc` / `_get_extra`) takes mGBA's own files and RetroArch's /
-  BananaFront's (`RASTATE`, RZIP-compressed or not, its mGBA core's bytes in
+  BananaFront's (`RASTATE`, RZIP-compressed (zlib, or zstd since issue #78: the
+  vendored decoder `third_party/rzstd`) or not, its mGBA core's bytes in
   the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
   second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
   shared with RetroArch (`state_folder = retroarch`, game list Settings >
@@ -533,7 +567,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   `hud.freeze` (the HUD picture held as it is while they match: SMA4's
   status bar sliding off), `hud.offAfter` (the HUD off from when they match
   until `on[0]` stops: Superstar Saga's results and level-ups, to the
-  battle's end). Adding a game mostly means a profile.
+  battle's end). A profile whose `composePages` gives pages that turn on a timer (a status screen's three pages, the party's members) sets `pages` (not a marker's blinking frames: they restart with each capture, pages keep their place); it is also what a Toggle row `pages` means (GEN-14), and game.c's `second_page()` is the one place that says which page is up. Adding a game mostly means a profile.
 - `mapcap.c` map capture on a hidden second core in a background thread.
   A `room` key change starts one once it has held 3 frames (game.c), calling
   off one still running (`mapcap_cancel`: the shadow's frames stop running,
@@ -550,6 +584,12 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
   snapshot), the quick bar (Controls picker, buttons, bug reports), pause
   menu, cheats screen, screenshots.
+  The contextual toggle (GEN-14, issue #37; settings `toggle`, `auto_rotate`,
+  `toggle_button`, hotkey action `HK_TOGGLE`, HOME + A): `toggle_ready()` is the one
+  gate, `toggle_press()` / `toggle_step()` the state machine (a turn that waits
+  fades the picture: `fadeLevel`), `toggle_new_subject()` starts the pages again
+  at the first when a capture was for a new subject (`capSubject`), `second_page()`
+  says which page is up. The button: `toggle_btn_screen()` / `toggle_btn_geom()` / `draw_toggle_btn()` (its own 240x176 canvas, so it can sit in the margin under the picture; `cv_put` draws on `cvBuf`), the tap claimed in the pointer loop before "a tap opens the menu". Views (Step 4): a profile with `views` (FF4 first) gives `composePages` pictures the toggle turns to, the first being what shows (no timer); `second_page()` returns `pageOffset` for them. A profile with `onPress` (and `altHere`, whether the other view exists here) has its other view captured on the press: `viewAlt`, `pressCap`, `viewWait`, `fadeUpload` (the old view fades out, the capture is asked for once it's dark, `mapcap_set_alt` before `mapcap_request`, composers read `mapcap_alt_view()`; a refresh still running is called off by the press; `tg_view_mode` says view or pages, the last page of a paged other view bringing the first back; no answer in 600 frames and the old view returns): Minish Cap, Mother 3, Mario & Luigi, Harvest Moon (`hm_farm`: the Farm Map scrolled in stops of 200 x 100 pixels by BG1's scroll, stitched, all sprites hidden, shrunk). In-game settings rows the game can't use (`toggle_supported`, `tallSupported`) are greyed out (`row_disabled`). `tools/regress.py` lints the Toggle rows (`toggle_lint`). Tests: `GBADS_TOGGLE_WAIT=N` (a case's `env`) forces a wait.
 - `ra.c` RetroAchievements (casual only) via rcheevos' rc_client, vendored in
   `third_party/rcheevos` (v12.5.0, trimmed: no hashing beyond md5.c, no
   libretro/RAIntegration). Server calls run the system `curl` in a worker
@@ -560,8 +600,30 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   no-op stubs elsewhere (Android: no curl yet). Test offline with
   `tools/ra_mock.py` (a stand-in server on 127.0.0.1:8099) and
   `--retroachievements=1 --ra-username=tester --ra-password=secret
-  --ra-host=http://127.0.0.1:8099`. Hardcore is not allowed before the app
-  has been public for 6 months (from Oct 13, 2026).
+  --ra-host=http://127.0.0.1:8099` (the mock also has game 777's Rich
+  Presence and a leaderboard; `touch /tmp/ra_mock_down` makes unlocks and
+  entries fail with HTTP 503). Hardcore (rule GEN-16: `ra_hardcore`
+  in prefs.cfg, the Game page's Hardcore item, hidden by `RA_HARDCORE_MENU 0` in ra.h until RetroAchievements approves (the owner's rule, Nov 22, 2026; set 1 then, and rewrite the wiki's Hardcore section and the changelog line); `ra_hardcore()` /
+  `ra_start_mode` / `ra_set_hardcore` / `ra_reset_wanted` in ra.c) is built
+  but not approved by RetroAchievements, which wants the app public for 6
+  months first (from Oct 13, 2026: Apr 13, 2027, unless they take libmgba as
+  the parent emulator); the plan and the rules page's checklist are in the
+  project's `claude/issue-82-progress.md`. Every state load goes through
+  game.c `state_load`, which refuses in hardcore; rewind and cheats are
+  gated beside it (`cheats_sync`). The regression suite doesn't cover RA
+  (no mock server in regress.py): test with `tools/ra_mock.py` and
+  `--ra_hardcore=1` (run it with `--update_check=0` from the game list: a
+  host run once updated itself over `build/host`). The compliance document for
+  RetroAchievements' team is `docs/RETROACHIEVEMENTS.md`.
+  Also in ra.c: the user agent (`GBADS/<numbers> (Linux|Android)
+  mgba/<numbers> rcheevos/<ver>`), the events for leaderboards, challenge and
+  progress indicators (drawn in the corners of the popup screen by
+  `draw_overlays`; leaderboards only run in hardcore, rc_client has no
+  softcore switch, so to see them on the host set the hardcore flag for a
+  local test build and put it back), and **`states/ra/pending.txt`**: every
+  unlock and leaderboard entry rc_client sends is kept (without the token) until the server
+  answers, then replayed at the next sign-in before the game loads
+  (`pending_track` / `pending_replay`; `replayBusy` holds `begin_load`).
 - `mapper.c` Settings > Map Buttons (Linux): asks for each button, builds an SDL mapping for that controller, kept in `<state_dir>/controllers.txt` and logged (bake device ones into `dist/gamecontrollerdb.txt`). Input scripts drive it with a virtual pad: `JOYBTN:n`, `JOYHAT:v`, `JOYAXIS:n,v`, `JOYBTN:-`.
 - `update.c` updates (Linux): GitHub's latest release, the notice and
   Settings > Updates (library.c), download through `http.c` (curl, or
@@ -655,7 +717,9 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   package registries only: not the device, not other websites from the
   shell. Test builds go to the owner with SendUserFile; they report back.
 - **Build:** `GBADS_WEB_WORK=<scratch dir>/wasm scripts/build-rocknix.sh`
-  (the web build's work folder outside the repo), output in `dist/`.
+  (the web build's work folder outside the repo), output in `dist/`. Only on
+  `dev`: from any other branch, an issue's included, add `GBADS_SIDE=<slug>`
+  ("Side builds").
 - **Git:** fetch with `git fetch -q origin '+refs/heads/*:refs/remotes/origin/*'`;
   push `git push -q origin dev`, then check `git rev-parse --short dev`
   against `refs/remotes/origin/dev` (the push prints nothing useful).

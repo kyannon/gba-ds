@@ -1464,6 +1464,363 @@
      "color": "303030"
     }
    ]
+  },
+  {
+   "id": "ff4-us-toggle-view",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-overworld.ss",
+   "desc": "the toggle on, on the world map: HOME + A turns to the party screen at once (a cut), and it stays through the refresh of the same place",
+   "rules": [
+    "GEN-14",
+    "FF4-8",
+    "FF4-3"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "after": 210,
+    "held": 600
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a press shows the party screen, not the map",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the party screen stays through the refresh",
+     "type": "same",
+     "a": {
+      "shot": "after",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "b": {
+      "shot": "held",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the turn is logged",
+     "type": "log",
+     "match": "toggle: page 2 of 2"
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-toggle-back",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-overworld.ss",
+   "desc": "a second press turns back to the world map",
+   "rules": [
+    "GEN-14",
+    "FF4-8",
+    "FF4-3"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     300,
+     "HOME+A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "party": 250,
+    "back": 320
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "the party screen in between",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "b": {
+      "shot": "party",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "back to the map",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-toggle-cave",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-cave.ss",
+   "desc": "in a cave there is only the party screen: the press is ignored",
+   "rules": [
+    "GEN-14",
+    "FF4-8",
+    "FF4-3"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "after": 210
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "nothing turned",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "ignored, not turned",
+     "type": "log",
+     "match": "toggle: not ready, ignored"
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-toggle-newplace",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-overworld.ss",
+   "desc": "turned to the party, then a state loaded (a new place): the map again",
+   "rules": [
+    "GEN-14",
+    "FF4-8",
+    "FF4-3"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     400,
+     "LOAD:final-fantasy-iv-advance/us-overworld.ss"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "party": 250,
+    "later": 700
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "the party screen after the press",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "b": {
+      "shot": "party",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a new subject: the map again",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "b": {
+      "shot": "later",
+      "rect": [
+       40,
+       100,
+       980,
+       660
+      ]
+     },
+     "frac": 0.02
+    }
+   ]
+  },
+  {
+   "id": "ff4-us-toggle-available",
+   "rom": "BZ4E",
+   "state": "final-fantasy-iv-advance/us-overworld.ss",
+   "desc": "the in-game settings' Second screen page in a game the toggle applies to: Contextual toggle is a normal row (Auto-rotate and Toggle button follow it)",
+   "rules": [
+    "GEN-14"
+   ],
+   "input": [
+    [
+     60,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.5,0.864"
+    ],
+    [
+     170,
+     "-"
+    ],
+    [
+     200,
+     "TAP:0.855,0.529"
+    ],
+    [
+     230,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 260
+   },
+   "golden_mask": [
+    [
+     0,
+     0,
+     140,
+     70
+    ]
+   ]
   }
  ]
 }

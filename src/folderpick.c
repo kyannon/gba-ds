@@ -323,7 +323,7 @@ FolderPick folder_pick(const char* title, const char* start, const char* count, 
 		}
 
 		ui_clear();
-		for (int s = 0; s < nScreens; ++s) draw(s, v, title, showCount, autoLabel);
+		draw(ui_touch_screen(), v, title, showCount, autoLabel); /* (on the menu's screen only, as Settings is) */
 		ui_present();
 		SDL_Delay(15);
 	}

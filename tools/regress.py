@@ -257,6 +257,32 @@ def run_app(case, args, workdir):
             os.utime(dst, (t, t))
         r.ra_states = sd
         extra += ["--retroarch_cfg=" + cfgfile, "--state_folder=retroarch"]
+    # GEN-15: "bios": a fixture under bios/, put as <asset_dir>/bios/gba_bios.bin
+    # (the player's own GBA BIOS; the case's "config" {"gba_bios": 1} switches it on)
+    if case.get("bios"):
+        src = os.path.join(args.fixtures, "bios", case["bios"])
+        if not os.path.exists(src):
+            r.error = "missing bios fixture bios/%s" % case["bios"]
+            return r
+        ad = os.path.join(workdir, "assets")
+        os.makedirs(os.path.join(ad, "bios"), exist_ok=True)
+        os.symlink(src, os.path.join(ad, "bios", "gba_bios.bin"))
+        if "--asset_dir=" + ad not in extra:
+            extra.append("--asset_dir=" + ad)
+    # GEN-17: "cheat_files" {name there: fixture under cheats/}, put in
+    # <asset_dir>/cheats/ (a file is matched to its ROM by name, and the case's
+    # ROM is named by its code: "BFZE (USA) (Code Breaker).cht")
+    if case.get("cheat_files"):
+        ad = os.path.join(workdir, "assets")
+        os.makedirs(os.path.join(ad, "cheats"), exist_ok=True)
+        for name, f in case["cheat_files"].items():
+            src = os.path.join(args.fixtures, "cheats", f)
+            if not os.path.exists(src):
+                r.error = "missing cheat fixture cheats/%s" % f
+                return r
+            shutil.copy(src, os.path.join(ad, "cheats", name))
+        if "--asset_dir=" + ad not in extra:
+            extra.append("--asset_dir=" + ad)
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
@@ -314,6 +340,7 @@ def run_app(case, args, workdir):
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)
         env.update(GBADS_NOPACE="1", GBADS_DRAW_SHOTS_ONLY="1")
+    env.update({k: str(v) for k, v in case.get("env", {}).items()})  # (a case's own: GBADS_TOGGLE_WAIT...)
     try:
         p = subprocess.run(cmd, env=env, capture_output=True, text=True, errors="replace", timeout=args.timeout)
         r.log = p.stdout + p.stderr
@@ -433,11 +460,15 @@ def compare_golden(run, args, shot):
     have = run.shots[shot]
     if want.size != have.size:
         return False, "size %s, golden %s" % (have.size, want.size)
-    if case.get("golden_mask"):  # rects [x0, y0, x1, y1] left out (the app's version number...)
+    # rects [x0, y0, x1, y1] left out (the app's version number...); a fifth item, a shot's name
+    # (or a list of them), keeps the rect to those shots
+    masks = [b for b in case.get("golden_mask", [])
+             if len(b) == 4 or shot in ([b[4]] if isinstance(b[4], str) else b[4])]
+    if masks:
         want, have = want.copy(), have.copy()
-        for box in case["golden_mask"]:
+        for box in masks:
             for im in (want, have):
-                im.paste((0,) * len(im.getbands()), tuple(box))
+                im.paste((0,) * len(im.getbands()), tuple(box[:4]))
     diff = ImageChops.difference(have, want)
     tol = case.get("golden_tol", 0)
     n = sum(1 for p in pixels(diff) if max(p) > tol)
@@ -525,6 +556,29 @@ figure{display:inline-block;margin:4px}small{font-weight:normal;color:#666}</sty
     open(os.path.join(outdir, "index.html"), "w").write(page)
 
 
+def toggle_lint(cases):
+    """GEN-14: a case that turns the toggle on needs its game's rules file to say what the toggle does
+    (a Toggle row that isn't `none`), and every Toggle row says `pages`, `views` or `none`."""
+    bad, seen = [], {}
+    for c in cases:
+        slug = c["slug"]
+        if slug not in seen:
+            f = os.path.join(ROOT, "docs", "games", slug + ".md")
+            row = None
+            if os.path.exists(f):
+                for line in open(f, encoding="utf-8"):
+                    if line.startswith("| Toggle |"):
+                        row = line.split("|")[2].strip()
+                        break
+            seen[slug] = row
+            if row is not None and not row.lstrip("`").startswith(("pages", "views", "none")):
+                bad.append("%s.md: the Toggle row starts with `pages`, `views` or `none`, not %r" % (slug, row[:30]))
+        row = seen[slug]
+        if (c.get("config") or {}).get("toggle") == "1" and (row is None or row.lstrip("`").startswith("none")):
+            bad.append("%s: turns the toggle on, but %s.md has no Toggle row saying what it does" % (c["id"], slug))
+    return sorted(set(bad))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("only", nargs="*", help="game slugs, case ids or globs")
@@ -571,6 +625,12 @@ def main():
                 return
             args.only = (args.only or []) + slugs
     cases = load_cases(args.only)
+    bad = toggle_lint(cases)
+    if bad:
+        print("Toggle lint (GEN-14):")
+        for b in bad:
+            print("  " + b)
+        sys.exit(1)
     if args.shard:
         i, n = (int(v) for v in args.shard.split("/"))
         # (dealt round-robin by game then case, so each share gets a mix of slow and quick games)
@@ -650,6 +710,8 @@ def main():
                     need.add("states/" + keys[5:])
             for fx in c.get("retroarch", {}).get("states", {}).values():  # (GEN-13's stand-in RetroArch folder)
                 need.add("states/" + fx)
+            if c.get("bios"):  # (GEN-15's player-supplied GBA BIOS)
+                need.add("bios/" + c["bios"])
         print("\n".join(sorted(need)))
         return
     if args.list:

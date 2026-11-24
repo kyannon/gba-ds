@@ -6,6 +6,7 @@
 | Dumps | `AGSE` cartridge `e1fb68e8` (tested) · `AGSD` cartridge `1053dce4` (tested) · `AGSF` cartridge `f6521161` (tested) · `AGSI` cartridge `f3128812` (tested) · `AGSS` cartridge `c63008d6` (tested) · `AGSJ` cartridge `fb96d9de` (tested) |
 | Profile | `src/profiles.c`: the `AGSE` entry (gs_compose); variant `AGSD` (its battle bytes 0x10 higher) |
 | Tests | `tests/regress/golden-sun.json` (`tools/regress.py golden-sun`) |
+| Toggle | `pages`: the party's members, in turn (GS-2) · GEN-14 |
 | Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list golden-sun`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

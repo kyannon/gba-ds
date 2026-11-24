@@ -848,6 +848,99 @@
      "frac": 0.0
     }
    ]
+  },
+  {
+   "rom": "BZ6E",
+   "state": "final-fantasy-vi-advance/us-wob.ss",
+   "id": "ff6-toggle-view",
+   "desc": "the toggle on, on the world map: HOME + A turns from the minimap to the party screen, and back",
+   "rules": [
+    "GEN-14",
+    "FF6-10",
+    "FF6-7"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     300,
+     "HOME+A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "after": 250,
+    "back": 340
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a press shows the other picture",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a second press turns back",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the turn is logged",
+     "type": "log",
+     "match": "toggle: page 2 of 2"
+    }
+   ]
   }
  ]
 }

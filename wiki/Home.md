@@ -21,11 +21,14 @@
 
 - **[[Playing]]**: the game list, the pause menu, buttons, resume points, cheats, RetroAchievements, screenshots, and where every file goes.
 - **[[Supported games]]**: what each game shows on the second screen, and per-game details.
+- **[[Game Boy games]]**: playing Game Boy and Game Boy Color games, and their display options (size, palette, colour correction, ghosting, shader).
 - **[[Overlays]]**: GBA DS's bezel round the picture, and your own overlay images.
 - **[[Settings]]**: every option in `gba-ds.cfg`, explained.
 - **[[Languages]]**: the interface's languages, and how to fix or add one.
 - **[[Troubleshooting]]**: logs, and what to do when something doesn't work.
 - **[[Philosophy]]**: what GBA DS is meant to be, and why some feature requests get a no.
+- **[[Privacy]]**: what GBA DS sends over the network (RetroAchievements and update checks, nothing else) and what it keeps.
+- **[[Licenses]]**: GBA DS's license and what it is built from.
 
 ## For developers
 

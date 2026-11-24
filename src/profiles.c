@@ -1,4 +1,5 @@
 #include "profiles.h"
+#include "mapcap.h"
 
 #include <mgba/core/core.h>
 
@@ -2387,7 +2388,8 @@ static const Probe khcMap[8] = { { 4, 4, 0x00298C }, { 20, 6, 0xFFFFFF }, { 40, 
  * game has loaded: the bubble 454 in one room, 450 in another) */
 static const SpriteRule khcHide[1] = { { -64, -16, 239, 159, 0, 1023, 0, 1u << 0 } };
 static bool khc_map_up(Emu* s) {
-	return som_probes(s, khcMap, 8, 7, 8);
+	/* 7 of the 8, and always the floor's badge: the menu's World Cards screen has the banner and the bottom strip too */
+	return som_probes(s, khcMap, 8, 7, 8) && som_probes(s, &khcMap[5], 1, 1, 8);
 }
 /* the title (KHC-4): the emblem and the art at its corner, as they stand
  * once it's up, the same in all three releases (not the emblem on black
@@ -3353,7 +3355,7 @@ static const ZlRegion zlRegions[] = {
 static const ZlRegion* zl_r(Emu* e) {
 	return &zlRegions[e->gameCode[3] == 'J' ? 1 : 0];
 }
-#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (ZL_V_FREE) or a Zoid choosing */
+#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (zl_free) or a Zoid choosing */
 #define ZL_V_MAP 0xF0000061    /* 1 with the map screen up */
 #define ZL_V_FORGET 0xF0000062 /* 1 on the title, or a battle playing out: what was shown goes (ZL-3, ZL-4) */
 #define ZL_V_PLAYOUT 0xF0000063 /* 1 in a battle, no Zoid choosing: the logo (ZL-3) */
@@ -3616,7 +3618,8 @@ static const char* ml_compose(Emu* s, const void* state, uint32_t* const* out, i
 	*step = 300;
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame(s, 0);
-	bool luigi = emu_read8(s, ML_LEAD) == 1;
+	/* the brother in front's page; the toggle's other view (GEN-14) is the other brother's */
+	const bool luigi = (emu_read8(s, ML_LEAD) == 1) != mapcap_alt_view();
 	int at = ml_screen(s);
 	if (at == ML_FIELD) {
 		aw_tap(s, K_SELECT, 1);
@@ -3726,9 +3729,120 @@ static uint32_t hm_glove_var(Emu* s, int gx, int gy) {
 	return 0;
 }
 
+/* the Farm Map is up: BG1 to 3 only, their controls as it sets them (walking about has BG0 and others) */
+static bool hm_farm_up(Emu* s) {
+	return emu_io16(s, 0x00) == 0x1E40 && emu_io16(s, 0x0A) == 0xD440 && emu_io16(s, 0x4C) == 0;
+}
+
+/* the toggle's other view (HM-7): START, the icon bar's fourth icon, the Farm Map. It scrolls over a field the
+ * screen is a window onto (BG1's scroll, 4 pixels a frame, as far as 240 across and 192 down): the screens are
+ * taken along its left edge top to bottom, then back up its right, each put where its scroll says, and the
+ * whole shrunk (area average) into the 240x160 box with black round it. No sprites (its arrows, the heads). */
+#define HM_FARM_MAX 1024
+static const char* hm_farm(Emu* s, uint32_t* out, int w, int h) {
+	static uint32_t canvas[HM_FARM_MAX * HM_FARM_MAX];
+	if (emu_io16(s, 0x4C) != 0 || !(emu_io16(s, 0x00) & 0x0F00) || hm_map_up(s) || hm_farm_up(s)) return "map button did nothing";
+	const SpriteRule all[1] = { { -512, -256, 511, 255, 0, 1023, -1, 0, 0, 0 } };
+	emu_hide_sprites(s, all, 1);
+	/* the icon bar, its fourth icon (the cursor starts on the first: the bar's up check is the map itself) */
+	emu_frame_blind(s, K_START);
+	emu_frame_blind(s, K_START);
+	for (int i = 0; i < 40; ++i) emu_frame_blind(s, 0);
+	for (int n = 0; n < 3; ++n) {
+		emu_frame_blind(s, K_RIGHT);
+		emu_frame_blind(s, K_RIGHT);
+		for (int i = 0; i < 12; ++i) emu_frame_blind(s, 0);
+	}
+	emu_frame_blind(s, K_A);
+	emu_frame_blind(s, K_A);
+	int f = 0;
+	while (f < 200 && !hm_farm_up(s)) emu_frame_blind(s, 0), ++f;
+	if (f >= 200) {
+		emu_hide_sprites(s, NULL, 0);
+		return "map screen did not appear";
+	}
+	for (int i = 0; i < 20; ++i) emu_frame_blind(s, 0);
+	/* to the top left corner, then the extent: how far it goes right and down */
+	for (int i = 0; i < 80; ++i) emu_frame_blind(s, K_LEFT | K_UP);
+	int maxX = 0, maxY = 0;
+	for (int i = 0; i < 90; ++i) emu_frame_blind(s, K_RIGHT);
+	maxX = emu_io16(s, 0x14) & 0x1FF;
+	for (int i = 0; i < 90; ++i) emu_frame_blind(s, K_DOWN);
+	maxY = emu_io16(s, 0x16) & 0x1FF;
+	int cw = maxX + GBA_W, ch = maxY + GBA_H;
+	if (emu_cancelled(s)) {
+		emu_hide_sprites(s, NULL, 0);
+		return "called off";
+	}
+	if (cw > HM_FARM_MAX || ch > HM_FARM_MAX || cw < GBA_W || ch < GBA_H) {
+		emu_hide_sprites(s, NULL, 0);
+		return "the Farm Map's size isn't one we know";
+	}
+	memset(canvas, 0, (size_t) cw * (size_t) ch * sizeof canvas[0]);
+	for (int i = 0; i < 120; ++i) emu_frame_blind(s, K_LEFT | K_UP); /* (back at the top left) */
+	/* columns no more than 200 pixels apart from the left to the right edge, each swept up or down in stops no more than 100 pixels
+	 * apart (the screen is 240 by 160: they overlap); the scroll is read back each time, so nothing here relies on its speed */
+	int cols = (maxX + 199) / 200 + 1;
+	for (int ci = 0; ci < cols && !emu_cancelled(s); ++ci) {
+		int wantX = cols > 1 ? maxX * ci / (cols - 1) : 0, g = 0;
+		while (g < 120 && (int) (emu_io16(s, 0x14) & 0x1FF) != wantX) {
+			int cur = (int) (emu_io16(s, 0x14) & 0x1FF);
+			emu_frame_blind(s, cur < wantX ? K_RIGHT : K_LEFT), ++g;
+			if (g > 3 && ((int) (emu_io16(s, 0x14) & 0x1FF) - cur) * (cur < wantX ? 1 : -1) <= 0) break; /* (can't go further) */
+		}
+		bool down = (ci % 2) == 0; /* (the first column is swept down from the top, the next up from the bottom) */
+		for (int stop = 0; stop < 40; ++stop) {
+			for (int i = 0; i < 2; ++i) emu_frame(s, 0);
+			int x = emu_io16(s, 0x14) & 0x1FF, y = emu_io16(s, 0x16) & 0x1FF;
+			for (int r = 0; r < GBA_H && y + r < ch; ++r)
+				for (int c = 0; c < GBA_W && x + c < cw; ++c) canvas[(size_t) (y + r) * cw + x + c] = s->fb[r * GBA_W + c];
+			if (emu_cancelled(s) || (down ? y >= maxY : y <= 0)) break;
+			int want = down ? (y + 100 < maxY ? y + 100 : maxY) : (y > 100 ? y - 100 : 0);
+			g = 0;
+			while (g < 60 && (int) (emu_io16(s, 0x16) & 0x1FF) != want) {
+				int cy = (int) (emu_io16(s, 0x16) & 0x1FF);
+				if (down ? cy >= want : cy <= want) break;
+				emu_frame_blind(s, down ? K_DOWN : K_UP), ++g;
+			}
+		}
+	}
+	emu_hide_sprites(s, NULL, 0);
+	if (emu_cancelled(s)) return "called off";
+	if (!hm_farm_up(s)) return "the Farm Map went away";
+	/* the whole into the box: area average, centred */
+	int bw = w < GBA_W ? w : GBA_W, bh = h < GBA_H ? h : GBA_H;
+	double sc = (double) bw / cw < (double) bh / ch ? (double) bw / cw : (double) bh / ch;
+	int ow = (int) (cw * sc), oh = (int) (ch * sc);
+	if (ow < 1) ow = 1;
+	if (oh < 1) oh = 1;
+	for (int i = 0; i < w * h; ++i) out[i] = 0xFF000000;
+	int ox = (bw - ow) / 2, oy = (bh - oh) / 2;
+	for (int dy = 0; dy < oh; ++dy) {
+		int sy0 = dy * ch / oh, sy1 = (dy + 1) * ch / oh;
+		if (sy1 <= sy0) sy1 = sy0 + 1;
+		for (int dx = 0; dx < ow; ++dx) {
+			int sx0 = dx * cw / ow, sx1 = (dx + 1) * cw / ow;
+			if (sx1 <= sx0) sx1 = sx0 + 1;
+			unsigned a = 0, b = 0, c = 0, n = 0;
+			for (int sy = sy0; sy < sy1; ++sy)
+				for (int sx = sx0; sx < sx1; ++sx) {
+					uint32_t p = canvas[(size_t) sy * cw + sx];
+					a += p & 0xFF, b += (p >> 8) & 0xFF, c += (p >> 16) & 0xFF, ++n;
+				}
+			out[(oy + dy) * w + ox + dx] = 0xFF000000u | (c / n) << 16 | (b / n) << 8 | (a / n);
+		}
+	}
+	return NULL;
+}
+
+static bool hm_alt_here(Emu* live) {
+	return emu_read8(live, HM_MODE) != HM_MODE_TITLE;
+}
+
 static const char* hm_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame_blind(s, 0);
+	if (mapcap_alt_view()) return hm_farm(s, out, w, h);
 	/* (open in the game already: as it is, the glove moved back) */
 	if (!hm_map_up(s)) {
 		/* going from one area to the next (a mosaic out, the backgrounds
@@ -4714,8 +4828,8 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 #define BK_AREA 0x02000004
 /* the health bar (Banjo's head and his honeycombs) on the pause screen:
  * x 4 to ~123 with the 100% file's ten honeycombs, rows 12-27; the Totals
- * page's world name, rows 12-22 (its rows start at 36): BK_TOP rows, the
- * name's band and the health's */
+ * page's world name, rows 12-22 (its rows start at 36): BK_TOP_Y0 to
+ * BK_TOP_Y1 are the rows that hold both */
 #define BK_TOP_Y0 8
 #define BK_TOP_Y1 31
 #define BK_HEALTH_X1 150 /* (the notes start at x 184) */
@@ -6209,6 +6323,12 @@ static void m3_no_help(uint32_t* px, int w) {
 	}
 }
 
+/* the last first view found a map: the Status is then the toggle's other view (GEN-14) */
+static volatile bool m3HasMap;
+static bool m3_alt_here(Emu* live) {
+	(void) live;
+	return m3HasMap;
+}
 static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
 	static uint32_t page[M3_PAGES][GBA_W * GBA_H];
 	int max = *nOut < M3_PAGES ? *nOut : M3_PAGES;
@@ -6228,9 +6348,11 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 	m3_settle_mode(s, 60);
 	if (emu_read8(s, M3_MODE) != 0) return "not walking about"; /* (M3-5) */
 
-	/* the area's map (M3-2): R, where there's one */
-	aw_run(s, K_R, 4);
-	if (m3_wait_mode(s, 0x0D, 90)) {
+	/* the area's map (M3-2): R, where there's one; not for the toggle's other view, the Status (GEN-14) */
+	const bool wantStatus = mapcap_alt_view();
+	if (!wantStatus) aw_run(s, K_R, 4);
+	if (!wantStatus && m3_wait_mode(s, 0x0D, 90)) {
+		m3HasMap = true;
 		emu_hide_sprites(s, &m3MapArrows, 1);
 		aw_run(s, 0, 30);
 		/* the frame with the most of its marks shown (its marker blinks) */
@@ -6249,6 +6371,7 @@ static const char* m3_compose(Emu* s, const void* state, uint32_t* const* out, i
 		return NULL;
 	}
 	if (emu_read8(s, M3_MODE) != 0) return "not walking about";
+	if (!wantStatus) m3HasMap = false; /* (no map here: the Status is the picture already) */
 
 	/* no map here: START, Status, A (M3-3) */
 	/* (waits generous: with the HQ audio mix the game lags, M3-9) */
@@ -6820,7 +6943,17 @@ static const char* ff_world(Emu* s, int game, uint32_t* out, int w, int h) {
 	return NULL;
 }
 
+/* HELD views (GEN-14): a game's picture is the map when it has one, and the
+ * party screen it keeps for battles is the other view, handed over beside it
+ * for the toggle. views_put: a GBA-sized picture into a crop-sized one */
+static void views_put(uint32_t* out, int w, int h, const uint32_t* pic) {
+	for (int y = 0; y < h; ++y) {
+		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? pic[y * GBA_W + x] : 0xFF000000;
+	}
+}
+static bool ffMapShown;
 static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	ffMapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -6867,7 +7000,11 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 			if (game == 2) ffMapParty = ff_party_id(s, game);
 			if (!ff_settle_right(s, 120)) return "the map didn't settle";
 			if (emu_cancelled(s)) return "called off";
-			return ff_world(s, game, out, w, h);
+			{
+				const char* werr = ff_world(s, game, out, w, h);
+				ffMapShown = !werr;
+				return werr;
+			}
 		}
 		if (emu_cancelled(s)) return "called off";
 	}
@@ -6881,6 +7018,13 @@ static const char* ff_compose(Emu* s, const void* state, uint32_t* out, int w, i
 		for (int x = 0; x < w; ++x) out[y * w + x] = y < GBA_H && x < GBA_W ? ffParty[y * GBA_W + x] : 0xFF000000;
 	}
 	return NULL;
+}
+
+static const char* ff_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = ff_compose(s, state, out[0], w, h);
+	if (!err && ffMapShown && ffPartyOk) views_put(out[1], w, h, ffParty), *n = 2;
+	return err;
 }
 
 /* ---------------------------------------------------------------- Final Fantasy IV Advance
@@ -7020,8 +7164,12 @@ static void ff4_put_party(uint32_t* out, int w, int h, const uint32_t* pic) {
 	}
 }
 
-static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+/* the pictures (GEN-14, HELD views): the world map first when the overworld
+ * gives it (FF4-8), the party screen (FF4-3) beside it for the toggle; else
+ * the party screen alone */
+static const char* ff4_compose(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
 	static uint32_t pic[GBA_W * GBA_H];
+	*step = 1;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -7029,7 +7177,8 @@ static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	/* a battle: the party from before it (FF4-4) */
 	if (ff_probes(s, ff4Battle, sizeof(ff4Battle) / sizeof(*ff4Battle))) {
 		if (!ff4HaveParty) return "a battle";
-		ff4_put_party(out, w, h, ff4Party);
+		ff4_put_party(out[0], w, h, ff4Party);
+		*n = 1;
 		return NULL;
 	}
 	const char* err = ff4_open_menu(s);
@@ -7048,13 +7197,17 @@ static const char* ff4_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
 				int mx = x - (w - 128) / 2, my = y - (h - 128) / 2;
-				out[y * w + x] = mx >= 0 && mx < 128 && my >= 0 && my < 128 ? (map[my * 128 + mx] | 0xFF000000) : 0xFF000000;
+				out[0][y * w + x] = mx >= 0 && mx < 128 && my >= 0 && my < 128 ? (map[my * 128 + mx] | 0xFF000000) : 0xFF000000;
 			}
 		}
+		/* the party screen beside it, for the toggle */
+		ff4_put_party(out[1], w, h, pic);
+		*n = 2;
 		return NULL;
 	}
 	if (emu_cancelled(s)) return "called off";
-	ff4_put_party(out, w, h, pic);
+	ff4_put_party(out[0], w, h, pic);
+	*n = 1;
 	return NULL;
 }
 
@@ -7200,7 +7353,9 @@ static void ffv_show(uint32_t* out, int w, int h, const uint32_t* pic) {
 	}
 }
 
+static bool ffvMapShown;
 static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	ffvMapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -7249,7 +7404,14 @@ static const char* ffv_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	}
 	++ffvTakes;
 	ffv_show(out, w, h, map ? ffvMap : ffvParty);
+	ffvMapShown = map;
 	return NULL;
+}
+static const char* ffv_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = ffv_compose(s, state, out[0], w, h);
+	if (!err && ffvMapShown && ffvPartyOk) ffv_show(out[1], w, h, ffvParty), *n = 2; /* (HELD view: the party kept for battles) */
+	return err;
 }
 
 /* ------------------------------------------------- Final Fantasy VI Advance
@@ -7463,7 +7625,9 @@ static void ff6_party_out(uint32_t* out, int w, int h) {
 	}
 }
 
+static bool ff6MapShown;
 static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	ff6MapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -7488,6 +7652,7 @@ static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, 
 				ff6WorldTakes = 0;
 				ff6_party_take(s, state); /* (a failure keeps the one before) */
 			}
+			ff6MapShown = !emu_cancelled(s);
 			return emu_cancelled(s) ? "called off" : NULL;
 		}
 		if (emu_cancelled(s)) return "called off";
@@ -7496,6 +7661,12 @@ static const char* ff6_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	if (perr) return perr;
 	ff6_party_out(out, w, h);
 	return NULL;
+}
+static const char* ff6_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = ff6_compose(s, state, out[0], w, h);
+	if (!err && ff6MapShown && ff6PartyOk) ff6_party_out(out[1], w, h), *n = 2; /* (HELD view: the party kept for battles) */
+	return err;
 }
 /* ---------------------------------------------------------------- Baldur's Gate: Dark Alliance
  *
@@ -9305,7 +9476,9 @@ static const char* bof_party(Emu* s, bool menuOpen, uint32_t* out, int w, int h)
 }
 
 
+static bool bofMapShown;
 static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	bofMapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -9351,11 +9524,18 @@ static const char* bof_compose(Emu* s, const void* state, uint32_t* out, int w, 
 				aw_run(s, 0, 10);
 				bof_party(s, false, scratch, w, h);
 			}
+			bofMapShown = !emu_cancelled(s);
 			return NULL;
 		}
 	}
 	if (emu_cancelled(s)) return "called off";
 	return bof_party(s, menuOpen, out, w, h);
+}
+static const char* bof_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = bof_compose(s, state, out[0], w, h);
+	if (!err && bofMapShown && bofKept.ok && bofKept.w == w && bofKept.h == h) memcpy(out[1], bofKept.px, (size_t) w * h * sizeof(uint32_t)), *n = 2; /* (HELD view: the overview kept for battles) */
+	return err;
 }
 
 /* ---------------------------------------------------------------- Breath of Fire II
@@ -9521,7 +9701,9 @@ static const char* bof2_party(Emu* s, bool menuOpen, uint32_t* out, int w, int h
 	return NULL;
 }
 
+static bool bof2MapShown;
 static const char* bof2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	bof2MapShown = false;
 	emu_hide_sprites(s, NULL, 0);
 	emu_layers(s, 0x1F);
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -9572,11 +9754,18 @@ static const char* bof2_compose(Emu* s, const void* state, uint32_t* out, int w,
 				aw_run(s, 0, 10);
 				bof2_party(s, false, scratch, w, h);
 			}
+			bof2MapShown = !emu_cancelled(s);
 			return NULL;
 		}
 		if (emu_cancelled(s)) return "called off";
 	}
 	return bof2_party(s, bg0 == BOF2_BG0_MENU, out, w, h);
+}
+static const char* bof2_pages(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h) {
+	*n = 1, *step = 1;
+	const char* err = bof2_compose(s, state, out[0], w, h);
+	if (!err && bof2MapShown && bof2Kept.ok && bof2Kept.w == w && bof2Kept.h == h) memcpy(out[1], bof2Kept.px, (size_t) w * h * sizeof(uint32_t)), *n = 2; /* (HELD view: the overview kept for battles) */
+	return err;
 }
 
 /* ------------------------------------------- The Legend of Zelda: The Minish Cap
@@ -9703,7 +9892,7 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	emu_frame(s, 0);
 	if (emu_read8(s, TMC_TASK) != 2 || emu_read8(s, TMC_SUB) != 2) return "map button did nothing";
 	/* no Map tab without the map: Quest Status instead (TMC-4) */
-	const bool quest = ((emu_read8(s, TMC_ITEM_MAP) >> 6) & 3) == 0;
+	const bool quest = ((emu_read8(s, TMC_ITEM_MAP) >> 6) & 3) == 0 || mapcap_alt_view(); /* (or the toggle's other view, TMC-4) */
 	/* START, until the menu is up: it isn't taken during a fade or a
 	 * message, which may pass in a few frames */
 	for (int tries = 0; tries < 4 && !tmc_tab_up(s, quest); ++tries) {
@@ -9742,6 +9931,11 @@ static const char* tmc_compose(Emu* s, const void* state, uint32_t* const* out, 
 	return NULL;
 }
 
+/* the toggle's other view (Quest Status) is there when the map is: without the Map tab Quest Status is the picture already */
+static bool tmc_alt_here(Emu* live) {
+	return ((emu_read8(live, TMC_ITEM_MAP) >> 6) & 3) != 0;
+}
+
 /* The Minish Cap in Japan: the lettering runs lower (the subtitle is
  * Japanese, under the title), and there's no sword's pommel to cut away */
 static void tmc_jpn(MapProfile* p) {
@@ -9757,6 +9951,7 @@ static const MapProfile profiles[] = {
 		.codes = { __VA_ARGS__ }, \
 		.title = TITLE, \
 		.composePages = pk_pages, \
+		.pages = true, \
 		.virt = pk_virt, \
 		.holdPage = pk_hold_page, \
 		.interval = 180, \
@@ -9909,6 +10104,35 @@ static const MapProfile profiles[] = {
 		.animFrames = 8, .animStep = 4,
 	},
 	{
+		/* Kirby & The Amazing Mirror (docs/games/kirby-and-the-amazing-mirror.md);
+		 * RAM names from the jiangzhengwenjz/katam decompilation */
+		.codes = { "B8KE" },
+		.title = "Kirby & The Amazing Mirror",
+		/* the pause menu reopens on the page last looked at: the Area map's first */
+		.openPoke = { 0x0203ACCD, 4 },
+		.open = { { K_START, 4 } },
+		.settleMax = 120, .stableFrames = 3, .maxDiff = 64,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* the Area map page, in video mode 1 (Help and the World map are mode 0) */
+		.mem = { { 0x0203ACCD, 0xFF, 4, 1 }, { 0x03003690, 0x7, 1, 2 } },
+		/* playing (1-4 Kirbys) and no pause page open */
+		.live = { { 0x0203AD44, 0xFF, 1, 1, true, 4, true }, { 0x0203AD4C, 0xFFFFFFFF, 0, 4 } },
+		.menu = { { 0x0203AD44, 0xFF, 0, 1 } },
+		.room = { { 0x02020F40, 0xFFFF, 0, 2 } },
+		/* the game's own pause open on any page: the logo, not the same page twice (KAM-6) */
+		.logoIf = { { 0x0203AD4C, 0xFFFFFFFF, 1, 4, true, 0xFFFFFFFF, true } },
+		.logoIfLast = true,
+		/* the prompts (BG1): the bottom row and the L / R tabs in the top
+		 * corners give way to the art, rooms and marker under them (KAM-3) */
+		.underRect = { { 0, 143, 239, 159 }, { 0, 0, 52, 16 }, { 188, 0, 239, 16 } }, .underLayers = 0x15,
+		/* the white scroll arrows at the map's edges (KAM-3) */
+		.captureHide = { { -16, -16, 255, 175, 264, 267, 0 } },
+		/* the bar under the Kirbys' marker pulses over 54 frames */
+		.animFrames = 9, .animStep = 6,
+		/* the title from frame ~720: the lettering on BG1, the copyright below row 130 */
+		.logo = { .wait = 900, .layer = 1, .maxY = 130 },
+	},
+	{
 		.codes = { "AZLE" },
 		.title = "The Legend of Zelda: A Link to the Past",
 		/* the cartridge also holds Four Swords (multiplayer only), so list it
@@ -9951,6 +10175,8 @@ static const MapProfile profiles[] = {
 		.codes = { "BZME" },
 		.title = "The Legend of Zelda: The Minish Cap",
 		.composePages = tmc_compose,
+		.onPress = true, /* the map and Quest Status: the other is captured on a press (GEN-14, TMC-4) */
+		.altHere = tmc_alt_here,
 		.virt = tmc_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -9991,6 +10217,7 @@ static const MapProfile profiles[] = {
 		.codes = { "ATOE" },
 		.title = "Tactics Ogre: The Knight of Lodis",
 		.composePages = to_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.virt = to_virt,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
@@ -10018,6 +10245,7 @@ static const MapProfile profiles[] = {
 		.codes = { "ATOJ" },
 		.title = "Tactics Ogre: The Knight of Lodis",
 		.composePages = to_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.virt = to_virt,
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
@@ -10035,6 +10263,7 @@ static const MapProfile profiles[] = {
 		.codes = { "AGSE", "AGSF", "AGSI" },
 		.title = "Golden Sun",
 		.composePages = gs_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first member) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -10054,6 +10283,7 @@ static const MapProfile profiles[] = {
 		.codes = { "AGSS", "AGSJ" },
 		.title = "Golden Sun",
 		.composePages = gs_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
@@ -10070,6 +10300,7 @@ static const MapProfile profiles[] = {
 		.codes = { "AGFE" },
 		.title = "Golden Sun: The Lost Age",
 		.composePages = gs2_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -10094,6 +10325,7 @@ static const MapProfile profiles[] = {
 		.codes = { "AB4E", "AB4J" },
 		.title = "Summon Night: Swordcraft Story",
 		.composePages = sn_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first character) */
 		/* every half second (SN-6) */
 		.interval = 30,
@@ -10597,8 +10829,8 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
-		/* Super Mario Advance 4: Super Mario Bros. 3 (USA; Europe and Japan
-		 * in sma4_eur / sma4_jpn). The byte at 0x03003DE2 says where Mario
+		/* Super Mario Advance 4: Super Mario Bros. 3 (USA; Europe in
+		 * sma4_eur, Japan and the USA's Rev 1 in sma4_moved). The byte at 0x03003DE2 says where Mario
 		 * is: 0x41 the world map, 0x40 a level, 0x08-0x09 a Toad House,
 		 * a Spade panel game or a king's room (the level engine, with the
 		 * world map's status bar along the bottom), bit 7 set on the title,
@@ -10746,6 +10978,7 @@ static const MapProfile profiles[] = {
 		 * an 8x16 sprite (tiles 464, 468) at 100 and 116, line 62 */
 		.captureHide = { { 200, 30, 239, 70, 452, 455, 0 }, { 90, 50, 130, 76, 464, 471, 3 } },
 		.composePages = ft_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST, /* (Map Animations off: the Status's first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -10894,6 +11127,39 @@ static const MapProfile profiles[] = {
 			           { 150, 0, 239, 17, 'C', 120, 'T', 2 },
 			           { 0, 32, 79, 56, 'L', 0, 'T', 2, .under = 2 },
 			           { 150, 18, 239, 80, 0, 0, 'T', 2 } },
+		},
+	},
+	{
+		/* F-Zero Climax (docs/games/f-zero-climax.md): GP Legend's engine, its
+		 * own tiles. HUD sprites, priority 0: RANK 666-668 and LAST 655-657
+		 * (palette 15, digits 970-980), POWER 339-357 (12, 13), the time
+		 * 992-1016 (14), KO 620, the map tile 882 (15) at 0, 96 every other
+		 * frame with the dots (654) every frame. */
+		.codes = { "BFTJ" },
+		.title = "F-Zero Climax",
+		.logoOnly = true,
+		.logo = { .steps = { { 0, 1400 } }, .layer = 2 },
+		.hud = {
+			/* 0x02018EDB: 0xFF racing, 0 finished, 1 given up; over, the game
+			 * keeps drawing the HUD till RESULTS (tile 308), so it stays too */
+			.on = { { 0x04000000, 0xFFFF, 0x3C62, 2 }, { 0x02018EDB, 0xFF, 0xFF, 1 } },
+			.stay = { { 0x04000000, 0xFFFF, 0x3C62, 2 }, { 0x02018EDB, 0xFF, 0x00, 1, true, 0x01 } },
+			.offTile = 308,
+			.objs = { { -16, -16, 100, 20, 655, 668, 0, 1u << 15 },
+			          { -16, -16, 100, 20, 970, 980, 0, 1u << 14 | 1u << 15 },
+			          { 150, -16, 239, 12, 339, 357, 0, 1u << 12 | 1u << 13 },
+			          { 150, -16, 239, 12, 992, 1016, 0, 1u << 14 },
+			          { 190, 30, 239, 56, 620, 620, 0, 1u << 15 },
+			          { 190, 30, 239, 56, 970, 980, 0, 1u << 14 },
+			          { -64, 88, 64, 150, 882, 882, 0, 1u << 15 },
+			          { -16, 88, 64, 159, 654, 654, 0 } },
+			.map = { 0, 88, 63, 159 },
+			.mapAt = { 2, 120, 159, 882, 654 },
+			.emptyIsOff = true,
+			.moves = { { 0, 0, 100, 12, 'L', 4, 'B', 155, true, .ifTile = 666 },
+			           { 150, 0, 239, 11, 'C', 120, 'T', 2 },
+			           { 0, 13, 100, 30, 'L', 2, 'T', 2 },
+			           { 150, 12, 239, 56, 0, 0, 'T', 2 } },
 		},
 	},
 	{
@@ -11178,6 +11444,7 @@ static const MapProfile profiles[] = {
 		/* the Status screen, whole (SN2-2), each character in turn (SN2-5):
 		 * see sn2_compose */
 		.composePages = sn2_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first character) */
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
@@ -11345,6 +11612,7 @@ static const MapProfile profiles[] = {
 		/* the pause screen and the world's Totals, as pages, the health
 		 * bar on both (BK-2, BK-3) */
 		.composePages = bk_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST,
 		.crop_w = GBA_W,
 		.crop_h = GBA_H,
@@ -11471,6 +11739,30 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* Kirby: Nightmare in Dream Land (docs/games/kirby-nightmare-in-dream-land.md):
+		 * no map; the pause page for Kirby's copy ability, as Wario Land 4's pause screen */
+		.codes = { "A7KE" },
+		.title = "Kirby: Nightmare in Dream Land",
+		.open = { { K_START, 4 } },
+		/* START is ignored through the copy pose after swallowing: pressed again (KND-2) */
+		.settleMax = 220, .openWithin = 15, .openTries = 12, .stableFrames = 3, .maxDiff = 0,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		/* 0x030023D8 the screen mode (8 in a level), 0x030023C0 8 while paused */
+		.mem = { { 0x030023D8, 0xFF, 8, 1 }, { 0x030023C0, 0xFF, 8, 1 } },
+		.live = { { 0x030023D8, 0xFF, 8, 1 }, { 0x030023C0, 0xFF, 0, 1 } },
+		/* the title and the menus (modes 3, 4) */
+		.menu = { { 0x030023D8, 0xFF, 3, 1, true, 4, true } },
+		/* a new room, or a new copy ability (0x02004B50: 0 none), takes the page again */
+		.room = { { 0x03002468, 0xFF, 0, 1 }, { 0x02004B50, 0xFF, 0, 1 } },
+		/* a hub of doors (5) or a level's title card (7): the logo (KND-4) */
+		.logoIf = { { 0x030023D8, 0xFF, 5, 1, true, 7 } },
+		/* the game's own pause page open: the logo, not the same page twice (KND-5) */
+		.logoIfOr = { { 0x030023C0, 0xFF, 8, 1 }, { 0x04000000, 0x1000, 0, 2 } },
+		.logoIfLast = true,
+		/* the lettering (BG1) over its swoosh (BG2), above the PRESS START sprites */
+		.logo = { .wait = 800, .layers = 0x6, .maxY = 116 },
+	},
+	{
 		/* Super Mario Advance 3: Yoshi's Island (USA and Japan; Europe:
 		 * the A3AP variant, its language menu first; all three with the
 		 * same addresses). In a level the status screen, on a world's
@@ -11519,6 +11811,7 @@ static const MapProfile profiles[] = {
 		.codes = { "A88E" },
 		.title = "Mario & Luigi: Superstar Saga",
 		.composePages = ml_compose,
+		.onPress = true, /* the other brother's page, captured on a press (GEN-14) */
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -11749,6 +12042,7 @@ static const MapProfile profiles[] = {
 		.title = "Fire Emblem",
 		.virt = fe_virt,
 		.composePages = fe_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST, /* (Map Animations off: the status's first page) */
 		/* the cursor moved: the next unit's status; a unit selected or
 		 * let go: its status off or on again */
@@ -11783,6 +12077,7 @@ static const MapProfile profiles[] = {
 		.title = "Fire Emblem: The Sacred Stones",
 		.virt = fe_virt,
 		.composePages = fe_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST,
 		.room = { { FE_V_CURSOR, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
 		.crop_w = GBA_W,
@@ -11812,6 +12107,7 @@ static const MapProfile profiles[] = {
 		.title = "Fire Emblem: Fuuin no Tsurugi",
 		.virt = fe_virt,
 		.composePages = fe_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST,
 		.room = { { FE_V_CURSOR, 0, 0, 4 }, { FE_V_FREE, 0, 0, 4 } },
 		.crop_w = GBA_W,
@@ -11990,7 +12286,7 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Yu-Gi-Oh! 7 Trials to Glory (USA): the Card View of the card under
-		 * the cursor, see yw_compose (YWC-1 to YWC-4) */
+		 * the cursor, see yw_compose_for (YWC-1 to YWC-4) */
 		.codes = { "BY7E" },
 		.title = "Yu-Gi-Oh! 7 Trials to Glory",
 		.compose = yw_compose_us,
@@ -12044,6 +12340,8 @@ static const MapProfile profiles[] = {
 		.codes = { "A4NE", "A4NP", "A4ND" },
 		.title = "Harvest Moon: Friends of Mineral Town",
 		.compose = hm_compose,
+		.onPress = true, /* the Farm Map, captured on a press (HM-7) */
+		.altHere = hm_alt_here,
 		.virt = hm_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12211,7 +12509,8 @@ static const MapProfile profiles[] = {
 		 * screen: see ff6_compose (docs/games/final-fantasy-vi-advance.md) */
 		.codes = { "BZ6E" },
 		.title = "Final Fantasy VI Advance",
-		.compose = ff6_compose,
+		.composePages = ff6_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = ff6_virt,
 		/* the corner minimap isn't drawn on the game screen: it's on the
 		 * second (FF6-10, FF6-11) */
@@ -12354,6 +12653,9 @@ static const MapProfile profiles[] = {
 		.codes = { "A3UJ" },
 		.title = "MOTHER 3",
 		.composePages = m3_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
+		.onPress = true, /* the area's map and the Status: the other is captured on a press (GEN-14, M3-2, M3-3) */
+		.altHere = m3_alt_here,
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
 		.virt = m3_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
@@ -12400,7 +12702,8 @@ static const MapProfile profiles[] = {
 		 * menu: see ff_compose */
 		.codes = { "BFFE" },
 		.title = "Final Fantasy I & II: Dawn of Souls",
-		.compose = ff_compose,
+		.composePages = ff_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = ff_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12418,7 +12721,8 @@ static const MapProfile profiles[] = {
 		 * as a party screen: see ff4_compose */
 		.codes = { "BZ4E" },
 		.title = "Final Fantasy IV Advance",
-		.compose = ff4_compose,
+		.composePages = ff4_compose,
+		.views = true, /* the map and the party screen: the toggle turns to the other (GEN-14, HELD) */
 		.virt = ff4_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12435,7 +12739,8 @@ static const MapProfile profiles[] = {
 		 * (docs/games/final-fantasy-v-advance.md) */
 		.codes = { "BZ5E" },
 		.title = "Final Fantasy V Advance",
-		.compose = ffv_compose,
+		.composePages = ffv_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = ffv_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12455,6 +12760,7 @@ static const MapProfile profiles[] = {
 		.codes = { "BRLE" },
 		.title = "Rebelstar: Tactical Command",
 		.composePages = rs_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST, /* (Map Animations off: the first page) */
 		.virt = rs_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
@@ -12481,6 +12787,7 @@ static const MapProfile profiles[] = {
 		.codes = { "BRLP" },
 		.title = "Rebelstar: Tactical Command",
 		.composePages = rs_compose_eur,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
 		.stillPick = STILL_FIRST,
 		.virt = rs_virt_eur,
 		.crop_w = GBA_W,
@@ -12532,7 +12839,8 @@ static const MapProfile profiles[] = {
 		 * (docs/games/breath-of-fire.md) */
 		.codes = { "ABFE", "ABFP", "ABFJ" },
 		.title = "Breath of Fire",
-		.compose = bof_compose,
+		.composePages = bof_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = bof_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -12551,7 +12859,8 @@ static const MapProfile profiles[] = {
 		 * from SELECT's menu: see bof2_compose (docs/games/breath-of-fire-ii.md) */
 		.codes = { "AB2E", "AB2P" },
 		.title = "Breath of Fire II",
-		.compose = bof2_compose,
+		.composePages = bof2_pages,
+		.views = true, /* GEN-14, HELD */
 		.virt = bof2_virt,
 		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
 		.crop_h = GBA_H,
@@ -13065,7 +13374,28 @@ static void um6_eur(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
+/* Kirby: Nightmare in Dream Land in Japan (A7KJ, Hoshi no Kirby: Yume no
+ * Izumi Deluxe): the game's variables 0x18 lower in IWRAM (the screen mode
+ * 0x030023D0, paused 0x030023B8, the room 0x03002450), found by the code
+ * that loads the USA release's (tools/romxref.py); the ability byte is where
+ * it was (0x02004B50). The title's lettering is on the same layers (KND-1).
+ * Europe (A7KP) has the USA release's addresses. */
+static void kdl_jpn(MapProfile* p) {
+	p->mem[0].addr = 0x030023D0, p->mem[1].addr = 0x030023B8;
+	p->live[0].addr = 0x030023D0, p->live[1].addr = 0x030023B8;
+	p->menu[0].addr = 0x030023D0;
+	p->room[0].addr = 0x03002450;
+	p->logoIf[0].addr = 0x030023D0;
+	p->logoIfOr[0].addr = 0x030023B8;
+}
+
 static const Variant variants[] = {
+	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
+	{ "B8KP", "B8KE", 0, NULL },
+	{ "B8KJ", "B8KE", 0, NULL },
+	/* Kirby: Nightmare in Dream Land: Europe (the USA release's addresses) and Japan */
+	{ "A7KP", "A7KE", 0, NULL },
+	{ "A7KJ", "A7KE", 0, kdl_jpn },
 	{ "BY6P", "BY6E", 0, um6_eur },
 	{ "AGSD", "AGSE", 0, gs_ger },
 	/* Boktai: Europe and Japan (the USA release's addresses: bk_compose) */

@@ -32,9 +32,12 @@ SIDE_DEF   += -DGBADS_SIDE_CODES='"$(SIDE_CODES)"'
 endif
 endif
 OPTFLAGS   ?= -O2 -g
+# RZIP version 2 save states (zstd): libretro-common's rzstd decoder (MIT), vendored in third_party/rzstd
+RZSTD_DIR  := third_party/rzstd
+RZSTD_OBJ  := $(patsubst $(RZSTD_DIR)/src/%.c,$(OUT)/rzstd/%.o,$(wildcard $(RZSTD_DIR)/src/*.c))
 
 override CFLAGS := $(OPTFLAGS) -std=gnu11 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers \
-              -DGBADS_VERSION='"$(VERSION)"' $(SIDE_DEF) $(MGBA_DEFS) -I$(MGBA_SRC)/include -I$(MGBA_BUILD)/include -I$(SDL_PREFIX)/include/SDL2 -D_REENTRANT
+              -DGBADS_VERSION='"$(VERSION)"' $(SIDE_DEF) $(MGBA_DEFS) -I$(MGBA_SRC)/include -I$(MGBA_BUILD)/include -I$(SDL_PREFIX)/include/SDL2 -I$(RZSTD_DIR)/include -D_REENTRANT
 LDFLAGS    += -L$(SDL_PREFIX)/lib -Wl,-rpath-link,$(SDL_PREFIX)/lib
 # mGBA's bundled zlib (for .zip ROMs), when it was built with it
 ZLIB_A     := $(wildcard $(MGBA_BUILD)/zlib/libz.a)
@@ -54,9 +57,9 @@ APP_SRC    := src/main.c src/config.c src/i18n.c src/i18n_data.c src/font.c src/
 
 all: $(OUT)/gba-ds
 
-$(OUT)/gba-ds: $(APP_SRC) src/*.h VERSION $(MGBA_BUILD)/libmgba.a $(RC_OBJ) $(WEBP_OBJ)
+$(OUT)/gba-ds: $(APP_SRC) src/*.h VERSION $(MGBA_BUILD)/libmgba.a $(RC_OBJ) $(WEBP_OBJ) $(RZSTD_OBJ)
 	@mkdir -p $(OUT)
-	$(CC) $(CFLAGS) -DGBADS_RA -I$(RC_DIR)/include -I$(RC_DIR)/src -I$(WEBP_DIR) -o $@ $(APP_SRC) $(RC_OBJ) $(WEBP_OBJ) $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -DGBADS_RA -I$(RC_DIR)/include -I$(RC_DIR)/src -I$(WEBP_DIR) -o $@ $(APP_SRC) $(RC_OBJ) $(WEBP_OBJ) $(RZSTD_OBJ) $(LDFLAGS) $(LIBS)
 
 $(OUT)/rcheevos/%.o: $(RC_DIR)/src/%.c $(wildcard $(RC_DIR)/include/*.h)
 	@mkdir -p $(dir $@)
@@ -66,12 +69,16 @@ $(OUT)/libwebp/%.o: $(WEBP_DIR)/src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(OPTFLAGS) -std=gnu11 -I$(WEBP_DIR) -c $< -o $@
 
+$(OUT)/rzstd/%.o: $(RZSTD_DIR)/src/%.c $(shell find $(RZSTD_DIR)/include -name '*.h')
+	@mkdir -p $(dir $@)
+	$(CC) $(OPTFLAGS) -std=gnu11 -I$(RZSTD_DIR)/include -c $< -o $@
+
 # development tools (host only; need libpng)
 tools: $(OUT)/harness
 
-$(OUT)/harness: tools/harness.c tools/png.c $(CORE_SRC) src/logo.c src/*.h
+$(OUT)/harness: tools/harness.c tools/png.c $(CORE_SRC) src/logo.c src/*.h $(RZSTD_OBJ)
 	@mkdir -p $(OUT)
-	$(CC) $(CFLAGS) -o $@ tools/harness.c tools/png.c $(CORE_SRC) src/logo.c $(MGBA_BUILD)/libmgba.a $(ZLIB_A) -lpng -lpthread -lm
+	$(CC) $(CFLAGS) -o $@ tools/harness.c tools/png.c $(CORE_SRC) src/logo.c $(RZSTD_OBJ) $(MGBA_BUILD)/libmgba.a $(ZLIB_A) -lpng -lpthread -lm
 
 clean:
 	rm -rf build

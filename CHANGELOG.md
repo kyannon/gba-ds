@@ -1,6 +1,55 @@
 # Changelog
 
-## v1.5.8 (not yet released)
+## v1.6.2 (not yet released)
+
+### New: Game Boy and Game Boy Color games (issue #77)
+- **GBA DS plays Game Boy and Game Boy Color games**, on one screen with the other idle dark grey, as a GBA played them. Put `.gb` and `.gbc` files (or zips) in your GBA folder or in `gb` / `gbc` folders beside it, set **Games shown** to **All**, and start them from GBA DS's own game list. Saves, save states, rewind and cheats work as for GBA games. Details on the new wiki page, [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games).
+- **New Game Boy rows** in the pause menu's Display page (and Settings > Display), for these games only: **Game Boy size** (the GBA frame, or the Game Boy's 160×144 picture as the whole screen) and **scale** (Pixel Perfect, Fit, Stretch); **palette** for monochrome games (Game's own, DMG, Pocket, Light, Grayscale, Super Game Boy); **Dual-mode games** in colour or in monochrome; **color correction** (as GBA, off, Game Boy Color, Game Boy Advance); **ghosting** (as GBA, off, light, smart, strong); and a **shader**, with a **Dot matrix** look. The ones that don't apply to the game are greyed out. Palette and dual-mode changes count from the next start: closing the menu asks to **restart now** or **discard changes**, and a resume point made with other colours isn't resumed.
+- Known: the shades, the Game Boy Color's colour matrix and the dot matrix are first guesses; screenshots and the quick bar's pictures use the GBA frame; no Super Game Boy borders, rumble, camera or link cable; no RetroAchievements; EmulationStation, BananaOS and Android frontends don't start these games yet; no list of known dumps yet (no "Modified ROM" note).
+
+### RetroAchievements
+- **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
+- **Rich Presence** shows under your totals in the Achievements page: the line RetroAchievements shows on your profile for the game.
+- **Challenge and progress indicators**: while an achievement's challenge is under way its badge sits at the bottom left of the second screen, and a measured achievement shows its progress (50/5,000) for a few seconds when it changes.
+- **Leaderboard popups and a running value** are ready (started, failed, submitted, your rank) but only appear in hardcore mode, which isn't on yet.
+- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.6.2 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
+- **Hardcore rules are built, but hidden for now.** GBA DS can already play by RetroAchievements' hardcore rules (no loading states, rewind, cheats or bug reports, and the game starts over when the mode changes), but RetroAchievements hasn't approved it yet, so the menu item stays out of sight until they do. GBA DS earns casual achievements as before.
+- New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
+
+### Changes
+- **Rewind and fast forward can go on other buttons** (issue #88). Settings > Controls > Hotkeys has Rewind (hold) and Fast forward (hold), L2 and R2 at first (HOME + L2 and HOME + R2 work too), and two new shortcuts, Rewind on/off and Fast forward on/off, that keep going until you press them again (no button until you give them one). The Hotkeys list now scrolls, and its last row is no longer hidden under the note at the bottom. Map buttons and Hotkeys are now at the top of Controls, and they (and the state folder picker) show on the menu's screen only, not on both.
+- **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
+
+### Fixes
+- **The pause menu's notes are no longer cut off in other languages.** A long translated note (French, German...) stopped mid-word, and the end of "Choose it again to close GBA DS: your place is saved" stayed in English in every language.
+- **Cheats with the same name are remembered separately.** When a cheat file had two cheats with the same name, switching one on brought both back on the next time the game started. Your existing choices still load as before.
+- **Choosing a RetroArch state folder with a very long path** (over 511 characters) now says the path is too long, instead of quietly saving a cut-off path that pointed somewhere else.
+- **A game started after Pokémon Pinball: Ruby & Sapphire no longer shows its status bar on both screens.** Going back to the game list from Pokémon Pinball and starting a game whose status bar moves to the second screen (Super Mario Advance 4, for one) left the status bar on the game's screen too, and on Super Mario Advance 4's world map a few of its rows. Closing GBA DS in between avoided it.
+- **Pokémon Pinball: Ruby & Sapphire's rumble patch rumbles again** (issue #83; it didn't in v1.6.1). GBA DS now listens to the cartridge's rumble for any game that uses it, including patches that switch the motor a byte at a time, as that one does. Two things the game itself needs: turn **Rumble** on in the game's own Options, and after switching the patch on, use **Restart Game** once, because a game resumed from a state saved before the patch was on hasn't set its rumble up.
+
+## v1.6.1 (2026-11-22)
+
+### Menus and interface
+- **Rumble** (issue #83). Games that use the cartridge's rumble now rumble the device's own motor (or a connected controller's), with a new **Rumble strength** setting (Settings > Controls, and the pause menu's Controls tab; 100% by default, 0% turns it off, and it buzzes once when you change it). That covers Drill Dozer, WarioWare: Twisted and romhacks with a rumble patch that uses the cartridge's rumble (the Pokémon Pinball: Ruby & Sapphire rumble patch has been tried on the RG DS Plus). Known: Game Boy Player rumble (Mario & Luigi: Superstar Saga, Pokémon Pinball: Ruby & Sapphire and Super Mario Advance 4, without a patch) doesn't work yet; there is no rumble while rewinding or fast-forwarding.
+
+## v1.6 (2026-11-22)
+
+### New games
+- **Kirby & The Amazing Mirror** (USA, Europe and Japan): in an area, the second screen shows its Area map, kept up to date room by room. While the game's own pause screen is open the second screen shows the logo, so the map is never on both screens; the game's pause screen itself is untouched. Checked in the Rainbow Route in the USA release; the Europe and Japan releases have been tried on saved states (the title, file select, tutorial and the pause screen's maps) but not in an area yet.
+- **Kirby: Nightmare in Dream Land** (USA, Europe and Japan): in a level, the second screen shows the pause page for Kirby's copy ability, kept up to date as he copies and drops abilities. While the game's own pause page is open, and everywhere outside a level, it shows the logo. Checked in Vegetable Valley in the USA release; the Europe and Japan releases have been tried on saved states.
+- **F-Zero Climax** (Japan, and in English with the F-Zero Climax English Patch 1.1): the race HUD moves to the second screen as in F-Zero: GP Legend, with the course map twice as big. Grand Prix is checked; Time Attack and Survival haven't been yet.
+
+### Menus and interface
+- **Turn the second screen by hand** (issue #37). Settings > Second screen > **Contextual toggle** (off by default) lets you turn the second screen's pages, or switch it between two views, yourself: press HOME + A, or tap the small key under the picture (**Toggle button**: left, center, right or off; **Auto-rotate** keeps timed pages turning by themselves, or off holds a page until you turn it). In Fire Emblem, Tactics Ogre, Final Fantasy Tactics Advance, Golden Sun, Summon Night, Rebelstar and Banjo-Kazooie: Grunty's Revenge it turns a unit's, a character's or the party's pages (Pokémon: the Party and the Map). In Final Fantasy I and II, IV, V and VI and Breath of Fire I and II it switches between the party screen and the world map. In Harvest Moon: Friends of Mineral Town it switches between the town map and the whole Farm Map (stitched from the game's own scrolling Farm Map and shrunk to fit one screen, without its arrows and heads); in The Minish Cap, between the Map and the Quest Status; in Mother 3, between the area map and the Status, whose party members then turn one by one before the map returns; in Mario & Luigi: Superstar Saga, between the two brothers' Bros. Info. Where a view has to be opened first, the picture fades to black while it is taken (a few seconds) and the old view returns if it can't be (a conversation, an event, a menu). Known: the party picture in the Final Fantasy and Breath of Fire games is the one taken a few refreshes ago, not this instant. Zoids: Legacy, Kingdom Hearts: Chain of Memories and Boktai have nothing worth turning to (their other screens are interactive or never available together), and the toggle's rows, and Pinball two-screen view in games that aren't pinball, are greyed out as not available in games that don't have them.
+- **RetroArch's zstd save states load** (issue #78). States RetroArch 1.21 and later compress with zstd (RZIP version 2) now load, shared or from its folder; GBA DS still saves RetroArch's zlib ones, which every RetroArch reads.
+- **A state saved with a GBA BIOS says so, and there's an option for it** (issue #78). A state from RetroArch's mGBA core with a BIOS file set, saved while the game was inside the BIOS, couldn't load and said only "Load failed". It now says "Saved with a GBA BIOS". New, and off by default: Settings > System > **GBA BIOS** (Linux and Android) runs games with your own BIOS, a file you put in the `bios` folder of GBA DS's data folder as `gba_bios.bin` (GBA DS has none and never looks for one itself). Known: with it on, states saved without a BIOS may not load, and a BIOS applies to games started after switching it.
+
+
+### Fixes
+- **Kingdom Hearts: Chain of Memories: the menu's World Cards screen no longer shows on the second screen** (found while testing the toggle). It was taken for the World Map and stayed until the next room or until you opened the map.
+
+### Known issues
+- **Turning the second screen by hand:** the button on Android hasn't been looked at, and the Retroid Pocket Duo and Duo Lite, where both screens take touch, haven't been tried. The party picture in the Final Fantasy and Breath of Fire games is the one taken a few refreshes ago, not this instant.
 
 ## v1.5.7 (2026-11-21)
 

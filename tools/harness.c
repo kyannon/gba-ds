@@ -86,6 +86,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	/* HARNESS_SAVE=path: a battery save to run with (the file is written to as the game saves) */
+	if (getenv("HARNESS_BIOS")) snprintf(emu_bios_path, sizeof(emu_bios_path), "%s", getenv("HARNESS_BIOS")); /* a BIOS file, as Settings > GBA BIOS (issue #78) */
 	if (!emu_open(&emu, argv[1], getenv("HARNESS_SAVE"), false)) {
 		return 1;
 	}

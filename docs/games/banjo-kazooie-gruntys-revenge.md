@@ -6,6 +6,7 @@
 | Dumps | `BKZE` cartridge `dfb5aba3` (tested) · `BKZX` cartridge `fb4f38e2` (tested) · `BKZI` cartridge `67ad698f` (tested) · `BKZS` cartridge `32544634` (tested) |
 | Profile | `src/profiles.c`: the `BKZE` entry and `bk_compose`; variants `BKZX`, `BKZI`, `BKZS` |
 | Tests | `tests/regress/banjo-kazooie-gruntys-revenge.json` (`tools/regress.py banjo-kazooie-gruntys-revenge`) |
+| Toggle | `pages`: the health page and the totals page (BK-2) · GEN-14 |
 | Status | supported (merged into dev Nov 16, 2026, for v1.5.5) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list banjo-kazooie-gruntys-revenge`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

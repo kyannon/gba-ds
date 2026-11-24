@@ -6,6 +6,7 @@
 | Dumps | `ATOE` cartridge `6649d2ce` (tested) · `ATOJ` cartridge `0167a878` (tested) |
 | Profile | `src/profiles.c`: the `ATOE` and `ATOJ` entries (to_compose) |
 | Tests | `tests/regress/tactics-ogre.json` (`tools/regress.py tactics-ogre`) |
+| Toggle | `pages`: a unit's three pages, in a battle and in Organize (TO-8, TO-11) · GEN-14 |
 | Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list tactics-ogre`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

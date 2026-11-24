@@ -380,6 +380,86 @@ static void script_joy(const char* a) {
 	}
 }
 
+/* Rumble (issue #83). The motor is the controller's own when it has one (an external pad), else the
+ * device's (the RG DS Plus's vibration motor shows up as a force-feedback input device of its own,
+ * which SDL lists as a haptic device). ui_rumble(level) is called every frame with how hard the
+ * game wants it (0..1), times the player's strength; it only talks to the motor when the level
+ * moves a step or the last request is about to run out, so it isn't an ioctl a frame. */
+static SDL_Haptic* rumbleHaptic;
+static bool rumbleHapticTried;
+static float rumbleSent;     /* the level the motor was last asked for */
+static Uint32 rumbleSentAt;  /* when (SDL_GetTicks) */
+static bool rumbleOnPad;     /* the last request went to a controller */
+
+static void rumble_haptic_open(void) {
+	if (rumbleHapticTried) return;
+	rumbleHapticTried = true;
+#ifndef __wasi__
+	if (SDL_InitSubSystem(SDL_INIT_HAPTIC) != 0) {
+		fprintf(stderr, "rumble: no haptic support (%s)\n", SDL_GetError());
+		return;
+	}
+	int n = SDL_NumHaptics();
+	for (int i = 0; i < n; ++i) {
+		SDL_Haptic* h = SDL_HapticOpen(i);
+		if (!h) {
+			fprintf(stderr, "rumble: haptic %d (%s): can't open (%s)\n", i, SDL_HapticName(i), SDL_GetError());
+			continue;
+		}
+		bool ok = SDL_HapticRumbleSupported(h) && SDL_HapticRumbleInit(h) == 0;
+		fprintf(stderr, "rumble: haptic %d (%s): %s\n", i, SDL_HapticName(i), ok ? "usable" : "no rumble");
+		if (ok && !rumbleHaptic) rumbleHaptic = h;
+		else SDL_HapticClose(h);
+	}
+	if (!rumbleHaptic) fprintf(stderr, "rumble: no haptic motor found (%d device%s)\n", n, n == 1 ? "" : "s");
+#endif
+}
+
+/* One request to whichever motor there is, for ms. */
+static bool rumble_send(float level, Uint32 ms) {
+	bool onPad = false;
+#ifndef __wasi__
+	if (level > 0) {
+		Uint16 v = (Uint16) (level * 65535.0f);
+		for (int i = 0; i < 8; ++i)
+			if (pads[i] && SDL_GameControllerRumble(pads[i], v, v, ms) == 0) onPad = true;
+	} else {
+		for (int i = 0; i < 8; ++i) if (pads[i] && rumbleOnPad) SDL_GameControllerRumble(pads[i], 0, 0, 0);
+	}
+	if (!onPad) {
+		rumble_haptic_open();
+		if (rumbleHaptic) {
+			if (level > 0) SDL_HapticRumblePlay(rumbleHaptic, level, ms);
+			else SDL_HapticRumbleStop(rumbleHaptic);
+		}
+	} else if (rumbleHaptic) {
+		SDL_HapticRumbleStop(rumbleHaptic);
+	}
+#else
+	(void) level, (void) ms;
+#endif
+	rumbleOnPad = onPad;
+	return onPad;
+}
+
+void ui_rumble(float level) {
+	if (level < 0) level = 0;
+	if (level > 1) level = 1;
+	level = floorf(level * 20.0f + 0.5f) / 20.0f; /* steps of 5 % */
+	Uint32 now = SDL_GetTicks();
+	if ((int) (now - rumbleSentAt) < 0) return; /* a pulse is still running */
+	if (level == rumbleSent && (level == 0 || now - rumbleSentAt < 60)) return;
+	rumbleSent = level;
+	rumbleSentAt = now;
+	if (level > 0 || rumbleOnPad || rumbleHaptic) rumble_send(level, 120); /* (each request runs out by itself if we stop asking) */
+}
+
+void ui_rumble_pulse(float level, int ms) {
+	rumble_send(level, (Uint32) ms);
+	rumbleSent = level;
+	rumbleSentAt = SDL_GetTicks() + (Uint32) ms; /* (the next ui_rumble doesn't cut it short) */
+}
+
 static void open_pads(void) {
 	for (int i = 0; i < SDL_NumJoysticks() && i < 8; ++i) {
 		if (!pads[i] && SDL_IsGameController(i)) {
@@ -534,6 +614,8 @@ void ui_textures_reset(void) {
 }
 
 void ui_shutdown(void) {
+	ui_rumble(0);
+	if (rumbleHaptic) SDL_HapticClose(rumbleHaptic), rumbleHaptic = NULL;
 	for (int v = 0; v < 2; ++v) {
 		for (int i = 0; i < PIPE_CACHE; ++i) {
 			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
@@ -1284,16 +1366,27 @@ static uint32_t tex_version(SDL_Texture* t) {
  * 5-bit colour each 8-bit one came from (mGBA: c << 3 | c >> 2). */
 static uint32_t* ccLut;
 static bool ccOn;              /* pictures go through ccLut */
-static bool ccWant;            /* Display > Color Correction */
+static int ccWant;             /* Display > Color Correction: 0 off, 1 GBA, 2 Game Boy Color */
 static int ccGain = 100;       /* brightening, in percent (the subpixel shaders) */
-static bool lutCc = false;     /* what ccLut holds */
+static int lutCc = 0;           /* what ccLut holds */
 static int lutGain = -1;
-static void cc_build(bool cc, int gain) {
-	static const double m[3][3] = {
+static void cc_build(int mode, int gain) {
+	bool cc = mode != 0;
+	static const double gbaM[3][3] = {
 		{ 0.80, 0.275, -0.075 },
 		{ 0.135, 0.64, 0.225 },
 		{ 0.195, 0.155, 0.65 },
 	};
+	/* A Game Boy Color's screen (GB-8): our own first guess, not copied from anywhere: its colours
+	 * wash out and bleed into each other more than the GBA's (each row adds to 1.0, so white stays
+	 * white), through gamma 2.2 both ways, no darkening */
+	static const double gbcM[3][3] = {
+		{ 0.78, 0.18, 0.04 },
+		{ 0.10, 0.74, 0.16 },
+		{ 0.16, 0.16, 0.68 },
+	};
+	const double (*m)[3] = mode == 2 ? gbcM : gbaM;
+	double gam = mode == 2 ? 2.2 : 2.0, lum = mode == 2 ? 1.0 : 0.93, dark = mode == 2 ? 0.0 : 0.5;
 	if (!ccLut) ccLut = malloc(32768 * sizeof(uint32_t));
 	if (!ccLut) return;
 	for (int c = 0; c < 32768; ++c) {
@@ -1301,14 +1394,14 @@ static void cc_build(bool cc, int gain) {
 		for (int k = 0; k < 3; ++k) {
 			int v5 = c >> (k * 5) & 31;
 			double v = ((v5 << 3) | (v5 >> 2)) / 255.0;
-			if (cc) v = pow(v, 2.0 + 0.5) * 0.93;
+			if (cc) v = pow(v, gam + dark) * lum;
 			in[k] = v < 0 ? 0 : v > 1 ? 1 : v;
 		}
 		double o[3], top = 0;
 		for (int k = 0; k < 3; ++k) {
 			double v = cc ? m[k][0] * in[0] + m[k][1] * in[1] + m[k][2] * in[2] : in[k];
 			v = v < 0 ? 0 : v > 1 ? 1 : v;
-			o[k] = cc ? pow(v, 1.0 / 2.0) : v;
+			o[k] = cc ? pow(v, 1.0 / gam) : v;
 			if (o[k] > top) top = o[k];
 		}
 		/* brightened (the shader's stripes darken it again), all three
@@ -1323,15 +1416,15 @@ static void cc_build(bool cc, int gain) {
 		}
 		ccLut[c] = out;
 	}
-	lutCc = cc, lutGain = gain;
+	lutCc = mode, lutGain = gain;
 }
 static void cc_refresh(void) {
-	bool want = ccWant || ccGain != 100;
+	bool want = ccWant != 0 || ccGain != 100;
 	if (want && (lutCc != ccWant || lutGain != ccGain || !ccLut)) cc_build(ccWant, ccGain);
 	ccOn = want && ccLut;
 }
-void ui_color_correction(bool on) {
-	ccWant = on;
+void ui_color_correction(int mode) {
+	ccWant = mode;
 	cc_refresh();
 }
 
@@ -2715,11 +2808,9 @@ void ui_notice(const char* title, const char* line) {
  * frames it froze the game for seconds (the whole file read and summed from the SD
  * card), so it's done here, with a screen saying so, before the game starts. */
 void ui_game_prepare(const Config* c, const char* rom) {
-	uint8_t h[0xB0];
-	if (!rom || !emu_rom_header(rom, h, sizeof(h))) return;
+	uint8_t h[EMU_HEADER_MAX];
 	char code[5];
-	memcpy(code, h + 0xAC, 4);
-	code[4] = 0;
+	if (!rom || !emu_rom_header(rom, h, sizeof(h)) || !emu_rom_code(h, sizeof(h), code)) return;
 	const MapProfile* prof = profile_find(code);
 	if (!prof || !prof->logoPerRom) return;
 	/* what the first start of a ROM file has to do: sum the file (above), and
