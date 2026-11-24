@@ -146,6 +146,7 @@ static uint16_t bugKeys[BUG_LOG];
 static uint8_t bugPoke[BUG_LOG]; /* the SNES layout's camera pan written that frame (run_frame), 0 none */
 static struct {
 	void* st;
+	size_t cap; /* what st holds room for: a Game Boy game's state is smaller than a GBA game's, and the buffers outlive the game */
 	uint64_t frame;
 	bool have;
 } bugSnap[BUG_SNAPS];
@@ -839,7 +840,13 @@ static void bug_tick(void) {
 	}
 	if (any && bugFrame < newest + BUG_EVERY) return;
 	if (any && bugFrame == newest) return;
-	if (!bugSnap[oldest].st) bugSnap[oldest].st = malloc(emu_state_size(&emu));
+	size_t need = emu_state_size(&emu);
+	if (!bugSnap[oldest].st || bugSnap[oldest].cap < need) {
+		free(bugSnap[oldest].st);
+		bugSnap[oldest].st = malloc(need);
+		bugSnap[oldest].cap = bugSnap[oldest].st ? need : 0;
+		bugSnap[oldest].have = false;
+	}
 	if (!bugSnap[oldest].st) return;
 	bugSnap[oldest].have = emu_state_save(&emu, bugSnap[oldest].st);
 	bugSnap[oldest].frame = bugFrame;
@@ -948,6 +955,24 @@ static const char* dump_text(char* buf, size_t n) {
 static GamePaths gp;
 
 static SDL_Texture* gameTex[2];
+/* A Game Boy game with Display > Game Boy size = Game Boy screen (GB-2, GB-2a): the game's texture
+ * is just the 160x144 picture (taken from where emu.c put it in the frame), drawn in
+ * Game Boy scale; else the whole 240x160 frame in the game screen's scale, as every game. */
+static bool gb_native(void) {
+	return emu_is_gb(&emu) && !strcmp(cfg->gbSize, "native");
+}
+static int game_tex_w(void) {
+	return gb_native() ? emu.picW : GBA_W;
+}
+static int game_tex_h(void) {
+	return gb_native() ? emu.picH : GBA_H;
+}
+static const uint32_t* game_tex_px(const uint32_t* fb) {
+	return gb_native() ? fb + emu.picY * GBA_W + emu.picX : fb; /* (rows GBA_W apart either way) */
+}
+static const char* game_scale(void) {
+	return gb_native() ? cfg->gbScale : cfg->scale;
+}
 static SDL_Texture* mapTex[2];
 /* profile.combat: in a fight, the second screen is the map's background
  * with the logo small and dimmed (combatTex, mapW x mapH, made once) */
@@ -990,6 +1015,32 @@ static const MapProfile* snapProf; /* logo-only game with screens copied to the 
 static const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
 static uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
 static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
+static char gbPaletteAtStart[8], gbDualAtStart[8]; /* GB-6, GB-7 as this game started: a change counts from the next start */
+/* a Game Boy game's colours (GB-6, GB-7), from the settings, for emu_open */
+static void gb_colours_setup(void) {
+	static const struct { const char* key; int colors; uint32_t rgb[4]; } pal[] = {
+		{ "own", 1, { 0 } },
+		{ "sgb", 3, { 0 } },
+		{ "dmg", 0, { 0x9BBC0F, 0x8BAC0F, 0x306230, 0x0F380F } },
+		{ "pocket", 0, { 0xC4CFA1, 0x8B956D, 0x4D533C, 0x1F1F1F } },
+		{ "light", 0, { 0x00B581, 0x009A71, 0x00694A, 0x004F3B } },
+		{ "gray", 0, { 0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000 } },
+	};
+	snprintf(gbPaletteAtStart, sizeof(gbPaletteAtStart), "%s", cfg->gbPalette);
+	snprintf(gbDualAtStart, sizeof(gbDualAtStart), "%s", cfg->gbDual);
+	int pick = 0;
+	for (int i = 0; i < (int) (sizeof(pal) / sizeof(pal[0])); ++i) {
+		if (!strcmp(pal[i].key, cfg->gbPalette)) pick = i;
+	}
+	emu_gb_colours(pal[pick].colors, pal[pick].colors ? NULL : pal[pick].rgb, !strcmp(cfg->gbDual, "mono"));
+}
+static bool gb_colours_changed(void) {
+	return emu_is_gb(&emu) && (strcmp(cfg->gbPalette, gbPaletteAtStart) || strcmp(cfg->gbDual, gbDualAtStart));
+}
+static void draw_gb_ask(int scr);
+static bool gbAskOpen; /* leaving the menu with Game Boy colours that need a start: Restart now / Discard changes (GB-6, GB-7) */
+static int gbAskSel;
+static bool gbHadGameKey[2]; /* this game's own file had gb_palette / gb_dual as the game started */
 static bool tallLiveAtStart; /* pinball_live as this game started with it: a change counts only after a new start */
 static bool tallLive;      /* the live view: the table over both screens (update_tall) */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
@@ -2091,9 +2142,9 @@ static void patch_pick_up(void) {
  * The patched ROM the same size as the one playing, and the battery save and
  * save states the same files. */
 static bool patch_live_ok(void) {
-	uint8_t h[0xB0];
+	uint8_t h[EMU_HEADER_MAX];
 	char code[5] = "????";
-	if (emu_rom_header(romPath, h, sizeof(h))) memcpy(code, h + 0xAC, 4);
+	if (emu_rom_header(romPath, h, sizeof(h))) emu_rom_code(h, sizeof(h), code);
 	size_t nowN = 0, newN = 0;
 	int nowR = PATCH_NONE, newR = PATCH_NONE;
 	free(emu_rom_read_played(romPath, &nowN, &nowR, NULL, NULL));
@@ -3211,7 +3262,21 @@ static int item_at(int scr, int x, int y) {
 }
 
 /* Display > Shader: the label, by SH_* */
-#define SHADER_ON (cfg->shader != SH_OFF)
+/* the pattern a Game Boy game has (GB-10): its own choice, else the GBA's; Dot matrix is the grid (and
+ * dots_filter's shadows) */
+static int shader_now(void) {
+	if (emu_is_gb(&emu) && strcmp(cfg->gbShader, "same")) {
+		static const struct { const char* key; int sh; } m[] = { { "grid", SH_GRID }, { "scanlines", SH_SCANLINES }, { "soft", SH_SOFT }, { "dots", SH_GRID } };
+		for (size_t i = 0; i < sizeof(m) / sizeof(m[0]); ++i)
+			if (!strcmp(cfg->gbShader, m[i].key)) return m[i].sh;
+		return SH_OFF;
+	}
+	return cfg->shader;
+}
+static bool dots_on(void) {
+	return emu_is_gb(&emu) && !strcmp(cfg->gbShader, "dots");
+}
+#define SHADER_ON (shader_now() != SH_OFF)
 static const char* const shaderLabels[SH_COUNT] = {
 	N_("Shader: Off"), N_("Shader: LCD Grid"), N_("Shader: Scanlines"), N_("Shader: Soft Cells"),
 	N_("Shader: Subpixels (Light)"), N_("Shader: Subpixels"), N_("Shader: Subpixels (Strong)"),
@@ -3221,20 +3286,75 @@ static const char* shader_label(int sh) {
 }
 /* Display > LCD Ghosting: the game's last frame (as the emulator drew it),
  * to show each frame half and half with it */
-static uint32_t ghostPrev[GBA_W * GBA_H], ghostOut[GBA_W * GBA_H];
+static uint32_t ghostPrev[GBA_W * GBA_H], ghostPrev2[GBA_W * GBA_H], ghostOut[GBA_W * GBA_H];
 static bool ghostHave;
 static uint64_t ghostFrame;
-static const uint32_t* ghost_frame(const uint32_t* fb) {
+/* how the picture is blended with the frames before (GB-9; 0 off): the GBA's own setting is Light */
+enum { GH_OFF, GH_LIGHT, GH_SMART, GH_STRONG };
+static int ghost_mode(void) {
+	if (emu_is_gb(&emu) && strcmp(cfg->gbGhosting, "same")) {
+		return !strcmp(cfg->gbGhosting, "light") ? GH_LIGHT : !strcmp(cfg->gbGhosting, "smart") ? GH_SMART : !strcmp(cfg->gbGhosting, "strong") ? GH_STRONG : GH_OFF;
+	}
+	return cfg->ghosting ? GH_LIGHT : GH_OFF;
+}
+/* a Game Boy game's colour correction (GB-8): 0 off, 1 the GBA's screen, 2 a Game Boy Color's */
+static int correction_mode(void) {
+	if (emu_is_gb(&emu) && strcmp(cfg->gbCorrection, "same")) return !strcmp(cfg->gbCorrection, "gbc") ? 2 : !strcmp(cfg->gbCorrection, "gba") ? 1 : 0;
+	return cfg->colorCorrection ? 1 : 0;
+}
+/* Dot matrix (GB-10): a Game Boy's screen put a faint shadow, down and to the right, behind what
+ * is darker than the background: each pixel is darkened by how much darker the pixel up and to
+ * its left is than it. The grid is the shader's (shader_now). Only the 160x144 picture. */
+static uint32_t dotsOut[GBA_W * GBA_H];
+static const uint32_t* dots_filter(const uint32_t* fb) {
+	memcpy(dotsOut, fb, sizeof(dotsOut));
+	for (int y = 1; y < emu.picH; ++y) {
+		for (int x = 1; x < emu.picW; ++x) {
+			int at = (emu.picY + y) * GBA_W + emu.picX + x;
+			uint32_t p = fb[at], s = fb[at - GBA_W - 1];
+			int lp = ((p & 255) * 77 + (p >> 8 & 255) * 151 + (p >> 16 & 255) * 28) >> 8;
+			int ls = ((s & 255) * 77 + (s >> 8 & 255) * 151 + (s >> 16 & 255) * 28) >> 8;
+			int d = lp - ls; /* how much darker the one up and left is */
+			if (d <= 0) continue;
+			int keep = 256 - (d * 90 >> 8); /* (up to a third darker, for black beside white) */
+			uint32_t r = p & 0xFF000000u;
+			for (int sh = 0; sh < 24; sh += 8) r |= (uint32_t) (((p >> sh & 255) * keep) >> 8) << sh;
+			dotsOut[at] = r;
+		}
+	}
+	return dotsOut;
+}
+static const uint32_t* ghost_frame(const uint32_t* fb, int mode) {
 	if (ghostHave && frameCount == ghostFrame) return ghostOut; /* (the same frame drawn again) */
 	if (!ghostHave) {
 		memcpy(ghostPrev, fb, sizeof(ghostPrev));
+		memcpy(ghostPrev2, fb, sizeof(ghostPrev2));
+		memcpy(ghostOut, fb, sizeof(ghostOut));
 		ghostHave = true;
 	}
-	/* half this frame, half the one before: a sprite the game flickers
-	 * every other frame shows half see-through, as on the GBA's slow LCD */
 	for (int i = 0; i < GBA_W * GBA_H; ++i) {
 		uint32_t a = fb[i], b = ghostPrev[i];
-		ghostOut[i] = (a | b) - (((a ^ b) & 0xFEFEFEFEu) >> 1); /* the rounded-up average of each byte */
+		if (mode == GH_STRONG) {
+			/* each colour a third of the way from what was shown to the new one (rounded away from
+			 * what was shown, so it arrives): about three frames to follow a change */
+			uint32_t o = ghostOut[i], r = a & 0xFF000000u;
+			for (int s = 0; s < 24; s += 8) {
+				int cur = a >> s & 255, was = o >> s & 255, d = cur - was;
+				was += (d + (d > 0 ? 2 : d < 0 ? -2 : 0)) / 3;
+				r |= (uint32_t) was << s;
+			}
+			ghostOut[i] = r;
+		} else if (mode == GH_SMART) {
+			/* only a pixel that is back to what it was two frames ago, after a frame of something
+			 * else, is blended: a flicker. A scroll or a fade has no such pixels */
+			bool flicker = a == ghostPrev2[i] && a != b;
+			ghostOut[i] = flicker ? (a | b) - (((a ^ b) & 0xFEFEFEFEu) >> 1) : a;
+		} else {
+			/* half this frame, half the one before: a sprite the game flickers
+			 * every other frame shows half see-through, as on the GBA's slow LCD */
+			ghostOut[i] = (a | b) - (((a ^ b) & 0xFEFEFEFEu) >> 1); /* the rounded-up average of each byte */
+		}
+		ghostPrev2[i] = b;
 		ghostPrev[i] = a;
 	}
 	ghostFrame = frameCount;
@@ -3803,6 +3923,9 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "pinball_live") && !tallSupported) return N_("Not available in this game: only the pinball games have a table to show on both screens");
 	if ((!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
 		return N_("Not available in this game: its second screen has nothing to turn");
+	if (!strcmp(key, "gb_dual") && emu_gb_kind(&emu) != 1) return N_("Not available in this game: it is made for a Game Boy or for a Game Boy Color, not both");
+	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 2) return N_("Not available in this game: it is made for the Game Boy Color, with colors of its own");
+	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
@@ -3864,7 +3987,8 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 			ui_font_text(scr, TF_BOLD, rowTag[i].x + tw / 2, cy, tc, "Game", (SDL_Color) { 20, 16, 36, 255 }, 0);
 			rowTagOn[i] = true;
 		}
-		if (!strcmp(key, "pinball_live") && cfg->tallLive != tallLiveAtStart) {
+		if ((!strcmp(key, "pinball_live") && cfg->tallLive != tallLiveAtStart) ||
+		    ((!strcmp(key, "gb_palette") || !strcmp(key, "gb_dual")) && gb_colours_changed())) {
 			/* changed since GBA DS started: it only counts once GBA DS is closed and started again */
 			int tc = SDL_max(6, cap * 5 / 8), gp2 = mg->pad / 2;
 			int px0 = r.x + mg->pad + lw + gp2 + (has ? ui_font_width(TF_BOLD, tc, "Game") + mg->pad + gp2 : 0);
@@ -4014,6 +4138,11 @@ static void draw_menu(void) {
 			int o = ui_other_screen();
 			draw_paused_label(o);
 		}
+		return;
+	}
+	if (gbAskOpen) {
+		draw_gb_ask(scr);
+		if (nScreens > 1) draw_paused_label(ui_other_screen());
 		return;
 	}
 	if (noteOpen) {
@@ -6806,9 +6935,43 @@ static void note_done(bool keep) {
 	}
 }
 
+/* GB-6, GB-7: what a Game Boy game's colour settings come to for this game, as written beside its
+ * resume point ("-" for a setting that does nothing to it); a resume point made with other colours
+ * would bring them back (its palette RAM), so it isn't loaded */
+static void gb_colours_key(char* out, size_t n) {
+	int k = emu_gb_kind(&emu);
+	bool mono = k == 0 || (k == 1 && !strcmp(gbDualAtStart, "mono"));
+	snprintf(out, n, "%s %s", emu_is_gb(&emu) && mono ? gbPaletteAtStart : "-", k == 1 ? gbDualAtStart : "-");
+}
+static void gb_colours_note_path(char* out, size_t n) {
+	snprintf(out, n, "%s.colours", gp.autoState);
+}
+static bool gb_resume_matches(void) {
+	if (!emu_is_gb(&emu)) return true;
+	char want[40], have[40] = "own colour", path[1100];
+	gb_colours_key(want, sizeof(want));
+	if (!strcmp(want, "- -")) return true;
+	gb_colours_note_path(path, sizeof(path));
+	FILE* f = fopen(path, "r"); /* (none: a resume point from before this: made with the defaults) */
+	if (f) {
+		if (!fgets(have, sizeof(have), f)) have[0] = 0;
+		fclose(f);
+		have[strcspn(have, "\r\n")] = 0;
+	}
+	if (!f) snprintf(have, sizeof(have), "%s", !strcmp(want, "own -") ? "own -" : "own colour");
+	return !strcmp(want, have);
+}
+
 static void auto_save(void) {
 	if (!cfg->autoSave) return;
 	if (state_save(gp.autoState)) {
+		if (emu_is_gb(&emu)) {
+			char key[40], path[1100];
+			gb_colours_key(key, sizeof(key));
+			gb_colours_note_path(path, sizeof(path));
+			FILE* f = fopen(path, "w");
+			if (f) fprintf(f, "%s\n", key), fclose(f);
+		}
 		save_thumbs();
 		fprintf(stderr, "auto-saved %s\n", gp.autoState);
 	} else {
@@ -7628,7 +7791,7 @@ static void swap_screens(void) {
 	/* the game moves to the other view, whose copy of the frame may be old
 	 * (frames go only where the game is shown; the menu uploads none) */
 	if (emu.fb) {
-		for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], emu.fb, GBA_W * 4);
+		for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
 	}
 	if (nScreens < 2) {
 		singleShowsMap = !singleShowsMap;
@@ -7643,7 +7806,7 @@ static void set_shader(int sh) {
 	bool subBefore = cfg->shader >= SH_SUB_LIGHT;
 	cfg->shader = sh;
 	if (sh != SH_OFF) cfg->shaderLast = sh;
-	ui_shader(cfg->shader);
+	ui_shader(shader_now());
 	if (subBefore || cfg->shader >= SH_SUB_LIGHT) rebuild_textures(); /* (the subpixels' brightening is in the colour table) */
 	commit_current("shader");
 	save_prefs();
@@ -7731,8 +7894,8 @@ static void load_overlay(int s, int which) {
  * colour picker is open, its colour as it's picked), or in the defaults
  * (a screen without a PNG in Overlays: Custom). Nothing where the picture
  * fills the screen. */
-static void draw_bezel(int s, const char* mode, bool defaults) {
-	SDL_Rect r = ui_image_rect(s, GBA_W, GBA_H, mode), sr = screens[s].rect;
+static void draw_bezel(int s, int pw, int ph, const char* mode, bool defaults) {
+	SDL_Rect r = ui_image_rect(s, pw, ph, mode), sr = screens[s].rect;
 	/* (Zoom: the part on the screen) */
 	int x0 = SDL_max(r.x, 0), y0 = SDL_max(r.y, 0), x1 = SDL_min(r.x + r.w, sr.w), y1 = SDL_min(r.y + r.h, sr.h);
 	if (x0 <= 0 && y0 <= 0 && x1 >= sr.w && y1 >= sr.h) return;
@@ -7781,7 +7944,8 @@ static void draw_overlay(int s, int which) {
 			return;
 		}
 	}
-	draw_bezel(s, which ? cfg->mapScale : cfg->scale, cfg->overlayMode != OVM_GENERATED);
+	if (which) draw_bezel(s, GBA_W, GBA_H, cfg->mapScale, cfg->overlayMode != OVM_GENERATED);
+	else draw_bezel(s, game_tex_w(), game_tex_h(), game_scale(), cfg->overlayMode != OVM_GENERATED);
 }
 
 
@@ -7801,7 +7965,7 @@ static void draw_osd(void) {
 	int s = ui_touch_screen();
 	SDL_Rect r = screens[s].rect;
 	bool gameHere = nScreens == 1 || s == game_screen() || !((mc || logoOnly) && cfg->map);
-	SDL_Rect img = ui_image_rect(s, GBA_W, GBA_H, gameHere ? cfg->scale : cfg->mapScale);
+	SDL_Rect img = gameHere ? ui_image_rect(s, game_tex_w(), game_tex_h(), game_scale()) : ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
 	int gap = r.h - (img.y + img.h);
 	int fpx = small_text_px(s, img.y < gap ? img.y : gap);
 	int fy = gap >= 7 * fpx + 2 ? img.y + img.h + (gap - 7 * fpx) / 2 : r.h - fpx * 9;
@@ -7869,6 +8033,20 @@ static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
  * that's bigger stays a high-resolution image (logoCanvasTex NULL). */
 static void make_logo_canvas(void) {
 	ui_free_image(logoCanvasTex);
+	if (emu_is_gb(&emu)) {
+		/* A Game Boy / Game Boy Color game: the second screen is idle, plain dark grey, no logo
+		 * (docs/GAME-BOY.md, GB-3; logos come later) */
+		static uint32_t grey[GBA_W * GBA_H];
+		for (int i = 0; i < GBA_W * GBA_H; ++i) grey[i] = SCREEN_GREY;
+		logoSub = 1;
+		for (int i = 0; i < nViews; ++i) {
+			logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+			if (!logoCanvasTex[i]) continue;
+			SDL_SetTextureBlendMode(logoCanvasTex[i], SDL_BLENDMODE_NONE);
+			ui_update_texture(logoCanvasTex[i], grey, GBA_W * 4);
+		}
+		return;
+	}
 	bool pixelArt = false;
 	int sub = 1;
 	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
@@ -7929,14 +8107,17 @@ static void draw_game(void) {
 		SDL_Rect r = screens[s].rect;
 		if (showGame) {
 			if (nScreens == 2 && !mapOn && s != game_screen()) {
-				/* no map: the other screen black, in its bezel if it has one */
+				/* no map: the other screen black, in its bezel if it has one (a Game Boy game's:
+				 * idle grey, the same as a logo's, with no logo: GB-3) */
+				if (emu_is_gb(&emu) && (logoCanvasTex[0] || logoCanvasTex[1]))
+					ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
 				if (overlay_on(s)) draw_overlay(s, 1);
 				continue;
 			}
-			ui_image_pixels(s, gameTex, GBA_W, GBA_H, cfg->scale, SHADER_ON);
+			ui_image_pixels(s, gameTex, game_tex_w(), game_tex_h(), game_scale(), SHADER_ON);
 			if (hudProf && hudOn && hudAlt && hudProf->hud.alt.dimGame) {
 				/* (the phase banner moved to the other screen) */
-				SDL_Rect img = ui_image_rect(s, GBA_W, GBA_H, cfg->scale);
+				SDL_Rect img = ui_image_rect(s, game_tex_w(), game_tex_h(), game_scale());
 				ui_fill(s, img, (SDL_Color) { 0, 0, 0, 150 });
 			}
 			if (overlay_on(s)) draw_overlay(s, 0);
@@ -7944,7 +8125,7 @@ static void draw_game(void) {
 				/* sized to sit in the empty band above the picture */
 				char buf[48];
 				snprintf(buf, sizeof(buf), "%.1f FPS  %d%%", fps, (int) (speedPct + 0.5));
-				SDL_Rect img = ui_image_rect(s, GBA_W, GBA_H, cfg->scale);
+				SDL_Rect img = ui_image_rect(s, game_tex_w(), game_tex_h(), game_scale());
 				int gap = img.y;
 				int fpx = small_text_px(s, gap);
 				int fy = gap >= 7 * fpx + 2 ? (gap - 7 * fpx) / 2 : fpx * 2;
@@ -8066,18 +8247,20 @@ static void commit_current(const char* key) {
 /* put a changed setting to use in the game now */
 static void setting_applied(const Setting* st) {
 	const char* k = st->key;
-	if (!strcmp(k, "shader") || !strcmp(k, "lcd_strength")) {
+	if (!strcmp(k, "shader") || !strcmp(k, "lcd_strength") || !strcmp(k, "gb_shader")) {
 		if (cfg->shader != SH_OFF) cfg->shaderLast = cfg->shader;
-		ui_shader(cfg->shader);
+		ui_shader(shader_now());
 		rebuild_textures();
-	} else if (!strcmp(k, "color_correction")) {
-		ui_color_correction(cfg->colorCorrection);
+	} else if (!strcmp(k, "color_correction") || !strcmp(k, "gb_correction")) {
+		ui_color_correction(correction_mode());
 		rebuild_textures(); /* (every picture given again, through it or not) */
-	} else if (!strcmp(k, "lcd_ghosting")) {
+	} else if (!strcmp(k, "gb_size")) {
+		rebuild_textures(); /* (the game's texture is another size) */
+	} else if (!strcmp(k, "lcd_ghosting") || !strcmp(k, "gb_ghosting")) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
 		if (emu.fb) {
-			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], emu.fb, GBA_W * 4);
+			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
 		}
 	} else if (!strcmp(k, "screen_match") || !strcmp(k, "screen_placement")) {
 		ui_layout_pictures();
@@ -8179,6 +8362,60 @@ static void row_reset(const char* key) {
 	config_setting_copy(cfg, &uniCfg, st);
 	setting_applied(st);
 	snprintf(menuNote, sizeof(menuNote), tr("Same as all games again"));
+}
+
+/* Display > Game Boy palette / Dual-mode games: back to what the game started with, in the
+ * layer they were changed in (a value this game's file got meanwhile goes away) */
+static void gb_keys_at_start(void) {
+	gbHadGameKey[0] = game_has(config_setting("gb_palette"));
+	gbHadGameKey[1] = game_has(config_setting("gb_dual"));
+}
+static void gb_discard(void) {
+	static const char* const keys[2] = { "gb_palette", "gb_dual" };
+	char* const field[2] = { cfg->gbPalette, cfg->gbDual };
+	const char* const start[2] = { gbPaletteAtStart, gbDualAtStart };
+	for (int i = 0; i < 2; ++i) {
+		if (!strcmp(field[i], start[i])) continue;
+		const Setting* st = config_setting(keys[i]);
+		if (!st) continue;
+		if (game_has(st) && !gbHadGameKey[i]) row_reset(keys[i]);
+		snprintf(field[i], 8, "%s", start[i]);
+		commit_current(keys[i]); /* (in the layer in force: this game's file if it has the key, else all games') */
+	}
+	menuNote[0] = 0;
+}
+
+static SDL_Rect gb_ask_btn(int scr, int i) {
+	MenuGeom g = menu_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	int w = SDL_min(r.w - g.margin * 2, g.h * 8), x = r.x - r.x + (r.w - w) / 2;
+	return (SDL_Rect) { x, r.h * 11 / 20 + i * (g.h + g.gap), w, g.h };
+}
+static void draw_gb_ask(int scr) {
+	MenuGeom g = menu_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	int cy = r.h * 3 / 10;
+	ui_label(scr, r.w / 2, cy, g.cap * 5 / 4, tr("Restart required"), C_TEXT);
+	ui_font_text(scr, TF_BODY, r.w / 2, cy + g.cap * 3, g.cap * 4 / 5, tr("The new colors count when the game starts again."), C_DIS, 0);
+	ui_font_text(scr, TF_BODY, r.w / 2, cy + g.cap * 5, g.cap * 4 / 5, tr("Restarting starts it from the top."), C_DIS, 0);
+	const char* label[2] = { tr("Restart now"), tr("Discard changes") };
+	for (int i = 0; i < 2; ++i) {
+		SDL_Rect b = gb_ask_btn(scr, i);
+		ui_key(scr, b, g.rad, i == gbAskSel ? KEY_SEL : KEY_PLAIN);
+		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, g.cap, label[i], C_TEXT);
+	}
+}
+/* true: the game starts again (*exitTo set) */
+static bool gb_ask_pick(int i, enum GameExit* exitTo) {
+	gbAskOpen = false;
+	if (i == 0) {
+		patchReloadNext = true; /* (no resume point: it has the old colours in it) */
+		*exitTo = GAME_RELOAD;
+		return true;
+	}
+	gb_discard();
+	menuOpen = false;
+	return false;
 }
 
 /* the controller on a settings page (the bar, then the rows) */
@@ -8314,6 +8551,10 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	}
 	case M_RESTART:
+		if (gb_colours_changed()) { /* (GB-6, GB-7: the game opens again with its new colours) */
+			*exitTo = GAME_RELOAD;
+			return true;
+		}
 		restart_game();
 		menuOpen = false;
 		ui_osd("Game restarted");
@@ -8488,11 +8729,11 @@ static Uint32 lastLoop; /* the last pass of the play loop (SDL_GetTicks) */
 static void rebuild_textures(void) {
 	for (int i = 0; i < nViews; ++i) {
 		if (gameTex[i]) SDL_DestroyTexture(gameTex[i]);
-		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
 		if (gameTex[i]) SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
 	}
 	ss_textures();
-	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], emu.fb, GBA_W * 4);
+	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
 	if (mapShownIdx >= 0) {
 		int idx = mapShownIdx;
 		overDirty = true;
@@ -8533,9 +8774,9 @@ static void ss_switch(const char* rom, const char* code) {
  * say. */
 
 static void patches_setup(const char* rom) {
-	uint8_t h[0xB0];
+	uint8_t h[EMU_HEADER_MAX];
 	char code[5] = "????";
-	if (emu_rom_header(rom, h, sizeof(h))) memcpy(code, h + 0xAC, 4);
+	if (emu_rom_header(rom, h, sizeof(h))) emu_rom_code(h, sizeof(h), code);
 	patch_folder(cfg, rom, code, patchDir, sizeof(patchDir), true);
 	patch_choice_load(gp.patches, &patchChoice);
 	patchStarted = patchChoice;
@@ -8781,6 +9022,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
 	game_keys_reload();
+	gb_colours_setup(); /* (GB-6, GB-7: for a Game Boy game) */
+	gb_keys_at_start();
+	gbAskOpen = false;
 	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	profile_set_rom(NULL, 0);
 	if (!emu_open(&emu, rom, gp.sav, true)) {
@@ -8801,7 +9045,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
 	} else {
 		/* (a game that starts from a saved state or with an input script, resuming included, starts casual) */
-		bool fromState = cfg->loadState[0] || cfg->inputScript[0] /* (a script plays recorded input: a testing option, never hardcore) */ || (patchHandoff[0] && file_exists(patchHandoff)) || (cfg->autoLoad && !patchReload && file_exists(gp.autoState));
+		bool fromState = cfg->loadState[0] || cfg->inputScript[0] /* (a script plays recorded input: a testing option, never hardcore) */ || (patchHandoff[0] && file_exists(patchHandoff)) || (cfg->autoLoad && !patchReload && file_exists(gp.autoState) && gb_resume_matches());
 		ra_start_mode(cfg->raHardcore, fromState);
 		ra_game_start(&emu, rom);
 		if (ra_loading()) {
@@ -8838,7 +9082,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	}
 	ss_setup(rom, subCode);
 	for (int i = 0; i < nViews; ++i) {
-		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
 		SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
 	}
 	ss_textures();
@@ -8848,7 +9092,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 	uint32_t logoGen = logo_generation();
 	logoSub = 1;
-	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
+	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel) || emu_is_gb(&emu)) make_logo_canvas();
 	logoProvisional = ui_logo_provisional();
 
 	memset(pageLen, 0, sizeof(pageLen));
@@ -8866,9 +9110,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	page_add(PG_GAME, M_BUG);
 	if (fromLibrary) page_add(PG_GAME, M_LIBRARY);
 	page_add(PG_GAME, M_EXIT);
-	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
-	ui_shader(cfg->shader);
+	ui_color_correction(correction_mode()); /* (Display > Color Correction, for this session's pictures) */
+	ui_shader(shader_now());
 #define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
+	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"), ROW(PG_DISPLAY, "gb_palette"), ROW(PG_DISPLAY, "gb_dual"), ROW(PG_DISPLAY, "gb_correction"), ROW(PG_DISPLAY, "gb_ghosting"), ROW(PG_DISPLAY, "gb_shader"); /* (GB-2) */
 	ROW(PG_DISPLAY, "scale");
 	ROW(PG_DISPLAY, "map_scale");
 	ROW(PG_DISPLAY, "shader");
@@ -8927,6 +9172,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		remove(patchHandoff);
 		patchHandoff[0] = 0;
 		if (!stateWarned) ui_osd(ok ? "Patches changed: carrying on from where you were" : "Patches changed");
+	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState) && !gb_resume_matches()) {
+		ui_osd("Starting over: the colors were changed since the game was last played"); /* (GB-6, GB-7: a new start) */
 	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
 			if (!stateWarned) ui_osd(cfg->raHardcore && ra_enabled() && !ra_hardcore() ? "Resumed in casual mode (hardcore resumes from the menu). Tap or HOME for the menu": "Resumed. Tap or HOME for the menu");
@@ -9184,6 +9431,18 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				continue;
 			}
 			if (p.screen != ui_touch_screen()) continue;
+			if (gbAskOpen) {
+				if (p.kind == 2) {
+					for (int i = 0; i < 2; ++i) {
+						if (in_rect(gb_ask_btn(p.screen, i), p.x, p.y)) {
+							gbAskSel = i;
+							if (gb_ask_pick(i, &exitTo)) done = true;
+							break;
+						}
+					}
+				}
+				continue;
+			}
 			if (achOpen) {
 				if (p.kind == 1) {
 					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
@@ -9471,6 +9730,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					else ffOn = !ffOn, rewindOn = false;
 					break;
 				case HK_SHADER:
+					if (emu_is_gb(&emu) && strcmp(cfg->gbShader, "same")) { /* (this game has its own pattern: the hotkey turns that off and on) */
+						snprintf(cfg->gbShader, sizeof(cfg->gbShader), "%s", shader_now() != SH_OFF ? "off" : "dots");
+						ui_shader(shader_now());
+						commit_current("gb_shader");
+						ui_osd("%s", shader_now() != SH_OFF ? "Shader: On" : "Shader: Off");
+						break;
+					}
 					set_shader(cfg->shader != SH_OFF ? SH_OFF : cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID);
 					ui_osd("%s", shader_label(cfg->shader));
 					break;
@@ -9489,7 +9755,14 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 		if (done) break;
 
-		if (menuOpen && achOpen) {
+		if (menuOpen && gbAskOpen) {
+			if (btn_pressed(B_UP) || btn_pressed(B_DOWN)) gbAskSel = !gbAskSel;
+			if (btn_pressed(B_A)) {
+				if (gb_ask_pick(gbAskSel, &exitTo)) done = true;
+			} else if (btn_pressed(B_B) || btn_pressed(B_START)) {
+				gbAskOpen = false; /* (back to the menu, the changes kept) */
+			}
+		} else if (menuOpen && achOpen) {
 			int scr = ui_touch_screen();
 			static int held[2];
 			for (int k = 0; k < 2; ++k) {
@@ -9621,6 +9894,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				SDL_PauseAudioDevice(audio, 1);
 				SDL_ClearQueuedAudio(audio);
 			}
+		}
+		if (wasMenu && !menuOpen && gb_colours_changed()) {
+			menuOpen = true, gbAskOpen = true, gbAskSel = 0; /* (GB-6, GB-7: restart now, or discard the changes) */
 		}
 		if (wasMenu && !menuOpen) {
 			if (noteOpen) note_done(true); /* (closed some other way: saved with what's typed) */
@@ -10024,11 +10300,12 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
 		if (tallLive) shownFb = cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's upper half on the top screen) */
-		if (cfg->ghosting) shownFb = ghost_frame(shownFb);
+		if (ghost_mode() != GH_OFF) shownFb = ghost_frame(shownFb, ghost_mode());
+		if (dots_on()) shownFb = dots_filter(shownFb);
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {
-			if (gameTexAll || i == screens[game_screen()].view) ui_update_texture(gameTex[i], shownFb, GBA_W * 4);
+			if (gameTexAll || i == screens[game_screen()].view) ui_update_texture(gameTex[i], game_tex_px(shownFb), GBA_W * 4);
 		}
 		gameTexAll = false;
 		/* (tests, GBADS_DRAW_SHOTS_ONLY: only the frames a screenshot or a

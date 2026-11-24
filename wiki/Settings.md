@@ -54,6 +54,13 @@ In the game list's Settings > System, **Reset settings to defaults** puts every 
 | `lcd_strength` | `35` | How dark the lines of `grid`, `scanlines` and `soft` are, 0-100. |
 | `color_correction` | `0` | `1`: the game's colours as a Game Boy Advance's screen showed them (mGBA's GBA Color shader, sRGB, Darken Screen 0.5), on both screens. Also in the pause menu (Display). |
 | `lcd_ghosting` | `0` | `1`: each frame of the game is shown half and half with the one before, as a GBA's slow screen blurred them: moving things leave a short trail, and sprites a game flickers every other frame (to make them see-through) look see-through, as they did on a GBA. The game screen only. Also in the pause menu (Display). |
+| `gb_size` | `gba` | For Game Boy / Game Boy Color games: `gba` (the 160×144 picture at the GBA's pixel size, in the GBA's 240×160 frame) or `native` (the picture is the whole screen). Per game too. |
+| `gb_scale` | `integer` | With `gb_size = native`: `integer` (Pixel Perfect), `fit` or `stretch`. |
+| `gb_palette` | `own` | The shades of a monochrome Game Boy game: `own`, `dmg`, `pocket`, `light`, `gray` or `sgb`. Counts from the next start of the game. |
+| `gb_dual` | `colour` | Games made for both a Game Boy and a Game Boy Color: `colour` or `mono`. Counts from the next start. |
+| `gb_correction` | `same` | Colour correction for Game Boy games: `same` (as `color_correction`), `off`, `gbc` or `gba`. |
+| `gb_ghosting` | `same` | Ghosting for Game Boy games: `same` (as `lcd_ghosting`), `off`, `light`, `smart` or `strong`. |
+| `gb_shader` | `same` | The pattern over Game Boy games: `same` (as `shader`), `off`, `grid`, `scanlines`, `soft` or `dots` (grid with the Game Boy's shadow). |
 | `smooth` | `0` | Plain bilinear filtering instead of sharp scaling (blurry; usually leave off). |
 | `vsync` | `0` | Present frames in step with the display. Off is smoother on these devices. |
 | `overlays` | `generated` | `off`, `generated` (GBA DS's bezel round the picture) or `custom` (your own PNGs in `overlays/`). See [[Overlays]]. |

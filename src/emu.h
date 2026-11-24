@@ -54,6 +54,12 @@ typedef struct SpriteRule {
 typedef struct Emu {
 	struct mCore* core;
 	uint32_t* fb; /* GBA_W * GBA_H, mGBA native 32-bit color (XBGR8888, i.e. bytes R,G,B,X) */
+	/* The core's platform (mPlatform: mPLATFORM_GBA, mPLATFORM_GB). A Game Boy / Game Boy Color game
+	 * (issue #77) draws its 160x144 picture centred in the same GBA_W x GBA_H frame, at (picX, picY),
+	 * so the rest of the app sees a GBA-sized picture; for a GBA game it is the whole frame. */
+	int gbKind; /* a Game Boy game: 0 made for the plain Game Boy, 1 for either (dual-mode), 2 for the Game Boy Color alone */
+	int platform;
+	int picX, picY, picW, picH;
 	char gameCode[5];
 	uint32_t romCrc; /* the ROM's CRC32, as loaded, patched if it was (profile_dump) */
 	int patch; /* PatchResult (patch.h): a patch file beside the ROM, and whether it was applied (GEN-9) */
@@ -72,11 +78,20 @@ typedef struct Emu {
 /* savePath may be NULL (no battery save attached). */
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio);
 /* ROMs may also be in a .zip or .7z (the first GBA ROM inside is used). */
-bool emu_is_rom_name(const char* name);   /* .gba, .zip, .7z */
+bool emu_is_rom_name(const char* name);   /* .gba, .gb, .gbc (.sgb .dmg .cgb), .zip, .7z */
 bool emu_is_archive_name(const char* name); /* .zip, .7z */
-/* Reads the first n bytes of the ROM header (n <= 0xC0), from inside an
- * archive if need be. */
+/* Reads the first n bytes of the ROM header (n <= EMU_HEADER_MAX: 0x150 reaches the end of a Game
+ * Boy header), from inside an archive if need be. */
+#define EMU_HEADER_MAX 0x150
 bool emu_rom_header(const char* path, uint8_t* out, size_t n);
+/* The game's 4-letter code from a header read with emu_rom_header (n >= EMU_HEADER_MAX): a GBA game's
+ * own; a Game Boy / Game Boy Color game's made from its header ("g" or "c" + 3 characters, lower case:
+ * issue #77). Its title (up to 15 characters, unprintable ones "_"). */
+/* Is the game a Game Boy / Game Boy Color one (issue #77)? */
+bool emu_is_gb(const Emu* e);
+int emu_gb_kind(const Emu* e); /* Emu.gbKind */
+bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
+void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
 void emu_frame(Emu* e, uint32_t keys);
 
@@ -157,6 +172,11 @@ uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* p
 /* The patches a game is played with (GEN-9), in order: whatever opens that
  * ROM from now on gets them; a NULL rom or no files: none planned (then the
  * patch file beside a ROM, if any). */
+/* A Game Boy game's colours (GB-6, GB-7), set before emu_open: colors is mGBA's gb.colors
+ * (0 none, 1 the Game Boy Color's palette for the game, 3 the Super Game Boy's else that);
+ * rgb: four 0xRRGGBB shades for the whole picture (NULL: not used); mono: a dual-mode game
+ * as on a plain Game Boy. The defaults are GB-1's. */
+void emu_gb_colours(int colors, const uint32_t* rgb, bool mono);
 void emu_patch_plan(const char* rom, char files[][1024], int n);
 /* The ROM with the patches given applied, in order (the game list's
  * checksum of each game as it would be played) */

@@ -1,4 +1,4 @@
-The releases listed for each game are supported (for most games, the USA, European and Japanese ones). Any other GBA game also runs (set `show_all = 1` to list them); it just plays on one screen, with the second screen dark.
+The releases listed for each game are supported (for most games, the USA, European and Japanese ones). Any other GBA game also runs (set `show_all = 1` to list them); it just plays on one screen, with the second screen dark. Game Boy and Game Boy Color games play the same way: see [[Game Boy games]].
 
 | Game | Codes (USA / Europe / Japan) | Second screen | Romhacks and patches tested |
 |---|---|---|---|
