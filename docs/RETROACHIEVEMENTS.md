@@ -8,7 +8,7 @@ For the RetroAchievements team, answering the [Hardcore Compliance Requirements]
 
 A player-facing emulator frontend for **dual-screen handhelds** (built for the Anbernic RG DS Plus on ROCKNIX; also BananaOS, Anbernic's stock Linux OS, and Android). It plays Game Boy Advance games on one screen and shows the game's own map or logo on the other. **All emulation is done by libmgba**, linked as a library and **unmodified** (mGBA commit `143adf5`, a development snapshot on the 0.11 line, MPL-2.0; the pinned commit is `MGBA_COMMIT` in `scripts/mgba-options.sh`). GBA DS adds: the pause menu and quick bar, the second screen (including a hidden second copy of the game, used only to draw maps; see 5), save states, RetroArch state compatibility, and the rcheevos integration (`src/ra.c`, rcheevos v12.5.0 `rc_client`, vendored unmodified apart from being trimmed).
 
-Builds this application covers: the Linux zip for aarch64 (ROCKNIX, BananaOS and Anbernic's Linux, one binary) and the Android APK. **Not covered:** the web player, which has no RetroAchievements support.
+Builds this application covers: the Linux zip for aarch64 (ROCKNIX, BananaOS and Anbernic's Linux, one binary) and the Android APK. **RetroAchievements applies to Game Boy Advance games only.** Since v1.6.1.1 GBA DS also plays Game Boy and Game Boy Color games, which have no RetroAchievements support at all (no login, no achievements, no hardcore). **Not covered:** those games and the web player, which has no RetroAchievements support.
 
 ## 2. Eligibility (section D)
 
