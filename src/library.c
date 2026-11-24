@@ -972,7 +972,7 @@ static ListGeom list_geom(int scr) {
 	}
 	g.tileW = (r.w - g.m * 2 - g.gap * (g.cols - 1)) / g.cols;
 	g.rowH = g.tileH + g.gap;
-	g.barH = nGames ? px * 16 : 0;
+	g.barH = nGames ? px * 18 : 0;
 	g.visibleRows = SDL_max(1, (g.listH - g.m) / g.rowH);
 	return g;
 }
@@ -1011,7 +1011,7 @@ static int barSel;    /* and on this button */
 static SDL_Rect sort_button(int scr, const ListGeom* g, int scroll, int which) {
 	float px = ui_px(scr);
 	int h = px * 13, x = g->m, w0 = px * 34, w1 = px * 62, gap = px * 3;
-	int y = g->headerH + g->m - scroll;
+	int y = g->headerH + g->m + (int) (px * 2) - scroll; /* (a little below the header, so no key's top edge is lost) */
 	return which == 0 ? (SDL_Rect) { x, y, w0, h } : (SDL_Rect) { x + w0 + gap, y, w1, h };
 }
 
