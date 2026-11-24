@@ -6854,9 +6854,43 @@ static void note_done(bool keep) {
 	}
 }
 
+/* GB-6, GB-7: what a Game Boy game's colour settings come to for this game, as written beside its
+ * resume point ("-" for a setting that does nothing to it); a resume point made with other colours
+ * would bring them back (its palette RAM), so it isn't loaded */
+static void gb_colours_key(char* out, size_t n) {
+	int k = emu_gb_kind(&emu);
+	bool mono = k == 0 || (k == 1 && !strcmp(gbDualAtStart, "mono"));
+	snprintf(out, n, "%s %s", emu_is_gb(&emu) && mono ? gbPaletteAtStart : "-", k == 1 ? gbDualAtStart : "-");
+}
+static void gb_colours_note_path(char* out, size_t n) {
+	snprintf(out, n, "%s.colours", gp.autoState);
+}
+static bool gb_resume_matches(void) {
+	if (!emu_is_gb(&emu)) return true;
+	char want[40], have[40] = "own colour", path[1100];
+	gb_colours_key(want, sizeof(want));
+	if (!strcmp(want, "- -")) return true;
+	gb_colours_note_path(path, sizeof(path));
+	FILE* f = fopen(path, "r"); /* (none: a resume point from before this: made with the defaults) */
+	if (f) {
+		if (!fgets(have, sizeof(have), f)) have[0] = 0;
+		fclose(f);
+		have[strcspn(have, "\r\n")] = 0;
+	}
+	if (!f) snprintf(have, sizeof(have), "%s", !strcmp(want, "own -") ? "own -" : "own colour");
+	return !strcmp(want, have);
+}
+
 static void auto_save(void) {
 	if (!cfg->autoSave) return;
 	if (state_save(gp.autoState)) {
+		if (emu_is_gb(&emu)) {
+			char key[40], path[1100];
+			gb_colours_key(key, sizeof(key));
+			gb_colours_note_path(path, sizeof(path));
+			FILE* f = fopen(path, "w");
+			if (f) fprintf(f, "%s\n", key), fclose(f);
+		}
 		save_thumbs();
 		fprintf(stderr, "auto-saved %s\n", gp.autoState);
 	} else {
@@ -8774,7 +8808,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		ra_game_patched(); /* (RetroAchievements doesn't allow patched games) */
 	} else {
 		/* (a game that starts from a saved state or with an input script, resuming included, starts casual) */
-		bool fromState = cfg->loadState[0] || cfg->inputScript[0] /* (a script plays recorded input: a testing option, never hardcore) */ || (patchHandoff[0] && file_exists(patchHandoff)) || (cfg->autoLoad && !patchReload && file_exists(gp.autoState));
+		bool fromState = cfg->loadState[0] || cfg->inputScript[0] /* (a script plays recorded input: a testing option, never hardcore) */ || (patchHandoff[0] && file_exists(patchHandoff)) || (cfg->autoLoad && !patchReload && file_exists(gp.autoState) && gb_resume_matches());
 		ra_start_mode(cfg->raHardcore, fromState);
 		ra_game_start(&emu, rom);
 		if (ra_loading()) {
@@ -8901,6 +8935,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		remove(patchHandoff);
 		patchHandoff[0] = 0;
 		if (!stateWarned) ui_osd(ok ? "Patches changed: carrying on from where you were" : "Patches changed");
+	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState) && !gb_resume_matches()) {
+		ui_osd("Starting over: the colors were changed since the game was last played"); /* (GB-6, GB-7: a new start) */
 	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
 			if (!stateWarned) ui_osd(cfg->raHardcore && ra_enabled() && !ra_hardcore() ? "Resumed in casual mode (hardcore resumes from the menu). Tap or HOME for the menu": "Resumed. Tap or HOME for the menu");
