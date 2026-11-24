@@ -10,8 +10,8 @@
 #include <strings.h>
 
 const char* const shaderNames[SH_COUNT] = { N_("off"), "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
-const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader" };
-static const char* const hotkeyDefaults[HK_COUNT] = { "start", "b", "r", "l", "x", "up", "down" };
+const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader", "toggle" };
+static const char* const hotkeyDefaults[HK_COUNT] = { "start", "b", "r", "l", "x", "up", "down", "a" };
 
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
@@ -38,6 +38,8 @@ void config_defaults(Config* c) {
 	c->touchRotate = -1;
 	c->map = true;
 	c->tallLive = true;
+	c->autoRotate = true;
+	strcpy(c->toggleButton, "left");
 	c->customLogos = CL_PIXELATED;
 	c->rewind = true;
 	c->rewindSeconds = 30;
@@ -66,6 +68,7 @@ void config_defaults(Config* c) {
 	c->homeButton = -1;
 	c->leftStickDpad = true;
 	c->turboRate = 15;
+	c->rumbleStrength = 100;
 	c->brightTop = c->brightBottom = 100;
 	c->lcdStrength = 35;
 	strcpy(c->borderColor, "000000");
@@ -150,6 +153,9 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("frame_buffer", frameBuffer)
 	BOOL("map", map)
 	BOOL("pinball_live", tallLive)
+	BOOL("toggle", toggle)
+	BOOL("auto_rotate", autoRotate)
+	STR("toggle_button", toggleButton)
 	STR("logo_folder", logoFolder)
 	if (!strcmp(key, "custom_logos")) {
 		c->customLogos = !strcmp(val, "off") ? CL_OFF : !strcmp(val, "full") ? CL_FULL : CL_PIXELATED;
@@ -236,6 +242,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 		return true;
 	}
 	INT("turbo_rate", turboRate)
+	INT("rumble_strength", rumbleStrength)
 	INT("brightness_top", brightTop)
 	INT("brightness_bottom", brightBottom)
 	if (!strncmp(key, "button_", 7)) {
@@ -249,6 +256,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	}
 	BOOL("name_tags", nameTags)
 	STR("retroachievements", raMode)
+	BOOL("ra_hardcore", raHardcore)
 	STR("ra_username", raUser)
 	STR("ra_password", raPassword)
 	STR("ra_system_cfg", raSystemCfg)
@@ -278,9 +286,9 @@ static int nCliKeys;
 static const char* const perGameKeys[] = {
 	"swap", "scale", "map_scale", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
-	"map_interval", "custom_logos", "pinball_live", "rewind", "rewind_seconds",
+	"map_interval", "custom_logos", "pinball_live", "toggle", "auto_rotate", "toggle_button", "rewind", "rewind_seconds",
 	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
-	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "brightness_top", "brightness_bottom", "button_right", "button_bottom", "button_top", "button_left",
+	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "rumble_strength", "brightness_top", "brightness_bottom", "button_right", "button_bottom", "button_top", "button_left",
 	"button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right",
 };
 
@@ -446,6 +454,7 @@ static const SettingChoice chShader[] = {
 };
 static const SettingChoice chSwap[] = { { "0", "Game on top", 0 }, { "1", "Game below", 1 } };
 static const SettingChoice chMatch[] = { { "keep", "Keep device shapes", 0 }, { "aspect", "Match aspect ratios", 0 }, { "size", "Match sizes and shapes", 0 } };
+static const SettingChoice chToggleBtn[] = { { "left", "Left", 0 }, { "center", "Center", 0 }, { "right", "Right", 0 }, { "off", "Off", 0 } };
 static const SettingChoice chPlace[] = { { "center", "Centered", 0 }, { "no_gap", "Closest to gap", 0 } };
 static const SettingChoice chOverlays[] = { { N_("off"), "Off", OVM_OFF }, { "generated", "Generated", OVM_GENERATED }, { "custom", "Custom", OVM_CUSTOM } };
 static const SettingChoice chOvlScreens[] = { { "both", "Both screens", OVL_BOTH }, { "top", "Top screen", OVL_TOP }, { "bottom", "Bottom screen", OVL_BOTTOM } };
@@ -506,6 +515,7 @@ static const Setting settingsTable[] = {
 	{ "button_dpad_left", "D-pad left", SF_STR, OFFB(faceBtn[8]), ARR(chFace), 0, 0, 0, NULL, "What D-pad left gives the game." },
 	{ "button_dpad_right", "D-pad right", SF_STR, OFFB(faceBtn[9]), ARR(chFace), 0, 0, 0, NULL, "What D-pad right gives the game." },
 	{ "turbo_rate", "Turbo speed", SF_INT, OFFB(turboRate), ARR(chTurbo), 0, 0, 0, NULL, "How fast Turbo A and Turbo B press." },
+	{ "rumble_strength", "Rumble strength", SF_INT, OFFB(rumbleStrength), NULL, 0, 0, 100, 10, "%", "How hard the device's motor runs in games that rumble. 0% turns it off." },
 
 	{ "match_display", "Match display rate", SF_BOOL, OFFB(matchDisplay), ARR(chOnOff), 0, 0, 0, NULL, "Run at the display's rate: no small regular stutter." },
 	{ "frame_buffer", "Frame buffer", SF_BOOL, OFFB(frameBuffer), ARR(chOnOff), 0, 0, 0, NULL, "Smoother, one frame more input delay." },
@@ -517,6 +527,9 @@ static const Setting settingsTable[] = {
 
 	{ "map", "Second screen", SF_BOOL, OFFB(map), ARR(chOnOff), 0, 0, 0, NULL, "Off: every game plays like an ordinary GBA game." },
 	{ "map_interval", "Map refresh", SF_INT, OFFB(mapInterval), ARR(chInterval), 0, 0, 0, NULL, "Shorter can make the sound crackle on a slow device." },
+	{ "toggle", "Contextual toggle", SF_BOOL, OFFB(toggle), ARR(chOnOff), 0, 0, 0, NULL, "Turn the second screen's pages or view by hand: HOME + A, or its button." },
+	{ "auto_rotate", "Auto-rotate", SF_BOOL, OFFB(autoRotate), ARR(chOnOff), 0, 0, 0, NULL, "Timed pages keep turning by themselves. Off: a page stays until you press." },
+	{ "toggle_button", "Toggle button", SF_STR, OFFB(toggleButton), ARR(chToggleBtn), 0, 0, 0, NULL, "Where it sits on the second screen, in games with something to turn." },
 	{ "pinball_live", "Pinball two-screen view", SF_BOOL, OFFB(tallLive), ARR(chOnOff), 0, 0, 0, NULL, "Off for slower devices: the table on one screen. Close and restart GBA DS to apply." },
 };
 

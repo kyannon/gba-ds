@@ -6,6 +6,7 @@
 | Dumps | `AFXE` cartridge `5645e56c` (tested), Virtual Console `5964df89` · `AFXP` cartridge `ba5de047` (tested), Virtual Console `4a8d2c39` · `AFXJ` cartridge `a57b0034` (tested), Virtual Console `ee31422a` |
 | Profile | `src/profiles.c`: the `AFXE` entry; variants `AFXP`, `AFXJ` |
 | Tests | `tests/regress/final-fantasy-tactics-advance.json` (`tools/regress.py final-fantasy-tactics-advance`) |
+| Toggle | `pages`: a unit's Status pages, Equip and Abilities (FT-8) · GEN-14 |
 | Status | supported (second screen redone in v1.3.2) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list final-fantasy-tactics-advance`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

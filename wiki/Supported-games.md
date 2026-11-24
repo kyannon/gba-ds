@@ -238,7 +238,7 @@ The same second screen as F-Zero: GP Legend's: the HUD is moved off the game scr
 - Past the finish line and through GIVE UP's YOU LOST the HUD stays; the logo comes back with the RESULTS and stays through the standings, and in the menus, on the course card and in the course fly-in.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - It works the same on the **English Patch 1.1** (switched on in Extras > Patches, or as a patched ROM), with that translation's own title as the logo.
-- Grand Prix at Novice has been tried (Mute City to the finish, Sand Ocean and Big Blue). Not tried yet: Time Attack and Survival, which open late in the story; any HUD piece of their own would stay on the game screen.
+- Grand Prix at Novice has been tried (Mute City to the finish, Sand Ocean and Big Blue). Time Attack, Survival (which open late in the story) and Course Edit's test run have been tried by the player who contributed the game support, and work well; any HUD piece of their own would stay on the game screen.
 
 ## F-Zero: GP Legend
 

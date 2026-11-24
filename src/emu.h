@@ -66,6 +66,7 @@ typedef struct Emu {
 	char patchSkipped[256]; /* (PATCH_PARTIAL) the ones left out, " + " between */
 	uint32_t fileCrc; /* the ROM file's own CRC32, before the patch */
 	bool audio;
+	void* rumble; /* the live game's rumble (emu_rumble_level), NULL for the hidden copies */
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */
 	/* a hidden copy's capture called off (mapcap_cancel): while it's set,
 	 * frames don't run, so whatever the capture waits for gives up at
@@ -91,6 +92,14 @@ bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
 void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
 void emu_frame(Emu* e, uint32_t keys);
+
+/* Rumble (issue #83): how hard the game is asking its motor to run right now, 0 to 1
+ * (the share of the last frame it was on). Cartridge rumble (Drill Dozer, WarioWare
+ * Twisted, and romhacks that use the same pin) lands here; Game Boy Player rumble
+ * (Mario & Luigi, Pokemon Pinball R&S, SMA4) doesn't reach it yet, see
+ * docs/TESTING.md. Only the live game (emu_open with audio) has it, 0 otherwise.
+ * May be read from another thread than the one running frames. */
+float emu_rumble_level(const Emu* e);
 /* The same without drawing it (e->fb keeps the last picture): for waits on
  * a hidden copy. */
 void emu_frame_blind(Emu* e, uint32_t keys);

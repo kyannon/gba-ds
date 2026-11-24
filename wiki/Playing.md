@@ -135,6 +135,7 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | HOME + X | Quick bar (it shows the FPS too) |
 | HOME + D-pad up | Swap screens |
 | HOME + D-pad down | Toggle the selected shader (off, and back on) |
+| HOME + A | Turn the second screen's page or view (Settings > Second screen > Contextual toggle, off by default; greyed out as not available in games whose second screen has nothing to turn) |
 
 If HOME doesn't open the menu on your device, see `home_button` in [[Settings]]; `menu_combo = select+start` also makes SELECT + START open it.
 
@@ -143,7 +144,7 @@ If HOME doesn't open the menu on your device, see `home_button` in [[Settings]];
 The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and open **Controls** and choose **Hotkeys** (under Map buttons):
 
 - **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
-- **Close emulator** (closes GBA DS), **Close game** (back to the game list), **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader): the button for each.
+- **Close emulator** (closes GBA DS), **Close game** (back to the game list), **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader) and **Turn the second screen** (with the contextual toggle on): the button for each.
 
 Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, HOME is the BACK button (Android keeps HOME for itself), and Hotkeys calls it Back.
 
@@ -235,18 +236,33 @@ GBA DS applies patches (`.ips`, `.ups`, `.bps` and `.xdelta` files: romhacks, co
 
 ## RetroAchievements
 
-GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (softcore) mode**.
+GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (softcore) mode** by default, and will get a [hardcore mode](#hardcore-mode) once RetroAchievements approves it.
 
 - **Signing in:**
   - ROCKNIX: GBA DS uses the account signed in under EmulationStation's RetroAchievements settings, when RetroAchievements is switched on there. `ra_username` and `ra_password` in `gba-ds.cfg` use another account.
   - Android: the game list's **Settings** → **RetroAchievements: Sign In**, with your retroachievements.org username and password. **Sign Out** forgets the account.
   - Either way, after the first sign-in GBA DS keeps a token (`states/ra/login.cfg`), not your password.
 - **While playing:** each game shows your progress on the second screen as it starts ("2 of 30 achievements unlocked"). Unlocks pop up there too, with the badge and points, out of the game's way.
-- **Achievements** (pause menu → Extras) lists the game's achievements, grouped as recently unlocked, almost there, locked and unlocked. Each has its badge, description and points, plus a progress bar for those that count something, and your totals are at the top. D-pad or drag to scroll, L1 / R1 a page at a time, B back.
+- **Achievements** (pause menu → Extras) lists the game's achievements, grouped as recently unlocked, almost there, locked and unlocked. Each has its badge, description and points, plus a progress bar for those that count something, and your totals are at the top. When the game has a Rich Presence script, the line RetroAchievements shows on your profile ("Skating in the Hangar, 12,000 points") is under them. D-pad or drag to scroll, L1 / R1 a page at a time, B back.
+- **Challenges and progress** show on that second screen while they matter: the badge of an achievement whose challenge is under way sits at the bottom left until it ends, and for a few seconds after a measured achievement moves (50/5,000) its badge and count appear above it.
+- **Leaderboards** run in [hardcore mode](#hardcore-mode) only (RetroAchievements doesn't count them otherwise). In hardcore, an attempt, its running value, the submission and your rank show on the same screen.
 - **Save states** keep the achievements' progress beside them (`<state>.ra`), so loading an old state doesn't unlock anything by mistake. Cheats are allowed in casual mode.
-- **Offline**, the game plays on; unlocks earned while the connection is down are sent once it's back.
-- **Hardcore mode** isn't available yet (RetroAchievements requires an emulator to have been public for six months first). With hardcore on in EmulationStation, GBA DS still plays in casual mode.
+- **Offline**, the game plays on; unlocks earned while the connection is down are sent once it's back, even if you close GBA DS first: they wait in `states/ra/pending.txt` and go out the next time you sign in, before the game's achievements load. A game has to start online to have achievements. What GBA DS sends and keeps: [[Privacy]].
+- **Hardcore mode:** see below. EmulationStation's own hardcore setting isn't used, and GBA DS plays in casual mode.
 - `retroachievements = 0` in `gba-ds.cfg` turns it off. Badges are cached in `states/ra/badges/`.
+
+### Hardcore mode
+
+**Not available yet.** RetroAchievements has to approve an emulator before its hardcore unlocks count, and hasn't approved GBA DS, so the menu item is hidden. This is how it works, ready for when they do (to try it now, put `ra_hardcore = 1` in `gba-ds.cfg`: **Hardcore** then shows on the pause menu's Game page, next to Achievements, and unlocks won't count as hardcore on your profile):
+
+- **Choosing Hardcore** (twice, to confirm) **restarts the game**, because RetroAchievements only counts a whole run. Switching back to casual restarts it too, and the banner as the game starts again says which mode you're in.
+- **No loading states** (the menu, the quick bar, the quick state, RetroArch's states): saving is still fine.
+- **No rewind, no cheats and no bug reports** (the buttons are greyed out; your cheats come back when you switch hardcore off).
+- **Super Mario Advance 2's SNES layout can't pan the camera** with its extra buttons (GBA DS would have to write into the game to do it); the game's own L and R still pan.
+- **Resuming starts casual.** A game that starts from a saved state (Auto-Load, or a patch change) starts in casual mode and says so.
+- Leaderboards run, and the Achievements page says **Hardcore**.
+- Fast forward still works (it isn't on RetroAchievements' list of things to block; GBA DS will ask them to confirm).
+- A game without achievements (unrecognised, or started offline) plays as always.
 
 ## Logos
 

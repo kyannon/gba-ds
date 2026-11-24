@@ -6,6 +6,7 @@
 | Dumps | `BRLE` cartridge `fb6c590f` (tested) · `BRLP` cartridge `e448c5d4` (tested) |
 | Profile | `src/profiles.c`: the `BRLE` and `BRLP` entries (rs_compose, rsUsa / rsEur) |
 | Tests | `tests/regress/rebelstar-tactical-command.json` (`tools/regress.py rebelstar-tactical-command`) |
+| Toggle | `pages`: a soldier's three pages (RS-3) · GEN-14 |
 | Status | supported (merged into dev Nov 16, 2026, for v1.5.5) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list rebelstar-tactical-command`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

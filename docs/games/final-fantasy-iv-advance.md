@@ -6,6 +6,7 @@
 | Dumps | `BZ4E` cartridge `feeebde4` (tested) · `BZ4P` cartridge `27f2bc67` (tested) · `BZ4J` cartridge `17036e02` (tested), Rev 1 `80f1133b` (tested), Rev 1, Virtual Console `a68de435` |
 | Profile | `src/profiles.c`: the `BZ4E` entry (`ff4_compose`); variants `BZ4P`, `BZ4J` |
 | Tests | `tests/regress/final-fantasy-iv-advance.json` (`tools/regress.py final-fantasy-iv-advance`) |
+| Toggle | `views`, `HELD`: the party screen (FF4-3) and the world map (FF4-8), where both exist (the overworld); the party picture is already kept (FF4-4) · GEN-14 |
 | Status | in progress (branch `game/final-fantasy-iv-advance`) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list final-fantasy-iv-advance`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

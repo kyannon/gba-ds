@@ -1,5 +1,7 @@
 # GBA DS
 
+[![Join the GBA DS Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/TCVHSkK9wp)
+
 <p align="center"><img src="docs/lineup.png" width="100%" alt="GBA DS on three dual-screen handhelds: Metroid: Zero Mission with its map on a DS-style handheld, Pokémon Pinball's table across both screens of one with a wide top screen, and Golden Sun with its menu on another"></p>
 
 A Game Boy Advance emulator for dual-screen handhelds (built for the Anbernic RG DS Plus, on ROCKNIX and on Android with GammaOS). The game runs on one screen, and the game's own map stays up on the other screen and keeps itself current as you explore, the way the DS Castlevanias work.
@@ -105,6 +107,8 @@ GBA DS includes no games, BIOS files or other copyrighted game data. Use your ow
 GBA DS is free software: you can redistribute it and/or modify it under the terms of the [GNU General Public License](LICENSE), version 3, as published by the Free Software Foundation. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU General Public License](LICENSE) for more details.
 
 The parts of GBA DS made by others keep their own licences, all compatible with the GPL:
+
+What GBA DS sends over the network and keeps, and everything it is built from: the wiki's [Privacy](https://github.com/kyannon/gba-ds/wiki/Privacy) and [Licenses](https://github.com/kyannon/gba-ds/wiki/Licenses) pages (`wiki/Privacy.md`, `wiki/Licenses.md`).
 
 GBA DS statically links libmgba, which is © Jeffrey Pfau and licensed under MPL-2.0. The mGBA source is at <https://github.com/mgba-emu/mgba> (pinned commit in `scripts/mgba-options.sh`).
 

@@ -6,6 +6,7 @@
 | Dumps | `U3IE` cartridge `e715ac45` (tested) · `U3IP` cartridge `9686c36b` (tested) · `U3IJ` cartridge `a09c0807` (tested) |
 | Profile | `src/profiles.c`: the `U3IE` entry (bt_compose; the Map page of SELECT's menu); variants `U3IP`, `U3IJ` (as `U3IE`) |
 | Tests | `tests/regress/boktai-the-sun-is-in-your-hand.json` (`tools/regress.py boktai-the-sun-is-in-your-hand`) |
+| Toggle | `none`: the Map is the only picture worth showing, the SELECT menu's other pages being interactive (the owner, Nov 21, 2026) · GEN-14 |
 | Status | working (tested on the device, USA; Europe and Japan on their logos) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them. Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused.

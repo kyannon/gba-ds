@@ -159,7 +159,10 @@ and takes its shots and input as an app case does (GEN-8: what the panel
 says about the ROM). The game list shows the app's version at the top
 screen's bottom right, so these cases leave it out of the comparison:
 `"golden_mask": [[700, 720, 1024, 768]]` (rects painted over in both
-pictures before they're compared; any case can use it).
+pictures before they're compared; any case can use it). A fifth item, a shot's name
+(or a list of names), keeps a rect to those shots: `[40, 1440, 800, 1474, "system-language"]`
+leaves out the Updates row's note ("This is v<version>...") in that shot only, so a version
+change doesn't touch the case's other pictures (`aw-retroarch-settings`).
 
 A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS,
 BPS or xdelta) beside its ROM, named as the ROM with the patch's extension, so the app
@@ -181,6 +184,7 @@ app case runs with its own `--patch_dir`.
  "rules": ["FE-1", "FE-2", "FE-3"],
  "input": [[150, "START"], [154, "-"]],
  "config": {"layout": "single"},
+ "env": {"GBADS_TOGGLE_WAIT": "30"},
  "shots": {"start": 60, "page2": 420, "end": 720},
  "checks": [
   {"rule": "FE-2", "what": "the minimap at the bottom right",
@@ -190,6 +194,7 @@ app case runs with its own `--patch_dir`.
 }
 ```
 
+- `env` (optional) sets environment variables for the run: `GBADS_TOGGLE_WAIT=N` makes a page turn by hand wait N frames behind the fade (GEN-14), the way a view that has to be captured will.
 - `rom` is the release's game code (`roms/<rom>.zip`); `state` is relative
   to the fixtures' `states/`; `save` (optional) is a battery save from
   `saves/`, put beside the ROM.
@@ -250,6 +255,22 @@ When a change is meant to alter what a game shows:
 
 A golden that changes without a rule changing is a regression until shown
 otherwise.
+
+## Rumble (issue #83)
+
+`tools/rumble_test.py` builds a tiny test ROM that switches the cartridge's rumble pin on and
+off, runs it headless at `rumble_strength` 100, 50 and 0, and checks the log's
+"rumble: the game asked for rumble (..., motor X)" line: the motor is asked for the game's level
+times the strength. It needs llvm-mc and llvm-objcopy and no fixtures. The motor itself (a
+controller's, or the device's through SDL's haptics) can only be tried on a device: the log
+says what was found at start ("rumble: haptic 0 (...): usable") and the first time a game
+asks for rumble ("rumble: the game asked for rumble (..., motor X)").
+
+Game Boy Player rumble (Mario & Luigi, Pokemon Pinball R&S, SMA4) is not supported: with mGBA's
+`gba.forceGbp` the emulated Game Boy Player is found at the logo screen, but the games never
+start the link-port exchange that carries the rumble commands (traced Nov 22, 2026: no SIOCNT
+write in Normal 32-bit mode in 2500 frames of any of the three), and forcing it on a copy that
+extracts logos changed the logos. A future feature: find out what the games' own check wants.
 
 ## Rules checked by hand
 

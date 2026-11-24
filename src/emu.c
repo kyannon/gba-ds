@@ -389,6 +389,21 @@ BiosFile emu_bios_check(const char* path) {
 	return why;
 }
 
+/* Rumble (issue #83): mGBA's integrator turns the game's on/off pin writes into a 0..1 share
+ * of each frame; we keep the last one for the app to hand to the motor. */
+typedef struct {
+	struct mRumbleIntegrator integrator;
+	volatile float level;
+} EmuRumble;
+
+static void emu_rumble_set(struct mRumbleIntegrator* i, float v) {
+	((EmuRumble*) i)->level = v;
+}
+
+float emu_rumble_level(const Emu* e) {
+	return e->rumble ? ((EmuRumble*) e->rumble)->level : 0.0f;
+}
+
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
@@ -431,6 +446,15 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	}
 	e->core->setVideoBuffer(e->core, (mColor*) (e->fb + e->picY * GBA_W + e->picX), GBA_W);
 	if (e->platform == mPLATFORM_GBA) e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
+	if (audio) { /* only the game being played has a motor; the hidden copies stay quiet */
+		EmuRumble* r = calloc(1, sizeof(*r));
+		if (r) {
+			mRumbleIntegratorInit(&r->integrator);
+			r->integrator.setRumble = emu_rumble_set;
+			e->rumble = r;
+			e->core->setPeripheral(e->core, mPERIPH_RUMBLE, &r->integrator.d);
+		}
+	}
 	/* (testing: GBADS_RTC_FIXED=<unix seconds> holds the cartridge clock still, for games
 	 * that look at the time of day: Boktai's areas change with it) */
 	rtc_pin(e);
@@ -512,6 +536,8 @@ void emu_close(Emu* e) {
 	}
 	free(e->fb);
 	e->fb = NULL;
+	free(e->rumble);
+	e->rumble = NULL;
 }
 
 bool emu_cancelled(const Emu* e) {

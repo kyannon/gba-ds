@@ -24,7 +24,7 @@ extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid
 /* Hotkeys: the hotkey button held with an action's button does the action
  * (game.c). gba-ds.cfg: hotkey_<name> = a button (a, b, x, y, l, r, l2, r2,
  * select, start, l3, up, down, left, right) or none. */
-enum { HK_QUIT, HK_GAME, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_COUNT };
+enum { HK_QUIT, HK_GAME, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_TOGGLE, HK_COUNT };
 extern const char* const hotkeyNames[HK_COUNT]; /* quit (close the emulator), close_game, save_state, ... */
 
 /* custom_logos (GEN-11): the player's own and scraped logos shrunk to GBA
@@ -51,6 +51,9 @@ typedef struct Config {
 	bool pinCores; /* Android: the game thread on a core of its own, the map capture off it (off by default) */
 	bool map;          /* enable the second-screen map */
 	bool tallLive;     /* Pokemon Pinball: a second copy of the game draws the bottom screen live */
+	bool toggle;       /* the contextual toggle (GEN-14, issue #37): the second screen's pages or view turned by hand; off */
+	bool autoRotate;   /* with the toggle on: timed pages keep turning by themselves (a press moves them on); on */
+	char toggleButton[8]; /* where the toggle's button sits on the second screen: left | center | right | off */
 	bool rewind;       /* keep a rewind buffer (hold L2 to rewind) */
 	int rewindSeconds; /* how far back */
 	bool fastForward;  /* hold R2 to fast-forward */
@@ -109,6 +112,7 @@ typedef struct Config {
 	char accent[16];      /* the menus' colour: purple | blue | teal | green | red | orange | pink (accent) */
 	bool lightTheme;      /* the light theme for the menus' buttons (theme = light) */
 	bool leftStickDpad;   /* the left stick also presses the D-pad in games (left_stick_dpad, issue #57) */
+	int rumbleStrength;   /* how hard the device's motor runs when a game rumbles, 0..100 %, 0 off (rumble_strength, issue #83) */
 	int turboRate;        /* Turbo A / Turbo B: presses a second, 10, 15 or 20 (turbo_rate, issue #55) */
 	char faceBtn[10][12]; /* what each button gives the game (button_right, _bottom, _top, _left, _l, _r, _dpad_up, _dpad_down, _dpad_left, _dpad_right: a, b, l, r, up, down, left, right, start, select, turbo_a, turbo_b, none); empty: the GBA's own (ab_swap's for A and B) */
 	/* RetroAchievements (casual mode): auto = on when ROCKNIX has an account
@@ -116,6 +120,7 @@ typedef struct Config {
 	char raMode[8];
 	char raUser[128], raPassword[256]; /* override ROCKNIX's account */
 	char raSystemCfg[512]; /* ROCKNIX's system.cfg (global.retroachievements.*) */
+	bool raHardcore;      /* RetroAchievements hardcore (ra_hardcore; the pause menu's switch, kept in prefs.cfg) */
 	char raHost[256];     /* testing: another server */
 	bool gbaBios;         /* run games with the player's own GBA BIOS (<data folder>/bios/gba_bios.bin; issue #78; Settings > System) */
 	bool updateCheck;     /* look for a new release once a day (the game list's Settings can switch it) */

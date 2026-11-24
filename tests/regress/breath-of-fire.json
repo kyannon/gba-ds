@@ -554,6 +554,99 @@
     "b": 600
    },
    "checks": []
+  },
+  {
+   "rom": "ABFE",
+   "state": "breath-of-fire/us-overworld.ss",
+   "id": "bof-toggle-view",
+   "desc": "the toggle on, on the overworld: HOME + A turns to the party overview, and back",
+   "rules": [
+    "GEN-14",
+    "BOF-3",
+    "BOF-5"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     300,
+     "HOME+A"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "after": 250,
+    "back": 340
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "a press shows the other picture",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a second press turns back",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the turn is logged",
+     "type": "log",
+     "match": "toggle: page 2 of 2"
+    }
+   ]
   }
  ]
 }

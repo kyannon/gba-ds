@@ -7,6 +7,7 @@
 | Mods | `A88E` Superstar Saga+ v1.5 (100%) `ba4791f4` (tested), Superstar Saga+ v1.5 (80%) `10edf89c`, Superstar Saga+ v1.5 (60%) `e9f4ab5e` |
 | Profile | `src/profiles.c`: the `A88E` entry (`ml_compose`); variants `A88P` (its language menu), `A88J` |
 | Tests | `tests/regress/mario-and-luigi-superstar-saga.json` (`tools/regress.py mario-and-luigi-superstar-saga`) |
+| Toggle | `views`, `ONPRESS`: the Bros. Info of the brother in front (ML-2) and the other brother's · GEN-14 |
 | Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list mario-and-luigi-superstar-saga`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

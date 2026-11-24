@@ -567,7 +567,7 @@ release zip, which replaces the main install.
   `hud.freeze` (the HUD picture held as it is while they match: SMA4's
   status bar sliding off), `hud.offAfter` (the HUD off from when they match
   until `on[0]` stops: Superstar Saga's results and level-ups, to the
-  battle's end). Adding a game mostly means a profile.
+  battle's end). A profile whose `composePages` gives pages that turn on a timer (a status screen's three pages, the party's members) sets `pages` (not a marker's blinking frames: they restart with each capture, pages keep their place); it is also what a Toggle row `pages` means (GEN-14), and game.c's `second_page()` is the one place that says which page is up. Adding a game mostly means a profile.
 - `mapcap.c` map capture on a hidden second core in a background thread.
   A `room` key change starts one once it has held 3 frames (game.c), calling
   off one still running (`mapcap_cancel`: the shadow's frames stop running,
@@ -584,6 +584,12 @@ release zip, which replaces the main install.
 - `game.c` a play session: input, the second screen (map, logo, THPS2
   snapshot), the quick bar (Controls picker, buttons, bug reports), pause
   menu, cheats screen, screenshots.
+  The contextual toggle (GEN-14, issue #37; settings `toggle`, `auto_rotate`,
+  `toggle_button`, hotkey action `HK_TOGGLE`, HOME + A): `toggle_ready()` is the one
+  gate, `toggle_press()` / `toggle_step()` the state machine (a turn that waits
+  fades the picture: `fadeLevel`), `toggle_new_subject()` starts the pages again
+  at the first when a capture was for a new subject (`capSubject`), `second_page()`
+  says which page is up. The button: `toggle_btn_screen()` / `toggle_btn_geom()` / `draw_toggle_btn()` (its own 240x176 canvas, so it can sit in the margin under the picture; `cv_put` draws on `cvBuf`), the tap claimed in the pointer loop before "a tap opens the menu". Views (Step 4): a profile with `views` (FF4 first) gives `composePages` pictures the toggle turns to, the first being what shows (no timer); `second_page()` returns `pageOffset` for them. A profile with `onPress` (and `altHere`, whether the other view exists here) has its other view captured on the press: `viewAlt`, `pressCap`, `viewWait`, `fadeUpload` (the old view fades out, the capture is asked for once it's dark, `mapcap_set_alt` before `mapcap_request`, composers read `mapcap_alt_view()`; a refresh still running is called off by the press; `tg_view_mode` says view or pages, the last page of a paged other view bringing the first back; no answer in 600 frames and the old view returns): Minish Cap, Mother 3, Mario & Luigi, Harvest Moon (`hm_farm`: the Farm Map scrolled in stops of 200 x 100 pixels by BG1's scroll, stitched, all sprites hidden, shrunk). In-game settings rows the game can't use (`toggle_supported`, `tallSupported`) are greyed out (`row_disabled`). `tools/regress.py` lints the Toggle rows (`toggle_lint`). Tests: `GBADS_TOGGLE_WAIT=N` (a case's `env`) forces a wait.
 - `ra.c` RetroAchievements (casual only) via rcheevos' rc_client, vendored in
   `third_party/rcheevos` (v12.5.0, trimmed: no hashing beyond md5.c, no
   libretro/RAIntegration). Server calls run the system `curl` in a worker
@@ -594,8 +600,30 @@ release zip, which replaces the main install.
   no-op stubs elsewhere (Android: no curl yet). Test offline with
   `tools/ra_mock.py` (a stand-in server on 127.0.0.1:8099) and
   `--retroachievements=1 --ra-username=tester --ra-password=secret
-  --ra-host=http://127.0.0.1:8099`. Hardcore is not allowed before the app
-  has been public for 6 months (from Oct 13, 2026).
+  --ra-host=http://127.0.0.1:8099` (the mock also has game 777's Rich
+  Presence and a leaderboard; `touch /tmp/ra_mock_down` makes unlocks and
+  entries fail with HTTP 503). Hardcore (rule GEN-16: `ra_hardcore`
+  in prefs.cfg, the Game page's Hardcore item, hidden by `RA_HARDCORE_MENU 0` in ra.h until RetroAchievements approves (the owner's rule, Nov 22, 2026; set 1 then, and rewrite the wiki's Hardcore section and the changelog line); `ra_hardcore()` /
+  `ra_start_mode` / `ra_set_hardcore` / `ra_reset_wanted` in ra.c) is built
+  but not approved by RetroAchievements, which wants the app public for 6
+  months first (from Oct 13, 2026: Apr 13, 2027, unless they take libmgba as
+  the parent emulator); the plan and the rules page's checklist are in the
+  project's `claude/issue-82-progress.md`. Every state load goes through
+  game.c `state_load`, which refuses in hardcore; rewind and cheats are
+  gated beside it (`cheats_sync`). The regression suite doesn't cover RA
+  (no mock server in regress.py): test with `tools/ra_mock.py` and
+  `--ra_hardcore=1` (run it with `--update_check=0` from the game list: a
+  host run once updated itself over `build/host`). The compliance document for
+  RetroAchievements' team is `docs/RETROACHIEVEMENTS.md`.
+  Also in ra.c: the user agent (`GBADS/<numbers> (Linux|Android)
+  mgba/<numbers> rcheevos/<ver>`), the events for leaderboards, challenge and
+  progress indicators (drawn in the corners of the popup screen by
+  `draw_overlays`; leaderboards only run in hardcore, rc_client has no
+  softcore switch, so to see them on the host set the hardcore flag for a
+  local test build and put it back), and **`states/ra/pending.txt`**: every
+  unlock and leaderboard entry rc_client sends is kept (without the token) until the server
+  answers, then replayed at the next sign-in before the game loads
+  (`pending_track` / `pending_replay`; `replayBusy` holds `begin_load`).
 - `mapper.c` Settings > Map Buttons (Linux): asks for each button, builds an SDL mapping for that controller, kept in `<state_dir>/controllers.txt` and logged (bake device ones into `dist/gamecontrollerdb.txt`). Input scripts drive it with a virtual pad: `JOYBTN:n`, `JOYHAT:v`, `JOYAXIS:n,v`, `JOYBTN:-`.
 - `update.c` updates (Linux): GitHub's latest release, the notice and
   Settings > Updates (library.c), download through `http.c` (curl, or
