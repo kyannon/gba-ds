@@ -792,7 +792,7 @@ one session"). Empty after each release.
 
 (Empty: Rotation and Performance went into v1.5.5's changelog.)
 
-Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.2 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays are read once at start; a display added later (hot-plug) isn't picked up: it needs a DisplayListener and a native re-layout (ui.c, shared code), tracked in a separate issue.
+Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays are read once at start; a display added later (hot-plug) isn't picked up: it needs a DisplayListener and a native re-layout (ui.c, shared code), tracked in a separate issue.
 
 ## Rotation, and Performance (issue #60, Nov 2026; in v1.5.5)
 

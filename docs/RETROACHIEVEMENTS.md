@@ -1,6 +1,6 @@
 # GBA DS and RetroAchievements hardcore: compliance document
 
-For the RetroAchievements team, answering the [Hardcore Compliance Requirements](https://docs.retroachievements.org/general/hardcore-compliance-requirements.html) section by section. Written Nov 22, 2026 for GBA DS v1.6.2-dev (branch `ra-hardcore-enforce`); it should be updated whenever the code it describes changes. GBA DS is at https://github.com/kyannon/gba-ds (GPL-3.0). The maintainer is kyannon; RetroAchievements support was written with Claude (Anthropic) as the coding assistant, and every change was tried on real hardware by the maintainer.
+For the RetroAchievements team, answering the [Hardcore Compliance Requirements](https://docs.retroachievements.org/general/hardcore-compliance-requirements.html) section by section. Written Nov 22, 2026 for GBA DS v1.6.1.1-dev (branch `ra-hardcore-enforce`); it should be updated whenever the code it describes changes. GBA DS is at https://github.com/kyannon/gba-ds (GPL-3.0). The maintainer is kyannon; RetroAchievements support was written with Claude (Anthropic) as the coding assistant, and every change was tried on real hardware by the maintainer.
 
 **Status:** hardcore is built but switched off for players: its menu item is hidden (`RA_HARDCORE_MENU 0` in `src/ra.h`) until RetroAchievements approves GBA DS. Casual mode has been available since v1.5.7. Nothing here claims approval.
 
@@ -48,7 +48,7 @@ Also in hardcore: **bug reports** are disabled (they load an older moment of the
 
 ### C. Client identity
 
-Each request sends `GBADS/<numeric version> (<Linux|Android>) mgba/<numeric libmgba version> rcheevos/<rc_client version>`, for example `GBADS/1.6.2 (Linux) mgba/0.11.0 rcheevos/12.5`. The name is unique to this project and stable; versions are numeric (dev builds send digits only); the OS segment is the platform only. GBA DS has never identified itself as another client. The extra `rcheevos/...` clause is what rc_client's `rc_client_get_user_agent_clause` returns; the page lists three segments, so question 2 asks whether it should stay.
+Each request sends `GBADS/<numeric version> (<Linux|Android>) mgba/<numeric libmgba version> rcheevos/<rc_client version>`, for example `GBADS/1.6.1.1 (Linux) mgba/0.11.0 rcheevos/12.5`. The name is unique to this project and stable; versions are numeric (dev builds send digits only); the OS segment is the platform only. GBA DS has never identified itself as another client. The extra `rcheevos/...` clause is what rc_client's `rc_client_get_user_agent_clause` returns; the page lists three segments, so question 2 asks whether it should stay.
 
 ### D. Eligibility: see 2.
 
@@ -86,7 +86,7 @@ The second screen's maps come from a **hidden second copy of the game** run on i
 ## 6. Questions for the RetroAchievements team
 
 1. Does a new frontend around libmgba count under the parent-project wording of section D (so GBA DS could be considered before Apr 13, 2027), or should we wait? Would an informal early review of this document be possible?
-2. Is the extra `rcheevos/...` clause after the core segment acceptable, or should the user agent be exactly the three documented segments (`GBADS/1.6.2 (Linux) mgba/0.11.0`)? Does the user agent need to be added to your list on your side, and who adds it?
+2. Is the extra `rcheevos/...` clause after the core segment acceptable, or should the user agent be exactly the three documented segments (`GBADS/1.6.1.1 (Linux) mgba/0.11.0`)? Does the user agent need to be added to your list on your side, and who adds it?
 3. Is fast forward acceptable in hardcore? (RetroArch allows it; it isn't in section B.)
 4. Is the internal save-and-reload-the-same-state snapshot in 5.2 acceptable, or should those pictures be replaced by the logo in hardcore?
 5. Which privacy and data-retention statement of yours should the Privacy page link for the RetroAchievements side?
