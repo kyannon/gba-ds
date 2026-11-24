@@ -362,12 +362,9 @@ static void safe_name(char* s) {
 void patch_folder(const Config* cfg, const char* rom, const char* code, char* out, size_t size, bool make) {
 	char name[300];
 	if (!profile_release_name(code, name, sizeof(name))) {
-		uint8_t h[0xB0];
-		char title[13] = "";
-		if (emu_rom_header(rom, h, sizeof(h))) {
-			memcpy(title, h + 0xA0, 12);
-			title[12] = 0;
-		}
+		uint8_t h[EMU_HEADER_MAX];
+		char title[17] = "";
+		if (emu_rom_header(rom, h, sizeof(h))) emu_rom_title(h, sizeof(h), title);
 		for (int i = (int) strlen(title) - 1; i >= 0 && (title[i] == ' ' || !title[i]); --i) title[i] = 0;
 		snprintf(name, sizeof(name), "%s (%.4s)", title[0] ? title : tr("GBA"), code);
 	}

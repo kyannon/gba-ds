@@ -10,8 +10,11 @@
 #include <strings.h>
 
 const char* const shaderNames[SH_COUNT] = { N_("off"), "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
-const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader", "toggle" };
-static const char* const hotkeyDefaults[HK_COUNT] = { "start", "b", "r", "l", "x", "up", "down", "a" };
+const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader", "toggle",
+	                                          "rewind_toggle", "fast_forward_toggle" };
+static const char* const hotkeyDefaults[HK_COUNT] = { "start", "b", "r", "l", "x", "up", "down", "a", "none", "none" };
+const char* const holdNames[HOLD_COUNT] = { "rewind_button", "fast_forward_button" };
+static const char* const holdDefaults[HOLD_COUNT] = { "l2", "r2" };
 
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
@@ -23,6 +26,7 @@ void config_defaults(Config* c) {
 	strcpy(c->accent, "purple");
 	strcpy(c->hotkey, "home");
 	for (int i = 0; i < HK_COUNT; ++i) strcpy(c->hotkeyBtn[i], hotkeyDefaults[i]);
+	for (int i = 0; i < HOLD_COUNT; ++i) strcpy(c->holdBtn[i], holdDefaults[i]);
 	c->shaderLast = SH_GRID;
 	strcpy(c->menuCombo, "none");
 	strcpy(c->romDir, "/storage/roms/gba");
@@ -71,6 +75,13 @@ void config_defaults(Config* c) {
 	c->rumbleStrength = 100;
 	c->brightTop = c->brightBottom = 100;
 	c->lcdStrength = 35;
+	strcpy(c->gbSize, "gba");
+	strcpy(c->gbScale, "integer");
+	strcpy(c->gbPalette, "own");
+	strcpy(c->gbCorrection, "same");
+	strcpy(c->gbGhosting, "same");
+	strcpy(c->gbShader, "same");
+	strcpy(c->gbDual, "colour");
 	strcpy(c->borderColor, "000000");
 	strcpy(c->language, "auto");
 }
@@ -99,6 +110,13 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("swap", swap)
 	STR("scale", scale)
 	STR("map_scale", mapScale)
+	STR("gb_size", gbSize)
+	STR("gb_scale", gbScale)
+	STR("gb_palette", gbPalette)
+	STR("gb_correction", gbCorrection)
+	STR("gb_ghosting", gbGhosting)
+	STR("gb_shader", gbShader)
+	STR("gb_dual", gbDual)
 	BOOL("smooth", smooth)
 	if (!strcmp(key, "shader")) {
 		for (int i = 0; i < SH_COUNT; ++i) {
@@ -182,6 +200,12 @@ static bool set_option(Config* c, const char* key, const char* val) {
 			for (char* p = c->hotkeyBtn[i]; *p; ++p) *p = (char) tolower((unsigned char) *p);
 			return true;
 		}
+	}
+	for (int i = 0; i < HOLD_COUNT; ++i) {
+		if (strcmp(key, holdNames[i])) continue;
+		snprintf(c->holdBtn[i], sizeof(c->holdBtn[i]), "%s", val);
+		for (char* p = c->holdBtn[i]; *p; ++p) *p = (char) tolower((unsigned char) *p);
+		return true;
 	}
 	if (!strcmp(key, "shader_last")) {
 		for (int i = 1; i < SH_COUNT; ++i) {
@@ -284,7 +308,7 @@ static int nCliKeys;
  * (folders, accounts, updates, how the screens are found, hotkeys, the
  * touch panel) is for all games. */
 static const char* const perGameKeys[] = {
-	"swap", "scale", "map_scale", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
+	"swap", "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_correction", "gb_ghosting", "gb_shader", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
 	"map_interval", "custom_logos", "pinball_live", "toggle", "auto_rotate", "toggle_button", "rewind", "rewind_seconds",
 	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
@@ -412,9 +436,12 @@ void config_usage(const char* argv0) {
 	        "  --map-interval=N       frames between map refreshes (90)\n"
 	        "  --ab-swap              GBA A on the bottom face button\n"
 	        "  --hotkey=home|select|start|l3   the hotkey button, held with another for a shortcut\n"
-	        "  --hotkey-quit=BUTTON (and -close-game, -save-state, -load-state, -quick-menu, -swap-screens, -shader)\n"
+	        "  --hotkey-quit=BUTTON (and -close-game, -save-state, -load-state, -quick-menu, -swap-screens, -shader,\n"
+	        "                         -toggle, -rewind-toggle, -fast-forward-toggle)\n"
 	        "                         each shortcut's button (a, b, x, y, l, r, l2, r2, select,\n"
 	        "                         start, l3, up, down, left, right) or none\n"
+	        "  --rewind-button=BUTTON, --fast-forward-button=BUTTON   held to rewind / fast-forward\n"
+	        "                         (l2, r2), on its own or with the hotkey button, or none\n"
 	        "  --menu-combo=select+start|none   buttons that open the menu together (none)\n"
 	        "  --home-button=N        raw joystick button that acts as HOME (see GBADS_DEBUG=1 log)\n"
 	        "  --no-auto-resume       don't save on exit / resume on launch\n"
@@ -448,6 +475,15 @@ static const SettingChoice chShown[] = { { "0", "Supported games only", 0 }, { "
 static const SettingChoice chTags[] = { { "0", "Plain", 0 }, { "1", "With tags, like (USA)", 1 } };
 static const SettingChoice chLogos[] = { { "pixelated", "Pixelated", CL_PIXELATED }, { "full", "Full detail", CL_FULL }, { N_("off"), "Not used", CL_OFF } };
 static const SettingChoice chScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Full Width", 0 }, { "zoom", "Zoom", 0 }, { "stretch", "Stretch", 0 } };
+static const SettingChoice chGbSize[] = { { "gba", "GBA frame", 0 }, { "native", "Game Boy screen", 0 } };
+static const SettingChoice chGbScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Fit", 0 }, { "stretch", "Stretch", 0 } };
+static const SettingChoice chGbPalette[] = {
+	{ "own", "Game's own", 0 }, { "dmg", "DMG", 0 }, { "pocket", "Pocket", 0 }, { "light", "Light", 0 }, { "gray", "Grayscale", 0 }, { "sgb", "Super Game Boy", 0 },
+};
+static const SettingChoice chGbDual[] = { { "colour", "In colour", 0 }, { "mono", "In monochrome", 0 } };
+static const SettingChoice chGbCorrection[] = { { "same", "As GBA", 0 }, { "off", "Off", 0 }, { "gbc", "Game Boy Color", 0 }, { "gba", "Game Boy Advance", 0 } };
+static const SettingChoice chGbGhosting[] = { { "same", "As GBA", 0 }, { "off", "Off", 0 }, { "light", "Light", 0 }, { "smart", "Smart", 0 }, { "strong", "Strong", 0 } };
+static const SettingChoice chGbShader[] = { { "same", "As GBA", 0 }, { "off", "Off", 0 }, { "grid", "LCD Grid", 0 }, { "scanlines", "Scanlines", 0 }, { "soft", "Soft Cells", 0 }, { "dots", "Dot matrix", 0 } };
 static const SettingChoice chShader[] = {
 	{ N_("off"), "Off", SH_OFF }, { "grid", "LCD Grid", SH_GRID }, { "scanlines", "Scanlines", SH_SCANLINES }, { "soft", "Soft Cells", SH_SOFT },
 	{ "subpixels-light", "Subpixels (Light)", SH_SUB_LIGHT }, { "subpixels", "Subpixels", SH_SUB }, { "subpixels-strong", "Subpixels (Strong)", SH_SUB_STRONG },
@@ -469,7 +505,7 @@ static const SettingChoice chFF[] = { { N_("off"), "Off", 0 }, { "2", "2x", 2 },
 static const SettingChoice chRewind[] = { { "10", "10 s", 10 }, { "15", "15 s", 15 }, { "30", "30 s", 30 }, { "60", "1 minute", 60 }, { "120", "2 minutes", 120 }, { "300", "5 minutes", 300 } };
 static const SettingChoice chLatency[] = { { "32", "32 ms", 32 }, { "64", "64 ms", 64 }, { "96", "96 ms", 96 }, { "128", "128 ms", 128 }, { "192", "192 ms", 192 } };
 static const SettingChoice chPerf[] = { { "system", "Let the System Decide", 0 }, { "max", "Set to Max", 1 } };
-/* Automatic, English, then every catalogue by its own name (i18n_data.h: made from assets/i18n/*.po) */
+/* Automatic, English, then every catalogue by its own name (i18n_data.h: made from the .po files in assets/i18n) */
 static const SettingChoice chLanguage[] = { { "auto", "Automatic", 0 }, { "en", "English", 0 }, I18N_CHOICES };
 static const SettingChoice chInterval[] = { { "30", "Every 0.5 s", 30 }, { "60", "Every second", 60 }, { "90", "Every 1.5 s", 90 }, { "180", "Every 3 s", 180 } };
 
@@ -484,6 +520,13 @@ static const Setting settingsTable[] = {
 
 	{ "scale", "Game screen scale", SF_STR, OFFB(scale), ARR(chScale), 0, 0, 0, NULL, "How the game's picture fills its screen." },
 	{ "map_scale", "Second screen scale", SF_STR, OFFB(mapScale), ARR(chScale), 0, 0, 0, NULL, "How the map or logo fills its screen." },
+	{ "gb_size", "Game Boy size", SF_STR, OFFB(gbSize), ARR(chGbSize), 0, 0, 0, NULL, "Game Boy games: in a GBA's frame, or the Game Boy's own screen." },
+	{ "gb_scale", "Game Boy scale", SF_STR, OFFB(gbScale), ARR(chGbScale), 0, 0, 0, NULL, "For the Game Boy screen: how its picture fills the screen." },
+	{ "gb_palette", "Game Boy palette", SF_STR, OFFB(gbPalette), ARR(chGbPalette), 0, 0, 0, NULL, "The shades of a monochrome Game Boy game. Counts from the next start of the game." },
+	{ "gb_correction", "Game Boy color correction", SF_STR, OFFB(gbCorrection), ARR(chGbCorrection), 0, 0, 0, NULL, "Colors of a Game Boy game: as set for GBA games, none, or as a Game Boy Color or a Game Boy Advance screen showed them." },
+	{ "gb_ghosting", "Game Boy ghosting", SF_STR, OFFB(gbGhosting), ARR(chGbGhosting), 0, 0, 0, NULL, "Moving things leave a trail on a Game Boy game: as set for GBA games, none, a light one, only for flicker, or a long one." },
+	{ "gb_shader", "Game Boy shader", SF_STR, OFFB(gbShader), ARR(chGbShader), 0, 0, 0, NULL, "The pattern over a Game Boy game: as set for GBA games, none, a grid, scanlines, soft cells, or a Game Boy's dot matrix with its shadows." },
+	{ "gb_dual", "Dual-mode games", SF_STR, OFFB(gbDual), ARR(chGbDual), 0, 0, 0, NULL, "Games made for both a Game Boy and a Game Boy Color: in colour, or as on a Game Boy. Counts from the next start." },
 	{ "shader", "Shader", SF_INT, OFFB(shader), ARR(chShader), 0, 0, 0, NULL, "A pattern over every pixel, on both screens." },
 	{ "lcd_strength", "Pattern strength", SF_INT, OFFB(lcdStrength), NULL, 0, 0, 100, 5, "%", "How dark the grid, scanlines and soft cells are." },
 	{ "color_correction", "Color correction", SF_BOOL, OFFB(colorCorrection), ARR(chOnOff), 0, 0, 0, NULL, "Colors as a Game Boy Advance's screen showed them." },

@@ -11,6 +11,7 @@
 **Use**
 - [[Playing]]
 - [[Supported games]]
+- [[Game Boy games]]
 - [[Overlays]]
 - [[Settings]]
 - [[Languages]]

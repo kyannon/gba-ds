@@ -145,7 +145,7 @@ void ui_update_texture_plain(SDL_Texture* t, const void* px, int pitch);
 /* Colour correction for everything given to ui_update_texture (the game's
  * pictures, ABGR8888): the GBA's own screen, as mGBA's GBA Color shader
  * (sRGB profile, Darken Screen 0.5) draws it. */
-void ui_color_correction(bool on);
+void ui_color_correction(int mode); /* 0 off, 1 the GBA's screen, 2 a Game Boy Color's */
 /* Display > Shader (config.h SH_*): the subpixel presets brighten every
  * picture given to ui_update_texture (their stripes darken it again); the
  * pattern itself is drawn by ui_image_pixels from cfg->shader. */

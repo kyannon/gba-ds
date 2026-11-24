@@ -110,6 +110,9 @@ static float tapX, tapY;
 /* SWIPE:x0,y0,x1,y1 (fractions of the window): down, 4 moves a tick apart, up */
 static float swipe[4];
 static int swipeStep = -1;
+/* DRAG:x,y puts a finger down and leaves it there, MOVE:x,y moves it, LIFT lifts it (WarioWare: Twisted!'s dial) */
+static float dragX, dragY;
+static bool dragDown;
 static char pendingShot[160];
 static char pendingLoad[160]; /* LOAD:file in an input script (regression tests) */
 
@@ -146,7 +149,7 @@ void ui_load_script(const char* path) {
 		s->tick = t;
 		s->btns = 0;
 		s->action[0] = 0;
-		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
+		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "DRAG:", 5) || !strncmp(what, "MOVE:", 5) || !strcmp(what, "LIFT") || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
 		    !strncmp(what, "JOY", 3)) {
 			snprintf(s->action, sizeof(s->action), "%s", what);
 		} else {
@@ -216,6 +219,13 @@ static void run_script(void) {
 				push_finger(SDL_FINGERDOWN, swipe[0], swipe[1]);
 				swipeStep = 0;
 			}
+		} else if (!strncmp(s->action, "DRAG:", 5)) {
+			if (sscanf(s->action + 5, "%f,%f", &dragX, &dragY) == 2) push_finger(SDL_FINGERDOWN, dragX, dragY), dragDown = true;
+		} else if (!strncmp(s->action, "MOVE:", 5)) {
+			if (dragDown && sscanf(s->action + 5, "%f,%f", &dragX, &dragY) == 2) push_finger(SDL_FINGERMOTION, dragX, dragY);
+		} else if (!strcmp(s->action, "LIFT")) {
+			if (dragDown) push_finger(SDL_FINGERUP, dragX, dragY);
+			dragDown = false;
 		} else if (!strncmp(s->action, "SHOT:", 5)) {
 			snprintf(pendingShot, sizeof(pendingShot), "%s", s->action + 5);
 		} else if (!strncmp(s->action, "LOAD:", 5)) {
@@ -1366,16 +1376,27 @@ static uint32_t tex_version(SDL_Texture* t) {
  * 5-bit colour each 8-bit one came from (mGBA: c << 3 | c >> 2). */
 static uint32_t* ccLut;
 static bool ccOn;              /* pictures go through ccLut */
-static bool ccWant;            /* Display > Color Correction */
+static int ccWant;             /* Display > Color Correction: 0 off, 1 GBA, 2 Game Boy Color */
 static int ccGain = 100;       /* brightening, in percent (the subpixel shaders) */
-static bool lutCc = false;     /* what ccLut holds */
+static int lutCc = 0;           /* what ccLut holds */
 static int lutGain = -1;
-static void cc_build(bool cc, int gain) {
-	static const double m[3][3] = {
+static void cc_build(int mode, int gain) {
+	bool cc = mode != 0;
+	static const double gbaM[3][3] = {
 		{ 0.80, 0.275, -0.075 },
 		{ 0.135, 0.64, 0.225 },
 		{ 0.195, 0.155, 0.65 },
 	};
+	/* A Game Boy Color's screen (GB-8): our own first guess, not copied from anywhere: its colours
+	 * wash out and bleed into each other more than the GBA's (each row adds to 1.0, so white stays
+	 * white), through gamma 2.2 both ways, no darkening */
+	static const double gbcM[3][3] = {
+		{ 0.78, 0.18, 0.04 },
+		{ 0.10, 0.74, 0.16 },
+		{ 0.16, 0.16, 0.68 },
+	};
+	const double (*m)[3] = mode == 2 ? gbcM : gbaM;
+	double gam = mode == 2 ? 2.2 : 2.0, lum = mode == 2 ? 1.0 : 0.93, dark = mode == 2 ? 0.0 : 0.5;
 	if (!ccLut) ccLut = malloc(32768 * sizeof(uint32_t));
 	if (!ccLut) return;
 	for (int c = 0; c < 32768; ++c) {
@@ -1383,14 +1404,14 @@ static void cc_build(bool cc, int gain) {
 		for (int k = 0; k < 3; ++k) {
 			int v5 = c >> (k * 5) & 31;
 			double v = ((v5 << 3) | (v5 >> 2)) / 255.0;
-			if (cc) v = pow(v, 2.0 + 0.5) * 0.93;
+			if (cc) v = pow(v, gam + dark) * lum;
 			in[k] = v < 0 ? 0 : v > 1 ? 1 : v;
 		}
 		double o[3], top = 0;
 		for (int k = 0; k < 3; ++k) {
 			double v = cc ? m[k][0] * in[0] + m[k][1] * in[1] + m[k][2] * in[2] : in[k];
 			v = v < 0 ? 0 : v > 1 ? 1 : v;
-			o[k] = cc ? pow(v, 1.0 / 2.0) : v;
+			o[k] = cc ? pow(v, 1.0 / gam) : v;
 			if (o[k] > top) top = o[k];
 		}
 		/* brightened (the shader's stripes darken it again), all three
@@ -1405,15 +1426,15 @@ static void cc_build(bool cc, int gain) {
 		}
 		ccLut[c] = out;
 	}
-	lutCc = cc, lutGain = gain;
+	lutCc = mode, lutGain = gain;
 }
 static void cc_refresh(void) {
-	bool want = ccWant || ccGain != 100;
+	bool want = ccWant != 0 || ccGain != 100;
 	if (want && (lutCc != ccWant || lutGain != ccGain || !ccLut)) cc_build(ccWant, ccGain);
 	ccOn = want && ccLut;
 }
-void ui_color_correction(bool on) {
-	ccWant = on;
+void ui_color_correction(int mode) {
+	ccWant = mode;
 	cc_refresh();
 }
 
@@ -2797,11 +2818,9 @@ void ui_notice(const char* title, const char* line) {
  * frames it froze the game for seconds (the whole file read and summed from the SD
  * card), so it's done here, with a screen saying so, before the game starts. */
 void ui_game_prepare(const Config* c, const char* rom) {
-	uint8_t h[0xB0];
-	if (!rom || !emu_rom_header(rom, h, sizeof(h))) return;
+	uint8_t h[EMU_HEADER_MAX];
 	char code[5];
-	memcpy(code, h + 0xAC, 4);
-	code[4] = 0;
+	if (!rom || !emu_rom_header(rom, h, sizeof(h)) || !emu_rom_code(h, sizeof(h), code)) return;
 	const MapProfile* prof = profile_find(code);
 	if (!prof || !prof->logoPerRom) return;
 	/* what the first start of a ROM file has to do: sum the file (above), and

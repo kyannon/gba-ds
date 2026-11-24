@@ -3355,7 +3355,7 @@ static const ZlRegion zlRegions[] = {
 static const ZlRegion* zl_r(Emu* e) {
 	return &zlRegions[e->gameCode[3] == 'J' ? 1 : 0];
 }
-#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (ZL_V_FREE) or a Zoid choosing */
+#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (zl_free) or a Zoid choosing */
 #define ZL_V_MAP 0xF0000061    /* 1 with the map screen up */
 #define ZL_V_FORGET 0xF0000062 /* 1 on the title, or a battle playing out: what was shown goes (ZL-3, ZL-4) */
 #define ZL_V_PLAYOUT 0xF0000063 /* 1 in a battle, no Zoid choosing: the logo (ZL-3) */
@@ -4828,8 +4828,8 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 #define BK_AREA 0x02000004
 /* the health bar (Banjo's head and his honeycombs) on the pause screen:
  * x 4 to ~123 with the 100% file's ten honeycombs, rows 12-27; the Totals
- * page's world name, rows 12-22 (its rows start at 36): BK_TOP rows, the
- * name's band and the health's */
+ * page's world name, rows 12-22 (its rows start at 36): BK_TOP_Y0 to
+ * BK_TOP_Y1 are the rows that hold both */
 #define BK_TOP_Y0 8
 #define BK_TOP_Y1 31
 #define BK_HEALTH_X1 150 /* (the notes start at x 184) */
@@ -10829,8 +10829,8 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
-		/* Super Mario Advance 4: Super Mario Bros. 3 (USA; Europe and Japan
-		 * in sma4_eur / sma4_jpn). The byte at 0x03003DE2 says where Mario
+		/* Super Mario Advance 4: Super Mario Bros. 3 (USA; Europe in
+		 * sma4_eur, Japan and the USA's Rev 1 in sma4_moved). The byte at 0x03003DE2 says where Mario
 		 * is: 0x41 the world map, 0x40 a level, 0x08-0x09 a Toad House,
 		 * a Spade panel game or a king's room (the level engine, with the
 		 * world map's status bar along the bottom), bit 7 set on the title,
@@ -11671,6 +11671,22 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* WarioWare: Twisted! (USA; Japan, Mawaru Made in Wario: the RZWJ variant: no health
+		 * and safety screen first). A button press at power-on gets past the health and safety
+		 * screen (USA) and the intro, and the title is up some 500 frames in; its lettering is
+		 * BG0 (WarioWare and the vortex, with the copyright line from row 151) and BG2
+		 * (TWISTED!), the rings behind it BG1, PRESS START! sprites (WWT-1). The cartridge's gyro
+		 * is the game's controls: see src/ww_twisted.inc (WWT-2 to WWT-9). */
+		.codes = { "RZWE" },
+		.title = "WarioWare: Twisted!",
+		.logo = { .steps = { { 0, 200 },
+		                     { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 },
+		                     { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { 0, 20 } },
+		          .layers = 0x5, .maxY = 151, .rev = 1 },
+		.logoOnly = true,
+		.gyroDial = true,
+	},
+	{
 		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
 		 * addresses and screens). The pause screen (START) slides down
 		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
@@ -12286,7 +12302,7 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Yu-Gi-Oh! 7 Trials to Glory (USA): the Card View of the card under
-		 * the cursor, see yw_compose (YWC-1 to YWC-4) */
+		 * the cursor, see yw_compose_for (YWC-1 to YWC-4) */
 		.codes = { "BY7E" },
 		.title = "Yu-Gi-Oh! 7 Trials to Glory",
 		.compose = yw_compose_us,
@@ -12933,6 +12949,17 @@ static void bof2_jp(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 	p->logo.layers = 0x18;
 }
+/* WarioWare: Twisted! in Japan: no health and safety screen, so the title is up some 250 frames
+ * in; its lettering is メイドインワリオ (BG0, above the copyright box from row 139) and まわる (BG2) */
+static void ww_jpn(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 100 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { 0, 100 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->logo.maxY = 139;
+	/* the lettering's soft edge, black blended into the title's yellow-green: left out, as Mario & Luigi's sky */
+	p->logo.edgeClear[0] = 0xC6D600, p->logo.edgeClear[1] = 0xADC600, p->logo.edgeClear[2] = 0x8C9C08, p->logo.edgeClear[3] = 0x526300;
+	p->logo.rev = 1;
+}
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
 }
@@ -13451,6 +13478,7 @@ static const Variant variants[] = {
 	{ "BKZS", "BKZE", 0, bk_eu },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
+	{ "RZWJ", "RZWE", 0, ww_jpn }, /* (its title is up ~250 frames in, its lettering BG0 and BG2 above the copyright box: WWT-1) */
 	{ "BM5P", "BM5E", 0, mvdk_eur }, /* (its state moved: mvdk_eur, mvdk_state) */
 	{ "BM5J", "BM5E", 0, mvdk_jpn },
 	/* Super Mario Advance 3 in Europe: its language menu first */

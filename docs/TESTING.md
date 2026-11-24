@@ -205,6 +205,7 @@ app case runs with its own `--patch_dir`.
   keeping an earlier picture (show it from one state, then load the moment
   where it must stay).
 - `bios` (GEN-15): a fixture under `bios/` (the official GBA BIOS, `gba_bios.bin`, from the owner) put as `<asset_dir>/bios/gba_bios.bin`; the case's `config` `gba_bios: 1` switches it on. Its states are made with the harness (`HARNESS_BIOS=FILE harness ROM OUT SCRIPT`, which runs with that BIOS; Sonic Advance 2 waits inside the BIOS every frame, Advance Wars never does) and wrapped with `tools/retroarch_state.py wrap`: `sonic-advance-2/us-retroarch-bios-real.state` (real BIOS, inside it), `us-retroarch-hle-in-bios.state` (built-in BIOS, inside it).
+- `cheat_files` (GEN-17): `{name there: fixture under cheats/}`, copied into `<asset_dir>/cheats/`. A `.cht` file is matched to its ROM by name, and a case's ROM is named by its code, so name it `BFZE (USA) (Code Breaker).cht` (the code, then the tags).
 - `retroarch` (GEN-13) runs the case with save states shared with a
   stand-in RetroArch (`--state_folder=retroarch`): `cfg` is its
   retroarch.cfg's text, where `{states}` is its state folder in the case's
@@ -259,18 +260,53 @@ otherwise.
 ## Rumble (issue #83)
 
 `tools/rumble_test.py` builds a tiny test ROM that switches the cartridge's rumble pin on and
-off, runs it headless at `rumble_strength` 100, 50 and 0, and checks the log's
+off, runs it headless at `rumble_strength` 100, 50 and 0, with Drill Dozer's game code (in
+mGBA's database) and with Pokemon Pinball's (not in it), the pins written with `strh` and with
+`strb` (the Pinball rumble patch's way), and checks the log's
 "rumble: the game asked for rumble (..., motor X)" line: the motor is asked for the game's level
 times the strength. It needs llvm-mc and llvm-objcopy and no fixtures. The motor itself (a
 controller's, or the device's through SDL's haptics) can only be tried on a device: the log
 says what was found at start ("rumble: haptic 0 (...): usable") and the first time a game
 asks for rumble ("rumble: the game asked for rumble (..., motor X)").
 
-Game Boy Player rumble (Mario & Luigi, Pokemon Pinball R&S, SMA4) is not supported: with mGBA's
-`gba.forceGbp` the emulated Game Boy Player is found at the logo screen, but the games never
-start the link-port exchange that carries the rumble commands (traced Nov 22, 2026: no SIOCNT
-write in Normal 32-bit mode in 2500 frames of any of the three), and forcing it on a copy that
-extracts logos changed the logos. A future feature: find out what the games' own check wants.
+Cartridge rumble for games mGBA doesn't know (emu.c `gpio_listen`, Nov 23, 2026): mGBA only
+listens to the motor pin for the game codes in its database and drops 8-bit stores to the
+cartridge, and the Pokemon Pinball rumble patch (`AGB-BPPE-USA_CartRumble_v1.1.ips`) keeps BPPE
+and writes the pins with `strb`. The live game's stores to the three GPIO registers switch the
+pin on at the first one (not for a cartridge with a sensor on that port: Boktai's light
+sensor, a gyro or tilt) and pass a byte on as the 16-bit write a cartridge bus makes of it. The patch sets the
+pins up once at boot and only uses them when the game's Game Boy Player flag
+(`gGameBoyPlayerEnabled`, 0x02019C0C) is off; the game only rumbles with its own Rumble option
+on (`gMain.saveData.rumbleEnabled`, 0x0200B201, in the battery save). Checked with the real
+patched ROM (CRC32 4eff7204) from a cold boot with that option forced on (a Code Breaker cheat,
+`3200B201 0001`): the log's rumble line at frame 1205; resuming that run's auto state rumbles
+too; a state saved before the patch was on doesn't (no pin setup) until Restart Game.
+
+Superstar Saga's rumble patch (`MARIOLUIGIU/P/J_CartRumble.ips`, Nov 24, 2026: "started rumbling during
+the story intro but never stopped"). Its helpers (USA at 0x1E19A0) switch the motor on with control 1,
+direction 8, data 8, and off with one write: direction 0, the data register left at 8, as a cartridge
+whose motor has nothing driving it when the pin is an input. mGBA keeps the data bit as the output
+level, so the motor stayed on. emu.c `gpio_settle` turns the motor off while pin 3 is not an output
+(after every store the hook sees; the data bit comes back on with the direction). The game's rumble
+state is the byte at 0x03000D28 (1 timed, 2 continuous), and it only starts the cartridge when
+0x03000BD7 bit 0 is set (the game's own rumble setting, not found by the A-button run from a new game:
+forced by `poke 0x3000bd7 1 1` each poll). Checked with the harness (`GBADS_HARNESS_RUMBLE=1`, `rumble`
+prints the motor level) on the patched USA ROM (CRC32 e554f7e3), A pressed through the intro: in the
+Cackletta scene the state is 2 and the level 1.00; back to state 0 it is 0.00 with the fix and stayed
+1.00 without. `tools/rumble_test.py` has the stop-by-direction cases (its test ROM keeps its code clear
+of 0xC0-0xCA: a branch at 0xC0 makes mGBA take it for a multiboot image, and the GPIO registers read
+back pins).
+
+Game Boy Player rumble (Mario & Luigi, Pokemon Pinball R&S, SMA4) is not supported. Correction
+of Nov 22's note: with mGBA's `gba.forceGbp` on the live game, the *unpatched* Pokemon Pinball
+does rumble over the link port once its own Rumble option is on (cold boot, the option forced
+on, rumble at frame 1205; traced Nov 23, 2026): the earlier 2500-frame trace never reached a
+table with the option on. That is how v1.6.1's side build rumbled with the patch on (the
+patch leaves the pins alone while the game's Game Boy Player flag is set), and removing
+forceGbp for the release is why the patch stopped. Not brought back: the Game Boy Player is
+only found at the boot logo, so a resumed state never has it (and a state saved with it holds
+the game's flag set, which also turns the patch's cartridge route off), and forcing it on a
+copy that extracts logos changed the logos. A future feature.
 
 ## Rules checked by hand
 

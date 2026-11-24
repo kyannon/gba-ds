@@ -172,13 +172,11 @@ static bool game_code(const char* path, const struct stat* st, char code[5]) {
 		memcpy(code, c->code, 5);
 		return true;
 	}
-	uint8_t hdr[0xB0];
-	if (!emu_rom_header(path, hdr, sizeof(hdr))) {
-		if (emu_is_archive_name(path)) fprintf(stderr, "library: no GBA ROM in %s\n", path);
+	uint8_t hdr[EMU_HEADER_MAX];
+	if (!emu_rom_header(path, hdr, sizeof(hdr)) || !emu_rom_code(hdr, sizeof(hdr), code)) {
+		if (emu_is_archive_name(path)) fprintf(stderr, "library: no GBA or Game Boy ROM in %s\n", path);
 		return false;
 	}
-	memcpy(code, hdr + 0xAC, 4);
-	code[4] = 0;
 	for (int i = 0; i < 4; ++i) {
 		if (!code[i] || !isprint((unsigned char) code[i])) code[i] = '_';
 	}
@@ -609,6 +607,32 @@ static void scan_progress(void) {
 	ui_present();
 }
 
+/* A library folder named gba has its Game Boy and Game Boy Color folders beside it (gb, gbc: the
+ * way EmulationStation, Banana's list and Android's ROM folders lay them out), read the same way
+ * (issue #77), in the folder's own letter case (GBA / Gba / gba). Not there: noted as missing, so
+ * the list is made again if one turns up. */
+static void scan_siblings(Config* cfg, const char* d) {
+	char base[1024];
+	snprintf(base, sizeof(base), "%s", d);
+	size_t n = strlen(base);
+	while (n > 1 && base[n - 1] == '/') base[--n] = 0;
+	char* slash = strrchr(base, '/');
+	char* name = slash ? slash + 1 : base;
+	if (strcasecmp(name, "gba")) return;
+	bool upper = isupper((unsigned char) name[0]) && isupper((unsigned char) name[1]) && isupper((unsigned char) name[2]);
+	bool first = isupper((unsigned char) name[0]);
+	static const char* const sib[] = { "gb", "gbc" };
+	for (int i = 0; i < 2; ++i) {
+		char path[1024], leaf[8];
+		snprintf(leaf, sizeof(leaf), "%s", sib[i]);
+		for (char* c = leaf; *c; ++c) *c = (char) (upper || (first && c == leaf) ? toupper((unsigned char) *c) : *c);
+		snprintf(path, sizeof(path), "%.*s%s", (int) (name - base), base, leaf);
+		struct stat st;
+		if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) scan_dir(cfg, path, 0);
+		else dir_note(path, NULL);
+	}
+}
+
 static void scan(Config* cfg) {
 	free(games);
 	games = NULL;
@@ -624,7 +648,10 @@ static void scan(Config* cfg) {
 	code_cache_load(cfg);
 	rom_crc_load(cfg);
 	crcCfg = cfg;
-	for (char* d = strtok_r(dirs, ":", &save); d; d = strtok_r(NULL, ":", &save)) scan_dir(cfg, d, 0);
+	for (char* d = strtok_r(dirs, ":", &save); d; d = strtok_r(NULL, ":", &save)) {
+		scan_dir(cfg, d, 0);
+		scan_siblings(cfg, d);
+	}
 	code_cache_save(cfg);
 	qsort(games, nGames, sizeof(*games), cmp_games);
 	/* Region flags, only where the library holds the same game from more
@@ -1423,9 +1450,9 @@ typedef struct {
 } SetPage;
 static const SetPage setPages[SP_SYSTEM] = {
 	{ N_("Games"), N_("Which games, names, saving"), { "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
-	{ N_("Display"), N_("Scale, shader, theme, color"), { "scale", "map_scale", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth", "theme", "accent" } },
+	{ N_("Display"), N_("Scale, shader, theme, color"), { "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_correction", "gb_ghosting", "gb_shader", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth", "theme", "accent" } },
 	{ "Screens", N_("Placement, overlays"), { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
-	{ "Controls", N_("Stick, buttons, hotkeys"), { "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right", "turbo_rate", "rumble_strength", "@map", "@hotkeys" } },
+	{ "Controls", N_("Stick, buttons, hotkeys"), { "@map", "@hotkeys", "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right", "turbo_rate", "rumble_strength" } },
 	{ N_("Speed and sound"), N_("Rewind, fast forward"), { "show_fps", "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
 	{ "Second screen", N_("The map and the logo"), { "map", "map_interval", "toggle", "auto_rotate", "toggle_button", "pinball_live" } },
 };
@@ -2192,6 +2219,10 @@ static void states_dir_pick(Config* cfg) {
 	                           sizeof(chosen));
 	if (r == FOLDER_CANCEL) return;
 	if (r == FOLDER_CHOSEN) {
+		if (strlen(chosen) >= sizeof(cfg->raStateDir)) { /* (a cut-off path would be another folder) */
+			snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("That folder's path is too long."));
+			return;
+		}
 		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
 		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
 		snprintf(settingsMsg, sizeof(settingsMsg), tr("Slots 0-9 and the automatic state are now shared with RetroArch, in %s."), path_tail(chosen));

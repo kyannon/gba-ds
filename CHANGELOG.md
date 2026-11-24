@@ -2,14 +2,39 @@
 
 ## v1.6.2 (not yet released)
 
+### New games
+- **WarioWare: Twisted!** (USA, and Mawaru Made in Wario in Japan): the game's gyro is played by turning the device. In Gyro mode, which every start begins in, the second screen is the game's logo on white that tilts with the device, with a **Touch!** button (or HOME + A). In **Touch mode** the touchscreen is a dial: touch anywhere and drag left or right to tilt the game that way, and let go to ease back to level; the second screen shows the game's menu wheel turning with it, with **Gyro!** and **Pause** buttons along the top. The dial's sensitivity (5% to 25%, 15% at first) is in the quick bar. The cartridge's motor is limited to short pulses here, since the gyro and the dial can make the game ask for far more rumble than the original's could. Known: no gyro sensor was found on the RG DS Plus under BananaOS yet, so there Touch mode is the way to play; the Europe release hasn't been tried; bug reports don't record the gyro.
+
+### Fixes
+- **Rumble patches that stop the motor by switching the cartridge's motor pin off no longer leave the device rumbling.** Mario & Luigi: Superstar Saga's rumble patch started rumbling in the story intro and never stopped; it now stops when the game says so.
+
+## v1.6.1.1 (2026-11-23)
+
+### New: Game Boy and Game Boy Color games (issue #77)
+- **GBA DS plays Game Boy and Game Boy Color games**, on one screen with the other idle dark grey, as a GBA played them. Put `.gb` and `.gbc` files (or zips) in your GBA folder or in `gb` / `gbc` folders beside it, set **Games shown** to **All**, and start them from GBA DS's own game list. Saves, save states, rewind and cheats work as for GBA games. Details on the new wiki page, [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games).
+- **New Game Boy rows** in the pause menu's Display page (and Settings > Display), for these games only: **Game Boy size** (the GBA frame, or the Game Boy's 160×144 picture as the whole screen) and **scale** (Pixel Perfect, Fit, Stretch); **palette** for monochrome games (Game's own, DMG, Pocket, Light, Grayscale, Super Game Boy); **Dual-mode games** in colour or in monochrome; **color correction** (as GBA, off, Game Boy Color, Game Boy Advance); **ghosting** (as GBA, off, light, smart, strong); and a **shader**, with a **Dot matrix** look. The ones that don't apply to the game are greyed out. Palette and dual-mode changes count from the next start: closing the menu asks to **restart now** or **discard changes**, and a resume point made with other colours isn't resumed.
+- Known: the shades, the Game Boy Color's colour matrix and the dot matrix are first guesses; screenshots and the quick bar's pictures use the GBA frame; no Super Game Boy borders, rumble, camera or link cable; no RetroAchievements; EmulationStation, BananaOS and Android frontends don't start these games yet; no list of known dumps yet (no "Modified ROM" note).
+
 ### RetroAchievements
 - **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
 - **Rich Presence** shows under your totals in the Achievements page: the line RetroAchievements shows on your profile for the game.
 - **Challenge and progress indicators**: while an achievement's challenge is under way its badge sits at the bottom left of the second screen, and a measured achievement shows its progress (50/5,000) for a few seconds when it changes.
 - **Leaderboard popups and a running value** are ready (started, failed, submitted, your rank) but only appear in hardcore mode, which isn't on yet.
-- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.6.2 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
+- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.6.1.1 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
 - **Hardcore rules are built, but hidden for now.** GBA DS can already play by RetroAchievements' hardcore rules (no loading states, rewind, cheats or bug reports, and the game starts over when the mode changes), but RetroAchievements hasn't approved it yet, so the menu item stays out of sight until they do. GBA DS earns casual achievements as before.
 - New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
+
+### Changes
+- **Rewind and fast forward can go on other buttons** (issue #88). Settings > Controls > Hotkeys has Rewind (hold) and Fast forward (hold), L2 and R2 at first (HOME + L2 and HOME + R2 work too), and two new shortcuts, Rewind on/off and Fast forward on/off, that keep going until you press them again (no button until you give them one). The Hotkeys list now scrolls, and its last row is no longer hidden under the note at the bottom. Map buttons and Hotkeys are now at the top of Controls, and they (and the state folder picker) show on the menu's screen only, not on both.
+- **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
+- **Android: a second screen on a USB-C display is chosen more carefully, and `launch.log` lists the screens** (issue #65, AYN Odin 2 with the Retroid Dual Screen Add-on). GBA DS now prefers the display Android marks for presentations, then one that is switched on, instead of the first one listed, and `launch.log` has a line for each display Android reports (name, size, flags, state) and which one was used. Known: a screen plugged in after the game has started isn't picked up until the game is started again.
+
+### Fixes
+- **The pause menu's notes are no longer cut off in other languages.** A long translated note (French, German...) stopped mid-word, and the end of "Choose it again to close GBA DS: your place is saved" stayed in English in every language.
+- **Cheats with the same name are remembered separately.** When a cheat file had two cheats with the same name, switching one on brought both back on the next time the game started. Your existing choices still load as before.
+- **Choosing a RetroArch state folder with a very long path** (over 511 characters) now says the path is too long, instead of quietly saving a cut-off path that pointed somewhere else.
+- **A game started after Pokémon Pinball: Ruby & Sapphire no longer shows its status bar on both screens.** Going back to the game list from Pokémon Pinball and starting a game whose status bar moves to the second screen (Super Mario Advance 4, for one) left the status bar on the game's screen too, and on Super Mario Advance 4's world map a few of its rows. Closing GBA DS in between avoided it.
+- **Pokémon Pinball: Ruby & Sapphire's rumble patch rumbles again** (issue #83; it didn't in v1.6.1). GBA DS now listens to the cartridge's rumble for any game that uses it, including patches that switch the motor a byte at a time, as that one does. Two things the game itself needs: turn **Rumble** on in the game's own Options, and after switching the patch on, use **Restart Game** once, because a game resumed from a state saved before the patch was on hasn't set its rumble up.
 
 ## v1.6.1 (2026-11-22)
 
