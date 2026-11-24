@@ -514,3 +514,338 @@ void twin_open(const char* rom, const MapProfile* p) {
 	tallTrace = getenv("GBADS_TALL_TRACE") != NULL;
 	fprintf(stderr, "live view: two more copies of the game for the table's other rows\n");
 }
+
+/* ---- the tall view's composer (was game.c's update_tall) ---- */
+/* the state game.c reads: whether the table is up and the live view on, the
+ * profile, and the two screens' pictures */
+bool tallOn;        /* the table's up: the screens show it */
+const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
+uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
+bool tallLive;      /* the live view: the table over both screens (update_tall) */
+
+/* profile.tall: the table over both screens (see profiles.h, PP-1). The
+ * view's top row v is the game's scroll, at most rows - 320: the top screen
+ * shows rows v to v + 159, the bottom one the 160 below. Each line comes
+ * from the first picture that has its row: on the top screen the game's
+ * while v is its scroll, else twins[0]'s (held at rows - 320) with what the
+ * game puts on its screen laid over it; on the bottom screen twins[1]'s
+ * (held at v + 160). Rows none has are black (only until the copies are
+ * up). The score bar goes to the bottom of the bottom screen. Called after
+ * each frame. */
+typedef struct { const uint32_t* px; int row; int from, safe; } TallSrc;
+/* (from: its first line with table rows; safe: its first line whose rows
+ * are sure to be right: a carry copy's lines above gameFrom - 1 are the
+ * rows its game hides under the score bar, whose tiles the game doesn't
+ * keep (Muppet Pinball Mayhem's, moving down the table): used only when
+ * no other picture has the row lower down) */
+int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
+static bool tallKeep; /* (carry) a row no picture has keeps what it showed last */
+/* the live view's last 10 seconds, a line a frame, for bug reports
+ * (GBADS_TALL_TRACE's lines, kept whether it's set or not) */
+char tallLog[TALL_LOG][176];
+unsigned tallLogN;
+static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
+	for (int pass = 0; pass < 2; ++pass)
+		for (int i = 0; i < n; ++i) {
+			int y = row - src[i].row;
+			int lo = pass ? src[i].from : imax(src[i].from, src[i].safe);
+			if (src[i].px && y >= lo && y < GBA_H) {
+				memcpy(dst, &src[i].px[y * GBA_W], sizeof(uint32_t) * GBA_W);
+				return true;
+			}
+		}
+	if (!tallKeep) for (int x = 0; x < GBA_W; ++x) dst[x] = 0xFF000000;
+	return false;
+}
+/* Whether the game's BG0 has a pixel at screen (x, y) above the score bar
+ * (its map from the profile's msg.map, row0 being the map row of screen row
+ * 0; no horizontal scroll): the catch timer's digits. PP-10: the banner
+ * boxes take only what isn't BG0's, so a banner flying across the timer
+ * doesn't carry part of it to the bottom screen. */
+static bool tall_bg0_pixel(uint32_t map, int row0, int x, int y) {
+	uint16_t cnt = emu_io16(&(*twinGame), 0x08);
+	uint32_t chr = 0x06000000 + ((cnt >> 2) & 3) * 0x4000;
+	uint16_t e = emu_read16(&(*twinGame), map + (((row0 + (y >> 3)) & 31) * 32 + (x >> 3)) * 2);
+	int px = x & 7, py = y & 7;
+	if (e & 0x400) px = 7 - px;
+	if (e & 0x800) py = 7 - py;
+	uint32_t t = e & 0x3FF;
+	if (cnt & 0x80) return emu_read8(&(*twinGame), chr + t * 64 + py * 8 + px) != 0;
+	uint8_t b = emu_read8(&(*twinGame), chr + t * 32 + py * 4 + px / 2);
+	return (px & 1 ? b >> 4 : b & 15) != 0;
+}
+
+void update_tall(const TallEnv* env) {
+	const typeof(tallProf->tall)* t = &tallProf->tall;
+	const typeof(t->live)* L = &t->live;
+	bool on = env->nScreens > 1 && memprobes_match(t->on, 2, &(*twinGame));
+	static bool copied; /* the score bar left in the game's picture */
+	if (on != tallOn) {
+		emu_hud_split(&(*twinGame), on, t->hudBg, NULL, 0, env->hudPx);
+		emu_hud_copy_above(0);
+		tallOn = on;
+		copied = false;
+		tallMsg = haveLastTop = false;
+		tallTopLogo = tallFixedBot = false, tallFixedHold = 0;
+		tallLive = false;
+		(*env->mapShownIdx) = -1;
+		/* (carry: the copies start again from the game's: what they kept,
+		 * running on through the menus, is the last table's tiles, which
+		 * a new table's (Muppet Pinball Mayhem's, after its curtains)
+		 * doesn't reload in one go) */
+		for (int i = 0; i < TWINS; ++i) twins[i].carried = false;
+		if (twinDebug) fprintf(stderr, "frame %llu: table %s\n", (unsigned long long) env->frame, on ? "up" : "gone");
+		return;
+	}
+	if (!on) return;
+	bool up = twinOpen && twins[1].up && twins[1].havePic;
+	/* (carry: and the top screen's copy, when its rows are on the top
+	 * screen: one still walking to its row would leave them blank) */
+	if (up && tall_carry(tallProf)) {
+		int s0 = emu_io16(&(*twinGame), 0x10 + 4 * L->viewBg + 2) & 0x1FF, r0 = tall_rows_of(tallProf, &(*twinGame));
+		if (s0 >= r0) s0 -= 512;
+		if (s0 - twinShakeNow > r0 - 2 * GBA_H && !(twins[0].up && twins[0].havePic)) up = false;
+		for (int i = 0; i < 3 && L->carry.plain[i].addr; ++i)
+			if (memprobes_match(&L->carry.plain[i], 1, &(*twinGame))) up = false;
+	}
+	if (!up) {
+		/* the copies aren't running (the table's opening sweep, a table they
+		 * don't know, no ball): the game as it is, the logo on the second screen */
+		if (!copied) emu_hud_copy(&(*twinGame), true), copied = true;
+		emu_hud_copy_above(0);
+		if (tallLive && twinDebug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) env->frame);
+		tallLive = false;
+		(*env->mapShownIdx) = -1;
+		return;
+	}
+	/* the game's picture: what's over the table (the catch timer, messages)
+	 * kept, the score bar not (it goes below) */
+	bool firstLive = copied; /* (the game's picture has its score bar until the next frame) */
+	if (copied) emu_hud_copy(&(*twinGame), false), copied = false;
+	/* (carry: the game's picture has none of the score bar's layers on any
+	 * row, so it can go on either screen; they're laid over the top screen
+	 * below) */
+	bool carry = tall_carry(tallProf);
+	emu_hud_copy_above(carry ? 0 : t->hudRow);
+	int rows = tall_rows_of(tallProf, &(*twinGame)), vmax = rows - 2 * GBA_H, top = tall_top_of(tallProf);
+	int s = emu_io16(&(*twinGame), 0x10 + 4 * L->viewBg + 2) & 0x1FF; /* this frame's */
+	if (s >= rows) s -= 512;
+	/* (the screen shake moves the whole view, as it does the game's screen;
+	 * the copies shake alike, by themselves) */
+	int k = twinShakeNow;
+	int v = imax(imin(s - k, vmax), top) + k;
+	int safe = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
+	TallSrc game = { (*twinGame).fb, s, carry ? L->carry.gameFrom : 0, 0 };
+	TallSrc a = { twins[0].up && twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow, 0, safe }; /* (this frame's only) */
+	TallSrc b = { twins[1].pic, twins[1].picRow, 0, safe };
+	TallSrc topSrc[3] = { game, a, b }, botSrc[3] = { b, a, game };
+	bool gameOnTop = s == v;
+	if (!gameOnTop) topSrc[0] = a, topSrc[1] = game;
+	/* (carry: wherever the game's own picture has the rows, it's used: the
+	 * copies only draw the rows it doesn't) */
+	if (carry) topSrc[0] = game, topSrc[1] = a, botSrc[0] = game, botSrc[1] = b, botSrc[2] = a;
+	tallKeep = carry && tallLive;
+	int missing = 0;
+	/* (carry with gameFrom: the top screen's lines above gameFrom - 1 are
+	 * the game's own, the score bar's alone, where the table doesn't show:
+	 * its layers are laid over them below, on what the game has behind
+	 * them. The line between is the score bar's black edge, drawn black:
+	 * the game's own has it black but for a sprite passing under the bar
+	 * (or, in its picture without the score bar's layers, a row from under
+	 * its own view, which with the lower view is another part of the
+	 * table); the copies' have the table) */
+	int gf = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
+	/* (what the top screen showed last frame, for a frame whose rows aren't
+	 * all there: below) */
+	static uint32_t prevTop[GBA_W * GBA_H];
+	memcpy(prevTop, tallTop, sizeof(prevTop));
+	bool havePrevTop = tallLive && !firstLive;
+	int topMissing = 0;
+	for (int y = 0; y < GBA_H; ++y) {
+		if (y < gf) memcpy(&tallTop[y * GBA_W], &(*twinGame).fb[y * GBA_W], sizeof(uint32_t) * GBA_W);
+		else if (gf && y == gf) for (int x = 0; x < GBA_W; ++x) tallTop[y * GBA_W + x] = 0xFF000000u;
+		else topMissing += !tall_line(&tallTop[y * GBA_W], v + y, topSrc, 3);
+		missing += !tall_line(&tallBot[y * GBA_W], v + GBA_H + y, botSrc, 3);
+	}
+	missing += topMissing;
+	if (carry) topMissing = 0; /* (carry keeps its own rows: tallKeep) */
+	/* PP-11: the game dims its screen (paused, the Mart: brightness down)
+	 * or shows a message box: its whole screen on the bottom one */
+	uint16_t bld = emu_io16(&(*twinGame), 0x50);
+	bool msg = (bld & 0xC0) == 0xC0 && (emu_io16(&(*twinGame), 0x54) & 0x1F) && !(carry && L->carry.keepDim);
+	if (!msg && L->msg.map) {
+		int n = 0;
+		for (int r = L->msg.row0; r < L->msg.row0 + L->msg.rows; ++r) {
+			for (int c = 0; c < 30; ++c) n += (emu_read16(&(*twinGame), L->msg.map + (r * 32 + c) * 2) & 0x3FF) != L->msg.blank;
+		}
+		msg = n > L->msg.min;
+	}
+	if (msg && !carry) {
+		/* (the top screen: the table's rows just above the game's screen,
+		 * from twins[0] held there (twin_step); none above it (the game's
+		 * view near the table's top): the logo, as the rows it would show
+		 * are the game's own again. Until the copy is there, what the top
+		 * screen showed last) */
+		if (s - k - GBA_H < top) {
+			for (int i = 0; i < GBA_W * GBA_H; ++i) tallTop[i] = SCREEN_GREY;
+			env->logo(tallTop, GBA_W, GBA_H, 1, 0, 128 /* LOGO_IDLE */);
+			tallTopLogo = true;
+		} else {
+			int off = 0;
+			for (int y = 0; y < GBA_H; ++y) off += !tall_line(&tallTop[y * GBA_W], s - GBA_H + y, &a, 1);
+			if (off) memcpy(tallTop, prevTop, sizeof(tallTop));
+			else tallTopLogo = false;
+		}
+	} else {
+		/* (the top screen: the table's rows, or while that would be the game's
+		 * screen again, as they were before it) */
+		if (msg && gameOnTop && haveLastTop) memcpy(tallTop, lastTop, sizeof(tallTop));
+		/* (a copy not yet back at its place (just after PP-11's screen, which
+		 * held it elsewhere): what the top screen showed last, for the frame
+		 * or two it takes) */
+		if (!msg && topMissing && havePrevTop) memcpy(tallTop, prevTop, sizeof(tallTop));
+		else if (!msg) tallTopLogo = false;
+	}
+	if (msg) memcpy(tallBot, (*twinGame).fb, sizeof(tallBot)); /* (and its score bar, below) */
+	if (msg != tallMsg && twinDebug) fprintf(stderr, "frame %llu: %s\n", (unsigned long long) env->frame, msg ? "the game's screen on the bottom one (dimmed or a message)" : "the table on both screens again");
+	tallMsg = msg;
+	if (gameOnTop != tallGameTop && twinDebug) fprintf(stderr, "frame %llu: top screen: %s\n", (unsigned long long) env->frame, gameOnTop ? "the game" : "a copy (the lower view)");
+	tallGameTop = gameOnTop;
+	int laid = 0;
+	if ((!gameOnTop || carry) && !firstLive && !msg) {
+		/* What the game puts on its screen rather than on the table, which
+		 * the copies leave out (PP-10), laid over the top screen where it is
+		 * on the game's: what the HUD split draws above the score bar, its
+		 * BG0 (the catch timer, messages) and the game's sprites at the same
+		 * place on the screen whatever the camera (banners, the Mart's items:
+		 * run_frame). (Drawn on their own: the copies' pictures can differ
+		 * a little from the game's, so it can't be found by comparing.) */
+		uint32_t clear = emu_hud_clear();
+		/* (the game's sprites among it (banners such as BALL SAVE): on the
+		 * screen with the ball, at their place on the game's screen. Which
+		 * screen is settled as they come up, from where the ball is then,
+		 * and kept while they're up: they never move between the screens) */
+		static uint8_t box[GBA_W * GBA_H];
+		bool anyFixed = false;
+		if (!carry) {
+			memset(box, 0, sizeof(box));
+			for (int f = 0; f < nTallFixed; ++f) {
+				uint16_t a0 = tallFixed[f][0], a1 = tallFixed[f][1];
+				int y0 = a0 & 0xFF, x0 = a1 & 0x1FF, h = obj_height(a0, a1), w = obj_width(a0, a1);
+				if (y0 >= GBA_H) y0 -= 256;
+				if (x0 >= GBA_W) x0 -= 512;
+				for (int y = imax(y0, 0); y < imin(y0 + h, t->hudRow); ++y)
+					for (int x = imax(x0, 0); x < imin(x0 + w, GBA_W); ++x) {
+						if ((env->hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
+						if (L->msg.map && tall_bg0_pixel(L->msg.map, L->msg.row0, x, y)) continue; /* (BG0's: the timer) */
+						box[y * GBA_W + x] = 1, anyFixed = true;
+					}
+			}
+			if (anyFixed) {
+				if (!tallFixedHold) {
+					uint32_t S = emu_read32(&(*twinGame), L->state);
+					int32_t bx, by;
+					bool bot = twin_ball(&(*twinGame), S, &bx, &by) && (by >> 8) >= v + GBA_H - k;
+					if (bot != tallFixedBot && twinDebug) fprintf(stderr, "frame %llu: banners on the %s screen (the ball's there)\n", (unsigned long long) env->frame, bot ? "bottom" : "top");
+					tallFixedBot = bot;
+				}
+				tallFixedHold = 20;
+			} else if (tallFixedHold) {
+				--tallFixedHold;
+			}
+		}
+		for (int i = 0; i < GBA_W * t->hudRow; ++i) {
+			if ((env->hudPx[i] & 0xFFFFFF) == clear) continue;
+			if (!carry && box[i] && tallFixedBot) tallBot[i] = env->hudPx[i] | 0xFF000000;
+			else tallTop[i] = env->hudPx[i] | 0xFF000000;
+			++laid;
+		}
+	}
+	if (carry) {
+		/* (the rows the score bar's layers drew over the table: below the
+		 * score bar itself, above the message line) */
+		uint32_t cl = emu_hud_clear();
+		tallBandY0 = tallBandY1 = -1;
+		for (int y = 24; y < t->hudRow; ++y) {
+			int n = 0;
+			for (int x = 0; x < GBA_W; ++x) n += (env->hudPx[y * GBA_W + x] & 0xFFFFFF) != cl;
+			if (n > 8) tallBandY1 = y, tallBandY0 = tallBandY0 < 0 ? y : tallBandY0;
+		}
+	}
+	/* the score bar at the bottom of the bottom screen */
+	uint32_t clear = emu_hud_clear();
+	/* (carry: but what comes down into its rows from above, part of
+	 * something over the table (the zone card's ribbon down the screen's
+	 * left edge, a banner sliding up through them), stays with the rest of
+	 * it on the top screen: the columns with something in the two rows just
+	 * above, and 8 either side) */
+	static bool down[GBA_W];
+	bool anyDown = false;
+	memset(down, 0, sizeof(down));
+	if (carry && !firstLive && !msg && t->hudRow >= 2) {
+		for (int x = 0; x < GBA_W; ++x) {
+			if ((env->hudPx[(t->hudRow - 1) * GBA_W + x] & 0xFFFFFF) == clear && (env->hudPx[(t->hudRow - 2) * GBA_W + x] & 0xFFFFFF) == clear) continue;
+			for (int d = imax(0, x - 8); d <= imin(GBA_W - 1, x + 8); ++d) down[d] = true;
+			anyDown = true;
+		}
+	}
+	for (int i = GBA_W * t->hudRow; i < GBA_W * GBA_H; ++i) {
+		if ((env->hudPx[i] & 0xFFFFFF) == clear) continue;
+		if (anyDown && down[i % GBA_W]) tallTop[i] = env->hudPx[i] | 0xFF000000;
+		else tallBot[i] = env->hudPx[i] | 0xFF000000;
+	}
+	if (!msg) memcpy(lastTop, tallTop, sizeof(lastTop)), haveLastTop = true;
+	uint32_t* second = env->swap ? tallTop : tallBot;
+	env->show(second);
+	int same = -1; /* (trace: where a copy shows the game's own rows, how many pixels differ) */
+	if (tallTrace && twins[1].picRow == s) {
+		same = 0;
+		for (int i = GBA_W * 24; i < GBA_W * t->hudRow; ++i) same += (twins[1].pic[i] & 0xFFFFFF) != ((*twinGame).fb[i] & 0xFFFFFF);
+	}
+	if (tallTrace && carry) {
+		/* (trace: the game's picture against the copies' at the same table
+		 * rows: under the score bar, the middle, under the message line) */
+		int d[3] = { 0, 0, 0 }, n[3] = { 0, 0, 0 };
+		for (int k = 0; k < 2; ++k) {
+			const Twin* tw = &twins[k];
+			if (!tw->up || !tw->havePic) continue;
+			for (int y = 0; y < GBA_H; ++y) {
+				int cy = s + y - tw->picRow;
+				if (cy < 0 || cy >= GBA_H) continue;
+				int r = y < 24 ? 0 : y < 150 ? 1 : 2;
+				++n[r];
+				for (int x = 0; x < GBA_W; ++x) d[r] += (tw->pic[cy * GBA_W + x] & 0xFFFFFF) != ((*twinGame).fb[y * GBA_W + x] & 0xFFFFFF);
+			}
+		}
+		if (n[0] + n[1] + n[2]) fprintf(stderr, "cmp %d/%d %d/%d %d/%d\n", d[0], n[0], d[1], n[1], d[2], n[2]);
+	}
+	if (getenv("GBADS_TALL_AT") && env->frame == (unsigned long long) atoll(getenv("GBADS_TALL_AT"))) {
+		static uint32_t sh[GBA_W * 3 * GBA_H];
+		for (int y = 0; y < GBA_H; ++y) for (int x = 0; x < GBA_W; ++x) {
+			sh[y * GBA_W * 3 + x] = (*twinGame).fb[y * GBA_W + x] | 0xFF000000;
+			sh[y * GBA_W * 3 + GBA_W + x] = twins[0].pic[y * GBA_W + x] | 0xFF000000;
+			sh[y * GBA_W * 3 + 2 * GBA_W + x] = twins[1].pic[y * GBA_W + x] | 0xFF000000;
+		}
+		stbi_write_png(getenv("GBADS_TALL_PNG"), GBA_W * 3, GBA_H, 4, sh, GBA_W * 3 * 4);
+		char sp[1200];
+		snprintf(sp, sizeof sp, "%s.game.ss", getenv("GBADS_TALL_PNG")); emu_state_save_file(&(*twinGame), sp);
+		snprintf(sp, sizeof sp, "%s.b.ss", getenv("GBADS_TALL_PNG")); emu_state_save_file(&twins[1].e, sp);
+		FILE* of = fopen(getenv("GBADS_TALL_PNG"), "ab"); if (of) fclose(of);
+		for (int w = 0; w < 2; ++w) {
+			snprintf(sp, sizeof sp, "%s.%s.oam", getenv("GBADS_TALL_PNG"), w ? "b" : "game");
+			FILE* f = fopen(sp, "wb");
+			for (int i = 0; f && i < 512; ++i) { uint16_t v = emu_read16(w ? &twins[1].e : &(*twinGame), 0x07000000 + i * 2); fwrite(&v, 2, 1, f); }
+			if (f) fclose(f);
+		}
+	}
+	char* tl = tallLog[tallLogN++ % TALL_LOG];
+	snprintf(tl, sizeof(tallLog[0]), "T %llu s %d v %d top %s a %d%s%s b %d%s%s hid %d/%d missing %d laid %d band %d-%d fixed %d/%d same %d noobj %d%s%s",
+	         (unsigned long long) env->frame, s, v, gameOnTop ? "game" : "copy", twins[0].picRow, twins[0].havePic ? "" : " away",
+	         twins[0].up ? "" : " down", twins[1].picRow, twins[1].havePic ? "" : " away", twins[1].up ? "" : " down", twins[0].hidden,
+	         twins[1].hidden, missing, laid, tallBandY0, tallBandY1, nTallBandFixed, nTallFixed, same, (int) twinNoObj,
+	         tallFixedHold && tallFixedBot ? " banners below" : "", msg && tallTopLogo ? " logo above" : "");
+	if (tallTrace) fprintf(stderr, "%s\n", tl);
+	if (!tallLive) fprintf(stderr, "frame %llu: live view\n", (unsigned long long) env->frame);
+	tallLive = true;
+	(*env->mapShownIdx) = 0;
+}

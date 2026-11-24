@@ -79,4 +79,24 @@ void twin_step(void);
 void twin_close(void);
 void twin_open(const char* rom, const MapProfile* p);
 
+/* update_tall's inputs from game.c, and its one output: the second screen's
+ * picture, handed to show() when it's made (game.c puts it in its textures) */
+typedef struct {
+	int nScreens;
+	uint64_t frame;               /* frameCount, for the log */
+	bool swap;                    /* the second screen is the top picture */
+	uint32_t* hudPx;              /* the HUD split's picture (emu_hud_split) */
+	int* mapShownIdx;             /* game.c's: set to -1 / 0 to have the second screen shown again */
+	void (*show)(const uint32_t* second);
+	bool (*logo)(uint32_t* px, int cw, int ch, int k, int top, int alpha); /* game.c logo_draw */
+} TallEnv;
+
+extern bool tallOn, tallLive;
+extern const MapProfile* tallProf;
+extern uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
+#define TALL_LOG 600
+extern char tallLog[TALL_LOG][176];
+extern unsigned tallLogN;
+void update_tall(const TallEnv* env);
+
 #endif
