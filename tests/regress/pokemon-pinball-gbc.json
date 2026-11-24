@@ -325,6 +325,45 @@
      "color": "303030"
     }
    ]
+  },
+  {
+   "id": "ppg-us-pause",
+   "rom": "cjng",
+   "state": "pokemon-pinball-gbc/us-launch.ss",
+   "desc": "the game's SAVE / CANCEL menu: both screens stay up",
+   "rules": [
+    "PPG-4"
+   ],
+   "shots": {
+    "mid": 30,
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "PPG-4",
+     "what": "the other half stays up",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "end",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "303030"
+    }
+   ],
+   "input": [
+    [
+     40,
+     "START"
+    ],
+    [
+     43,
+     "-"
+    ]
+   ]
   }
  ]
 }

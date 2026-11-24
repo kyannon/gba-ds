@@ -25,6 +25,8 @@ typedef struct {
 	uint16_t phys, cst, fvt, hook;    /* CPU addresses in that bank */
 	uint16_t stage, ballY, flagAt;    /* wCurrentStage, wBallYPos+1, the command byte (high RAM) */
 	uint8_t physOp[4];                /* the physics function's first instruction pair, which the call replaces */
+	int dpBank;                       /* DrawPinball (the ball's sprite), which the copies don't run */
+	uint16_t dp;
 	bool ok;
 } Addrs;
 
@@ -46,6 +48,9 @@ static const uint8_t PHYS[40] = { 0xaf, 0xea, 0xb9, 0xd7, 0xea, 0xeb, 0xd7, 0xcd
 	                              0xfa, 0xac, 0xd4, 0xcb, 0x47, 0xe0, 0x8a, 0x3e, 0x03, 0x21, 0xfe, 0x60, 0xc4, 0x4f, 0x05, 0xfa, 0xb9, 0xd7, 0xa7, 0xfa };
 static const uint8_t CST[36] = { 0xcd, 0x5e, 0x6d, 0xfa, 0xb6, 0xd4, 0xc6, 0x10, 0xfe, 0x18, 0x38, 0x1e, 0xfe, 0xb8, 0xd8, 0xfa, 0xac, 0xd4,
 	                             0x4f, 0x06, 0x00, 0x21, 0x4e, 0x6d, 0x09, 0x7e, 0xfe, 0xff, 0x28, 0x27, 0xcd, 0x74, 0x66, 0xfa, 0xb6, 0xd4 };
+
+/* DrawPinball's start: ld a,[wPinballIsVisible]; and a; ret z; ld hl,wBallSpin; ld a,[wBallRotation]; add [hl]; ld [wBallRotation],a; ld a,[wBallXPos+1]; inc a */
+static const uint8_t DRAWBALL[19] = { 0xfa, 0x00, 0x00, 0xa7, 0xc8, 0x21, 0x00, 0x00, 0xfa, 0x00, 0x00, 0x86, 0xea, 0x00, 0x00, 0xfa, 0x00, 0x00, 0x3c };
 
 /* every place in the ROM where `pat` matches, its 16-bit operands ignored; -1 unless exactly one */
 static long find_code(const uint8_t* rom, size_t n, const uint8_t* pat, size_t len) {
@@ -78,6 +83,10 @@ static bool find_addrs(const uint8_t* rom, size_t n, Addrs* a) {
 	a->ballY = (uint16_t) (rom[cs + 4] | rom[cs + 5] << 8);
 	a->stage = (uint16_t) (rom[cs + 16] | rom[cs + 17] << 8);
 	a->fvt = (uint16_t) (rom[cs + 31] | rom[cs + 32] << 8); /* the second call in it */
+	long dp = find_code(rom, n, DRAWBALL, sizeof(DRAWBALL));
+	if (dp < 0) return false;
+	a->dpBank = (int) (dp >> 14);
+	a->dp = (uint16_t) (dp < 0x4000 ? dp : 0x4000 + (dp & 0x3FFF));
 	if (rom[ph] != 0xAF || rom[ph + 1] != 0xEA) return false;
 	memcpy(a->physOp, rom + ph, 4);
 	/* the free end of the bank for the routine (it is 41 bytes) */
@@ -109,6 +118,9 @@ static void patch8(Emu* e, int bank, uint16_t a, uint8_t v) {
 	e->core->rawWrite8(e->core, a, bank, v);
 }
 
+#ifndef GBPIN_HIDE
+#define GBPIN_HIDE 0x60 /* (between the rows that cross to the other half) */
+#endif
 static void patch_copy(Emu* e, const Addrs* a) {
 	uint8_t h[48];
 	size_t k = 0;
@@ -117,7 +129,7 @@ static void patch_copy(Emu* e, const Addrs* a) {
 	B(0xEA), B(a->physOp[2]), B(a->physOp[3]);        /* ld [..],a   (the instruction the call replaced) */
 	B(0xFA), B(a->flagAt & 0xFF), B(a->flagAt >> 8);  /* ld a,[flag]: the stage to load + 1 */
 	B(0xA7);                                          /* and a */
-	B(0x28), B(0x1D);                                 /* jr z,.done */
+	B(0x28), B(0x21);                                 /* jr z,.done */
 	B(0x3D);                                          /* dec a */
 	B(0x47);                                          /* ld b,a */
 	B(0xAF);                                          /* xor a */
@@ -131,6 +143,8 @@ static void patch_copy(Emu* e, const Addrs* a) {
 	B(0xD6), B(0x88);                                 /* sub $88 */
 	B(0x18), B(0x02);                                 /* jr .store */
 	B(0xC6), B(0x88);                                 /* .up: add $88 */
+	B(0x30), B(0x02);                                 /* jr nc,.store (the ball is off its screen's rows: a wrap would draw it at the other end) */
+	B(0x3E), B(GBPIN_HIDE);                           /* ld a,HIDE */
 	B(0xEA), B(a->ballY & 0xFF), B(a->ballY >> 8);    /* .store: ld [wBallYPos+1],a */
 	B(0xAF);                                          /* .done: xor a */
 	B(0xC9);                                          /* ret */
@@ -138,6 +152,7 @@ static void patch_copy(Emu* e, const Addrs* a) {
 	for (size_t i = 0; i < k; ++i) patch8(e, a->bank, (uint16_t) (a->hook + i), h[i]);
 	patch8(e, a->bank, a->phys, 0xCD), patch8(e, a->bank, a->phys + 1, a->hook & 0xFF);
 	patch8(e, a->bank, a->phys + 2, a->hook >> 8), patch8(e, a->bank, a->phys + 3, 0x00);
+	patch8(e, a->dpBank, a->dp, 0xC9); /* the ball is drawn on its own half only: in the other its rows wrap round to the far end */
 	patch8(e, a->bank, a->cst + 3, 0xC9); /* CheckStageTransition: return after its scroll call */
 }
 
@@ -164,6 +179,7 @@ struct GbPin {
 	bool table;             /* the two halves are up */
 	int stage;
 	int lost;               /* frames since a picture was taken */
+	int miss;               /* frames in a row the game's physics didn't run, with the table held */
 	uint32_t top[GBA_W * GBA_H], bot[GBA_W * GBA_H];
 };
 
@@ -337,14 +353,27 @@ void gbpin_after(GbPin* g, Emu* game) {
 			for (int x = 0; x < GBA_W; ++x) g->top[y * GBA_W + x] = 0xFF000000u;
 		g->table = true;
 		g->lost = 0;
+		g->miss = 0;
 	} else if (flash || (c->ok && c->stage != s)) {
 		/* the game is loading the other half (the screen white for about a fifth of a second), or has
 		 * just crossed: both halves hold (PPG-4) */
 		if (++g->lost > 90) g->table = false;
 	} else {
-		/* not the table's logic (a menu, the pause screen, the ball lost): the game plays on its own screen */
-		g->table = false;
-		g->lost = 0;
+		/* not the table's logic this frame. A frame or two now and then (the game doesn't reach its physics
+		 * every frame) and the game's own SAVE / CANCEL menu (its window at row 0x60, run inside the physics
+		 * call) keep the table up: the game's half is drawn as it is, the other held (PPG-4) */
+		bool menu = rd8(game, 0xFF4A) == 0x60 && table_stage(s);
+		if (g->table && table_stage(s) && (menu || ++g->miss <= 30)) {
+			memcpy((s & 1) ? g->bot : g->top, game->fb, sizeof(g->top));
+			if (!(s & 1) && !menu) {
+				int wy = rd8(game, 0xFF4A);
+				for (int y = game->picY + (wy < 144 ? wy : 144); y < game->picY + game->picH; ++y)
+					for (int x = 0; x < GBA_W; ++x) g->top[y * GBA_W + x] = 0xFF000000u;
+			}
+		} else {
+			g->table = false;
+			g->lost = 0;
+		}
 	}
 }
 
