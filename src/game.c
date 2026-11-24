@@ -21,6 +21,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include <strings.h>
 #include <math.h>
 #include "profiles.h"
+#include "workers.h"
 #include "patch.h"
 #include "cheats.h"
 
@@ -166,6 +167,7 @@ static bool tallOn;        /* the table's up: the screens show it */
  * stores are no-ops: they're moved by setting their camera. The copies run
  * on two worker threads, the second frame while the game runs its own. */
 #define TWINS 2
+_Static_assert(TWINS == WORKER_SLOTS, "one worker per copy");
 typedef struct {
 	Emu e;
 	bool need;    /* its picture is on a screen next frame (twins[0]: the lower view) */
@@ -207,66 +209,6 @@ static bool tallFixedBot; /* PP-10: the game's banners on the bottom screen (the
 static int tallFixedHold; /* frames the banners stay where they went with none shown */
 static uint32_t lastTop[GBA_W * GBA_H]; /* the top screen before PP-11's screen came up */
 static bool haveLastTop;
-
-/* a worker thread for each copy: runs fn(arg) when asked */
-static struct {
-	pthread_t thread;
-	pthread_mutex_t lock;
-	pthread_cond_t cond;
-	bool started, busy, quit;
-	void (*fn)(void*);
-	void* arg;
-} twinWork[TWINS] = { { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER },
-                      { .lock = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER } };
-
-static void* twin_worker(void* arg) {
-	typeof(twinWork[0])* w = arg;
-	pthread_mutex_lock(&w->lock);
-	for (;;) {
-		while (!w->busy && !w->quit) pthread_cond_wait(&w->cond, &w->lock);
-		if (w->quit) break;
-		void (*fn)(void*) = w->fn;
-		void* a = w->arg;
-		pthread_mutex_unlock(&w->lock);
-		fn(a);
-		pthread_mutex_lock(&w->lock);
-		w->busy = false;
-		pthread_cond_broadcast(&w->cond);
-	}
-	pthread_mutex_unlock(&w->lock);
-	return NULL;
-}
-/* fn(arg) on worker i; no thread (the web build): here, now */
-static void twin_work_start(int i, void (*fn)(void*), void* arg) {
-	typeof(twinWork[0])* w = &twinWork[i];
-	pthread_mutex_lock(&w->lock);
-	if (!w->started) {
-		w->quit = false;
-		w->started = pthread_create(&w->thread, NULL, twin_worker, w) == 0;
-	}
-	bool ok = w->started;
-	if (ok) w->fn = fn, w->arg = arg, w->busy = true, pthread_cond_broadcast(&w->cond);
-	pthread_mutex_unlock(&w->lock);
-	if (!ok) fn(arg);
-}
-static void twin_work_wait(int i) {
-	typeof(twinWork[0])* w = &twinWork[i];
-	pthread_mutex_lock(&w->lock);
-	while (w->busy) pthread_cond_wait(&w->cond, &w->lock);
-	pthread_mutex_unlock(&w->lock);
-}
-static void twin_work_stop(void) {
-	for (int i = 0; i < TWINS; ++i) {
-		typeof(twinWork[0])* w = &twinWork[i];
-		pthread_mutex_lock(&w->lock);
-		bool started = w->started;
-		w->quit = true;
-		pthread_cond_broadcast(&w->cond);
-		pthread_mutex_unlock(&w->lock);
-		if (started) pthread_join(w->thread, NULL);
-		w->started = false;
-	}
-}
 
 static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
 	uint32_t b = emu_read32(e, S + twinProf->tall.live.ball);
@@ -685,7 +627,7 @@ static void twin_step(void) {
 }
 
 static void twin_close(void) {
-	twin_work_stop();
+	worker_stop_all();
 	for (int i = 0; i < TWINS; ++i) {
 		if (twinOpen) emu_close(&twins[i].e);
 		twins[i].up = twins[i].havePic = false;
@@ -778,9 +720,9 @@ static void run_frame(uint32_t keys) {
 		 * game's fixed to the screen, for the HUD split to draw */
 		game_oam_take();
 		for (int i = 0; i < TWINS; ++i) twins[i].up = false;
-		if (twins[0].need) twin_work_start(0, twin_first, &twins[0]);
+		if (twins[0].need) worker_start(0, twin_first, &twins[0]);
 		twin_first(&twins[1]);
-		if (twins[0].need) twin_work_wait(0);
+		if (twins[0].need) worker_wait(0);
 		if (!twinProf->tall.live.carry.keepObj)
 			for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_hide(&twins[i]);
 		/* (only while a copy's rows are on the top screen this frame) */
@@ -813,11 +755,11 @@ static void run_frame(uint32_t keys) {
 	}
 	/* the copies' second frame (this one), alongside the game's */
 	twinFrameKeys = keys;
-	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_start(i, twin_second, &twins[i]);
+	for (int i = 0; i < TWINS; ++i) if (twins[i].up) worker_start(i, twin_second, &twins[i]);
 	ww_step();
 	emu_frame(&emu, keys & 0x3FF);
 	++bugFrame;
-	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_wait(i);
+	for (int i = 0; i < TWINS; ++i) if (twins[i].up) worker_wait(i);
 	if (live) twin_step();
 }
 
