@@ -269,6 +269,20 @@ def run_app(case, args, workdir):
         os.symlink(src, os.path.join(ad, "bios", "gba_bios.bin"))
         if "--asset_dir=" + ad not in extra:
             extra.append("--asset_dir=" + ad)
+    # GEN-16: "cheat_files" {name there: fixture under cheats/}, put in
+    # <asset_dir>/cheats/ (a file is matched to its ROM by name, and the case's
+    # ROM is named by its code: "BFZE (USA) (Code Breaker).cht")
+    if case.get("cheat_files"):
+        ad = os.path.join(workdir, "assets")
+        os.makedirs(os.path.join(ad, "cheats"), exist_ok=True)
+        for name, f in case["cheat_files"].items():
+            src = os.path.join(args.fixtures, "cheats", f)
+            if not os.path.exists(src):
+                r.error = "missing cheat fixture cheats/%s" % f
+                return r
+            shutil.copy(src, os.path.join(ad, "cheats", name))
+        if "--asset_dir=" + ad not in extra:
+            extra.append("--asset_dir=" + ad)
     if case.get("save"):
         sav = os.path.join(args.fixtures, "saves", case["save"])
         if not os.path.exists(sav):
