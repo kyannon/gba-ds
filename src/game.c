@@ -8519,6 +8519,58 @@ static void logo_refresh(void) {
 	}
 }
 
+/* Opens the sound device the game plays through (0 when none will open), in
+ * *want: its format (the rate it runs at is fixed; see game_run_inner). Falls
+ * back from the device launch.sh asked for (AUDIODEV), then through the other
+ * drivers, and logs what it got. */
+static SDL_AudioDeviceID open_game_audio(SDL_AudioSpec* want) {
+	SDL_AudioSpec have;
+	*want = (SDL_AudioSpec) { 0 };
+	want->freq = 48000;
+	want->format = AUDIO_S16SYS;
+	want->channels = 2;
+	/* GBADS_AUDIO_SAMPLES: testing only (SDL's dummy driver keeps exact time
+	 * only when the buffer is a whole number of milliseconds, e.g. 480) */
+	want->samples = getenv("GBADS_AUDIO_SAMPLES") ? atoi(getenv("GBADS_AUDIO_SAMPLES")) : 512;
+	SDL_AudioDeviceID audio = SDL_OpenAudioDevice(NULL, 0, want, &have, 0);
+#if !defined(__wasi__) && !defined(__ANDROID__)
+	if (!audio && getenv("AUDIODEV")) {
+		/* the device launch.sh asked for (the RG DS Plus's Stock Linux OS: ALSA's pulse)
+		 * won't open: the driver's own default instead */
+		fprintf(stderr, "no audio on %s (%s): the default device instead\n", getenv("AUDIODEV"), SDL_GetError());
+		unsetenv("AUDIODEV");
+		SDL_AudioQuit();
+		SDL_AudioInit(NULL);
+		audio = SDL_OpenAudioDevice(NULL, 0, want, &have, 0);
+	}
+#endif
+#ifndef __wasi__
+	if (!audio) {
+		/* (a player on ROCKNIXDS heard nothing: the driver SDL picked may
+		 * not reach the sound server; the others, in turn) */
+		fprintf(stderr, "no audio with %s: %s\n", SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver() : "no driver", SDL_GetError());
+		static const char* const tryDrivers[] = { "pipewire", "pulseaudio", "alsa" };
+		const char* first = SDL_GetCurrentAudioDriver();
+		for (int i = 0; i < 3 && !audio; ++i) {
+			if (first && !strcmp(first, tryDrivers[i])) continue;
+			SDL_AudioQuit();
+			if (SDL_AudioInit(tryDrivers[i]) != 0) continue;
+			audio = SDL_OpenAudioDevice(NULL, 0, want, &have, 0);
+			if (!audio) fprintf(stderr, "no audio with %s: %s\n", tryDrivers[i], SDL_GetError());
+		}
+		if (!audio) SDL_AudioQuit(), SDL_AudioInit(NULL);
+	}
+#endif
+	if (audio) {
+		SDL_PauseAudioDevice(audio, 0);
+		fprintf(stderr, "audio: %s%s%s, %d Hz, %d channels, %d samples\n", SDL_GetCurrentAudioDriver(), getenv("AUDIODEV") ? " on " : "",
+		        getenv("AUDIODEV") ? getenv("AUDIODEV") : "", have.freq, have.channels, have.samples);
+	} else {
+		fprintf(stderr, "no audio: %s\n", SDL_GetError());
+	}
+	return audio;
+}
+
 static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary);
 
 /* A game's own settings (issue #53, states/<game>.cfg) are put over the
@@ -8724,49 +8776,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	 * running...) and can change at any moment, so samples go through a
 	 * converter that is rebuilt whenever it does. Opening the device at the
 	 * rate of the moment made resumed games starve and fresh boots overflow. */
-	SDL_AudioSpec want = { 0 }, have;
-	want.freq = 48000;
-	want.format = AUDIO_S16SYS;
-	want.channels = 2;
-	/* GBADS_AUDIO_SAMPLES: testing only (SDL's dummy driver keeps exact time
-	 * only when the buffer is a whole number of milliseconds, e.g. 480) */
-	want.samples = getenv("GBADS_AUDIO_SAMPLES") ? atoi(getenv("GBADS_AUDIO_SAMPLES")) : 512;
-	SDL_AudioDeviceID audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-#if !defined(__wasi__) && !defined(__ANDROID__)
-	if (!audio && getenv("AUDIODEV")) {
-		/* the device launch.sh asked for (the RG DS Plus's Stock Linux OS: ALSA's pulse)
-		 * won't open: the driver's own default instead */
-		fprintf(stderr, "no audio on %s (%s): the default device instead\n", getenv("AUDIODEV"), SDL_GetError());
-		unsetenv("AUDIODEV");
-		SDL_AudioQuit();
-		SDL_AudioInit(NULL);
-		audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-	}
-#endif
-#ifndef __wasi__
-	if (!audio) {
-		/* (a player on ROCKNIXDS heard nothing: the driver SDL picked may
-		 * not reach the sound server; the others, in turn) */
-		fprintf(stderr, "no audio with %s: %s\n", SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver() : "no driver", SDL_GetError());
-		static const char* const tryDrivers[] = { "pipewire", "pulseaudio", "alsa" };
-		const char* first = SDL_GetCurrentAudioDriver();
-		for (int i = 0; i < 3 && !audio; ++i) {
-			if (first && !strcmp(first, tryDrivers[i])) continue;
-			SDL_AudioQuit();
-			if (SDL_AudioInit(tryDrivers[i]) != 0) continue;
-			audio = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-			if (!audio) fprintf(stderr, "no audio with %s: %s\n", tryDrivers[i], SDL_GetError());
-		}
-		if (!audio) SDL_AudioQuit(), SDL_AudioInit(NULL);
-	}
-#endif
-	if (audio) {
-		SDL_PauseAudioDevice(audio, 0);
-		fprintf(stderr, "audio: %s%s%s, %d Hz, %d channels, %d samples\n", SDL_GetCurrentAudioDriver(), getenv("AUDIODEV") ? " on " : "",
-		        getenv("AUDIODEV") ? getenv("AUDIODEV") : "", have.freq, have.channels, have.samples);
-	} else {
-		fprintf(stderr, "no audio: %s\n", SDL_GetError());
-	}
+	SDL_AudioSpec want;
+	SDL_AudioDeviceID audio = open_game_audio(&want);
 	SDL_AudioStream* audioConv = NULL;
 	int convFrom = 0;
 	/* The sound delay in use: the setting, raised a step when the sound keeps
