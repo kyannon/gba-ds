@@ -174,7 +174,10 @@ static struct {
 	size_t size;
 } patched;
 
-static struct { int colors; bool usePal; uint32_t rgb[4]; bool mono; } gbOpt = { 1, false, { 0 }, false };
+static struct { int colors; bool usePal; uint32_t rgb[4]; bool mono; bool border; } gbOpt = { 1, false, { 0 }, false, false };
+void emu_gb_border_wanted(bool on) {
+	gbOpt.border = on;
+}
 void emu_gb_colours(int colors, const uint32_t* rgb, bool mono) {
 	gbOpt.colors = colors;
 	gbOpt.usePal = rgb != NULL;
@@ -506,6 +509,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		if (emu_rom_header(romPath, h, sizeof(h))) {
 			e->gbKind = h[0x143] == 0xC0 ? 2 : h[0x143] == 0x80 ? 1 : 0;
 			sgbHeader = h[0x146] == 0x03 && h[0x143] != 0xC0;
+			e->gbSgbHeader = sgbHeader;
 		}
 	}
 	mCoreInitConfig(e->core, NULL);
@@ -523,8 +527,12 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		 * the Super Game Boy palette (GB-6); a dual-mode one only while it is kept in monochrome (GB-7).
 		 * Another palette (DMG, Pocket, Light, Grayscale) is the Game Boy Color hardware with those shades.
 		 * Otherwise the Game Boy Color hardware (GB-1). */
-		bool asSgb = (gbOpt.colors == 1 || gbOpt.colors == 3) && sgbHeader && (e->gbKind == 0 || (e->gbKind == 1 && gbOpt.mono));
+		bool sgbOk = sgbHeader && (e->gbKind == 0 || (e->gbKind == 1 && gbOpt.mono));
+		/* (GB-12) with the border it is a Super Game Boy whatever the palette says (the colours are its) */
+		bool border = gbOpt.border && sgbOk;
+		bool asSgb = sgbOk && (border || gbOpt.colors == 1 || gbOpt.colors == 3);
 		e->gbSgb = asSgb;
+		e->gbBorder = border;
 		mCoreConfigSetDefaultValue(&e->core->config, "sgb.model", asSgb ? "SGB" : "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.model", "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.hybridModel", gbOpt.mono ? "DMG" : "AGB"); /* (GB-7) */
@@ -537,7 +545,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 				mCoreConfigSetDefaultIntValue(&e->core->config, key, (int) gbOpt.rgb[i & 3]); /* background, then the two sprite palettes */
 			}
 		}
-		mCoreConfigSetDefaultIntValue(&e->core->config, "sgb.borders", 0);
+		mCoreConfigSetDefaultIntValue(&e->core->config, "sgb.borders", e->gbBorder ? 1 : 0);
 	}
 	mCoreLoadConfig(e->core);
 
@@ -547,7 +555,12 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		e->picW = 160, e->picH = 144;
 		e->picX = (GBA_W - e->picW) / 2, e->picY = (GBA_H - e->picH) / 2;
 	}
-	e->core->setVideoBuffer(e->core, (mColor*) (e->fb + e->picY * GBA_W + e->picX), GBA_W);
+	if (e->gbBorder) { /* (GB-12) the core draws the border and the window in a 256x224 picture of its own */
+		e->sgbFb = calloc(SGB_W * SGB_H, sizeof(uint32_t));
+		e->core->setVideoBuffer(e->core, (mColor*) e->sgbFb, SGB_W);
+	} else {
+		e->core->setVideoBuffer(e->core, (mColor*) (e->fb + e->picY * GBA_W + e->picX), GBA_W);
+	}
 	if (e->platform == mPLATFORM_GBA) e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
 	if (e->platform == mPLATFORM_GBA) {
 		EmuGyro* g = calloc(1, sizeof(*g));
@@ -652,6 +665,8 @@ void emu_close(Emu* e) {
 	}
 	free(e->fb);
 	e->fb = NULL;
+	free(e->sgbFb);
+	e->sgbFb = NULL;
 	free(e->rumble);
 	e->rumble = NULL;
 	free(e->gyro);
@@ -667,6 +682,11 @@ void emu_frame(Emu* e, uint32_t keys) {
 	++e->frames;
 	e->core->setKeys(e->core, keys);
 	e->core->runFrame(e->core);
+	if (e->sgbFb && e->fb) { /* (GB-12) the game's window into the frame, where it is without a border: everything else works on that */
+		for (int y = 0; y < e->picH; ++y) {
+			memcpy(e->fb + (size_t) (e->picY + y) * GBA_W + e->picX, e->sgbFb + (size_t) (SGB_WIN_Y + y) * SGB_W + SGB_WIN_X, (size_t) e->picW * sizeof(uint32_t));
+		}
+	}
 	if (!e->audio) {
 		struct mAudioBuffer* ab = e->core->getAudioBuffer(e->core);
 		if (ab) {
@@ -1127,6 +1147,15 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n) {
 	return ok;
 }
 
+bool emu_gb_sgb_header(const Emu* e) {
+	return e && e->gbSgbHeader;
+}
+bool emu_gb_border(const Emu* e) {
+	return e && e->gbBorder;
+}
+const uint32_t* emu_gb_border_px(const Emu* e) {
+	return e ? e->sgbFb : NULL;
+}
 bool emu_gb_sgb(const Emu* e) {
 	return e && e->gbSgb;
 }

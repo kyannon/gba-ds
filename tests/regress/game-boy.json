@@ -246,6 +246,105 @@
    "config": {
     "gb_palette": "dmg"
    }
+  },
+  {
+   "id": "gb-border-castlevania-legends",
+   "rom": "g6cn",
+   "desc": "Castlevania Legends (SGB Enhanced) with Display > Game Boy border = Super Game Boy: the game's own stone border around its picture, 256x224 at 3x (GB-12), its colours the Super Game Boy's",
+   "rules": [
+    "GB-11",
+    "GB-12"
+   ],
+   "config": {
+    "gb_border": "sgb"
+   },
+   "input": [
+    [
+     300,
+     "START"
+    ],
+    [
+     320,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     620,
+     "-"
+    ],
+    [
+     900,
+     "START"
+    ],
+    [
+     920,
+     "-"
+    ],
+    [
+     1200,
+     "START"
+    ],
+    [
+     1220,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 1460
+   },
+   "golden": [
+    "title"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "title",
+     "probes": [
+      [
+       150,
+       100,
+       "8CA5A5"
+      ],
+      [
+       880,
+       400,
+       "8CA5A5"
+      ],
+      [
+       300,
+       200,
+       "C6C6C6"
+      ],
+      [
+       560,
+       300,
+       "FFDE10"
+      ]
+     ],
+     "rule": "GB-12",
+     "what": "the border's stone on both sides, and the game's grey and gold inside it",
+     "tol": 8
+    },
+    {
+     "type": "not_uniform",
+     "screen": "game",
+     "shot": "title",
+     "rect": [
+      128,
+      48,
+      896,
+      720
+     ],
+     "color": "000000",
+     "frac": 0.9,
+     "rule": "GB-12",
+     "what": "the 768x672 picture is drawn, not black"
+    }
+   ]
   }
  ]
 }

@@ -965,16 +965,29 @@ static SDL_Texture* gameTex[2];
  * is just the 160x144 picture (taken from where emu.c put it in the frame), drawn in
  * Game Boy scale; else the whole 240x160 frame in the game screen's scale, as every game. */
 static bool gb_native(void) {
-	return emu_is_gb(&emu) && !strcmp(cfg->gbSize, "native");
+	return emu_is_gb(&emu) && (emu_gb_border(&emu) || !strcmp(cfg->gbSize, "native"));
 }
+/* with the Super Game Boy's border (GB-12) the picture is the 256x224 frame: the border the core
+ * drew, with the game's window (as filtered) set into it */
 static int game_tex_w(void) {
-	return gb_native() ? emu.picW : GBA_W;
+	return emu_gb_border(&emu) ? SGB_W : gb_native() ? emu.picW : GBA_W;
 }
 static int game_tex_h(void) {
-	return gb_native() ? emu.picH : GBA_H;
+	return emu_gb_border(&emu) ? SGB_H : gb_native() ? emu.picH : GBA_H;
 }
+static uint32_t borderOut[SGB_W * SGB_H];
 static const uint32_t* game_tex_px(const uint32_t* fb) {
+	if (emu_gb_border(&emu)) {
+		memcpy(borderOut, emu_gb_border_px(&emu), sizeof(borderOut));
+		for (int y = 0; y < emu.picH; ++y) {
+			memcpy(&borderOut[(SGB_WIN_Y + y) * SGB_W + SGB_WIN_X], fb + (emu.picY + y) * GBA_W + emu.picX, (size_t) emu.picW * sizeof(uint32_t));
+		}
+		return borderOut;
+	}
 	return gb_native() ? fb + emu.picY * GBA_W + emu.picX : fb; /* (rows GBA_W apart either way) */
+}
+static int game_tex_pitch(void) {
+	return (emu_gb_border(&emu) ? SGB_W : GBA_W) * 4; /* (the picture's rows, in bytes: a window in the frame is GBA_W apart) */
 }
 static const char* game_scale(void) {
 	return gb_native() ? cfg->gbScale : cfg->scale;
@@ -1021,7 +1034,7 @@ static const MapProfile* snapProf; /* logo-only game with screens copied to the 
 static const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
 static uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
 static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
-static char gbPaletteAtStart[8], gbDualAtStart[8]; /* GB-6, GB-7 as this game started: a change counts from the next start */
+static char gbPaletteAtStart[8], gbDualAtStart[8], gbBorderAtStart[8]; /* GB-6, GB-7 as this game started: a change counts from the next start */
 /* a Game Boy game's colours (GB-6, GB-7), from the settings, for emu_open */
 static void gb_colours_setup(void) {
 	static const struct { const char* key; int colors; uint32_t rgb[4]; } pal[] = {
@@ -1034,6 +1047,8 @@ static void gb_colours_setup(void) {
 	};
 	snprintf(gbPaletteAtStart, sizeof(gbPaletteAtStart), "%s", cfg->gbPalette);
 	snprintf(gbDualAtStart, sizeof(gbDualAtStart), "%s", cfg->gbDual);
+	snprintf(gbBorderAtStart, sizeof(gbBorderAtStart), "%s", cfg->gbBorder);
+	emu_gb_border_wanted(!strcmp(cfg->gbBorder, "sgb")); /* (GB-12) */
 	int pick = 0;
 	for (int i = 0; i < (int) (sizeof(pal) / sizeof(pal[0])); ++i) {
 		if (!strcmp(pal[i].key, cfg->gbPalette)) pick = i;
@@ -1041,12 +1056,12 @@ static void gb_colours_setup(void) {
 	emu_gb_colours(pal[pick].colors, pal[pick].colors ? NULL : pal[pick].rgb, !strcmp(cfg->gbDual, "mono"));
 }
 static bool gb_colours_changed(void) {
-	return emu_is_gb(&emu) && (strcmp(cfg->gbPalette, gbPaletteAtStart) || strcmp(cfg->gbDual, gbDualAtStart));
+	return emu_is_gb(&emu) && (strcmp(cfg->gbPalette, gbPaletteAtStart) || strcmp(cfg->gbDual, gbDualAtStart) || strcmp(cfg->gbBorder, gbBorderAtStart));
 }
 static void draw_gb_ask(int scr);
 static bool gbAskOpen; /* leaving the menu with Game Boy colours that need a start: Restart now / Discard changes (GB-6, GB-7) */
 static int gbAskSel;
-static bool gbHadGameKey[2]; /* this game's own file had gb_palette / gb_dual as the game started */
+static bool gbHadGameKey[3]; /* this game's own file had gb_palette / gb_dual as the game started */
 static bool tallLiveAtStart; /* pinball_live as this game started with it: a change counts only after a new start */
 static bool tallLive;      /* the live view: the table over both screens (update_tall) */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
@@ -3934,6 +3949,9 @@ static const char* row_disabled(const char* key) {
 	if ((!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
 		return N_("Not available in this game: its second screen has nothing to turn");
 	if (!strcmp(key, "gb_dual") && emu_gb_kind(&emu) != 1) return N_("Not available in this game: it is made for a Game Boy or for a Game Boy Color, not both");
+	if (!strcmp(key, "gb_border") && !emu_gb_sgb_header(&emu)) return N_("Not available in this game: it does not support the Super Game Boy");
+	if (!strcmp(key, "gb_border") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
+	if (!strcmp(key, "gb_palette") && emu_gb_border(&emu)) return N_("Not available with the Super Game Boy border: the colors are the Super Game Boy's");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 2) return N_("Not available in this game: it is made for the Game Boy Color, with colors of its own");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
@@ -3998,7 +4016,7 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 			rowTagOn[i] = true;
 		}
 		if ((!strcmp(key, "pinball_live") && cfg->tallLive != tallLiveAtStart) ||
-		    ((!strcmp(key, "gb_palette") || !strcmp(key, "gb_dual")) && gb_colours_changed())) {
+		    ((!strcmp(key, "gb_palette") || !strcmp(key, "gb_dual") || !strcmp(key, "gb_border")) && gb_colours_changed())) {
 			/* changed since GBA DS started: it only counts once GBA DS is closed and started again */
 			int tc = SDL_max(6, cap * 5 / 8), gp2 = mg->pad / 2;
 			int px0 = r.x + mg->pad + lw + gp2 + (has ? ui_font_width(TF_BOLD, tc, "Game") + mg->pad + gp2 : 0);
@@ -6953,7 +6971,7 @@ static void gb_colours_key(char* out, size_t n) {
 	int k = emu_gb_kind(&emu);
 	bool mono = k == 0 || (k == 1 && !strcmp(gbDualAtStart, "mono"));
 	/* (+sgb: it ran as a Super Game Boy, GB-11: another machine's state, so a resume point from before that, or from a game run the other way, isn't loaded) */
-	snprintf(out, n, "%s%s %s", emu_is_gb(&emu) && mono ? gbPaletteAtStart : "-", emu_gb_sgb(&emu) ? "+sgb" : "", k == 1 ? gbDualAtStart : "-");
+	snprintf(out, n, "%s%s%s %s", emu_is_gb(&emu) && mono ? gbPaletteAtStart : "-", emu_gb_sgb(&emu) ? "+sgb" : "", emu_gb_border(&emu) ? "+border" : "", k == 1 ? gbDualAtStart : "-");
 }
 static void gb_colours_note_path(char* out, size_t n) {
 	snprintf(out, n, "%s.colours", gp.autoState);
@@ -7803,7 +7821,7 @@ static void swap_screens(void) {
 	/* the game moves to the other view, whose copy of the frame may be old
 	 * (frames go only where the game is shown; the menu uploads none) */
 	if (emu.fb) {
-		for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
+		for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), game_tex_pitch());
 	}
 	if (nScreens < 2) {
 		singleShowsMap = !singleShowsMap;
@@ -8284,7 +8302,7 @@ static void setting_applied(const Setting* st) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
 		if (emu.fb) {
-			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
+			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), game_tex_pitch());
 		}
 	} else if (!strcmp(k, "screen_match") || !strcmp(k, "screen_placement")) {
 		ui_layout_pictures();
@@ -8393,12 +8411,13 @@ static void row_reset(const char* key) {
 static void gb_keys_at_start(void) {
 	gbHadGameKey[0] = game_has(config_setting("gb_palette"));
 	gbHadGameKey[1] = game_has(config_setting("gb_dual"));
+	gbHadGameKey[2] = game_has(config_setting("gb_border"));
 }
 static void gb_discard(void) {
-	static const char* const keys[2] = { "gb_palette", "gb_dual" };
-	char* const field[2] = { cfg->gbPalette, cfg->gbDual };
-	const char* const start[2] = { gbPaletteAtStart, gbDualAtStart };
-	for (int i = 0; i < 2; ++i) {
+	static const char* const keys[3] = { "gb_palette", "gb_dual", "gb_border" };
+	char* const field[3] = { cfg->gbPalette, cfg->gbDual, cfg->gbBorder };
+	const char* const start[3] = { gbPaletteAtStart, gbDualAtStart, gbBorderAtStart };
+	for (int i = 0; i < 3; ++i) {
 		if (!strcmp(field[i], start[i])) continue;
 		const Setting* st = config_setting(keys[i]);
 		if (!st) continue;
@@ -8759,7 +8778,7 @@ static void rebuild_textures(void) {
 		if (gameTex[i]) SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
 	}
 	ss_textures();
-	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
+	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), game_tex_pitch());
 	if (mapShownIdx >= 0) {
 		int idx = mapShownIdx;
 		overDirty = true;
@@ -9139,7 +9158,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_color_correction(correction_mode()); /* (Display > Color Correction, for this session's pictures) */
 	ui_shader(shader_now());
 #define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
-	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"), ROW(PG_DISPLAY, "gb_palette"), ROW(PG_DISPLAY, "gb_dual"), ROW(PG_DISPLAY, "gb_correction"), ROW(PG_DISPLAY, "gb_ghosting"), ROW(PG_DISPLAY, "gb_shader"); /* (GB-2) */
+	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"), ROW(PG_DISPLAY, "gb_palette"), ROW(PG_DISPLAY, "gb_dual"), ROW(PG_DISPLAY, "gb_border"), ROW(PG_DISPLAY, "gb_correction"), ROW(PG_DISPLAY, "gb_ghosting"), ROW(PG_DISPLAY, "gb_shader"); /* (GB-2) */
 	ROW(PG_DISPLAY, "scale");
 	ROW(PG_DISPLAY, "map_scale");
 	ROW(PG_DISPLAY, "shader");
@@ -10338,7 +10357,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {
-			if (gameTexAll || i == screens[game_screen()].view) ui_update_texture(gameTex[i], game_tex_px(shownFb), GBA_W * 4);
+			if (gameTexAll || i == screens[game_screen()].view) ui_update_texture(gameTex[i], game_tex_px(shownFb), game_tex_pitch());
 		}
 		gameTexAll = false;
 		/* (tests, GBADS_DRAW_SHOTS_ONLY: only the frames a screenshot or a

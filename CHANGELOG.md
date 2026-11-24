@@ -12,6 +12,9 @@
 ### RetroAchievements
 - **Hardcore mode (still hidden until RetroAchievements approves it) now turns fast forward off**, as it does rewind, cheats and loading states, since GBA DS reads RetroAchievements' ban on frame advance as covering any speed-up. Fast forward still works in casual mode.
 
+### New: Super Game Boy border
+- **Game Boy games that support the Super Game Boy can show their own border.** Display > Game Boy border > **Super Game Boy** (Castlevania Legends, Donkey Kong (1994) and the other "SGB Enhanced" games; greyed out for other games): the game's border fills the screen around its picture, at the Game Boy scale, with the Super Game Boy's colours. It counts from the next start, like the palette. Known: screenshots and the quick bar's pictures still use the GBA frame.
+
 ### Fixes
 - **Game Boy: games that support the Super Game Boy show the colours they were made with** (issue #91). Castlevania Legends and the other "SGB Enhanced" games were grey; they now play as on a Super Game Boy (without its border) and show their own colours, with the default palette or with *Super Game Boy*. Choose DMG, Pocket, Light or Grayscale for those shades instead. A game started under the old setup starts over once instead of resuming.
 - **Highlighted buttons and rows have the same round top corners as bottom ones.** The top corners of a lit or selected button (the pause menu's tabs, the quick bar, the game list's buttons) were nearly square next to the bottom ones.

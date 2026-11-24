@@ -48,6 +48,7 @@ typedef struct Config {
 	char gbShader[12]; /* GB-10: same | off | grid | scanlines | soft | dots */
 	char gbGhosting[8]; /* GB-9: same | off | light | smart | strong */
 	char gbPalette[8]; /* GB-6: own | dmg | pocket | light | gray | sgb: a monochrome game's shades (from the next start) */
+	char gbBorder[8];  /* GB-12: none | sgb: a Super Game Boy game with its own border (from the next start) */
 	char gbDual[8];    /* GB-7: colour | mono: a dual-mode game in colour, or as on a plain Game Boy (from the next start) */
 	char gbScale[16];  /* ...and how that frame fills the screen (GB-2a): integer | fit | stretch */
 	bool smooth;       /* plain linear filtering when scaling (blurry) */
