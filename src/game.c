@@ -6303,7 +6303,7 @@ static bool state_load(const char* path) {
 		fprintf(stderr, "load state: %s: refused in hardcore mode\n", path);
 		stateLoadKind = STATE_FILE_NONE;
 		stateLoadBios = BIOS_REFUSAL_NONE;
-		ui_osd("Hardcore mode: states can't be loaded");
+		ui_osd("Not in hardcore mode (Achievements)"); /* (the pause menu's words) */
 		return false;
 	}
 	bool fromGbads = false;
@@ -9410,7 +9410,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 							ui_osd(ok ? "State saved." : "Save failed.");
 							if (ok) barLit = bb, barLitAt = barSince;
 						} else if (bb == BB_LOAD) {
-							if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
+							if (ra_hardcore()) ui_osd("Not in hardcore mode (Achievements)"); /* (as the pause menu's Load State says, before anything else) */
+							else if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
 							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true, barLit = bb, barLitAt = barSince; }
 							else ui_osd(load_failed_osd());
 						} else if (bb == BB_SETTINGS) {
@@ -9740,7 +9741,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				/* (the quick state, as the quick bar's buttons) */
 				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved." : "Save failed."); break;
 				case HK_LOAD:
-					if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
+					if (ra_hardcore()) ui_osd("Not in hardcore mode (Achievements)");
+					else if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
 					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true; }
 					else ui_osd(load_failed_osd());
 					break;
