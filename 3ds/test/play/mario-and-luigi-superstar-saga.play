@@ -1,0 +1,263 @@
+# Mario & Luigi: Superstar Saga (USA, A88E), from power-on to walking about on the Koopa Cruiser (ML-2: Bros. Info).
+# Title: START. The letter, the castle and Mario's yard: A mashed, until you control the Toad in the brothers' house.
+wait 180
+mash START 4 40
+mash A 86 60
+shot a-house
+wait 60
+# The Toad finds Mario in the bath: through the kitchen and the living room to the green-tiled bathroom
+# at the house's left (the steam), whose door is at its bottom left corner, round the orange pillar.
+hold LEFT 80
+hold DOWN 80
+hold DOWN+LEFT 60
+hold UP+LEFT 60
+hold LEFT 60
+hold DOWN 60
+hold LEFT 60
+hold DOWN+LEFT 30
+hold UP+LEFT 40
+hold UP 60
+shot b-bathroom
+# The bath, the run to the castle, Bowser's tutorial battle (ML-1/ML-3: logo) and the throne room: A mashed,
+# until Mario is in the castle town's plaza (room 0x112).
+mash A 310 30
+shot c-plaza
+wait 60
+# The plaza: up the ledges (A jumps) to the path north, right of Luigi (talking to him doesn't help).
+hold RIGHT 40
+hold UP 200
+hold UP+A 10
+hold UP 60
+hold UP+A 10
+hold UP 60
+hold LEFT 36
+hold UP 300
+shot d-path
+# North up the path (Toadsworth's suitcase, SELECT unlocked), Bowser and the Koopa Cruiser, Luigi dragged aboard.
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+hold UP 20
+press A 2
+wait 28
+mash A 190 30
+shot e-cruiser
+wait 300
+shot f-bros-info-mario
+wait 120
+shot g-bros-info-mario
+press START
+wait 300
+shot h-bros-info-luigi
+wait 120
+shot i-bros-info-luigi

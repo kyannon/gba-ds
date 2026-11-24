@@ -318,6 +318,8 @@ uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* p
 	return rom;
 }
 
+int emuRenderWorkers = 1;
+bool emuHiddenCopy;
 /* The game cartridge's sun sensor (Boktai): there's none on the device, so
  * the sunlight the games are given is a setting (solar_level, 0-10, as
  * mGBA's own levels). Every core reads it: the game, the hidden copies, the
@@ -505,7 +507,9 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		if (emu_rom_header(romPath, h, sizeof(h))) e->gbKind = h[0x143] == 0xC0 ? 2 : h[0x143] == 0x80 ? 1 : 0;
 	}
 	mCoreInitConfig(e->core, NULL);
-	struct mCoreOptions opts = { .useBios = false, .volume = 0x100, .audioBuffers = 1024 };
+	/* GBADS_BIOS=<a GBA BIOS> (tests: the same BIOS on libmgba and armGBA, 3ds/test/dualrun.py) */
+	const char* biosFile = getenv("GBADS_BIOS");
+	struct mCoreOptions opts = { .useBios = biosFile != NULL, .skipBios = true, .volume = 0x100, .audioBuffers = 1024 };
 	mCoreConfigLoadDefaults(&e->core->config, &opts);
 	if (e->platform == mPLATFORM_GB) {
 		/* A Game Boy or Game Boy Color game as the GBA itself played it (issue #77): on the GBA's
@@ -529,6 +533,10 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		mCoreConfigSetDefaultIntValue(&e->core->config, "sgb.borders", 0);
 	}
 	mCoreLoadConfig(e->core);
+	if (biosFile) {
+		struct VFile* bf = VFileOpen(biosFile, O_RDONLY);
+		if (!bf || !e->core->loadBIOS(e->core, bf, 0)) fprintf(stderr, "GBADS_BIOS: can't load %s\n", biosFile);
+	}
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
 	e->picX = e->picY = 0, e->picW = GBA_W, e->picH = GBA_H;
@@ -1899,6 +1907,28 @@ bool emu_hud_grabbed(void) {
 	bool g = split.grabbed;
 	split.grabbed = false;
 	return g;
+}
+
+void emu_tidy(Emu* e) {
+	(void) e;
+}
+
+bool emu_idle_step(Emu* e) {
+	(void) e;
+	return false;
+}
+
+int emu_frame_lag(Emu* e) {
+	(void) e;
+	return 0;
+}
+
+int emu_hud_every(void) {
+	return 1;
+}
+
+bool emu_hud_fresh(void) {
+	return true; /* (libmgba draws the HUD picture every frame) */
 }
 
 /* ---------------------------------------------------------------- cheats */

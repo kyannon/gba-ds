@@ -5,10 +5,15 @@
 #include "android.h"
 #endif
 
+#ifndef GBADS_ARMGBA
 #include <mgba/flags.h>
 #include <mgba/core/core.h>
+#endif
 
 #include <pthread.h>
+#ifdef __3DS__
+#include <SDL.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,16 +33,18 @@
 
 enum { NLAYERS = 5 }; /* bg0-3, obj */
 static volatile bool cancelAll;
+static volatile bool cancelJob; /* the extraction under way is given up (logo_drop_other) */
 
 static void layers(Emu* e, int only) {
-	for (int i = 0; i < NLAYERS; ++i) e->core->enableVideoLayer(e->core, i, only == -2 || i == only);
+	emu_layers(e, only == -2 ? 0x1F : only < 0 ? 0 : 1u << only);
 }
 
 /* several layers at once (bit i: BG i, bit 4: sprites) */
 static void layer_set(Emu* e, unsigned mask) {
-	for (int i = 0; i < NLAYERS; ++i) e->core->enableVideoLayer(e->core, i, (mask >> i) & 1);
+	emu_layers(e, mask);
 }
 
+static bool openFailed; /* the last extraction didn't get as far as running the game */
 /* the profile's sprites to leave out, for the render that follows */
 static void logo_hide(Emu* e, const LogoSpec* L) {
 	int n = 0;
@@ -49,7 +56,18 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	const MapProfile* p = profile_find(gameCode);
 	if (!p) return false;
 	Emu e;
-	if (!emu_open(&e, romPath, NULL, false)) return false;
+#ifdef __3DS__
+	void emu_read_cancel(const volatile bool* flag);
+	emu_read_cancel(&cancelJob);
+	bool opened = emu_open(&e, romPath, NULL, false);
+	emu_read_cancel(NULL);
+	if (!opened) {
+#else
+	if (!emu_open(&e, romPath, NULL, false)) {
+#endif
+		openFailed = true;
+		return false;
+	}
 	/* this ROM file's recipe (a romhack's own, by its CRC32), and for a game
 	 * whose logos are per ROM file, never a patched copy's (a patched game
 	 * is the base game: it uses the base's logo, from the unpatched file) */
@@ -67,18 +85,18 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	}
 	for (int k = 0; k < 2 && patchOk && L->patch[k].addr; ++k) {
 		const RomPatch* r = &L->patch[k];
-		for (int i = 0; i < r->len; ++i) e.core->rawWrite8(e.core, r->addr + i, -1, r->bytes[i]);
+		for (int i = 0; i < r->len; ++i) emu_write8(&e, r->addr + i, r->bytes[i]);
 	}
 
-	for (int i = 0; i < 24 && L->steps[i].frames && !cancelAll; ++i) {
-		for (int f = 0; f < L->steps[i].frames && !cancelAll; ++f) emu_frame(&e, L->steps[i].keys);
+	for (int i = 0; i < 24 && L->steps[i].frames && !(cancelAll || cancelJob); ++i) {
+		for (int f = 0; f < L->steps[i].frames && !(cancelAll || cancelJob); ++f) emu_frame(&e, L->steps[i].keys);
 	}
-	for (int f = 0; f < L->wait && !cancelAll; ++f) emu_frame(&e, 0);
+	for (int f = 0; f < L->wait && !(cancelAll || cancelJob); ++f) emu_frame(&e, 0);
 	if (L->pressStart) {
 		for (int f = 0; f < 4; ++f) emu_frame(&e, K_START);
-		for (int f = 0; f < L->wait2 && !cancelAll; ++f) emu_frame(&e, 0);
+		for (int f = 0; f < L->wait2 && !(cancelAll || cancelJob); ++f) emu_frame(&e, 0);
 	}
-	if (cancelAll) {
+	if (cancelAll || cancelJob) {
 		emu_close(&e);
 		return false;
 	}
@@ -89,6 +107,9 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	uint32_t* fg = malloc(GBA_W * GBA_H * 4);
 	uint8_t* opaque = calloc(GBA_W * GBA_H, 1);
 	emu_state_save(&e, st);
+	/* (a pixel of the logo's layer the backdrop's colour is still the
+	 * logo's: Sonic Advance 3's white glow on white) */
+	emu_mark_backdrop(&e, true);
 	/* Layer switches only take effect when the display registers are
 	 * written; loading the state after setting them rewrites the registers
 	 * (some titles, e.g. Circle of the Moon JP, never rewrite them). */
@@ -363,9 +384,30 @@ static bool exists(const char* p) {
 	return stat(p, &st) == 0;
 }
 
+#ifdef __3DS__
+/* A logo that couldn't be made is noted beside where it would be, so the
+ * console doesn't run the game's title screen again at every start. */
+static void none_path(const char* out, char* p, size_t n) {
+	snprintf(p, n, "%s.none", out);
+}
+#endif
+
 static void do_job(Job* j) {
 	if (!exists(j->out)) {
+#ifdef __3DS__
+		Uint32 t0 = SDL_GetTicks();
+		openFailed = false;
+		bool ok = logo_extract(j->rom, j->code, j->out);
+		fprintf(stderr, "logo: %s %s after %u ms\n", j->code, ok ? "made" : cancelAll || cancelJob ? "stopped" : "not made", (unsigned) (SDL_GetTicks() - t0));
+		if (!ok && !cancelAll && !cancelJob && !openFailed) {
+			char none[1100];
+			none_path(j->out, none, sizeof(none));
+			FILE* f = fopen(none, "w");
+			if (f) fclose(f);
+		}
+#else
 		logo_extract(j->rom, j->code, j->out);
+#endif
 	}
 	free(j);
 	__atomic_add_fetch(&generation, 1, __ATOMIC_SEQ_CST);
@@ -395,6 +437,7 @@ static void* worker(void* arg) {
 		pthread_mutex_unlock(&qlock);
 		do_job(j);
 		pthread_mutex_lock(&qlock);
+		cancelJob = false;
 		current[0] = 0;
 		--pending;
 		++finished;
@@ -518,6 +561,13 @@ void logo_step(void) {
 
 void logo_request(const char* romPath, const char* gameCode, const char* outPng) {
 	if (exists(outPng)) return;
+#ifdef __3DS__
+	{
+		char none[1100];
+		none_path(outPng, none, sizeof(none));
+		if (exists(none)) return;
+	}
+#endif
 	const MapProfile* p = profile_find(gameCode);
 	if (!p || (!p->logo.wait && !p->logo.steps[0].frames)) return;
 	enqueue(romPath, gameCode, outPng);
@@ -542,6 +592,14 @@ void logo_front(const char* gameCode, bool urgent) {
 		queue = mine;
 		pthread_cond_signal(&qcond);
 	}
+	pthread_mutex_unlock(&qlock);
+}
+
+/* A game is being started: the logo being made for another game is given up
+ * (the game needn't wait for it, and can't share the console's memory with it). */
+void logo_drop_other(const char* gameCode) {
+	pthread_mutex_lock(&qlock);
+	if (current[0] && strncmp(current, gameCode, 4)) cancelJob = true;
 	pthread_mutex_unlock(&qlock);
 }
 

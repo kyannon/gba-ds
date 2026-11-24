@@ -1,0 +1,64 @@
+# fourth pass: the intro, the menus (A), then RIGHT on the setup screens (the arrow past SETUP) into a stage; drive; pause; HOME
+wait 200
+mash START 4 60
+mash A 10 90
+wait 200
+mash A 10 90
+wait 200
+mash A 10 90
+wait 200
+mash A 10 90
+wait 200
+mash A 10 90
+wait 200
+shot setup
+press RIGHT 4
+wait 200
+shot s1
+press RIGHT 4
+wait 200
+shot s2
+mash A 6 120
+wait 200
+shot s3
+press RIGHT 4
+wait 200
+mash A 6 120
+wait 300
+shot s4
+press START 4
+wait 200
+shot s5
+mash A 4 120
+wait 300
+shot stage
+hold UP 200
+hold RIGHT 60
+hold UP 200
+shot drive0
+hold UP 200
+hold LEFT 60
+hold UP 200
+shot drive1
+press START 4
+wait 60
+shot pause
+press B 4
+wait 60
+press HOME+R 6
+hold UP 100
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+UP 6
+wait 20
+shot swapped
+press HOME+UP 6
+wait 20
+shot back

@@ -1,0 +1,58 @@
+# power on -> Four Swords menu -> A Link to the Past: register a name (A, START to END, A), skip nothing in the intro
+# (mashing A through the story and the castle scenes), wake up in Link's house, walk out into the rain on the field,
+# then L opens the world map (LTTP-1). Worked out in the harness (frame counts there match).
+wait 240
+hold START 4
+wait 40
+hold START 4
+wait 40
+hold A 4
+wait 40
+hold A 4
+wait 300
+hold START 6
+wait 60
+hold A 6
+wait 60
+hold START 6
+wait 60
+hold A 6
+wait 200
+hold A 6
+wait 90
+hold A 6
+wait 90
+hold A 6
+wait 200
+shot a-filemenu
+# the story and scenes (about 10800 frames of A, every 15th)
+mash A 720 15
+shot b-house
+hold A 3
+wait 30
+hold DOWN 80
+hold LEFT 40
+hold DOWN 120
+hold RIGHT 90
+hold DOWN 100
+wait 100
+hold LEFT 30
+hold DOWN 100
+wait 200
+shot c-field
+hold DOWN 60
+wait 100
+shot d-field2
+hold L 20
+wait 120
+shot e-map
+wait 120
+shot e-map2
+press L 6
+wait 60
+shot f-closed
+hold RIGHT 90
+shot g-walk
+hold UP 60
+wait 60
+shot h-walk2

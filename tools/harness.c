@@ -22,8 +22,10 @@
 #include "../src/profiles.h"
 #include "../src/logo.h"
 
+#ifndef GBADS_ARMGBA
 #include <mgba/flags.h>
 #include <mgba/core/core.h>
+#endif
 
 #include <ctype.h>
 #include <stdio.h>
@@ -183,14 +185,14 @@ int main(int argc, char** argv) {
 		} else if (!strcmp(cmd, "poke")) {
 			uint32_t addr = strtoul(a1, NULL, 0), len = strtoul(a2, NULL, 0), val = strtoul(a3, NULL, 0);
 			/* (little-endian: len bytes of val) */
-			for (uint32_t i = 0; i < len; ++i) emu.core->rawWrite8(emu.core, addr + i, -1, i < 4 ? (val >> (8 * i)) & 0xFF : 0);
+			for (uint32_t i = 0; i < len; ++i) emu_write8(&emu, addr + i, i < 4 ? (val >> (8 * i)) & 0xFF : 0);
 		} else if (!strcmp(cmd, "pokes")) {
 			/* pokes ADDR HEXBYTES: write a run of bytes given as hex digits
 			 * (a party of Pokemon is 600 of them) */
 			uint32_t addr = strtoul(a1, NULL, 0);
 			for (const char* h = a2; h[0] && h[1]; h += 2) {
 				char b[3] = { h[0], h[1], 0 };
-				emu.core->rawWrite8(emu.core, addr++, -1, (uint8_t) strtoul(b, NULL, 16));
+				emu_write8(&emu, addr++, (uint8_t) strtoul(b, NULL, 16));
 			}
 		} else if (!strcmp(cmd, "logo")) {
 			char path[512];
@@ -207,12 +209,12 @@ int main(int argc, char** argv) {
 			static uint32_t a[GBA_W * GBA_H], b[GBA_W * GBA_H];
 			/* b = backdrop only (all layers off) */
 			emu_state_load(&emu, st);
-			for (int i = 0; i < 5; ++i) emu.core->enableVideoLayer(emu.core, i, false);
+			emu_layers(&emu, 0);
 			emu_frame(&emu, 0);
 			memcpy(b, emu.fb, sizeof(b));
 			for (int L = -1; L < 5; ++L) {
 				emu_state_load(&emu, st);
-				for (int i = 0; i < 5; ++i) emu.core->enableVideoLayer(emu.core, i, L < 0 || i == L);
+				emu_layers(&emu, L < 0 ? 0x1F : 1u << L);
 				emu_frame(&emu, 0);
 				memcpy(a, emu.fb, sizeof(a));
 				if (L >= 0) {
@@ -225,7 +227,7 @@ int main(int argc, char** argv) {
 				else snprintf(path, sizeof(path), "%s/%s_L%d.png", outdir, a1, L);
 				write_png(path, a, GBA_W, GBA_H, GBA_W);
 			}
-			for (int i = 0; i < 5; ++i) emu.core->enableVideoLayer(emu.core, i, true);
+			emu_layers(&emu, 0x1F);
 			emu_state_load(&emu, st);
 			free(st);
 		} else if (!strcmp(cmd, "dumpram")) {

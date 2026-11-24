@@ -1,7 +1,9 @@
 #include "profiles.h"
 #include "mapcap.h"
 
+#ifndef GBADS_ARMGBA
 #include <mgba/core/core.h>
+#endif
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -248,6 +250,7 @@ static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* 
 	aw_run(s, 0, 2);
 	if (!emu_state_save(s, tmp)) return false;
 	static uint32_t none[GBA_W * GBA_H];
+	emu_mark_backdrop(s, true); /* (a pixel the backdrop's colour is still the box's) */
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
@@ -280,6 +283,7 @@ static bool aw_minimap(Emu* s, const void* state, void* tmp, uint32_t* mm, int* 
 		*mh = y1 - y0 + 1;
 		for (int y = 0; y < *mh; ++y) memcpy(&mm[y * *mw], &s->fb[(y0 + y) * GBA_W + x0], *mw * sizeof(uint32_t));
 	}
+	emu_mark_backdrop(s, false);
 	emu_layers(s, 0x1F);
 	emu_state_load(s, tmp); /* every layer back on */
 	return ok;
@@ -322,6 +326,7 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 		memcpy(pan, s->fb, GBA_W * GBA_H * sizeof(uint32_t));
 		return;
 	}
+	emu_mark_backdrop(s, true); /* (the panel's text the backdrop's black is still the panel's) */
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
@@ -341,6 +346,7 @@ static void aw_clean(Emu* s, void* tmp, uint32_t* pan, uint32_t* bg2) {
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
 	for (int i = 0; i < GBA_W * GBA_H; ++i) pan[i] = s->fb[i] == none[i] ? AW_BG : s->fb[i];
+	emu_mark_backdrop(s, false);
 	emu_hide_sprites(s, &rules[1], 2);
 	emu_layers(s, 0x1F);
 	emu_state_load(s, tmp);
@@ -1178,6 +1184,7 @@ static bool ft_status(Emu* s, const void* state, uint32_t page[2][GBA_W * GBA_H]
 static bool ft_cut(Emu* s, void* tmp, uint32_t* out, uint32_t* bg3, int* ow, int* oh, int minW, int maxW, int minH, int maxH) {
 	if (!emu_state_save(s, tmp)) return false;
 	static uint32_t none[GBA_W * GBA_H], only3[GBA_W * GBA_H];
+	emu_mark_backdrop(s, true);
 	emu_layers(s, 0);
 	emu_state_load(s, tmp);
 	emu_frame(s, 0);
@@ -1212,6 +1219,7 @@ static bool ft_cut(Emu* s, void* tmp, uint32_t* out, uint32_t* bg3, int* ow, int
 			}
 		}
 	}
+	emu_mark_backdrop(s, false);
 	emu_layers(s, 0x1F);
 	emu_state_load(s, tmp);
 	return ok;
@@ -5370,6 +5378,23 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 	return out;
 }
 
+/* A state of the hidden copy's for a composer that takes the picture apart and
+ * puts the copy back: as large as the emulator's states (armGBA's are larger
+ * than mGBA's; a fixed buffer of mGBA's size failed every capture there, or
+ * was written past). Two (slot 0 and 1); composers run one at a time, on the
+ * capture's thread. */
+static uint8_t* compose_state(Emu* s, int slot) {
+	static uint8_t* buf[2];
+	static size_t cap[2];
+	size_t n = emu_state_size(s);
+	if (n > cap[slot]) {
+		free(buf[slot]);
+		buf[slot] = malloc(n);
+		cap[slot] = buf[slot] ? n : 0;
+	}
+	return buf[slot];
+}
+
 static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	if (w != GBA_W || h != GBA_H) return "not a GBA screen";
 	if (!emu_state_load(s, state)) return "state load failed";
@@ -5387,8 +5412,8 @@ static const char* mmbn_compose(Emu* s, const void* state, uint32_t* out, int w,
 	/* the counter's frame rows and inside, kept: from a frame drawn with
 	 * the menu's layer (BG0) alone (whatever is behind the counter, the
 	 * net's paths, a Navi walking by, shows through it in places) */
-	static uint8_t tmp[0x80000];
-	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	uint8_t* tmp = compose_state(s, 0);
+	if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
 	emu_layers(s, 0x01);
 	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
 	emu_frame(s, 0);
@@ -5512,8 +5537,8 @@ static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w
 	aw_run(s, 0, 3); /* (drawn) */
 	if (emu_cancelled(s)) return "called off";
 	/* the box, from a frame drawn with the menu's layer (BG0) alone */
-	static uint8_t tmp[0x80000];
-	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	uint8_t* tmp = compose_state(s, 0);
+	if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
 	emu_layers(s, 0x01);
 	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
 	emu_frame(s, 0);
@@ -5545,7 +5570,7 @@ static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w
 	 * kept; then the cursor (a sprite, by the rows) from a frame drawn
 	 * without sprites there (MegaMan's are left of it) */
 	static uint32_t panel[MMBN_PANEL_ROWS * GBA_W];
-	static uint8_t tmp2[0x80000];
+	uint8_t* tmp2 = compose_state(s, 1);
 	memcpy(panel, s->fb, sizeof(panel));
 	if (!emu_state_save(s, tmp)) return "state save failed";
 	int dark[2] = { 0, 0 };
@@ -5555,8 +5580,8 @@ static const char* mmbn2_compose(Emu* s, const void* state, uint32_t* out, int w
 	for (int i = 0; i < MMBN_PANEL_ROWS * GBA_W; ++i) dark[1] += (s->fb[i] & 0xFFFFFF) == MMBN2_LIGHT;
 	if (dark[1] > dark[0] && mmbn2_megaman_up(s) && som_probes(s, mmbn2Panel, 8, 8, 8)) {
 		memcpy(panel, s->fb, sizeof(panel));
-		if (!emu_state_save(s, tmp2)) return "state save failed";
-		memcpy(tmp, tmp2, sizeof(tmp));
+		if (!tmp2 || !emu_state_save(s, tmp2)) return "state save failed";
+		memcpy(tmp, tmp2, emu_state_size(s));
 	}
 	emu_layers(s, 0x0F);
 	emu_state_load(s, tmp);
@@ -5683,8 +5708,8 @@ static const char* hpa_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	if (emu_cancelled(s)) return "called off";
 	if (!som_probes(s, hpaStatus, 6, 6, 8)) return "not the Status/Equip screen";
 	/* drawn without its sprites: the wand cursor and its sparkles */
-	static uint8_t tmp[0x80000];
-	if (emu_state_size(s) > sizeof(tmp) || !emu_state_save(s, tmp)) return "state save failed";
+	uint8_t* tmp = compose_state(s, 0);
+	if (!tmp || !emu_state_save(s, tmp)) return "state save failed";
 	emu_layers(s, 0x0F);
 	emu_state_load(s, tmp); /* (the layers take effect as the display registers are loaded) */
 	emu_frame(s, 0);
@@ -8118,6 +8143,7 @@ static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w,
 	                                      { -512, -256, 511, 255, 0, 1023, 3 },
 	                                      { -512, -256, 511, 255, 0, 1023, 0, 1u << 10 } };
 	emu_hide_sprites(s, behind, 4);
+	emu_mark_backdrop(s, true);
 	emu_layers(s, 0x10);
 	emu_state_load(s, paused);
 	emu_frame(s, 0);
@@ -8126,6 +8152,7 @@ static const char* mvdk_compose(Emu* s, const void* state, uint32_t* out, int w,
 	emu_state_load(s, paused);
 	emu_frame(s, 0);
 	memcpy(back, s->fb, GBA_W * GBA_H * 4);
+	emu_mark_backdrop(s, false);
 	emu_layers(s, 0x1F);
 	emu_hide_sprites(s, NULL, 0);
 	{
@@ -10013,6 +10040,20 @@ static void tmc_jpn(MapProfile* p) {
 }
 
 static const MapProfile profiles[] = {
+#ifdef GBADS_TEST_PROFILE
+	/* Not a game's profile: Pokemon Emerald's title screen, where START
+	 * brings up the main menu - for testing captures on a hidden copy
+	 * where no supported game is at hand (3ds/sim, 3ds/test). */
+	{
+		.codes = { "BPEE" },
+		.title = "Capture test",
+		.open = { { K_START, 4 } },
+		.settleMax = 240, .stableFrames = 3, .maxDiff = 300,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = 160,
+		.probes = { { 2, 2, 0x8C94FF }, { 237, 157, 0x8C94FF }, { 150, 14, 0xFFFFFF } },
+		.tolerance = 8,
+	},
+#endif
 	/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md. One entry per engine (the USA and Europe releases) */
 #define PK_PROFILE(ENGINE_LOGO, TITLE, ...) \
 	{ \
@@ -13723,7 +13764,7 @@ bool profile_patch_rom(const MapProfile* p, Emu* e) {
 		for (const RomPatch* r = p->romPatch; r < p->romPatch + 3 && r->addr; ++r) {
 			for (int i = 0; i < r->len; ++i) {
 				if (pass == 0 && emu_read8(e, r->addr + i) != (r->orig ? r->orig[i] : 0xFF)) return false;
-				if (pass == 1) e->core->rawWrite8(e->core, r->addr + i, -1, r->bytes[i]);
+				if (pass == 1) emu_write8(e, r->addr + i, r->bytes[i]);
 			}
 		}
 	}

@@ -1,0 +1,66 @@
+# New game from power-on: title, opening scene, name entry (START, LEFT, A = Yes), the snowball-fight tutorial (about 130 A presses), then the first battle: Ritz's menu and her Status (c5-c7 show it).
+# Worked out with the harness: the title needs ~1500 frames before START takes; the opening takes ~104 A presses to the name screen.
+wait 1500
+press START 6
+wait 100
+press START 6
+wait 100
+mash A 104 30
+wait 100
+shot name
+press START 6
+wait 60
+press LEFT 6
+wait 20
+press A 6
+wait 90
+shot after-name
+mash A 30 40
+mash A 6 40
+wait 60
+shot b1
+mash A 6 40
+wait 60
+shot b2
+mash A 6 40
+wait 60
+shot b3
+mash A 6 40
+wait 60
+shot b4
+mash A 6 40
+wait 60
+shot b5
+mash A 6 40
+wait 60
+shot b6
+mash A 6 40
+wait 60
+shot b7
+mash A 6 40
+wait 60
+shot b8
+mash A 8 40
+wait 60
+shot c0
+mash A 8 40
+wait 60
+shot c1
+mash A 8 40
+wait 60
+shot c2
+mash A 8 40
+wait 60
+shot c3
+mash A 8 40
+wait 60
+shot c4
+mash A 8 40
+wait 60
+shot c5
+mash A 8 40
+wait 60
+shot c6
+mash A 8 40
+wait 60
+shot c7

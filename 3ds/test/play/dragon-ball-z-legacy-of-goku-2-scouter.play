@@ -1,0 +1,75 @@
+# Dragon Ball Z: The Legacy of Goku II (USA, ALFE): the Scouter's area map (DBZ2-2, DBZ2-8) and the flying
+# world map (DBZ2-6) on the second screen. The Scouter comes 20-30 minutes into the game, so this goes through
+# the game's own Debug menu instead: with 0x0202B32D held at 2 (a cheat, below), START twice on the title
+# opens it, and its Map Test starts a field in any area with every fighter and the Scouter.
+#   3ds/test/dualrun.py ALFE <this file> OUT --runs mgba,armgba-3ds --cheats 3ds/test/cheats
+# (3ds/test/cheats/Dragon Ball Z - The Legacy of Goku II (USA) (Code Breaker).cht: 3202B32D 0002, on)
+wait 600
+shot title
+mash START 6 60
+wait 60
+press DOWN 4
+wait 12
+press DOWN 4
+wait 12
+press DOWN 4
+wait 12
+# the ZONE row: 49 steps on is zone 3, area 1 (the Northern Wastelands, beside a World Map sign)
+mash RIGHT 49 10
+press UP 4
+wait 12
+shot debug
+press A 4
+wait 400
+shot field
+# walking about: the map follows
+hold DOWN 60
+wait 90
+shot down
+hold LEFT 60
+wait 90
+shot left
+hold RIGHT 60
+wait 90
+shot right
+# the game's own map (R) and pause menu (START), then closed: the second screen keeps its picture (DBZ2-5)
+press R 6
+wait 90
+shot own_map
+press B 6
+wait 120
+shot own_map_closed
+press START 6
+wait 90
+shot pause
+press B 6
+wait 120
+shot pause_closed
+# back up to the World Map sign and A: flying (DBZ2-6)
+hold UP 120
+wait 60
+shot at_sign
+press A 4
+wait 120
+shot takeoff
+press A 4
+wait 240
+shot flying
+hold UP 120
+wait 60
+shot flying_north
+hold RIGHT 120
+wait 60
+shot flying_east
+hold LEFT 120
+wait 30
+hold DOWN 120
+wait 60
+shot flying_back
+# A over the place lands there: the area's map again
+press A 4
+wait 400
+shot landed
+hold DOWN 60
+wait 90
+shot landed_walked

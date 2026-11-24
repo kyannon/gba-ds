@@ -1,0 +1,53 @@
+# power on -> mode select -> file -> World 1 map -> level 1 (RIGHT, UP, A on the map), then the status bar on the second screen
+wait 200
+mash START 4 60
+mash A 4 90
+wait 240
+shot title
+press START 4
+wait 240
+shot curtain
+mash A 10 120
+wait 300
+shot map0
+hold RIGHT 30
+wait 30
+hold UP 30
+wait 60
+shot map1
+press A 4
+wait 300
+shot level0
+hold B+RIGHT 240
+shot run0
+hold B+RIGHT 120
+press A 6
+hold B+RIGHT 200
+shot run1
+press A 30
+hold RIGHT 200
+shot run2
+hold B+RIGHT 300
+shot run3
+press START 4
+wait 60
+shot pause
+press START 4
+wait 60
+press HOME+R 6
+hold RIGHT 100
+shot moved
+press HOME+L 6
+wait 10
+shot loaded
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+UP 6
+wait 20
+shot swapped
+press HOME+UP 6
+wait 20
+shot back

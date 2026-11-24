@@ -1,0 +1,817 @@
+# Metroid Fusion from power-on: the intro text is advanced with A (about 400 presses) until Samus stands in the ship; then walk and pause (START shows the map)
+wait 600
+hold START 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 120
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+hold A 6
+wait 60
+shot ship
+hold RIGHT 200
+shot walk
+hold START 6
+wait 90
+shot pause_map
+hold START 6
+wait 90
+shot unpaused
+hold LEFT 100
+wait 60
+shot walk_left
+hold RIGHT 150
+wait 60
+hold START 6
+wait 90
+shot pause_map2
+hold START 6
+wait 90

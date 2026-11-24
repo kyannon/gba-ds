@@ -1,0 +1,39 @@
+# New game from power-on: START to the naming screen, START + A to confirm Felix's name, "Transfer data from Golden Sun?" answered No (RIGHT, A),
+# then the opening story and the Sol Sanctum scene by mashing A (about 960 presses; ~23000 frames) until Jenna can be walked about.
+# Worked out with the harness. Afterwards: B closes any menu A opened, then the field with the second screen's Status (GS2-1/2).
+wait 300
+press START 4
+wait 60
+press START 4
+wait 100
+press START 4
+wait 100
+press A 4
+wait 120
+press RIGHT 4
+wait 30
+press A 4
+wait 100
+mash A 192 30
+mash A 192 30
+mash A 160 30
+shot story
+mash A 320 14
+mash A 55 14
+wait 100
+shot field0
+mash B 4 40
+wait 200
+shot field1
+wait 400
+shot field2
+hold RIGHT 40
+wait 300
+shot walk
+press SELECT 4
+wait 100
+shot menu
+press B 4
+wait 100
+wait 400
+shot field3

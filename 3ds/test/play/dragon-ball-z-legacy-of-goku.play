@@ -1,0 +1,66 @@
+wait 600
+mash START 6 60
+mash A 40 60
+wait 300
+shot a-title
+press START 6
+mash A 30 60
+wait 300
+shot b-menu
+mash A 60 40
+wait 400
+shot c-field
+hold RIGHT 200
+wait 60
+shot d-walk
+press START 6
+wait 90
+shot e-pause
+press B 6
+wait 60
+press HOME+R 6
+wait 30
+hold RIGHT 90
+shot hk-moved
+press HOME+L 6
+wait 60
+shot hk-loaded
+press HOME 6
+wait 30
+shot hk-menu
+press HOME 6
+wait 30
+press HOME+UP 6
+wait 20
+shot hk-swapped
+press HOME+UP 6
+wait 20
+shot hk-back
+# added by the 3DS check: the intro was still playing at the shots above; keep going until the field
+mash START 10 90
+mash A 20 90
+wait 600
+mash A 40 60
+wait 600
+shot m-field1
+press START 6
+wait 90
+press B 6
+wait 60
+hold RIGHT 240
+wait 60
+shot n-field2
+# added by the 3DS check (try 2): still in cutscenes; mash through the menus and text
+mash A 60 60
+mash START 10 60
+mash A 60 60
+wait 300
+mash START 8 60
+mash A 60 60
+wait 300
+mash A 80 40
+wait 300
+shot p-field3
+hold RIGHT 200
+wait 120
+shot q-field4

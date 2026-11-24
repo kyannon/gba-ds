@@ -12,7 +12,12 @@
 
 typedef struct MapCapture MapCapture;
 
+#ifdef __3DS__
+/* (each frame is kept three times over, 150 KiB a time: sixteen were 7 MiB of a 41 MiB heap) */
+#define MAP_MAX_FRAMES 4
+#else
 #define MAP_MAX_FRAMES 16
+#endif
 
 typedef struct MapResult {
 	bool ok;

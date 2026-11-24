@@ -1,0 +1,35 @@
+# second pass: Choose a Game, the board, into level 1-1, walk, pause, hotkeys
+wait 240
+mash START 6 40
+mash A 60 40
+shot menus
+mash A 60 40
+shot board
+mash A 40 40
+wait 120
+shot level
+hold RIGHT 120
+shot walking
+press START 4
+wait 60
+shot pause
+press B 4
+wait 60
+press HOME 6
+wait 30
+shot homemenu
+press HOME 6
+wait 30
+press HOME+UP 6
+wait 20
+shot swapped
+press HOME+UP 6
+wait 20
+shot back
+# save / load (HOME+R, move, HOME+L)
+press HOME+R 6
+hold RIGHT 60
+shot moved
+press HOME+L 6
+wait 10
+shot loaded

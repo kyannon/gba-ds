@@ -1,0 +1,28 @@
+wait 240
+mash START 8 60
+wait 120
+mash A 4 90
+wait 300
+mash A 6 90
+wait 600
+shot card
+wait 300
+shot level
+hold RIGHT 240
+shot running
+press START 6
+wait 60
+shot pause
+press START 6
+wait 120
+press HOME+R 6
+hold RIGHT 120
+press HOME+L 6
+wait 10
+shot loaded
+press HOME+UP 6
+wait 20
+shot swapped
+press HOME+UP 6
+wait 20
+shot back

@@ -1,0 +1,43 @@
+# Sonic Advance 2 from power-on: language (A), name (a letter, START, A), SEGA, title, GAME START, Sonic, Leaf Forest 1.
+# SA2-1 logo through the menus; SA2-2 the zone card taken onto the bottom screen; SA2-3/4 the HUD moved down.
+wait 240
+press A 6
+wait 120
+press A 6
+wait 60
+press START 6
+wait 60
+press A 6
+wait 1000
+shot a-title
+press START 6
+wait 120
+shot b-menu
+press A 6
+wait 120
+shot c-menu2
+press A 6
+wait 120
+shot d-select
+press A 6
+# the zone card: shots all the way through it (the bottom takes the card once it settles, ~2 s in)
+wait 30
+shot e-card0
+wait 40
+shot e-card1
+wait 40
+shot e-card2
+wait 40
+shot e-card3
+wait 60
+shot e-card4
+wait 100
+shot f-start
+wait 100
+shot g-level
+hold RIGHT 200
+wait 30
+shot h-level-moved
+hold RIGHT 300
+wait 30
+shot i-level-later

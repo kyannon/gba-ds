@@ -1,0 +1,31 @@
+# second pass: title, launch a ball, work the flippers, pause, hotkeys
+wait 240
+mash START 6 40
+mash A 20 40
+wait 300
+shot title
+hold A 40
+wait 200
+shot launched
+press L 6
+press R 6
+hold L 30
+hold R 30
+wait 60
+shot flippers
+press START 4
+wait 60
+shot pause
+press B 4
+wait 30
+press HOME+UP 6
+wait 20
+shot swapped
+press HOME+UP 6
+wait 20
+shot back
+press HOME+R 6
+wait 60
+press HOME+L 6
+wait 10
+shot loaded

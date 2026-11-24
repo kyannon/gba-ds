@@ -1,0 +1,39 @@
+wait 180
+mash START 4 40
+mash A 6 40
+wait 240
+shot title
+mash START 4 60
+mash A 30 40
+wait 300
+shot menus
+mash A 20 40
+wait 300
+shot menus2
+mash A 20 40
+wait 240
+shot skate
+hold RIGHT 90
+shot ride
+press START 4
+wait 90
+shot pause
+press B 4
+wait 60
+press HOME+R 6
+hold RIGHT 60
+shot moved
+press HOME+L 6
+wait 20
+shot loaded
+press HOME 6
+wait 30
+shot hmenu
+press HOME 6
+wait 30
+press HOME+UP 6
+wait 20
+shot swapped
+press HOME+UP 6
+wait 20
+shot back

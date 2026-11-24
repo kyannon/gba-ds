@@ -28,6 +28,7 @@ void logo_progress(int* done, int* total);
  * even while the queue's paused (the game about to start). */
 void logo_front(const char* gameCode, bool urgent);
 /* A job for this game queued or running; NULL: any job running. */
+void logo_drop_other(const char* gameCode);
 bool logo_busy(const char* gameCode);
 /* While a game's played: only urgent jobs run (the game's own, asked for
  * while paused), the rest wait for the game list. */

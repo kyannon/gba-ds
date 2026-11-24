@@ -602,6 +602,8 @@ static const char* do_capture_(MapCapture* mc, const void* state) {
 	mc->workFrames = 1;
 	int want = p->animFrames > MAP_MAX_FRAMES ? MAP_MAX_FRAMES : p->animFrames;
 	int step = p->animStep;
+	/* (fewer frames than the profile's: spread over the same time) */
+	if (p->animFrames > want && want > 0) step = (p->animFrames * p->animStep + want - 1) / want;
 	if (mc->still && p->animCycle > want * step) {
 		want = MAP_MAX_FRAMES;
 		step = (p->animCycle + want - 1) / want;

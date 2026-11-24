@@ -1464,22 +1464,40 @@ uint32_t ui_color_correct(uint32_t p) {
 	return ccLut[key] | (p & 0xFF000000u);
 }
 
-static void update_texture(SDL_Texture* t, const void* px, int pitch, bool correct);
+static void update_rows(SDL_Texture* t, const void* px, int pitch, int y0, int rows, bool correct);
+
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
-	update_texture(t, px, pitch, true);
+	update_rows(t, px, pitch, 0, -1, true);
 }
 /* the same for the interface's own pictures: no colour correction (it's the game's) */
 void ui_update_texture_plain(SDL_Texture* t, const void* px, int pitch) {
-	update_texture(t, px, pitch, false);
+	update_rows(t, px, pitch, 0, -1, false);
 }
-static void update_texture(SDL_Texture* t, const void* px, int pitch, bool correct) {
+
+void ui_update_texture_rows(SDL_Texture* t, const void* px, int pitch, int y0, int rows) {
+	update_rows(t, px, pitch, y0, rows, true);
+}
+
+/* (rows < 0: the whole picture; else those rows of it, px still the whole) */
+static void update_rows(SDL_Texture* t, const void* px, int pitch, int y0, int rows, bool correct) {
 	if (!t) return;
+	int tw = 0, th = 0;
+	SDL_Rect part;
+	if (rows >= 0) {
+		SDL_QueryTexture(t, NULL, NULL, &tw, &th);
+		if (y0 < 0) rows += y0, y0 = 0;
+		if (y0 + rows > th) rows = th - y0;
+		if (rows <= 0) return;
+		part = (SDL_Rect) { 0, y0, tw, rows };
+		px = (const uint8_t*) px + (size_t) y0 * pitch;
+	}
 	if (ccOn && correct) {
 		/* (through the colour correction's table, alpha kept) */
 		static uint32_t* buf;
 		static size_t bufN;
 		int w, h;
 		if (SDL_QueryTexture(t, NULL, NULL, &w, &h) == 0 && pitch >= w * 4) {
+			if (rows >= 0) h = rows;
 			size_t n = (size_t) (pitch / 4) * h;
 			if (n > bufN) {
 				uint32_t* nb = realloc(buf, n * sizeof(uint32_t));
@@ -1495,7 +1513,7 @@ static void update_texture(SDL_Texture* t, const void* px, int pitch, bool corre
 			}
 		}
 	}
-	SDL_UpdateTexture(t, NULL, px, pitch);
+	SDL_UpdateTexture(t, rows >= 0 ? &part : NULL, px, pitch);
 	int slot = -1;
 	for (int i = 0; i < TEXVER_N && slot < 0; ++i) {
 		if (texVer[i].t == t) slot = i;
@@ -2237,7 +2255,12 @@ void ui_dim(int screen, Uint8 alpha) {
 }
 
 float ui_px(int screen) {
+#ifdef __3DS__
+	/* (240 lines a screen: the unit as it is, 1.25, or nothing fits) */
+	return screens[screen].rect.h / 192.0f;
+#else
 	return SDL_max(2.0f, screens[screen].rect.h / 192.0f);
+#endif
 }
 
 int ui_text_width(const char* s, int px) {
@@ -2915,7 +2938,16 @@ bool ui_load_logo(const Config* c, const char* rom, const char* code, SDL_Textur
 	char path[1200];
 	scrapedProvisional = false;
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
+#ifdef __3DS__
+	{
+		/* (once a run: on the 3DS each folder asked after is a wait on the SD card) */
+		static bool made;
+		if (!made) mkdirs(path);
+		made = true;
+	}
+#else
 	mkdirs(path);
+#endif
 	char ext[1200];
 	extracted_path(c, rom, code, ext, sizeof(ext));
 	if (!ext[0]) { /* (its ROM's checksum is still being worked out: asked again when it's known) */
