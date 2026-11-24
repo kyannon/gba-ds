@@ -36,6 +36,8 @@ typedef struct Config {
 	bool swap;         /* map on the first (left/top) screen instead of the second */
 	char scale[16];    /* game: integer | fit | stretch */
 	char mapScale[16]; /* map:  integer | fit | stretch */
+	char gbSize[8];    /* Game Boy games (GB-2): gba = the picture in the GBA's 240x160 frame | native = the 160x144 picture is the frame */
+	char gbScale[16];  /* ...and how that frame fills the screen (GB-2a): integer | fit | stretch */
 	bool smooth;       /* plain linear filtering when scaling (blurry) */
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
 	int overlayMode;   /* OVM_*: overlays */
