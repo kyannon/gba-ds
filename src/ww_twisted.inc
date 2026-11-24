@@ -44,12 +44,13 @@
 #define WW_TILE 4             /* the checkered disc's squares */
 #define WW_KEY_W 46
 #define WW_KEY_H 17
-#define WW_ROWS (GBA_H + 24)
+#define WW_ROWS GBA_H
 #define WW_CX 119.5f          /* the wheel's centre in the menu's picture */
 #define WW_CY 111.5f
 
 enum { WWP_NONE, WWP_BUTTON, WWP_SLIDER, WWP_DIAL, WWP_PAUSE, WWP_IGNORE };
 static void open_menu(void);
+static SDL_Rect bar_to_screen(int s, SDL_Rect g);
 enum { WWS_NONE, WWS_TEST, WWS_IIO, WWS_SDL };
 
 typedef struct {
@@ -72,7 +73,6 @@ static struct {
 	int logoW, logoH;
 	float logoK;
 	bool logoTried;
-	uint64_t labelUntil;       /* the slider's percentage shows while it is changed, and a moment after (frames) */
 	float resid;               /* the counts not yet given to the game (they're whole counts) */
 	int sens, scale, invert;   /* the slider (25-200%), the sensor's scale (%), the sensor's direction */
 	char axis;                 /* the sensor's axis: z, through the screen */
@@ -587,6 +587,7 @@ static void ww_wheel_update(void) {
 static void ww_setup(const MapProfile* lp, const char* rom) {
 	ww_wheel_stop();
 	ww.dial = lp && lp->gyroDial;
+	wwBarRow = ww.dial && nScreens > 1 && cfg->map;
 	ww.touch = false, ww.down = false, ww.dragFrac = 0, ww.angle = 0, ww.tilt = 0, ww.resid = 0, ww.press = WWP_NONE, ww.dirty = true, ww.shownAngle = ww.shownTilt = 1000;
 	free(ww.logo), ww.logo = NULL, ww.logoTried = false;
 	if (!ww.dial) {
@@ -611,6 +612,7 @@ static void ww_setup(const MapProfile* lp, const char* rom) {
 }
 
 static void ww_free(void) {
+	wwBarRow = false;
 	free(ww.logo), ww.logo = NULL, ww.logoTried = false;
 	ww_wheel_stop();
 	ww_sensor_close();
@@ -631,23 +633,15 @@ static int ww_ui_screen(void) {
 }
 
 static SDL_Rect wwPause; /* (set by ww_ui_geom) */
-static bool wwLabelLeft;
 
-/* the key and the slider's track, in the canvas's pixels */
-static void ww_ui_geom(int s, SDL_Rect* key, SDL_Rect* track) {
-	SDL_Rect pic = bar_pic_full(s);
-	float u = (float) pic.w / GBA_W;
-	int margin = (int) ((screens[s].rect.h - (pic.y + pic.h)) / u);
-	int y = margin >= WW_KEY_H + 3 ? GBA_H + (SDL_min(margin, WW_ROWS - GBA_H) - WW_KEY_H - 1) / 2 : GBA_H - 6 - WW_KEY_H - 1;
-	/* the key where the contextual toggle's button goes (Settings: left, centre, right; GEN-14); in Touch mode, with the
-	 * slider beside it and the Pause button in the opposite corner, a centred key goes to the left */
-	bool right = !strcmp(cfg->toggleButton, "right"), centre = !strcmp(cfg->toggleButton, "center") && !ww.touch;
+/* the key (and Pause) in the canvas's pixels: along the top of the picture, so the bottom edge is free for the quick bar's
+ * swipe. The key is where the contextual toggle's button goes (Settings: left, centre, right; GEN-14), Pause in the
+ * opposite corner (bottom right... top right when the key is centred or at the left) */
+static void ww_ui_geom(SDL_Rect* key) {
+	bool right = !strcmp(cfg->toggleButton, "right"), centre = !strcmp(cfg->toggleButton, "center");
 	int kx = right ? GBA_W - 6 - WW_KEY_W : centre ? (GBA_W - WW_KEY_W) / 2 : 6;
-	*key = (SDL_Rect) { kx, y, WW_KEY_W, WW_KEY_H };
-	wwPause = (SDL_Rect) { right ? 6 : GBA_W - 6 - WW_KEY_W, y, WW_KEY_W, WW_KEY_H };
-	wwLabelLeft = right;
-	int tw = 70;
-	*track = (SDL_Rect) { right ? kx - 12 - tw : kx + WW_KEY_W + 12, y + WW_KEY_H / 2 - 1, tw, 3 };
+	*key = (SDL_Rect) { kx, 6, WW_KEY_W, WW_KEY_H };
+	wwPause = (SDL_Rect) { right ? 6 : GBA_W - 6 - WW_KEY_W, 6, WW_KEY_W, WW_KEY_H };
 }
 
 /* a canvas rect on the screen (its own pixels), grown by pad GBA pixels */
@@ -657,28 +651,20 @@ static SDL_Rect ww_on_screen(int s, SDL_Rect r, int pad) {
 	return (SDL_Rect) { pic.x + (int) ((r.x - pad) * u), pic.y + (int) ((r.y - pad) * u), (int) ((r.w + 2 * pad) * u), (int) ((r.h + 2 * pad) * u) };
 }
 
-static bool ww_ui_hit(int s, int x, int y, int what) { /* 0 the key, 1 the slider, 2 Pause */
-	SDL_Rect key, track;
-	ww_ui_geom(s, &key, &track);
-	SDL_Rect r = what == 1 ? (SDL_Rect) { track.x - 4, key.y, track.w + 8, key.h } : what == 2 && ww.touch ? wwPause : key;
+static bool ww_ui_hit(int s, int x, int y, int what) { /* 0 the key, 2 Pause (Touch mode only) */
+	SDL_Rect key;
+	ww_ui_geom(&key);
+	SDL_Rect r = what == 2 && ww.touch ? wwPause : key;
 	SDL_Rect sr = ww_on_screen(s, r, 3);
 	SDL_Point pt = { x, y };
 	return SDL_PointInRect(&pt, &sr);
 }
 
-static int ww_slider_value(int s, int x) {
-	SDL_Rect key, track;
-	ww_ui_geom(s, &key, &track);
-	SDL_Rect sr = ww_on_screen(s, track, 0);
-	float f = ww_clampf((float) (x - sr.x) / (float) sr.w, 0, 1);
-	return WW_SENS_MIN + (int) lrintf(f * (WW_SENS_MAX - WW_SENS_MIN));
-}
-
 static void draw_ww_ui(void) {
 	int s = ww_ui_screen();
 	if (s < 0) return;
-	SDL_Rect key, track;
-	ww_ui_geom(s, &key, &track);
+	SDL_Rect key;
+	ww_ui_geom(&key);
 	cvBuf = ww.cv, cvRows = WW_ROWS;
 	memset(ww.cv, 0, sizeof(ww.cv));
 	cv_key(key, ww.press == WWP_BUTTON ? KEY_SEL : KEY_PLAIN);
@@ -686,23 +672,6 @@ static void draw_ww_ui(void) {
 	if (ww.touch) {
 		cv_key(wwPause, ww.press == WWP_PAUSE ? KEY_SEL : KEY_PLAIN);
 		cv_label(wwPause.x + wwPause.w / 2, wwPause.y + wwPause.h / 2, true, "Pause", ui_key_ink(), wwPause.w - 6);
-	}
-	if (ww.touch) {
-		int cy = track.y + track.h / 2;
-		cv_round((SDL_Rect) { track.x - 1, track.y - 1, track.w + 2, track.h + 2 }, 2, (SDL_Color) { 20, 16, 36, 255 });
-		int kx = track.x + (ww.sens - WW_SENS_MIN) * (track.w - 1) / (WW_SENS_MAX - WW_SENS_MIN);
-		cv_rect((SDL_Rect) { track.x, track.y, kx - track.x, track.h }, (SDL_Color) { 150, 150, 190, 255 });
-		cv_key((SDL_Rect) { kx - 3, cy - 6, 7, 12 }, ww.press == WWP_SLIDER ? KEY_SEL : KEY_PLAIN);
-		if (ww.press == WWP_SLIDER || frameCount < ww.labelUntil) {
-			/* (with an outline, to read over the picture) */
-			char pc[8];
-			snprintf(pc, sizeof(pc), "%d%%", ww.sens);
-			int lx = wwLabelLeft ? track.x - 18 : track.x + track.w + 18;
-			for (int dy = -1; dy <= 1; ++dy)
-				for (int dx = -1; dx <= 1; ++dx)
-					if (dx || dy) cv_label(lx + dx, cy + dy, false, pc, (SDL_Color) { 0, 0, 0, 255 }, 30);
-			cv_label(lx, cy, false, pc, (SDL_Color) { 255, 255, 255, 255 }, 30);
-		}
 	}
 	cvBuf = barPx, cvRows = GBA_H;
 	for (int v = 0; v < nViews; ++v) {
@@ -724,8 +693,59 @@ static void draw_ww_ui(void) {
 	ui_clip(s, NULL);
 }
 
+/* ---- the sensitivity slider (WWT-7), in the quick bar's row in the place of the Controls / Sun row (game.c bar_pick_h) */
+static SDL_Rect ww_bar_track_g(void) {
+	SDL_Rect b = bar_rect_g();
+	return (SDL_Rect) { b.x + 72, b.y + 13, 112, 3 };
+}
+
+static void ww_bar_draw(void) {
+	SDL_Rect b = bar_rect_g(), t = ww_bar_track_g();
+	int cy = t.y + t.h / 2;
+	cv_label(b.x + 38, cy, true, "Sensitivity", G_TEXT, 62);
+	cv_round((SDL_Rect) { t.x - 1, t.y - 1, t.w + 2, t.h + 2 }, 2, (SDL_Color) { 20, 16, 36, 255 });
+	int kx = t.x + (ww.sens - WW_SENS_MIN) * (t.w - 1) / (WW_SENS_MAX - WW_SENS_MIN);
+	cv_rect((SDL_Rect) { t.x, t.y, kx - t.x, t.h }, (SDL_Color) { 150, 150, 190, 255 });
+	cv_key((SDL_Rect) { kx - 3, cy - 7, 7, 14 }, ww.press == WWP_SLIDER ? KEY_SEL : KEY_PLAIN);
+	char pc[8];
+	snprintf(pc, sizeof(pc), "%d%%", ww.sens);
+	cv_label(t.x + t.w + 20, cy, true, pc, G_TEXT, 28);
+}
+
+static int ww_slider_value(int s, int x) {
+	SDL_Rect sr = bar_to_screen(s, ww_bar_track_g());
+	float f = ww_clampf((float) (x - sr.x) / (float) sr.w, 0, 1);
+	return WW_SENS_MIN + (int) lrintf(f * (WW_SENS_MAX - WW_SENS_MIN));
+}
+
+/* a touch down on the bar's slider row: true if it was there (it then doesn't open the menu) */
+static bool ww_bar_tap(int s, int x, int y) {
+	if (!wwBarRow || !barOpen || s != ui_touch_screen()) return false;
+	SDL_Point pt = { x, y };
+	SDL_Rect br = bar_rect_g();
+	SDL_Rect row = bar_to_screen(s, (SDL_Rect) { br.x, br.y + 3, br.w - 14, BAR_PICK_H - 2 }); /* (the pin is in the corner) */
+	if (!SDL_PointInRect(&pt, &row)) return false;
+	SDL_Rect tr = bar_to_screen(s, (SDL_Rect) { ww_bar_track_g().x - 4, br.y + 3, 112 + 8, BAR_PICK_H - 2 });
+	if (SDL_PointInRect(&pt, &tr)) {
+		ww.press = WWP_SLIDER;
+		ww.sens = ww_slider_value(s, x);
+	}
+	return true;
+}
+
 /* ---- touches (WWT-5, WWT-8): true when the event is the dial's or one of the buttons' */
 static bool ww_pointer(const Pointer* p) {
+	if (ww.press == WWP_SLIDER && (p->kind == 2 || p->kind == 3)) {
+		/* (the slider in the quick bar, held) */
+		int s = ui_touch_screen();
+		if (p->kind == 3) ww.sens = ww_slider_value(s, p->x);
+		else {
+			ww.press = WWP_NONE;
+			ww_cfg_save();
+			fprintf(stderr, "frame %llu: dial: sensitivity %d%%\n", (unsigned long long) frameCount, ww.sens);
+		}
+		return true;
+	}
 	if (!ww_can_touch() || barOpen || barShown > 0) return false;
 	int ts = ui_touch_screen();
 	float u = ui_px(ts);
@@ -733,23 +753,16 @@ static bool ww_pointer(const Pointer* p) {
 		int s = ww_ui_screen();
 		if (s >= 0 && p->screen == s) {
 			if (ww_ui_hit(s, p->x, p->y, 0)) {
-				ww.press = WWP_BUTTON, ww.pressY = p->y;
+				ww.press = WWP_BUTTON;
 				return true;
 			}
 			if (ww.touch && ww_ui_hit(s, p->x, p->y, 2)) {
-				ww.press = WWP_PAUSE, ww.pressY = p->y;
-				return true;
-			}
-			if (ww.touch && ww_ui_hit(s, p->x, p->y, 1)) {
-				ww.press = WWP_SLIDER;
-				ww.sens = ww_slider_value(s, p->x);
-				ww.labelUntil = frameCount + 45;
+				ww.press = WWP_PAUSE;
 				return true;
 			}
 		}
-		if (p->screen != ts) return false;
+		if (!ww.touch || p->screen != ts) return false; /* (Gyro mode: a tap opens the menu as ever) */
 		if (p->y >= screens[ts].rect.h - u * 36) return false; /* (the bottom edge: the quick bar's swipe) */
-		if (!ww.touch) return false; /* (Gyro mode: a tap opens the menu as ever) */
 		ww.press = WWP_DIAL, ww.down = true, ww.dragFrac = 0;
 		ww.pressY = p->x; /* (where the finger went down: across) */
 		fprintf(stderr, "frame %llu: dial: grabbed\n", (unsigned long long) frameCount);
@@ -757,17 +770,7 @@ static bool ww_pointer(const Pointer* p) {
 	}
 	if (ww.press == WWP_NONE) return false;
 	if (p->kind == 3) {
-		if (ww.press == WWP_DIAL) {
-			ww.dragFrac = (float) (p->x - ww.pressY) / (screens[ts].rect.w * 0.5f);
-		} else if (ww.press == WWP_SLIDER) {
-			int s = ww_ui_screen();
-			if (s >= 0) ww.sens = ww_slider_value(s, p->x);
-			ww.labelUntil = frameCount + 45;
-		} else if ((ww.press == WWP_BUTTON || ww.press == WWP_PAUSE) && p->y - ww.pressY <= -u * 10) {
-			/* a swipe up that began on it: the quick bar */
-			ww.press = WWP_NONE;
-			barOpen = true, barSince = SDL_GetTicks(), barGesture = G_DONE;
-		}
+		if (ww.press == WWP_DIAL) ww.dragFrac = (float) (p->x - ww.pressY) / (screens[ts].rect.w * 0.5f);
 		return true;
 	}
 	if (p->kind == 2) {
@@ -776,10 +779,6 @@ static bool ww_pointer(const Pointer* p) {
 		if (press == WWP_DIAL) {
 			ww.down = false;
 			fprintf(stderr, "frame %llu: dial: let go at %.1f degrees\n", (unsigned long long) frameCount, ww.angle);
-		} else if (press == WWP_SLIDER) {
-			ww.labelUntil = frameCount + 45; /* (a moment after the finger lifts) */
-			ww_cfg_save();
-			fprintf(stderr, "frame %llu: dial: sensitivity %d%%\n", (unsigned long long) frameCount, ww.sens);
 		} else if (press == WWP_BUTTON) {
 			int s = ww_ui_screen();
 			if (s >= 0 && ww_ui_hit(s, p->x, p->y, 0)) ww_switch();

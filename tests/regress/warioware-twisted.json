@@ -95,11 +95,11 @@
    "input": [
     [
      60,
-     "TAP:0.145,0.919"
+     "TAP:0.145,0.579"
     ],
     [
      200,
-     "TAP:0.145,0.919"
+     "TAP:0.145,0.579"
     ]
    ],
    "shots": {
@@ -170,7 +170,7 @@
    "input": [
     [
      60,
-     "TAP:0.145,0.919"
+     "TAP:0.145,0.579"
     ]
    ],
    "shots": {
@@ -201,12 +201,20 @@
    ],
    "input": [
     [
-     60,
-     "TAP:0.145,0.919"
+     20,
+     "SWIPE:0.5,0.99,0.5,0.85"
     ],
     [
-     100,
-     "TAP:0.557,0.919"
+     60,
+     "TAP:0.78,0.7734"
+    ],
+    [
+     90,
+     "TAP:0.5,0.62"
+    ],
+    [
+     110,
+     "TAP:0.145,0.579"
     ],
     [
      150,
@@ -242,7 +250,7 @@
     ]
    ],
    "shots": {
-    "rest": 120,
+    "rest": 140,
     "left": 260,
     "back": 390,
     "right": 510,
@@ -349,14 +357,14 @@
    "id": "wwt-us-slider",
    "rom": "RZWE",
    "state": "warioware-twisted/us-menu.ss",
-   "desc": "the slider starts at 10%: a drag of half the screen's width turns the wheel 9 degrees; at the top (25%), 22.5; its percentage shows, outlined, only while it is changed",
+   "desc": "the sensitivity slider is in the quick bar: 10% at first (a drag of half the screen's width turns the wheel 9 degrees); moved to the top (25%), 22.5",
    "rules": [
     "WWT-7"
    ],
    "input": [
     [
      60,
-     "TAP:0.145,0.919"
+     "TAP:0.145,0.579"
     ],
     [
      150,
@@ -375,42 +383,36 @@
      "LIFT"
     ],
     [
+     260,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
      300,
-     "TAP:0.557,0.919"
+     "TAP:0.78,0.7734"
     ],
     [
      350,
+     "TAP:0.5,0.62"
+    ],
+    [
+     380,
      "DRAG:0.7,0.75"
     ],
     [
-     360,
+     390,
      "MOVE:0.2,0.75"
     ],
     [
-     420,
-     "LIFT"
-    ],
-    [
-     460,
-     "DRAG:0.4,0.919"
-    ],
-    [
-     470,
-     "MOVE:0.45,0.919"
-    ],
-    [
-     500,
+     450,
      "LIFT"
     ]
    ],
    "shots": {
     "slider": 130,
-    "max": 340,
-    "label": 485
+    "bar": 330
    },
    "golden": [
-    "slider",
-    "label"
+    "slider"
    ],
    "checks": [
     {
@@ -474,11 +476,11 @@
    "input": [
     [
      40,
-     "TAP:0.145,0.919"
+     "TAP:0.145,0.579"
     ],
     [
      100,
-     "TAP:0.86,0.919"
+     "TAP:0.855,0.579"
     ]
    ],
    "shots": {

@@ -2756,13 +2756,14 @@ static const char* const icon_exit[] = {
  * into a canvas of that size (below) and scaled up with the picture. */
 enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 24, BAR_MSG_H = 19, BAR_PICK_H = 24 };
 static bool sunHere; /* the cartridge has a sun sensor: the Sun row stands in the Controls row's place */
+static bool wwBarRow; /* WarioWare: Twisted!: its sensitivity slider stands in the same place (ww_twisted.inc) */
 static int bar_pick_h(void) {
-	return ctlProf || sunHere ? BAR_PICK_H : 0;
+	return ctlProf || sunHere || wwBarRow ? BAR_PICK_H : 0;
 }
 /* the row of time, FPS and battery: without the Controls row above it, tall enough that the pin
  * (2 px down, 12 high, its edge a row more) has a clear pixel row before the buttons */
 static int bar_status_h(void) {
-	return ctlProf || sunHere ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
+	return ctlProf || sunHere || wwBarRow ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
 }
 static int game_screen(void);
 
@@ -3014,6 +3015,8 @@ static void ctl_draw(void);
 static bool ctl_tap(int s, int x, int y);
 static void sun_draw(void);
 static bool sun_tap(int s, int x, int y);
+static void ww_bar_draw(void);
+static bool ww_bar_tap(int s, int x, int y);
 static void save_prefs(void);
 
 static const char* const icon_pin[] = {
@@ -3169,6 +3172,7 @@ static void draw_bar(void) {
 	}
 	if (ctlProf) ctl_draw();
 	else if (sunHere) sun_draw();
+	else if (wwBarRow) ww_bar_draw();
 	static const char* const* const art[BB_COUNT] = { icon_save, icon_load, icon_gear, icon_bug, icon_exit };
 	bool lit = barLit >= 0 && SDL_GetTicks() - barLitAt < 1500;
 	for (int i = 0; i < BB_COUNT; ++i) {
@@ -9371,7 +9375,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						SDL_Point pt = { p.x, p.y };
 						barSince = SDL_GetTicks();
 						barBtn = bar_button_at(ts, p.x, p.y);
-						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : (ctl_tap(ts, p.x, p.y) || sun_tap(ts, p.x, p.y)) ? G_DONE : G_TRACK;
+						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : (ctl_tap(ts, p.x, p.y) || sun_tap(ts, p.x, p.y) || ww_bar_tap(ts, p.x, p.y)) ? G_DONE : G_TRACK;
 						barGX = p.x, barGY = p.y;
 						continue;
 					}
