@@ -21,7 +21,7 @@ What this means in practice:
 - **Show what matters right now.** The second screen follows what the player is doing: the unit under the cursor in Fire Emblem, the level Mario is standing on. Keeping up quickly is part of the function.
 - **Nothing there should make you look twice.** The second screen is for looking at; everything you act on stays on the game screen. So the second screen leaves out anything that looks like it's waiting for a button or like the thing you're controlling: button prompts (a "press A", an arrow to turn a page), the cursor, the character you're moving. Those belong to the hidden copy, not your game. A map's own marker of where you are is information, and stays. What you have to react to stays where the action is: action prompts, a command menu over your character, damage numbers. And nothing is split across the two screens or shown on both: half an animation on each screen, or the same box twice, leaves you wondering which one is real. In Mario & Luigi's battles, the information boxes and meters move over, but the command blocks and action prompts stay, and a level-up stays whole on the game screen.
 - **When there's nothing useful, say so plainly.** If there's nothing live to show (a title screen, a cutscene, a menu), the second screen shows the game's logo at half strength so it reads as idle, rather than something stale or invented. If a capture can't be confirmed as correct, the last good picture stays up. Better nothing new than something wrong.
-- **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions. Display options (scaling, shaders such as the LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens. Overlays only ever fill the space around the GBA screens, never what's on them: GBA DS's own is a plain console bezel, as the imagined console would have (rule 1).
+- **No enhancement for its own sake.** No smoothing, recolouring, upscaled art or animated transitions (the one fade there is belongs to the optional toggle in rule 6, and only happens when you press it). Display options (scaling, shaders such as the LCD grid, overlays) are the player's choice, set in the pause menu, and are applied the same way to both screens. Overlays only ever fill the space around the GBA screens, never what's on them: GBA DS's own is a plain console bezel, as the imagined console would have (rule 1).
 
 ## 3. Keep it simple.
 
@@ -58,7 +58,7 @@ Touch is only for things the emulator does, such as the pause menu. GBA DS doesn
 What this means in practice:
 
 - **Touch belongs to GBA DS.** Tapping opens the pause menu and swiping up brings up the quick bar; the game list, settings, the pause menu, the cheats list and the quick bar (with its Controls picker, in the games that have one) are all touch controls for GBA DS itself.
-- **Nothing on the second screen needs a tap.** Everything the game puts there is to look at. Choosing a unit by tapping it, tapping a map to move there, or any other touch input sent to the game is out of scope, however natural it might feel on a DS.
+- **Nothing on the second screen needs a tap.** Everything the game puts there is to look at. The one thing on it you can tap is the optional toggle button (rule 6), which belongs to GBA DS like the bezel, never reaches the game, and has a hotkey that does the same. Choosing a unit by tapping it, tapping a map to move there, or any other touch input sent to the game is out of scope, however natural it might feel on a DS.
 - **Buttons give the game a GBA's buttons.** Which face button gives GBA A, B, L or R is yours to choose, game by game (Buttons, in the pause menu's Extras). Beyond that, layouts are limited to ones players already know (rule 6).
 
 ## 6. Rules are written to be broken.
@@ -73,16 +73,23 @@ What this means in practice:
   - Pokémon Pinball's, Sonic Pinball Party's and Muppet Pinball Mayhem's tables spread over both screens as one tall view;
   - Mario Kart's, the F-Zero games', Crash Nitro Kart's, V-Rally 3's and GT Advance 3's race screen course maps, drawn larger than the game's;
   - Dragon Ball Z: The Legacy of Goku II's and Buu's Fury's small world maps, shown while flying, drawn twice as big;
+  - Final Fantasy VI Advance's world map minimap, the game's own corner map taken off the game screen and drawn twice as big on the second;
   - Super Mario Advance 2's level name moved above its status bar;
   - Super Mario Advance's course board, shown before each level, kept under the status bar through the level: trimmed at the top and bottom to fit, with its Ace Coin percentage taken from the pause screen;
   - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it;
+  - Game Boy and Game Boy Color games on one screen with the other idle (a real GBA played those cartridges too), with the option of showing the Game Boy's own 160×144 picture as the whole screen instead of centred in the GBA's frame ([[Game Boy games]]);
   - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it;
   - Dragon Ball Z: Buu's Fury's logo, each letter's black outline closed where the title screen leaves a gap;
   - a game's own window rearranged where there's no other way to show all of what it holds on one GBA screen, as the game would let the player see it by scrolling: its list split into columns, its heading bar or frame made wider from its own end and middle pieces, its own transparency kept over the background it sits on (Final Fantasy Tactics Advance's turn order in two columns, with the Laws below);
+  - Final Fantasy V Advance's party screen, the place of START's list of commands filled by the party window going on, from the game's own edges and gradient, instead of left black;
   - Final Fantasy Tactics Advance's Laws on the world map, on the Status screen's checkerboard, so they look as they do in a battle;
   - Mega Man Battle Network's status screen and money counter, from two of the PET's screens, in one frame edged with the counter's own orange border;
   - Mega Man Battle Network's maps of the net, which the game doesn't have, drawn from each area's own layout in the game's own tiles, with MegaMan's head marking where he is;
   - Mega Man Battle Network 2's status screen and money, and its maps of the net, as the first game's (the money box's HP line left out, the status below showing it);
-  - Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, and the red X from its quick slots marking where you are.
+  - Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, and the red X from its quick slots marking where you are;
+  - Boktai's clock and sunrise and sunset times, three lines of the game's own from its ITEM page, kept on the Map at the top (on both screens when that page is open on the game screen), with the Map's title bar left out;
+  - Shin Megami Tensei's automap taller than the game's window, made from the game's own scrolling and drawn over its own grid, which is continued above and below it to fill the second screen.
+  - Breath of Fire's and Breath of Fire II's party overview kept on the second screen through a battle, taken from before it, though the battle's own boxes on the game screen have the live numbers.
+  - an optional toggle (off by default) that turns a second screen's pages, or swaps its view (the map or the party screen), by hand: a hotkey, and a small partly see-through button in the console's own look, that goes dim when there's nothing to turn and isn't there in games with nothing to turn. It fades the picture to black only while the game is finding the next one, so you can see it working. It touches nothing in the game, and with it off every game shows what it always did.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
 - **Scope is a feature.** Every change has to be built, tested on the real device and maintained by one person. A smaller, solid feature beats a bigger, fragile one, and that's often the honest answer to a feature request: not "never", but "not at the cost of everything else working".

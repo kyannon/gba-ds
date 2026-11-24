@@ -225,7 +225,7 @@ done:
 }
 
 bool emu_rom_header(const char* path, uint8_t* out, size_t n) {
-	if (n > 0xC0) n = 0xC0;
+	if (n > EMU_HEADER_MAX) n = EMU_HEADER_MAX;
 	if (emu_is_archive_name(path)) {
 		size_t got = 0;
 		uint8_t* p = zip_first_rom(path, n, &got);
@@ -631,6 +631,82 @@ static void close_core(ArmCore* c) {
 int emuRenderWorkers = 1;
 bool emuHiddenCopy;
 
+/* What src/emu.c has for libmgba's Game Boy core, the cartridge's motor and the BIOS's states (GBA DS 1.6): armGBA
+ * here runs GBA games only (emu_is_rom_name takes no .gb), drives no motor, and its states don't depend on which
+ * BIOS made them. */
+bool emu_is_gb(const Emu* e) {
+	(void) e;
+	return false;
+}
+int emu_gb_kind(const Emu* e) {
+	(void) e;
+	return 0;
+}
+void emu_gb_colours(int colors, const uint32_t* rgb, bool mono) {
+	(void) colors, (void) rgb, (void) mono;
+}
+float emu_rumble_level(const Emu* e) {
+	(void) e;
+	return 0.0f;
+}
+BiosRefusal emu_state_file_bios_refusal(Emu* e, const char* path) {
+	(void) e, (void) path;
+	return BIOS_REFUSAL_NONE;
+}
+
+/* The game's code and title from its header, as src/emu.c has them for a GBA game. */
+bool emu_rom_code(const uint8_t* h, size_t n, char code[5]) {
+	if (n < 0xB0) return false;
+	memcpy(code, h + 0xAC, 4);
+	code[4] = 0;
+	return true;
+}
+void emu_rom_title(const uint8_t* h, size_t n, char title[17]) {
+	title[0] = 0;
+	if (n < 0xA0 + 12) return;
+	memcpy(title, h + 0xA0, 12);
+	title[12] = 0;
+	for (int i = 0; i < 12; ++i) {
+		if (title[i] && (title[i] < 0x20 || title[i] > 0x7E)) title[i] = '_';
+	}
+}
+
+/* The sun sensor's reading (Boktai), as src/emu.c gives mGBA: the setting's level (0-10) in mGBA's own steps,
+ * lower the brighter. Set before each frame. */
+int emu_solar_level = 6;
+static uint8_t solar_reading(void) {
+	static const uint8_t levels[10] = { 5, 11, 18, 27, 42, 62, 84, 109, 139, 183 };
+	int level = emu_solar_level < 0 ? 0 : emu_solar_level > 10 ? 10 : emu_solar_level;
+	return (uint8_t) (0xFF - (0x16 + (level > 0 ? levels[level - 1] : 0)));
+}
+
+/* The player's own GBA BIOS (Settings > System): its 16 KiB, read once and kept (each machine maps it). */
+char emu_bios_path[512];
+BiosFile emu_bios_check(const char* path) {
+	FILE* f = fopen(path, "rb");
+	if (!f) return BIOS_FILE_MISSING;
+	static uint8_t probe[SIZE_BIOS + 1];
+	size_t n = fread(probe, 1, sizeof(probe), f);
+	fclose(f);
+	if (n != SIZE_BIOS) return BIOS_FILE_SIZE;
+	/* (its reset vector: a branch, as every GBA BIOS starts) */
+	return probe[3] == 0xEA ? BIOS_FILE_OK : BIOS_FILE_NOT_BIOS;
+}
+static const uint8_t* own_bios(void) {
+	static uint8_t file[SIZE_BIOS];
+	static char loaded[512];
+	if (!emu_bios_path[0]) return NULL;
+	if (!strcmp(loaded, emu_bios_path)) return file;
+	if (emu_bios_check(emu_bios_path) != BIOS_FILE_OK) return NULL;
+	FILE* f = fopen(emu_bios_path, "rb");
+	bool ok = f && fread(file, 1, sizeof(file), f) == sizeof(file);
+	if (f) fclose(f);
+	loaded[0] = 0;
+	if (!ok) return NULL;
+	snprintf(loaded, sizeof(loaded), "%s", emu_bios_path);
+	return file;
+}
+
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
 	ArmCore* c = calloc(1, sizeof(*c));
@@ -673,6 +749,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	c->hooks.context = c;
 	renderSetHooks(gba, &c->hooks);
 	gbaLoadBios(gba, armgbaBios, SIZE_BIOS);
+	if (own_bios()) gbaLoadBios(gba, own_bios(), SIZE_BIOS);
 #ifndef __3DS__
 	{
 		/* GBADS_BIOS=<a GBA BIOS> (tests: the same BIOS on libmgba and armGBA, 3ds/test/dualrun.py) */
@@ -889,7 +966,8 @@ static void run_frame(Emu* e, uint32_t keys, bool draw) {
 	struct GBA* gba = c->gba;
 	++e->frames;
 	gbaSetKeys(gba, (uint16_t) keys);
-	videoDrawSkipped = !draw;
+	gba->gpio.luminance = solar_reading();
+	videoSetDrawSkipped(!draw);
 	uint32_t const frame = gba->video.frameCounter;
 #ifdef __3DS__
 	if (c->ring) {
@@ -906,7 +984,7 @@ static void run_frame(Emu* e, uint32_t keys, bool draw) {
 	do {
 		gbaRunPart(gba);
 	} while (gba->video.frameCounter == frame);
-	videoDrawSkipped = false;
+	videoSetDrawSkipped(false);
 	audioThreadKick(gba);
 	if (c->cheatsOn) cheatsApply(&c->cheats, gba);
 	if (draw) take_picture(e);
@@ -1994,4 +2072,9 @@ int emu_cheats_add(Emu* e, const char* name, const char* const* codes, int n, in
 	}
 	if (taken) c->cheatsOn = true;
 	return taken;
+}
+
+bool emu_has_solar(Emu* e) {
+	ArmCore* c = e ? AC(e) : NULL;
+	return c && c->gba && (c->gba->gpio.devices & HW_LIGHT_SENSOR) != 0;
 }

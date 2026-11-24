@@ -109,6 +109,55 @@ typedef struct {
 	const uint8_t* bytes;
 } RomPatch;
 
+/* How a title screen's logo is pulled out of the running game (MapProfile.logo). */
+typedef struct {
+	int wait, wait2, layer, maxY;
+	unsigned layers; /* instead of layer: several BG layers (bit i: BG i) */
+	int objMaxY; /* with layers: sprites only above this row (0: all rows); below it, the BG layers alone */
+	int lowFrom; unsigned lowLayers; /* with layers: from this row down, only these layers (0: no change) */
+	bool pressStart, blackIsClear;
+	bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
+	/* pixels of these colours (0xRRGGBB) reached from outside the logo
+	 * or the picture's edges through others of them are clear, then
+	 * any left with at most one neighbour: the background showing at
+	 * the lettering's dithered or translucent edge (Mario & Luigi's
+	 * sky, its shadow's specks), or a layer's own background
+	 * (Battle Network Rockman EXE's blue) */
+	uint32_t edgeClear[4];
+	/* a drop shadow of this colour (0xRRGGBB; either of a game's two
+	 * colour sets) stays only below and right of the lettering:
+	 * where there's lettering (or shadow kept) up to shadowReach rows
+	 * above it, as far left as that; the rest of it (a rim of that
+	 * colour along the lettering's upper and left sides, which the
+	 * title's light background hides) is clear (Super Mario Bros. 3) */
+	uint32_t shadow[2];
+	int shadowReach;
+	int minY, minX, maxX; /* with maxY: only this box (maxX 0: the whole width); a frame
+	                       * round the logo left out (Super Mario World's) */
+	MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */
+	/* sprites left out of the logo's render (Duel Masters: Kaijudo
+	 * Showdown's translucent light rays, black on their own, cross the
+	 * subtitle), an emu_hide_sprites list; empty: none */
+	SpriteRule hide[2];
+	int rev; /* bump when extraction changes, so cached logos are made again */
+	/* The logo is painted into the whole title picture: render every
+	 * layer and keep the pixels inside this mask (THPS2). */
+	const LogoMask* mask;
+	/* Bytes written into the ROM of the copy the logo is taken from
+	 * (never the game played), if it holds `orig` there: Golden Sun:
+	 * The Lost Age shows its title only with a save, so its save check
+	 * answers "one" there */
+	RomPatch patch[2];
+} LogoSpec;
+
+/* A romhack's own logo recipe, by its ROM file's CRC32 (the Pokémon games:
+ * every hack has its own title screen, reached its own way) */
+typedef struct {
+	uint32_t crc;
+	const char* name;
+	LogoSpec logo;
+} LogoFor;
+
 typedef struct MapProfile {
 	const char* codes[4]; /* 4-char game codes this profile handles */
 	const char* title;
@@ -120,6 +169,9 @@ typedef struct MapProfile {
 	 * spot its info box takes no L; B twice, back to the map, first) */
 	MemProbe openAltIf[2];
 	MacroStep openAlt[8];
+	/* A byte written on the hidden copy before `open` (Kirby & The Amazing
+	 * Mirror: the pause menu's page, kept by the game from its last use) */
+	struct { uint32_t addr; uint8_t value; } openPoke;
 	/* Optional second step: once the map is up (mem probes), if open2If
 	 * matches, wait open2Delay frames and press open2 (A Link to the Past:
 	 * L again on the world map zooms out to the whole world). */
@@ -375,6 +427,8 @@ typedef struct MapProfile {
 	 * has no status bar (SM4-11) */
 	MemProbe logoIf[2];
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
+	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
+	bool logoIfLast;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
@@ -676,41 +730,13 @@ typedef struct MapProfile {
 	/* Title-screen logo, pulled out of the running game: boot, wait, optionally
 	 * press Start (to skip an intro), wait again, then keep one BG layer
 	 * (0-3) above row maxY. blackIsClear: the layer has an opaque black fill. */
-	struct {
-		int wait, wait2, layer, maxY;
-		unsigned layers; /* instead of layer: several BG layers (bit i: BG i) */
-		int objMaxY; /* with layers: sprites only above this row (0: all rows); below it, the BG layers alone */
-		int lowFrom; unsigned lowLayers; /* with layers: from this row down, only these layers (0: no change) */
-		bool pressStart, blackIsClear;
-		bool lightEdgeClear; /* light background around the logo, reached from the edges, is clear */
-		/* pixels of these colours (0xRRGGBB) reached from outside the logo
-		 * or the picture's edges through others of them are clear, then
-		 * any left with at most one neighbour: the background showing at
-		 * the lettering's dithered or translucent edge (Mario & Luigi's
-		 * sky, its shadow's specks), or a layer's own background
-		 * (Battle Network Rockman EXE's blue) */
-		uint32_t edgeClear[4];
-		/* a drop shadow of this colour (0xRRGGBB; either of a game's two
-		 * colour sets) stays only below and right of the lettering:
-		 * where there's lettering (or shadow kept) up to shadowReach rows
-		 * above it, as far left as that; the rest of it (a rim of that
-		 * colour along the lettering's upper and left sides, which the
-		 * title's light background hides) is clear (Super Mario Bros. 3) */
-		uint32_t shadow[2];
-		int shadowReach;
-		int minY, minX, maxX; /* with maxY: only this box (maxX 0: the whole width); a frame
-		                       * round the logo left out (Super Mario World's) */
-		MacroStep steps[24]; /* instead of wait/pressStart: button steps from power-on */
-		int rev; /* bump when extraction changes, so cached logos are made again */
-		/* The logo is painted into the whole title picture: render every
-		 * layer and keep the pixels inside this mask (THPS2). */
-		const LogoMask* mask;
-		/* Bytes written into the ROM of the copy the logo is taken from
-		 * (never the game played), if it holds `orig` there: Golden Sun:
-		 * The Lost Age shows its title only with a save, so its save check
-		 * answers "one" there */
-		RomPatch patch[2];
-	} logo;
+	LogoSpec logo;
+	/* logoPerRom: every ROM file has an extracted logo of its own
+	 * (logos/CODE-crc.png: romhacks that share a game code), made from
+	 * logoFor[] where the file's CRC32 is listed, else from `logo` */
+	bool logoPerRom;
+	const LogoFor* logoFor;
+	int nLogoFor;
 
 	/* Text to copy from another screen onto the map (Circle of the Moon's map
 	 * has no completion rate; its pause screen does): press `open` from the
@@ -757,7 +783,7 @@ typedef struct MapProfile {
 	 * of only `underLayers` (bits 0-3 BG0-3, bit 4 sprites), made once per
 	 * capture: bezel pieces drawn over the map, like Zero Mission's corner
 	 * minimap, give way to the map underneath. */
-	struct { int x0, y0, x1, y1; } underRect[2];
+	struct { int x0, y0, x1, y1; } underRect[3];
 	unsigned underLayers;
 	SpriteRule underHide[2]; /* also left out of that render (on top of captureHide) */
 
@@ -801,9 +827,27 @@ typedef struct MapProfile {
 	 * file, for copies of its own (Mega Man Battle Network's area maps on
 	 * the net, made by a third copy beside the game, MMBN-6) */
 	const uint32_t* (*liveView)(Emu* live, const char* rom);
+	int (*holdPage)(Emu* live); /* the page of the second screen to keep up while this says (>= 0) rather than turning (Pokémon: the Party in a battle), -1: turn as usual */
 	/* Instead of compose: several pictures (pages shown in turn, `*step`
 	 * emulated frames each); out[0..*n) on return, *n the most on the way in */
 	const char* (*composePages)(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h);
+	/* composePages' pictures are pages (a status screen's three pages, the
+	 * party's members), which keep turning at their pace through new
+	 * captures, and not a marker's blinking frames (those restart with each
+	 * capture). Set for every game whose rules file has Toggle `pages`
+	 * (GEN-14): what the toggle turns by hand. */
+	bool pages;
+	/* composePages' pictures are views (the world map and the party screen):
+	 * the first shows, and stays, as it always did; the toggle (GEN-14) turns
+	 * to the next until the subject changes. Held: both come from the one
+	 * capture. Set for every game whose Toggle row says `views`, `HELD`. */
+	bool views;
+	/* GEN-14, ONPRESS: the other view isn't kept: a press makes the hidden copy
+	 * capture it (compose reads mapcap_alt_view()), the picture fading to black
+	 * while the game finds it. A press turns back the same way. altHere (optional):
+	 * whether the live game has another view right now (else always). */
+	bool onPress;
+	bool (*altHere)(Emu* live);
 	/* Values computed from the game's memory, read by MemProbes at
 	 * addresses from 0xF0000000 (memprobe_virtual, mapcap.h): Fire
 	 * Emblem's processes, which move between slots. */
@@ -821,6 +865,8 @@ typedef struct MapProfile {
 } MapProfile;
 
 const MapProfile* profile_find(const char* gameCode);
+/* The logo recipe for this ROM file (its CRC32): a romhack's own, or the profile's */
+const LogoSpec* profile_logo_spec(const MapProfile* p, uint32_t fileCrc);
 /* Applies p's romPatch list (all of it, or nothing if any part doesn't
  * match); true if there was one and it went in. */
 bool profile_patch_rom(const MapProfile* p, Emu* e);

@@ -5840,6 +5840,48 @@
      "color": "000000"
     }
    ]
+  },
+  {
+   "id": "pp-us-settings-live-available",
+   "rom": "BPPE",
+   "state": "pokemon-pinball/us-field-select.ss",
+   "desc": "the in-game settings' Second screen page in a pinball game: Pinball two-screen view is a normal row, the toggle's rows greyed out",
+   "rules": [
+    "GEN-14"
+   ],
+   "input": [
+    [
+     60,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.5,0.864"
+    ],
+    [
+     170,
+     "-"
+    ],
+    [
+     200,
+     "TAP:0.855,0.529"
+    ],
+    [
+     230,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 260
+   },
+   "golden_mask": [
+    [
+     0,
+     0,
+     140,
+     70
+    ]
+   ]
   }
  ]
 }

@@ -290,7 +290,7 @@ After the first milestone:
   the game thread through JNI on the activity), the tree URI turned into a
   plain path (All files access), saved as `rom_dir` in
   `<state_dir>/library.cfg` (loaded after prefs.cfg on every platform).
-  library.cfg also holds `library_view` (list/grid) on every platform;
+  library.cfg also holds `library_view` (list/grid/grid3) on every platform;
   both are written by `save_library_cfg()` in library.c, so neither is lost.
   "ROM Folder" is a Futura label (MENU_TEXTS; brand_data.c regenerated).
 - Every game was listed twice on the device: the default rom_dir had
@@ -790,3 +790,50 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
+(Empty: Rotation and Performance went into v1.5.5's changelog.)
+
+Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays are read once at start; a display added later (hot-plug) isn't picked up: it needs a DisplayListener and a native re-layout (ui.c, shared code), tracked in a separate issue.
+
+## Rotation, and Performance (issue #60, Nov 2026; in v1.5.5)
+
+### Notes for sessions: Rotation (issue #60, `android`)
+
+- The choice is `rotation.cfg` (one word: auto / portrait / landscape) in the
+  app's own storage (`GBADS_APP_FILES`, like `data-folder.cfg`), so Java can
+  read it in `onCreate` before the window exists (`GbaDsActivity.rotationMode`,
+  used by `orientationWanted`: SENSOR_PORTRAIT / SENSOR_LANDSCAPE / FULL_USER).
+  `android_rotation_set` (android.c) writes it and calls `applyRotation`, which
+  re-applies the orientation at once. The row is `ROW_ROTATION` in library.c,
+  after RetroAchievements, only when `android_one_display()`.
+- Not tried on a device yet. On a Surface Duo, locking landscape may take a
+  spanned app back to one screen (issue #48 saw that with a hard landscape
+  lock); Auto stays the default for that reason.
+- Desktop kit: `STUB_SECOND=none` shows the row; `stubs_extra.c` keeps the
+  mode in memory.
+
+- **Performance setting on Android.** Settings > Speed and sound > Performance:
+  **Let the System Decide** (the default) or **Set to Max**, the same setting
+  as on ROCKNIX. Android doesn't let an app set the processor's speed, so Max
+  asks for it: it keeps the processor at a high clock while GBA DS runs, for
+  a smoother game and steadier sound, at the cost of a warmer device and a
+  shorter battery. Try it if games stutter. (The system can still hold it back
+  if the device gets hot.)
+
+### Notes for sessions: Performance (`android`)
+
+- Reuses the shared `performance` setting (`perfMax`, config.c; its row shows
+  on the Speed and sound page where `clocks_available()` is true). clocks.h
+  declares the two functions for Android and android.c implements them:
+  `clocks_set(true)` gives the ADPF hint session a target of 30% of the usual
+  one (`hintBaseNs`, 50% of a frame: about 2.5 ms against the 11 ms of work a
+  frame takes), through `APerformanceHint_updateTargetWorkDuration` (looked
+  up at run time like the rest), so the system, which clocks the CPU so the
+  work takes about the target (see the 65% / 50% notes above), keeps it high.
+  Set before the session exists (the setting is read at start), it applies
+  when `android_perf_init` creates it. Android 13+ only, like the hint.
+- Not tried on a device: whether Max measurably cuts slow frames on the RG
+  DS Plus (compare the log's "slow frames" lines with it on and off; the log
+  says "performance: set to max (the hint's target is N us)"). Considered and
+  left out: `Window.setSustainedPerformanceMode`, which holds clocks steady
+  for heat rather than raising them; `pin_cores` (no difference, see above).
+- Desktop kit: `stubs_gpu.c` has stand-ins that log the change.

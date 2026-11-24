@@ -298,4 +298,20 @@ typedef union SDL_Event {
 int SDL_PollEvent(SDL_Event* ev);
 int SDL_PushEvent(SDL_Event* ev);
 
+/* Rumble (GBA DS 1.6): the 3DS has no motor, so there is no haptic device and a controller takes none. */
+#include <math.h>
+#define SDL_fabsf fabsf
+#define SDL_INIT_HAPTIC 0x1000u
+typedef struct SDL_Haptic SDL_Haptic;
+static inline int SDL_InitSubSystem(Uint32 flags) { (void) flags; return 0; }
+static inline int SDL_NumHaptics(void) { return 0; }
+static inline SDL_Haptic* SDL_HapticOpen(int index) { (void) index; return NULL; }
+static inline const char* SDL_HapticName(int index) { (void) index; return ""; }
+static inline int SDL_HapticRumbleSupported(SDL_Haptic* h) { (void) h; return 0; }
+static inline int SDL_HapticRumbleInit(SDL_Haptic* h) { (void) h; return -1; }
+static inline int SDL_HapticRumblePlay(SDL_Haptic* h, float strength, Uint32 ms) { (void) h, (void) strength, (void) ms; return -1; }
+static inline int SDL_HapticRumbleStop(SDL_Haptic* h) { (void) h; return -1; }
+static inline void SDL_HapticClose(SDL_Haptic* h) { (void) h; }
+static inline int SDL_GameControllerRumble(SDL_GameController* c, Uint16 low, Uint16 high, Uint32 ms) { (void) c, (void) low, (void) high, (void) ms; return -1; }
+
 #endif

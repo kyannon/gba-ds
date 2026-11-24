@@ -25,6 +25,15 @@ enum {
 
 struct mCore;
 
+/* the sunlight a cartridge's sun sensor reads (0-10; Boktai) */
+extern int emu_solar_level;
+
+/* The player's own GBA BIOS (issue #78; off unless Settings > System turns it on): the file's
+ * path, or "" to run games with mGBA's built-in one, as always. emu_open gives it to every core. */
+extern char emu_bios_path[512];
+typedef enum { BIOS_FILE_OK, BIOS_FILE_MISSING, BIOS_FILE_SIZE, BIOS_FILE_NOT_BIOS, BIOS_FILE_BROKEN } BiosFile;
+BiosFile emu_bios_check(const char* path);
+
 /* A sprite to leave out when drawing (e.g. a HUD mini-map): matches when its
  * top-left corner is inside x0..x1 / y0..y1 (y may be negative), its tile
  * number is within tileMin..tileMax and its priority equals prio. */
@@ -45,6 +54,12 @@ typedef struct SpriteRule {
 typedef struct Emu {
 	struct mCore* core;
 	uint32_t* fb; /* GBA_W * GBA_H, mGBA native 32-bit color (XBGR8888, i.e. bytes R,G,B,X) */
+	/* The core's platform (mPlatform: mPLATFORM_GBA, mPLATFORM_GB). A Game Boy / Game Boy Color game
+	 * (issue #77) draws its 160x144 picture centred in the same GBA_W x GBA_H frame, at (picX, picY),
+	 * so the rest of the app sees a GBA-sized picture; for a GBA game it is the whole frame. */
+	int gbKind; /* a Game Boy game: 0 made for the plain Game Boy, 1 for either (dual-mode), 2 for the Game Boy Color alone */
+	int platform;
+	int picX, picY, picW, picH;
 	char gameCode[5];
 	uint32_t romCrc; /* the ROM's CRC32, as loaded, patched if it was (profile_dump) */
 	int patch; /* PatchResult (patch.h): a patch file beside the ROM, and whether it was applied (GEN-9) */
@@ -52,6 +67,7 @@ typedef struct Emu {
 	char patchSkipped[256]; /* (PATCH_PARTIAL) the ones left out, " + " between */
 	uint32_t fileCrc; /* the ROM file's own CRC32, before the patch */
 	bool audio;
+	void* rumble; /* the live game's rumble (emu_rumble_level), NULL for the hidden copies */
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */
 	/* a hidden copy's capture called off (mapcap_cancel): while it's set,
 	 * frames don't run, so whatever the capture waits for gives up at
@@ -68,16 +84,35 @@ extern int emuRenderWorkers;
  * the heap more room, set before emu_open) */
 extern bool emuHiddenCopy;
 /* ROMs may also be in a .zip or .7z (the first GBA ROM inside is used). */
-bool emu_is_rom_name(const char* name);   /* .gba, .zip, .7z */
+bool emu_is_rom_name(const char* name);   /* .gba, .gb, .gbc (.sgb .dmg .cgb), .zip, .7z */
 bool emu_is_archive_name(const char* name); /* .zip, .7z */
-/* Reads the first n bytes of the ROM header (n <= 0xC0), from inside an
- * archive if need be. */
+/* Reads the first n bytes of the ROM header (n <= EMU_HEADER_MAX: 0x150 reaches the end of a Game
+ * Boy header), from inside an archive if need be. */
+#define EMU_HEADER_MAX 0x150
 bool emu_rom_header(const char* path, uint8_t* out, size_t n);
+/* The game's 4-letter code from a header read with emu_rom_header (n >= EMU_HEADER_MAX): a GBA game's
+ * own; a Game Boy / Game Boy Color game's made from its header ("g" or "c" + 3 characters, lower case:
+ * issue #77). Its title (up to 15 characters, unprintable ones "_"). */
+/* Is the game a Game Boy / Game Boy Color one (issue #77)? */
+bool emu_is_gb(const Emu* e);
+int emu_gb_kind(const Emu* e); /* Emu.gbKind */
+bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
+void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
 void emu_frame(Emu* e, uint32_t keys);
+
+/* Rumble (issue #83): how hard the game is asking its motor to run right now, 0 to 1
+ * (the share of the last frame it was on). Cartridge rumble (Drill Dozer, WarioWare
+ * Twisted, and romhacks that use the same pin) lands here; Game Boy Player rumble
+ * (Mario & Luigi, Pokemon Pinball R&S, SMA4) doesn't reach it yet, see
+ * docs/TESTING.md. Only the live game (emu_open with audio) has it, 0 otherwise.
+ * May be read from another thread than the one running frames. */
+float emu_rumble_level(const Emu* e);
 /* The same without drawing it (e->fb keeps the last picture): for waits on
  * a hidden copy. */
 void emu_frame_blind(Emu* e, uint32_t keys);
+/* the cartridge has a sun sensor (Boktai) */
+bool emu_has_solar(Emu* e);
 /* true while this core's capture has been called off (Emu.cancel) */
 bool emu_cancelled(const Emu* e);
 void emu_reset(Emu* e);
@@ -116,6 +151,17 @@ bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t 
 bool emu_state_load_file(Emu* e, const char* path);
 /* what's in a state file; *fromGbads (may be NULL): it has GBA DS's own data (saved by GBA DS) */
 StateFileKind emu_state_file_kind(Emu* e, const char* path, bool* fromGbads);
+/* Why mGBA refuses a state of the GBA BIOS's kind (issue #78): a state saved while the
+ * CPU was inside the real GBA BIOS (the waits for the next frame, the interrupt
+ * handler) can't go on in a core without that BIOS, nor a state saved without it in
+ * a core that has it. Called after emu_state_load_file failed; BIOS_REFUSAL_NONE
+ * when that isn't why (nothing else of mGBA's refusals is told apart). */
+typedef enum {
+	BIOS_REFUSAL_NONE,
+	BIOS_REFUSAL_STATE_HAS_BIOS, /* saved with the official BIOS, this core runs without it */
+	BIOS_REFUSAL_CORE_HAS_BIOS,  /* saved without it, this core runs the official one */
+} BiosRefusal;
+BiosRefusal emu_state_file_bios_refusal(Emu* e, const char* path);
 /* The CRC32 of the ROM a state file was saved with (mGBA keeps it in the
  * state's header); false if it isn't a GBA state */
 bool emu_state_file_rom_crc(const char* path, uint32_t* crc);
@@ -132,6 +178,11 @@ uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* p
 /* The patches a game is played with (GEN-9), in order: whatever opens that
  * ROM from now on gets them; a NULL rom or no files: none planned (then the
  * patch file beside a ROM, if any). */
+/* A Game Boy game's colours (GB-6, GB-7), set before emu_open: colors is mGBA's gb.colors
+ * (0 none, 1 the Game Boy Color's palette for the game, 3 the Super Game Boy's else that);
+ * rgb: four 0xRRGGBB shades for the whole picture (NULL: not used); mono: a dual-mode game
+ * as on a plain Game Boy. The defaults are GB-1's. */
+void emu_gb_colours(int colors, const uint32_t* rgb, bool mono);
 void emu_patch_plan(const char* rom, char files[][1024], int n);
 /* The ROM with the patches given applied, in order (the game list's
  * checksum of each game as it would be played) */

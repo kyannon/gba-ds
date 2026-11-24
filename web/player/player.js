@@ -77,9 +77,9 @@ const RESOLUTIONS = (() => {
 
 /* ================================================================ settings */
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
-const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "rotate", sizes: "device",
-  gap: 0, smooth: true, scale: 0.5, volume: 80, muted: false, pauseHidden: true,
-  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true };
+const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "stack",
+  gap: 0, smooth: true, scale: 2 / 3, volume: 80, muted: false, pauseHidden: true,
+  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark", accent: "purple" };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const S = Object.assign({}, DEFAULTS, readJSON(SET_KEY) || {});
@@ -96,11 +96,32 @@ function migrateSettings(s) {
     if (s.touchPlace === "below") s.touchPlace = DEFAULTS.touchPlace;
     s.v = 3;
   }
+  // (v4, Nov 17, 2026: Top over bottom by default; "follow rotation" was the default, so it moves once)
+  if (s.v < 4) {
+    if (s.arrange === "rotate") s.arrange = DEFAULTS.arrange;
+    s.v = 4;
+  }
+  // (v5, Nov 17, 2026: two thirds of the resolution by default, 2x of the game's pixels on Two GBA screens; the old default, half, moves once)
+  if (s.v < 5) {
+    if (s.scale === 0.5) s.scale = DEFAULTS.scale;
+    s.v = 5;
+  }
   if (!["rotate", "stack", "side"].includes(s.arrange)) s.arrange = DEFAULTS.arrange;
   if (RESOLUTIONS.alias[s.device]) s.device = RESOLUTIONS.alias[s.device];
   return s;
 }
-if ((S.v || 1) < 3) { migrateSettings(S); writeJSON(SET_KEY, S); } else migrateSettings(S);
+if ((S.v || 1) < 5) { migrateSettings(S); writeJSON(SET_KEY, S); } else migrateSettings(S);
+// the theme: the keys' look (the app's Settings > Games > Theme); the page stays dark, as in the app
+function applyTheme() {
+  const light = S.theme === "light";
+  document.documentElement.dataset.theme = light ? "light" : "dark";
+  const b = $("themeBtn");
+  if (b) { b.title = light ? "Dark theme" : "Light theme"; b.setAttribute("aria-label", b.title); }
+  if ($("theme")) $("theme").value = light ? "light" : "dark";
+  if (!GBAAccent.ids.includes(S.accent)) S.accent = "purple";
+  GBAAccent.apply(S.accent, light);
+  if ($("accent")) $("accent").value = S.accent;
+}
 const saveSettings = () => { writeJSON(SET_KEY, S); folderKeepSettings(); };
 const ctl = Object.assign({ keys: null, pads: {} }, readJSON(CTL_KEY) || {});
 const keyMap = () => ctl.keys || KEY_DEFAULTS;
@@ -155,8 +176,21 @@ async function allFiles() {
 }
 // what the app wrote: battery saves, states and the home folder into the browser; everything into the player's folder
 const BROWSER_KEEPS = /^\/(saves|states|home)\//;
+// a bug report's .zip, saved by the app into its bug-reports folder: handed to the browser as a download too,
+// so it can be kept outside the player's own storage (and sent)
+const BUG_ZIP = /^\/gba-ds\/bug-reports\/([^\/]+\.zip)$/, bugSent = new Map();
+function downloadBugReports(files) {
+  for (const [p, b] of files) {
+    const m = BUG_ZIP.exec(p);
+    if (!m || bugSent.get(p) === b.length) continue;
+    bugSent.set(p, b.length);
+    download(m[1], b, "application/zip");
+    toast("Bug report saved as " + m[1] + ": the browser is downloading it.");
+  }
+}
 function keepFiles(files, deleted) {
   if (!files.length && !deleted.length) return;
+  downloadBugReports(files);
   folderWrite(files, deleted);
   files = files.filter(([p]) => BROWSER_KEEPS.test(p)); deleted = deleted.filter((p) => BROWSER_KEEPS.test(p));
   if (!files.length && !deleted.length) return;
@@ -261,7 +295,7 @@ function folderKeepSettings() {
 async function folderTakeSettings() {
   try {
     const j = JSON.parse(await (await (await F.handle.getFileHandle(FOLDER_SETTINGS)).getFile()).text());
-    if (j.settings) { Object.assign(S, j.settings); migrateSettings(S); writeJSON(SET_KEY, S); }
+    if (j.settings) { Object.assign(S, j.settings); migrateSettings(S); writeJSON(SET_KEY, S); applyTheme(); }
     if (j.controls) { Object.assign(ctl, j.controls); writeJSON(CTL_KEY, ctl); }
     return true;
   } catch (e) { return false; }
@@ -522,10 +556,10 @@ function webConfig() {
   out.set(own[1]); out.set(add, own[1].length);
   return out;
 }
-// where the two screens go on the page (CSS px), for the arrangement and sizes chosen
+// where the two screens go on the page (CSS px), for the arrangement chosen, by their pixels (a screen with more pixels is drawn larger)
 function placeScreens(win, W, H) {
   const [a, b] = win.screens;
-  const dims = (s) => S.sizes === "device" ? (() => { const ppi = Math.hypot(s.w, s.h) / s.inch; return [s.w / ppi, s.h / ppi]; })() : [s.w, s.h];
+  const dims = (s) => [s.w, s.h]; // by pixels: a screen with more pixels is drawn larger
   const [aw, ah] = dims(a), [bw, bh] = dims(b);
   const pad = Math.min(W, H) < 500 ? 8 : 24;
   const try_ = (side) => {
@@ -823,6 +857,8 @@ function showStopped() {
   P.running = false; P.paused = false;
   GBATouch.release();
   document.body.classList.remove("playing");
+  // the canvas keeps the game's last picture (the worker owns it): swap in a blank one
+  freshCanvas();
   $("start").hidden = false;
   showPaused(); showNow(); showSlots(); relayout();
 }
@@ -855,21 +891,25 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden && S.pauseHidden && !P.paused) setPaused(true, true);
   else if (!document.hidden && P.autoPaused) setPaused(false);
 });
-window.addEventListener("pagehide", () => { if (P.worker) P.worker.postMessage({ t: "sync" }); });
+// (a page being closed or reloaded may not live to get the files back from the worker: they are asked
+// for as soon as the page is hidden, which comes first, and the worker also sends a setting at once)
+const syncNow = () => { if (P.worker) P.worker.postMessage({ t: "sync" }); };
+window.addEventListener("pagehide", syncNow);
+document.addEventListener("visibilitychange", () => { if (document.hidden) syncNow(); });
 
 /* ================================================================ the start screen */
 function showSlots() {
   const b = P.build, r = P.rom;
-  $("slotBuild").classList.toggle("have", !!b);
-  $("buildName").textContent = b ? "GBA DS " + b.version : "No build yet";
-  $("buildHint").textContent = b ? (!b.caps.hasAudio ? "No sound in this build's web version" : !b.caps.hasButtons ? "Keyboard only: no X or Y" : b.bundled ? "Comes with this player · drop another build (.zip) to try it" : b.name) : "A GBA DS build (.zip) with a web build inside";
-  $("buildHint").classList.toggle("warn", !!b && !(b.caps.hasAudio && b.caps.hasButtons));
+  // no build: a key to choose one; a build: a card like Your files, with a button for another
+  $("slotBuild").parentElement.hidden = !!b;
+  $("buildCard").hidden = !b;
+  $("buildName").textContent = b ? ": Version " + b.version : "";
   $("slotGame").classList.toggle("have", !!r);
   $("gameName").textContent = r ? r.title : "No game yet";
-  $("gameHint").textContent = r ? r.code + " · " + r.name : "A GBA game (.gba, or zipped)";
-  const extra = P.state || P.save;
-  $("slotSave").classList.toggle("have", !!extra);
-  $("saveName").textContent = P.state ? "State: " + P.state.name : P.save ? "Save: " + P.save.name : "The player keeps your saves";
+  $("gameHint").textContent = r ? r.code + " · " + r.name + (P.state ? " · State: " + P.state.name : P.save ? " · Save: " + P.save.name : "") : "Drag and drop or choose a game";
+  $("exportSave").disabled = !r;
+  showFolder();
+  $("forgetBuild").hidden = !b || b.bundled;
   $("playBtn").disabled = !(b && r);
   $("playBtn").textContent = r ? "Play " + r.title : "Play";
 }
@@ -903,7 +943,7 @@ async function showRecent() {
     ul.appendChild(li);
   }
 }
-for (const id of ["slotBuild", "slotGame", "slotSave", "openBtn"]) $(id).onclick = () => $("fileInput").click();
+for (const id of ["slotBuild", "newBuild", "slotGame", "openBtn"]) $(id).onclick = () => $("fileInput").click();
 $("fileInput").onchange = (e) => { const f = [...e.target.files]; e.target.value = ""; if (f.length) takeFiles(f); };
 $("playBtn").onclick = () => boot();
 $("listBtn").onclick = () => boot({ library: true });
@@ -1232,13 +1272,11 @@ function showSettings() {
   $("device").value = S.device;
   $("customDevice").hidden = S.device !== "custom";
   for (const [id, k, i] of CUSTOM) $(id).value = S.custom[k][i];
-  $("arrange").value = S.arrange; $("sizes").value = S.sizes; $("gap").value = S.gap;
+  $("arrange").value = S.arrange; $("gap").value = S.gap;
   $("smooth").value = S.smooth ? "1" : "0"; $("scale").value = String(S.scale);
+  $("theme").value = S.theme === "light" ? "light" : "dark";
   $("volume").value = S.volume; $("pauseHidden").checked = !!S.pauseHidden;
   $("touchShow").value = S.touchShow; $("touchPlace").value = S.touchPlace; $("touchSize").value = S.touchSize; $("touchVibrate").checked = !!S.touchVibrate;
-  $("exportSave").disabled = !P.rom;
-  showFolder();
-  $("forgetBuild").hidden = !P.build || P.build.bundled;
   $("aboutNote").textContent = "Player " + VERSION + (P.build ? " · GBA DS " + P.build.version : "") +
     (P.caps ? " · sound " + (P.caps.hasAudio ? "yes" : "no") + ", every button " + (P.caps.hasButtons ? "yes" : "no") : "") + " · " + navigator.userAgent.replace(/^Mozilla\/5\.0 /, "");
 }
@@ -1252,10 +1290,14 @@ for (const [id, k, i] of CUSTOM) $(id).onchange = () => {
   if (S.device === "custom") restartSoon("Restarted for the custom screens.");
 };
 $("arrange").onchange = () => { S.arrange = $("arrange").value; saveSettings(); relayout(); };
-$("sizes").onchange = () => { S.sizes = $("sizes").value; saveSettings(); relayout(); };
 $("gap").oninput = () => { S.gap = Number($("gap").value); saveSettings(); relayout(); };
 $("smooth").onchange = () => { S.smooth = $("smooth").value === "1"; saveSettings(); relayout(); };
 $("scale").onchange = () => { S.scale = Number($("scale").value); saveSettings(); restartSoon("Restarted at the new resolution."); };
+const setTheme = (t) => { S.theme = t === "light" ? "light" : "dark"; saveSettings(); applyTheme(); };
+$("themeBtn").onclick = () => setTheme(S.theme === "light" ? "dark" : "light");
+$("theme").onchange = () => setTheme($("theme").value);
+$("accent").onchange = () => { S.accent = $("accent").value; saveSettings(); applyTheme(); };
+applyTheme();
 $("volume").oninput = () => { S.volume = Number($("volume").value); S.muted = false; saveSettings(); showSound(); };
 $("touchShow").onchange = () => { S.touchShow = $("touchShow").value; saveSettings(); relayout(); };
 $("touchPlace").onchange = () => { S.touchPlace = $("touchPlace").value; saveSettings(); relayout(); };

@@ -142,10 +142,12 @@ void ui_clip(int screen, const SDL_Rect* clip);
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch);
 /* Only rows y0 .. y0 + rows - 1 of it (px is still the whole picture). */
 void ui_update_texture_rows(SDL_Texture* t, const void* px, int pitch, int y0, int rows);
+/* ui_update_texture for the interface's own pictures: not colour-corrected */
+void ui_update_texture_plain(SDL_Texture* t, const void* px, int pitch);
 /* Colour correction for everything given to ui_update_texture (the game's
  * pictures, ABGR8888): the GBA's own screen, as mGBA's GBA Color shader
  * (sRGB profile, Darken Screen 0.5) draws it. */
-void ui_color_correction(bool on);
+void ui_color_correction(int mode); /* 0 off, 1 the GBA's screen, 2 a Game Boy Color's */
 /* Display > Shader (config.h SH_*): the subpixel presets brighten every
  * picture given to ui_update_texture (their stripes darken it again); the
  * pattern itself is drawn by ui_image_pixels from cfg->shader. */
@@ -158,17 +160,35 @@ void ui_fill_round(int screen, SDL_Rect local, SDL_Color c, int radius);
 enum { KEY_PLAIN, KEY_SEL, KEY_LIT };
 void ui_key(int screen, SDL_Rect local, int radius, int state);
 void ui_theme(int light);
+/* The menus' accent colour (Settings > Display > Color): what's selected, the
+ * edges and glows, the panels' tint and the highlight for chosen values,
+ * pills and bars. Each has a dark and a light version (the theme's), made to
+ * read on the keys and panels they sit on. */
+enum { AC_BG, AC_HEADER, AC_ROW, AC_BTN, AC_BTN_SEL, AC_EDGE, AC_HI, AC_HI_INK, AC_SEL_MID, AC_LIT_MID,
+       AC_SEL_HI, AC_SEL_LO, AC_SEL_EDGE, AC_SEL_BORDER, AC_SEL_RING, AC_LIT_BORDER, AC_LIT_HI, AC_LIT_LO, AC_LIT_EDGE, AC_COUNT };
+#define ACCENT_COUNT 7
+void ui_accent(const char* id);              /* by its name in the config ("purple"...); unknown: purple */
+SDL_Color ui_accent_color(int role);
+void ui_rumble(float level); /* the motor's level now, 0..1 (rumble_strength already in it); called every frame, cheap */
+void ui_rumble_pulse(float level, int ms); /* a short buzz, to feel a setting's strength */
 void ui_brightness(int top, int bottom); /* each screen's brightness, 20..100: dims this app's picture only */
 bool ui_theme_light(void);
 SDL_Color ui_key_ink(void);          /* text and icons on a key */
+void ui_key_palette(int state, SDL_Color* border, SDL_Color* rim, SDL_Color* hi, SDL_Color* lo, SDL_Color* edge, SDL_Color* ring); /* a key's colours */
 SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */
 /* Text in Jost (textfont.h: TF_BOLD for labels and headings, TF_BODY for
  * longer text), any UTF-8 string, capitals capPx tall and centred on cy.
  * align: -1 starts at x, 0 is centred on x, 1 ends at x. */
 void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
 int ui_font_width(int font, int capPx, const char* text);
+/* the language changed (i18n_set): drop the old text's pictures and widths, set the script's fonts */
+void ui_language_changed(void);
 /* Word-wrapped to width, starting at the top-left x, y; returns the y below. */
 int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c);
+/* the same, flowing round a box on the right: the lines from narrowY down are only narrowW wide */
+int ui_font_wrap_around(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW);
+/* The height ui_font_wrap would take (lines x twice the cap height), without drawing. */
+int ui_font_wrap_height(int font, int width, int capPx, const char* text);
 /* A title fitted into area (bold, centred, at most capMax tall, on one line
  * or broken in two at a space): a placeholder for a game's logo. */
 void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c);
@@ -217,6 +237,13 @@ bool ui_logo_custom(const Config* c, const char* rom, const char* code);
 /* The extracted logo queued for extraction if it's needed and missing (a
  * scraped logo needs it too: it takes its size from it). */
 void ui_logo_queue(const Config* c, const char* rom, const char* code);
+/* The game list: a ROM file's checksum (for logos made per file) not known yet is worked out on a
+ * thread, not while the list draws; ui_file_crc_generation moves as each is done. */
+void ui_file_crc_async(bool on);
+uint32_t ui_file_crc_generation(void);
+bool ui_file_crc_pending(void);
+void ui_notice(const char* title, const char* line); /* a two-line screen on every screen, shown until the next frame is drawn */
+void ui_game_prepare(const Config* c, const char* rom); /* before a game starts: what would freeze its first frames (a screen says so) */
 /* An RGBA32 picture resampled to w x h (averaged down; nearest pixel up). */
 SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h);
 

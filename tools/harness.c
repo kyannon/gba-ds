@@ -87,7 +87,9 @@ int main(int argc, char** argv) {
 		perror("script");
 		return 1;
 	}
-	if (!emu_open(&emu, argv[1], NULL, false)) {
+	/* HARNESS_SAVE=path: a battery save to run with (the file is written to as the game saves) */
+	if (getenv("HARNESS_BIOS")) snprintf(emu_bios_path, sizeof(emu_bios_path), "%s", getenv("HARNESS_BIOS")); /* a BIOS file, as Settings > GBA BIOS (issue #78) */
+	if (!emu_open(&emu, argv[1], getenv("HARNESS_SAVE"), false)) {
 		return 1;
 	}
 	fprintf(stderr, "game code %s\n", emu.gameCode);
@@ -95,13 +97,13 @@ int main(int argc, char** argv) {
 	if (profile_patch_rom(profile_find(emu.gameCode), &emu)) fprintf(stderr, "ROM patched\n");
 	MapCapture* mc = mapcap_create(argv[1], emu.gameCode, getenv("FULLMAP") == NULL);
 
-	char line[512];
+	char line[2048];
 	while (fgets(line, sizeof(line), in)) {
 		char* p = line;
 		while (isspace((unsigned char) *p)) ++p;
 		if (!*p || *p == '#') continue;
-		char cmd[32] = "", a1[256] = "", a2[64] = "", a3[64] = "";
-		sscanf(p, "%31s %255s %63s %63s", cmd, a1, a2, a3);
+		char cmd[32] = "", a1[256] = "", a2[1400] = "", a3[64] = "";
+		sscanf(p, "%31s %255s %1399s %63s", cmd, a1, a2, a3);
 		if (!strcmp(cmd, "hold")) {
 			run(parse_keys(a1), atoi(a2));
 		} else if (!strcmp(cmd, "wait")) {
@@ -169,6 +171,9 @@ int main(int argc, char** argv) {
 				printf(" %02X", emu_read8(&emu, addr + i));
 			}
 			printf("\n");
+		} else if (!strcmp(cmd, "rumble")) {
+			/* the motor's level now (GBADS_HARNESS_RUMBLE=1 gives the harness's game one; issue #83) */
+			printf("RUMBLE %.2f\n", emu_rumble_level(&emu));
 		} else if (!strcmp(cmd, "io")) {
 			/* I/O registers as the renderer sees them: io OFFSET COUNT (16-bit) */
 			uint32_t off = strtoul(a1, NULL, 0), n = strtoul(a2, NULL, 0);
@@ -179,6 +184,14 @@ int main(int argc, char** argv) {
 			uint32_t addr = strtoul(a1, NULL, 0), len = strtoul(a2, NULL, 0), val = strtoul(a3, NULL, 0);
 			/* (little-endian: len bytes of val) */
 			for (uint32_t i = 0; i < len; ++i) emu_write8(&emu, addr + i, i < 4 ? (val >> (8 * i)) & 0xFF : 0);
+		} else if (!strcmp(cmd, "pokes")) {
+			/* pokes ADDR HEXBYTES: write a run of bytes given as hex digits
+			 * (a party of Pokemon is 600 of them) */
+			uint32_t addr = strtoul(a1, NULL, 0);
+			for (const char* h = a2; h[0] && h[1]; h += 2) {
+				char b[3] = { h[0], h[1], 0 };
+				emu_write8(&emu, addr++, (uint8_t) strtoul(b, NULL, 16));
+			}
 		} else if (!strcmp(cmd, "logo")) {
 			char path[512];
 			snprintf(path, sizeof(path), "%s/%s.png", outdir, a1);

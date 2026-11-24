@@ -1,4 +1,5 @@
 #include "paths.h"
+#include "i18n.h"
 
 #include "emu.h"
 #include "patch.h"
@@ -361,14 +362,11 @@ static void safe_name(char* s) {
 void patch_folder(const Config* cfg, const char* rom, const char* code, char* out, size_t size, bool make) {
 	char name[300];
 	if (!profile_release_name(code, name, sizeof(name))) {
-		uint8_t h[0xB0];
-		char title[13] = "";
-		if (emu_rom_header(rom, h, sizeof(h))) {
-			memcpy(title, h + 0xA0, 12);
-			title[12] = 0;
-		}
+		uint8_t h[EMU_HEADER_MAX];
+		char title[17] = "";
+		if (emu_rom_header(rom, h, sizeof(h))) emu_rom_title(h, sizeof(h), title);
 		for (int i = (int) strlen(title) - 1; i >= 0 && (title[i] == ' ' || !title[i]); --i) title[i] = 0;
-		snprintf(name, sizeof(name), "%s (%.4s)", title[0] ? title : "GBA", code);
+		snprintf(name, sizeof(name), "%s (%.4s)", title[0] ? title : tr("GBA"), code);
 	}
 	safe_name(name);
 	snprintf(out, size, "%s/%s", cfg->patchDir, name);
@@ -672,7 +670,7 @@ void data_dir_setup(const char* defDir, const char* record, const char* want, bo
 			if (!is_dir(now) && is_dir(parent)) mkdirs(now);
 			if (!is_dir(now) || !can_write(now)) {
 				fprintf(stderr, "data folder: can't reach %s: using %s for now\n", now, defDir);
-				snprintf(dataNote, sizeof(dataNote), "Can't reach GBA DS's folder, using %s for now: %s", defDir, now);
+				snprintf(dataNote, sizeof(dataNote), tr("Can't reach GBA DS's folder, using %s for now: %s"), defDir, now);
 				snprintf(out, n, "%s", defDir);
 				mkdirs(defDir);
 				return;
@@ -696,13 +694,13 @@ void data_dir_setup(const char* defDir, const char* record, const char* want, bo
 		}
 		if (!is_dir(parent)) {
 			fprintf(stderr, "data folder: %s isn't there (for %s): staying in %s\n", parent, to, now);
-			snprintf(dataNote, sizeof(dataNote), "Chosen folder not found, files not moved: %s", to);
+			snprintf(dataNote, sizeof(dataNote), tr("Chosen folder not found, files not moved: %s"), to);
 		} else if (nested) {
 			fprintf(stderr, "data folder: %s is inside %s's own folders: staying there\n", to, now);
-			snprintf(dataNote, sizeof(dataNote), "Chosen folder is inside GBA DS's own, files not moved: %s", to);
+			snprintf(dataNote, sizeof(dataNote), tr("Chosen folder is inside GBA DS's own, files not moved: %s"), to);
 		} else if ((mkdirs(to), !is_dir(to)) || !can_write(to)) {
 			fprintf(stderr, "data folder: can't write in %s: staying in %s\n", to, now);
-			snprintf(dataNote, sizeof(dataNote), "Can't save in the chosen folder, files not moved: %s", to);
+			snprintf(dataNote, sizeof(dataNote), tr("Can't save in the chosen folder, files not moved: %s"), to);
 		} else {
 			char states[1100];
 			snprintf(states, sizeof(states), "%s/states", to);
@@ -715,7 +713,7 @@ void data_dir_setup(const char* defDir, const char* record, const char* want, bo
 				snprintf(a, sizeof(a), "%s/states", now);
 				int fails = move_tree(a, states);
 				if (fails) {
-					snprintf(dataNote, sizeof(dataNote), "Couldn't move GBA DS's files, they stay in %s", now);
+					snprintf(dataNote, sizeof(dataNote), tr("Couldn't move GBA DS's files, they stay in %s"), now);
 					rmdir(to);
 					if (!is_dir(now) || !can_write(now)) snprintf(out, n, "%s", defDir), mkdirs(defDir);
 					return;
@@ -747,7 +745,7 @@ void data_dir_setup(const char* defDir, const char* record, const char* want, bo
 					/* (a folder of the player's, once empty) */
 					if (!same_dir(now, defDir)) rmdir(now);
 				}
-				if (fails) snprintf(dataNote, sizeof(dataNote), "Some files couldn't be moved, they're still in %s", now);
+				if (fails) snprintf(dataNote, sizeof(dataNote), tr("Some files couldn't be moved, they're still in %s"), now);
 				fprintf(stderr, "data folder: moved%s\n", fails ? ", some files left (above)" : "");
 			}
 			snprintf(out, n, "%s", to);

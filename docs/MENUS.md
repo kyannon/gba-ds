@@ -55,12 +55,13 @@ a line, or the file, goes back to the settings for all games.
 Per-game keys: `swap`, `scale`, `map_scale`, `smooth`, `border_color`,
 `overlays`, `overlay_screens`, `bezel_*`, `shader`, `lcd_strength`,
 `color_correction`, `lcd_ghosting`, `frame_buffer`, `match_display`,
-`screen_match`, `screen_placement`, `map`, `map_crop`, `map_animations`,
-`map_interval`, `show_logo`, `custom_logos`, `pinball_live`, `rewind`,
+`screen_match`, `screen_placement`, `map`,
+`map_interval`, `custom_logos`, `pinball_live`, `rewind`,
 `rewind_seconds`, `fast_forward`, `ff_speed`, `ab_swap`, `show_fps`,
 `audio_latency`, `save_on_quit`, `auto_load`, and the new `brightness_top`,
-`brightness_bottom`, `left_stick_dpad`, `turbo_rate`, `button_right`,
-`button_bottom`, `button_top`, `button_left`. For all games only: folders,
+`brightness_bottom`, `left_stick_dpad`, `turbo_rate`, `rumble_strength`, `button_right`,
+`button_bottom`, `button_top`, `button_left`, `button_l`, `button_r`, `button_dpad_up`,
+`button_dpad_down`, `button_dpad_left`, `button_dpad_right`. For all games only: folders,
 accounts, updates, `layout`, `touch_*`, `sway`, `vsync`, hotkeys,
 `performance`, `show_all`, `name_tags`, the game list's view,
 EmulationStation / BananaOS integration.
@@ -98,12 +99,12 @@ returns one step. B/Back and HOME work as now.
 | Category | Rows |
 |---|---|
 | **Games** | Show all games: Supported only / All games (#54), Game name tags, Game folders (Android: choose; Linux: shown), Logo folder, Custom logos |
-| **Display** | Scale (game, second screen), Shader and strength, Brightness: top, Brightness: bottom (#56), Color correction, LCD ghosting, Smooth scaling, Swap screens, Screen shapes, Screen placement, Overlays and bezel, Border colour, Show FPS |
-| **Controls** | Left stick as D-pad (#57), Face buttons (#55), Turbo rate, GBA A/B swap, Map Buttons, Hotkeys, menu combo |
-| **Speed and sound** | Performance, Frame buffer, Match display rate, Rewind and its length, Fast forward and its speed, Sound delay |
-| **Second screen** | Map on/off, Map refresh, Map animations, Tidy map screens, Logo when blank, Pinball live view |
+| **Display** | Scale (game, second screen), Shader and strength, Brightness: top, Brightness: bottom (#56), Color correction, LCD ghosting, Smooth scaling, Swap screens, Screen shapes, Screen placement, Overlays and bezel, Border colour |
+| **Controls** | Map Buttons, Hotkeys, Left stick as D-pad (#57), Face buttons (#55), Turbo rate, Rumble strength (#83), GBA A/B swap, menu combo |
+| **Speed and sound** | Show FPS, Performance, Frame buffer, Match display rate, Rewind and its length, Fast forward and its speed, Sound delay |
+| **Second screen** | Map on/off, Map refresh, Pinball live view |
 | **Saves** | Save on quit, Auto-load, Save folder and type, GBA DS data folder |
-| **System** | RetroAchievements, Updates, EmulationStation / BananaOS list (as now) |
+| **System** | Language, RetroAchievements, Updates, EmulationStation / BananaOS list (as now) |
 
 The existing special screens (Map Buttons, Hotkeys, Updates, Folders,
 RetroAchievements, ES integration) are rows inside their category and
@@ -117,12 +118,11 @@ by dragging or with L1/R1... (page up / down), with a thin scroll bar.
 
 ## Pause menu (this game, or all)
 
-Seven tabs (Game, Tools, Display, Screens, Controls, Speed, Map; L1 / R1 and taps), each at most one screen where it can:
+Six tabs (Game, Display, Screens, Controls, Speed, Map; L1 / R1 and taps); a page shows at most 8 rows and scrolls past that (D-pad or a finger dragged). The Settings screens carry the same pictures as the tabs (Settings > System: a toolbox):
 
 | Tab | Holds |
 |---|---|
-| **Game** | Resume, Restart, Save State / Load State, slot, Close Game, Close GBA DS (actions, as now) |
-| **Tools** | Cheats, Patches, Achievements, Take Screenshot, Submit a Bug Report (actions) |
+| **Game** | Resume / Restart Game and Save State / Load State (two to a row), the slot, then Cheats / Patches and Take Screenshot / Submit a Bug Report (two to a row; Achievements between them when on), then Close Game and Close GBA DS last, double height and side by side (Close GBA DS alone, full width, when the game wasn't started from the game list) (actions) |
 | **Display** | the Display category's rows; Overlays opens its screen as now |
 | **Controls** | the Controls category's rows; Face buttons becomes four rows here instead of its own screen |
 | **More** | Speed and sound, Second screen and Saves rows that make sense for one game |
@@ -181,5 +181,7 @@ second line, always visible on the four settings tabs.
    in this version; Android's folder pickers and the sign-in box stay.
 
 ## System: reset and delete
+
+System's layout (library.c `settings_geom`, slots from `row_slot` / `row_second`): Language (each press steps to the next language); Updates; room; Save States | RetroArch's State Folder; the OS's integration row; room; Reset | Delete. Left / Right switch between the two on a row, Up / Down go by slot. Every Settings page's help text is wrapped beside Back and centred on its height (`set_notes`); BananaOS's long text raises Back a little.
 
 `Reset settings to defaults` (every key of the settings table removed from `prefs.cfg`, the in-memory values set from `config_defaults`, paths and other files untouched) and `Delete per-game settings` (every `*.cfg` in the state folder except prefs, library, hotkeys and update). Both use `confirmRow`: the first activation says "Are you sure?", the second acts; moving off the row or activating another cancels.

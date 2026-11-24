@@ -189,9 +189,39 @@ public class GbaDsActivity extends SDLActivity {
      */
     private int orientationWanted() {
         boolean two = hasSecondDisplay();
-        int o = two ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
-        Log.i(TAG, two ? "two displays: landscape" : "one display: any orientation (the rotation lock is kept)");
+        String mode = rotationMode();
+        int o;
+        if (two) o = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+        else if (mode.equals("portrait")) o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
+        else if (mode.equals("landscape")) o = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+        else o = ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
+        Log.i(TAG, two ? "two displays: landscape"
+                : "one display: " + (mode.equals("auto") ? "any orientation (the rotation lock is kept)" : mode + " (Settings > Rotation)"));
         return o;
+    }
+
+    /**
+     * Settings > Rotation (issue #60): "auto" (follow the phone, the default),
+     * "portrait" or "landscape", kept in rotation.cfg in the app's own storage
+     * (read here before the native side starts; the native side writes it, as
+     * with data-folder.cfg). Only used with one display.
+     */
+    private String rotationMode() {
+        try (java.io.BufferedReader r = new java.io.BufferedReader(new java.io.FileReader(new File(getFilesDir(), "rotation.cfg")))) {
+            String l = r.readLine();
+            if (l != null) {
+                l = l.trim();
+                if (l.equals("portrait") || l.equals("landscape")) return l;
+            }
+        } catch (java.io.IOException e) {
+            /* none: auto */
+        }
+        return "auto";
+    }
+
+    /** Called by the native side when Settings > Rotation changes (the file is written already). */
+    public void applyRotation(String mode) {
+        runOnUiThread(() -> setRequestedOrientation(orientationWanted()));
     }
 
     /** SDL asks when it makes the window (its hint: LandscapeLeft, ui.c). */
@@ -204,16 +234,29 @@ public class GbaDsActivity extends SDLActivity {
         DisplayManager dm = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
         int mine = getWindowManager().getDefaultDisplay().getDisplayId();
         Display other = null;
+        /* Every display goes to launch.log (a USB-C screen such as the Retroid
+         * Dual Screen Add-on on an AYN Odin 2 may be listed with other flags
+         * or states than a built-in one, issue #65), then the one to use is
+         * chosen: not this activity's, and of those the one Android marks for
+         * presentations first, then one that is on, then the first. */
+        int bestScore = -1;
         for (Display d : dm.getDisplays()) {
             Point size = new Point();
             d.getRealSize(size);
-            Log.i(TAG, "display " + d.getDisplayId() + " \"" + d.getName() + "\" " + size.x + "x" + size.y
-                    + " rotation " + d.getRotation() + " flags 0x" + Integer.toHexString(d.getFlags())
+            int flags = d.getFlags();
+            LauncherActivity.launchLog(this, "display " + d.getDisplayId() + " \"" + d.getName() + "\" " + size.x + "x" + size.y
+                    + " rotation " + d.getRotation() + " flags 0x" + Integer.toHexString(flags)
+                    + ((flags & Display.FLAG_PRESENTATION) != 0 ? " (presentation)" : "") + " state " + d.getState()
                     + (d.getDisplayId() == mine ? " (game activity)" : ""));
-            if (d.getDisplayId() != mine && other == null) other = d;
+            if (d.getDisplayId() == mine) continue;
+            int score = ((flags & Display.FLAG_PRESENTATION) != 0 ? 2 : 0) + (d.getState() == Display.STATE_ON ? 1 : 0);
+            if (score > bestScore) {
+                bestScore = score;
+                other = d;
+            }
         }
         if (other == null) {
-            Log.i(TAG, "only one display: no second screen");
+            LauncherActivity.launchLog(this, "only one display: no second screen");
             return;
         }
         Point size = new Point();
@@ -229,7 +272,7 @@ public class GbaDsActivity extends SDLActivity {
         second = new SecondScreen(this, other);
         try {
             second.show();
-            Log.i(TAG, "second screen on display " + other.getDisplayId() + " (" + size.x + "x" + size.y + ")");
+            LauncherActivity.launchLog(this, "second screen on display " + other.getDisplayId() + " (" + size.x + "x" + size.y + ")");
         } catch (WindowManager.InvalidDisplayException e) {
             Log.e(TAG, "second screen: " + e);
             SecondScreen.nativeSetDisplay(0, 0);

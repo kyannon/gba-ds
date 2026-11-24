@@ -4,7 +4,7 @@ Every run writes a log, replaced on the next run:
 - ROCKNIX: `/storage/roms/ports/gba-ds/gba-ds.log`, including the screen set-up (`screens.sh`) before and after.
 - Android: `GBA DS/gba-ds.log`, plus `GBA DS/launch.log` for what a frontend sent when it started GBA DS.
 
-When there's a problem, the log reports it every 5 seconds: audio underruns, slow frames (with what took the time) and how busy the background map capture was.
+When there's a problem, the log reports it every 5 seconds: audio underruns, slow frames (with what took the time) and how busy the background map capture was. While all is well it still writes that line every 30 seconds. It includes the lowest and highest level the sound queue reached and the Sound delay in use (the queue normally sits between half and one and a half times the delay).
 
 **More detail:** on ROCKNIX, add a line `export GBADS_DEBUG=1` near the top of `gba-ds/launch.sh` (after the `#!` line). The log then also records every button, key and touch (with raw joystick button numbers), map captures, control-scheme switches and HUD changes. Remove the line afterwards; the log grows quickly.
 
@@ -32,7 +32,7 @@ If there's a `gba-ds-error.log` next to `GBA DS.sh` instead, the `gba-ds` folder
 
 ## Sound crackles
 
-- Raise `audio_latency` (default 64 ms) to 96 or 128.
+- Raise `audio_latency` (default 64 ms) to 96 or 128. GBA DS also does this itself, one step at a time, when the sound keeps breaking up (it says so on screen and in the log; `audio_auto = 0` turns that off). A low battery can slow a device down enough to need it (seen on BananaOS).
 - Set `map_interval = 180` in `gba-ds.cfg` (a map refresh every 3 seconds). Each map refresh runs a second copy of the game for a moment; on a slower device very short intervals crackle.
 - On the first run, the game list's thumbnails are still being made ("Loading thumbnail..."); starting a game waits only for its own, and the rest carry on when you're back in the game list.
 - **Frame Buffer** (pause menu → Display) smooths out occasional slow frames, at the cost of one frame of input delay.

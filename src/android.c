@@ -6,6 +6,8 @@
 #endif
 
 #include "android.h"
+#include "i18n.h"
+#include "clocks.h"
 #include "emu.h"
 #include "paths.h"
 #include "profiles.h"
@@ -138,6 +140,8 @@ void android_config_defaults(Config* c) {
 			              "A screen with no file of its own gets GBA DS's generated bezel in its default colors.\n\n"
 			              "Names for one scaling or screen shape, and more, in the wiki:\n"
 			              "https://github.com/kyannon/gba-ds/wiki/Overlays\n" },
+			{ "bios", "Optional: your own GBA BIOS, as gba_bios.bin (16 KB), for save states made with one.\n"
+			          "Switch it on in Settings > System > GBA BIOS. Off, games run with GBA DS's built-in BIOS.\n" },
 			{ "logos", "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" },
 			{ "screenshots", NULL },
 		};
@@ -177,6 +181,9 @@ typedef struct APerformanceHintManager APerformanceHintManager;
 typedef struct APerformanceHintSession APerformanceHintSession;
 static APerformanceHintSession* hintSession;
 static int (*hintReport)(APerformanceHintSession*, int64_t);
+static int (*hintUpdate)(APerformanceHintSession*, int64_t);
+static int64_t hintBaseNs;   /* the usual target (android_perf_init's) */
+static bool perfMax;         /* Settings > Speed and sound > Performance: Set to Max */
 
 /* as high as the system lets an app go, short of audio's: other threads of
  * ours and ordinary system work wait for the game */
@@ -197,6 +204,8 @@ void android_perf_init(int64_t targetNs) {
 	APerformanceHintSession* (*create)(APerformanceHintManager*, const int32_t*, size_t, int64_t) =
 		lib ? dlsym(lib, "APerformanceHint_createSession") : NULL;
 	hintReport = lib ? dlsym(lib, "APerformanceHint_reportActualWorkDuration") : NULL;
+	hintUpdate = lib ? dlsym(lib, "APerformanceHint_updateTargetWorkDuration") : NULL;
+	hintBaseNs = targetNs;
 	if (!getManager || !create || !hintReport) {
 		fprintf(stderr, "performance hint: not available on this Android version\n");
 		return;
@@ -208,8 +217,31 @@ void android_perf_init(int64_t targetNs) {
 	if (got) fprintf(stderr, "game thread priority raised (nice %d)\n", got);
 	else fprintf(stderr, "game thread priority: %s\n", strerror(errno));
 	APerformanceHintManager* m = getManager();
-	hintSession = m ? create(m, &tid, 1, targetNs) : NULL;
+	hintSession = m ? create(m, &tid, 1, perfMax ? targetNs * 3 / 10 : targetNs) : NULL;
 	fprintf(stderr, "performance hint: %s\n", hintSession ? "on (game thread)" : "refused by the system");
+	if (hintSession && perfMax) fprintf(stderr, "performance: set to max (the hint's target is %lld us)\n", (long long) (targetNs * 3 / 10 / 1000));
+}
+
+/* Settings > Speed and sound > Performance (the same setting as on Linux,
+ * where it holds the clock governors; clocks.h). An app can't set Android's
+ * clocks, only ask: Max gives the hint session a target about a third of
+ * the usual one, so the system, which clocks the CPU so a frame's work
+ * takes about the target (docs/ANDROID.md), keeps it near full speed. */
+bool clocks_available(void) {
+	return true;
+}
+
+void clocks_set(bool max) {
+	if (max == perfMax) return;
+	perfMax = max;
+	if (!hintSession || !hintUpdate || hintBaseNs <= 0) {
+		fprintf(stderr, "performance: %s (applies when the hint session starts%s)\n", max ? "set to max" : "left to the system",
+		        hintSession ? "; this Android can't change its target" : "");
+		return;
+	}
+	int64_t t = max ? hintBaseNs * 3 / 10 : hintBaseNs;
+	hintUpdate(hintSession, t);
+	fprintf(stderr, "performance: %s (the hint's target is %lld us)\n", max ? "set to max" : "left to the system", (long long) (t / 1000));
 }
 
 /* ------------------------------------------------------------- cores */
@@ -403,7 +435,7 @@ bool android_install_apk(const char* path, char* err, size_t errSize) {
 	if ((*env)->ExceptionCheck(env)) {
 		(*env)->ExceptionClear(env);
 		ok = false;
-		if (err) snprintf(err, errSize, "Android's installer couldn't be reached");
+		if (err) snprintf(err, errSize, tr("Android's installer couldn't be reached"));
 	}
 	(*env)->DeleteLocalRef(env, cls);
 	(*env)->DeleteLocalRef(env, activity);
@@ -456,6 +488,43 @@ static bool call_activity(const char* name, const char* arg) {
 	(*env)->DeleteLocalRef(env, cls);
 	(*env)->DeleteLocalRef(env, activity);
 	return ok;
+}
+
+/* ---- Settings > Rotation (issue #60): rotation.cfg in the app's own
+ * storage, "auto" | "portrait" | "landscape" on one line; GbaDsActivity
+ * reads it before the window exists and applyRotation changes it live. */
+static bool rotation_file(char* out, size_t size) {
+	const char* files = getenv("GBADS_APP_FILES");
+	if (!files || !*files) return false;
+	snprintf(out, size, "%s/rotation.cfg", files);
+	return true;
+}
+
+bool android_one_display(void) {
+	int w, h;
+	return !android_second_size(&w, &h);
+}
+
+int android_rotation_get(void) {
+	char path[1100], line[32] = "";
+	if (!rotation_file(path, sizeof(path))) return 0;
+	FILE* f = fopen(path, "r");
+	if (!f) return 0;
+	if (!fgets(line, sizeof(line), f)) line[0] = 0;
+	fclose(f);
+	return !strncmp(line, "portrait", 8) ? 1 : !strncmp(line, "landscape", 9) ? 2 : 0;
+}
+
+void android_rotation_set(int mode) {
+	static const char* const names[] = { "auto", "portrait", "landscape" };
+	char path[1100];
+	if (mode < 0 || mode > 2 || !rotation_file(path, sizeof(path))) return;
+	FILE* f = fopen(path, "w");
+	if (f) {
+		fprintf(f, "%s\n", names[mode]);
+		fclose(f);
+	}
+	call_activity("applyRotation", names[mode]);
 }
 
 bool android_ra_dialog(const char* user) {

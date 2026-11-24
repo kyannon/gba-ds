@@ -125,6 +125,16 @@ bottom screen, save states and fast-forward. Pokémon Pinball froze on its table
 with 0.0.1-alpha; 0.0.2-alpha's fix (see "What isn't there") has been checked in
 Azahar, not yet on a console.
 
+0.0.7-alpha (2026-11-24: GBA DS 1.6.2-dev and armGBA-3DS 1.0, which is
+upstream armGBA 2.0's core) has not been on a console yet. On the desktop:
+all 57 play scripts ran to the end on libmgba and on armGBA drawn as the 3DS
+draws (`3ds/test/dualrun.py --runs mgba,armgba-3ds`), with the two emulators'
+screens as close as before the merge, shot for shot, but for a few scenes
+where their timing drifts (a fade or a flash caught a frame apart) and the
+scripts' swap step, which the newer menu's layout moved for both. In Azahar:
+the game list, Mario Kart: Super Circuit into its menus at 59.8 frames a
+second with no sound underrun, and the pause menu.
+
 Every supported game, on the desktop build of the app on armGBA
 (`3ds/sim/app.mk`) against the same app on libmgba, with
 `3ds/test/dualrun.py` and a script per game in `3ds/test/play/` (2026-11-15,
@@ -190,8 +200,9 @@ the console; Azahar's copies finish at once).
 
 ## armGBA
 
-`third_party/armgba` is armGBA-3DS: armGBA's main with the 3DS port on top
-(ratherDashing/armGBA).
+`third_party/armgba` is armGBA-3DS 1.0: upstream armGBA 2.0's core, file for
+file, with the 3DS port's `platform/3ds` on top (ratherDashing/armGBA). Everything
+below that GBA DS needs of the core is in upstream armGBA now.
 What GBA DS uses of it that other frontends don't:
 
 - `struct RenderHooks` (`src/video/render.h`): layers and sprites left out
@@ -199,7 +210,7 @@ What GBA DS uses of it that other frontends don't:
   a renderer of its own beside the first (the HUD split). Kept beside the
   machine, not in it: states are unchanged. The second picture can be drawn
   one frame in `secondEvery` (`secondCount` says when there's a new one).
-- `videoDrawSkipped` per thread (the hidden copy runs frames it doesn't draw
+- `videoSetDrawSkipped` per thread (the hidden copy runs frames it doesn't draw
   on a thread of its own).
 
 `ctr/jitmem.c` is armGBA's `platform/3ds/source/jitmem.c` with code memory

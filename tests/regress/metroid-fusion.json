@@ -255,7 +255,7 @@
    "id": "mf-us-patch-carry-on",
    "rom": "AMTE",
    "state": "metroid-fusion/us-play.ss",
-   "desc": "the game paused, Tools > Patches, the colour improvement switched on with the separate battery save and states switches off: \"Sure?\" says it carries on from here; A: the game reopens with it and goes on from that very moment (the menu was up: the game as it was, in the patch's colours where it draws them again)",
+   "desc": "the game paused, Patches (on the Game tab), the colour improvement switched on with the separate battery save and states switches off: \"Sure?\" says it carries on from here; A: the game reopens with it and goes on from that very moment (the menu was up: the game as it was, in the patch's colours where it draws them again)",
    "rules": [
     "GEN-9"
    ],
@@ -265,19 +265,35 @@
      "TAP:0.5,0.3"
     ],
     [
-     130,
-     "R"
-    ],
-    [
-     134,
-     "-"
-    ],
-    [
-     150,
+     126,
      "DOWN"
     ],
     [
-     152,
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "RIGHT"
+    ],
+    [
+     147,
      "-"
     ],
     [
@@ -366,19 +382,35 @@
      "TAP:0.5,0.3"
     ],
     [
-     130,
-     "R"
-    ],
-    [
-     134,
-     "-"
-    ],
-    [
-     150,
+     126,
      "DOWN"
     ],
     [
-     152,
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "RIGHT"
+    ],
+    [
+     147,
      "-"
     ],
     [
@@ -488,14 +520,6 @@
     ],
     [
      124,
-     "-"
-    ],
-    [
-     130,
-     "R"
-    ],
-    [
-     134,
      "-"
     ],
     [

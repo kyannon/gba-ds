@@ -51,15 +51,22 @@ add_library(webpdec STATIC ${WEBP_SRC})
 set_target_properties(webpdec PROPERTIES C_STANDARD 11 C_EXTENSIONS ON)
 target_include_directories(webpdec PUBLIC "${WEBP}")
 
+# --- rzstd, libretro-common's Zstandard decoder (RZIP version 2 save states, MIT), vendored (issue #78) ---
+set(RZSTD "${GBADS_ROOT}/third_party/rzstd")
+file(GLOB RZSTD_SRC "${RZSTD}/src/*.c")
+add_library(rzstd STATIC ${RZSTD_SRC})
+set_target_properties(rzstd PROPERTIES C_STANDARD 11 C_EXTENSIONS ON)
+target_include_directories(rzstd PUBLIC "${RZSTD}/include")
+
 # --- GBA DS ---
 set(S "${GBADS_ROOT}/src")
 add_library(main SHARED
 	${S}/main.c ${S}/config.c ${S}/font.c ${S}/ui.c ${S}/library.c ${S}/game.c ${S}/paths.c ${S}/image.c ${S}/mapper.c ${S}/hotkeys.c ${S}/folderpick.c
-	${S}/brand_data.c ${S}/bezel.c ${S}/bezel_logo.c ${S}/logo.c ${S}/cheats.c ${S}/esinteg.c ${S}/esde.c ${S}/textfont.c ${S}/fonts_data.c
+	${S}/brand_data.c ${S}/bezel.c ${S}/bezel_logo.c ${S}/logo.c ${S}/cheats.c ${S}/esinteg.c ${S}/esde.c ${S}/textfont.c ${S}/pixfont.c ${S}/fonts_data.c ${S}/i18n.c ${S}/i18n_data.c
 	${S}/emu.c ${S}/patch.c ${S}/mapcap.c ${S}/profiles.c ${S}/logo_masks.c ${S}/ra.c ${S}/update.c ${S}/http.c ${S}/sha256.c
 	${S}/android.c)
 set_target_properties(main PROPERTIES C_STANDARD 11 C_EXTENSIONS ON)
 target_compile_options(main PRIVATE ${MGBA_DEFINES} -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers)
 target_compile_definitions(main PRIVATE GBADS_VERSION="${GBADS_VERSION}" GBADS_RA)
 target_include_directories(main PRIVATE "${GBADS_MGBA_SRC}/include" "${GBADS_MGBA_BUILD}/include" "${RC}/src")
-target_link_libraries(main PRIVATE SDL2::SDL2 ${MGBA_LIBS} rcheevos webpdec android log EGL m)
+target_link_libraries(main PRIVATE SDL2::SDL2 ${MGBA_LIBS} rcheevos webpdec rzstd android log EGL m)

@@ -40,8 +40,8 @@ LIBS     := -L$(CTRULIB)/lib -L$(PORTLIBS)/lib -lcitro2d -lcitro3d -lctru -lz -l
 
 D3 := $(REPO)/3ds
 S  := $(REPO)/src
-APP_SRC := $(addprefix $(S)/,main.c config.c font.c ui.c library.c mapper.c hotkeys.c game.c paths.c image.c brand_data.c \
-	bezel.c bezel_logo.c logo.c cheats.c folderpick.c textfont.c fonts_data.c ra.c sha256.c patch.c mapcap.c profiles.c logo_masks.c) \
+APP_SRC := $(addprefix $(S)/,main.c config.c i18n.c i18n_data.c font.c ui.c library.c mapper.c hotkeys.c game.c paths.c image.c brand_data.c \
+	bezel.c bezel_logo.c logo.c cheats.c folderpick.c textfont.c pixfont.c fonts_data.c ra.c sha256.c patch.c mapcap.c profiles.c logo_masks.c) \
 	$(D3)/emu/emu_armgba.c $(D3)/ctr/stubs.c
 # WebP logos: libwebp's decoder, as ../../Makefile builds it
 WEBP_DIR := $(REPO)/third_party/libwebp

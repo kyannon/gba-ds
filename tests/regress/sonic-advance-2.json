@@ -1776,6 +1776,91 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "sa2-retroarch-bios-refused",
+   "rom": "A2NE",
+   "desc": "a RetroArch state saved by a core with the real GBA BIOS, inside it (the official BIOS, a real one: Sonic Advance 2 waits in it every frame): with the built-in BIOS GBA DS refuses it, and says so",
+   "rules": [
+    "GEN-15"
+   ],
+   "config": {
+    "auto_load": 1
+   },
+   "retroarch": {
+    "states": {
+     "mGBA/A2NE.state.auto": "sonic-advance-2/us-retroarch-bios-real.state"
+    }
+   },
+   "shots": {
+    "resumed": 60
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: refused by mGBA: saved inside the GBA BIOS",
+     "rule": "GEN-15",
+     "what": "refused, with the reason"
+    }
+   ]
+  },
+  {
+   "id": "sa2-retroarch-bios-loads",
+   "rom": "A2NE",
+   "desc": "the same state with Settings > GBA BIOS on (the real BIOS file in the bios folder): it loads, and the game goes on",
+   "rules": [
+    "GEN-15"
+   ],
+   "config": {
+    "gba_bios": 1,
+    "auto_load": 1
+   },
+   "retroarch": {
+    "states": {
+     "mGBA/A2NE.state.auto": "sonic-advance-2/us-retroarch-bios-real.state"
+    }
+   },
+   "shots": {
+    "resumed": 60
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: .*A2NE\\.state\\.auto: loaded \\(RetroArch's, saved by RetroArch\\)",
+     "rule": "GEN-15",
+     "what": "loaded with the player's BIOS on"
+    }
+   ],
+   "bios": "gba_bios.bin"
+  },
+  {
+   "id": "sa2-retroarch-hle-in-bios-with-bios",
+   "rom": "A2NE",
+   "desc": "a state saved without a BIOS inside the built-in one, with the player's BIOS on: refused the other way",
+   "rules": [
+    "GEN-15"
+   ],
+   "config": {
+    "gba_bios": 1,
+    "auto_load": 1
+   },
+   "retroarch": {
+    "states": {
+     "mGBA/A2NE.state.auto": "sonic-advance-2/us-retroarch-hle-in-bios.state"
+    }
+   },
+   "shots": {
+    "resumed": 60
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "load state: refused by mGBA: saved without the GBA BIOS",
+     "rule": "GEN-15",
+     "what": "refused, the other BIOS"
+    }
+   ],
+   "bios": "gba_bios.bin"
   }
  ]
 }

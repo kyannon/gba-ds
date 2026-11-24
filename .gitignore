@@ -21,3 +21,6 @@ __pycache__/
 3ds/ctr/build-test/
 3ds/ctr/*.3dsx
 3ds/ctr/*.cia
+
+# the Chinese fonts' variable sources (tools/make_zh_font.py): only the subsets are kept
+assets/fonts/NotoSans*[[]wght[]].ttf

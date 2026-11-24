@@ -123,14 +123,16 @@ Games are never published: players bring their own.
   OffscreenCanvas) with WebGL2, uploading the window's pixels straight from
   the wasm memory (XRGB8888 swapped to RGB in the shader), and draws each
   screen into its place, so the arrangement (stacked or side by side), gap,
-  and sizes (by inches, as on the device, or by pixels) need no restart.
+  need no restart; the screens are sized by their pixels (the former "Sizes" choice, by inches or by pixels, is gone).
   The device or the resolution changes the window GBA DS gets
   (`GBADS_WINDOW`, `GBADS_SCREENS`, `--screen_ppi`), so those restart it
   from the same moment (a state).
 - Kept between visits: everything under `/saves`, `/states` (with GBA DS's
-  `prefs.cfg`) and `/home`, synced to IndexedDB every 4 s, on pause and on
-  closing.
-- **A folder of the player's** (Settings > Your files; File System Access:
+  `prefs.cfg`) and `/home`, synced to IndexedDB every 4 s, on pause, when the
+  page is hidden or closed, and 150 ms after a setting is written (the app logs
+  `setting: ...` after writing it: a page reloaded right after a change used to
+  lose it, as the worker's answer to the page's sync request came too late).
+- **A folder of the player's** (the start screen's Your files box; File System Access:
   Chrome and Edge on computers, Chrome on Android 132+, not Firefox or
   Safari), as GBA DS's data folder on a handheld: `roms/`, `saves/`,
   `states/`, `screenshots/` (the app's `/shots`), `cheats/`, `overlays/`,
@@ -140,7 +142,7 @@ Games are never published: players bring their own.
   change to the folder and the saves / states / home ones to IndexedDB as
   before (`keepFiles`), so the browser keeps a copy. With a folder, a run
   starts from the folder's files (plus IndexedDB's `/home`), the game list
-  from its `roms/` too; screenshots and bug reports are only written.
+  from its `roms/` too; screenshots and bug reports are only written (a saved bug report's .zip is also handed to the browser as a download: `downloadBugReports` in player.js).
   The folder's games aren't copied into memory: each goes to the worker as
   a `File` (from `getFile()`), and the runtime (`MemFS.write` with a Blob)
   reads only what the app reads, when it reads it, with the worker's
@@ -166,7 +168,12 @@ Games are never published: players bring their own.
   so the queue drains in real time and game.c's pacing keeps it near
   `audio_latency` unchanged. Pulled after each frame (from a microtask: the
   runtime takes no calls while the app is inside `web_sleep`). Without a
-  playing worklet (no click on the page yet), the worker drains by the clock.
+  playing worklet (no click on the page yet), the worker drains by the clock. The
+  worklet asks again after a second of not playing (`started` false), not only
+  when its ring is empty: playing stops with one frame left, so a ring that ran
+  dry while the quick menu paused the sound used to ask for nothing more, the
+  worker (hearing no ask) threw the sound away on resume, and it stayed silent
+  until the page was reloaded (issue #67).
   Chrome won't load a worklet for a page opened from disk, so there the same
   ring (`GbadsRing`) plays in a ScriptProcessorNode.
 - **Map captures in a worker of their own**: the web build has no threads,
@@ -286,3 +293,7 @@ when one is dropped.
 - The browser may not show a Bluetooth controller until one of its buttons
   is pressed with the page open.
 - Sound starts with the first click or key on the page (browsers' rule).
+
+## Look and theme
+
+The player's look follows the app's menus (docs/MENUS.md): the page is the app's near-black purple, every button a GBA-style key (`player.css`, the shared rule at the top: border, rim, flat face, edge underneath, sinking when pressed), purple for what's selected, gold for what's on. `theme` (`dark` or `light`, in the player's settings, so also in the folder's `web-player-settings.json`) is the keys', as in the app: dark grey keys with a light rim, or the pale grey ones with dark ink; the page stays dark. `accent` (Settings > Look > Color) is the app's color: its seven accents, computed by `GBAAccent` in index.html's head, a port of ui.c's `accent_build` (checked against it value for value), which sets the page's CSS variables. The toolbar's sun / moon button and Settings > Look change the theme (`applyTheme` in player.js; a small script in index.html's head sets it before the first paint). The on-screen controls follow it through the `--key` variables on `#touch`.

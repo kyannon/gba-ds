@@ -46,8 +46,8 @@ The hidden copy is given the live game's state, the map button is pressed, and t
   - `live`: values that must hold on the game you're playing before a capture is tried at all (in gameplay, not in a menu).
   - `menu`: values that mean "back at the title or file menu": the map is forgotten and the logo comes back.
   - `room`: values that change on a room change, which triggers a capture straight away.
-- **Crop and clean-up:** `crop_*` (what's shown), and with `map_crop` on: `tight_*`, `glyphs` (lettering to erase), `recolor`, `masks` with `gridX`/`gridY`/`gridCell` (rebuild the map grid), `captureHide` (sprites drawn over the map), `underRect`/`underLayers`/`underHide` (pieces of bezel that give way to the map under them) and `tab`. `captureLayers` keeps only some BG layers in the capture, over black, with `captureHide` always applied (Tony Hawk's Pro Skater 3's goal list without the level behind it).
-- **Animation:** `animFrames` × `animStep` frames are recorded so markers blink; `animCycle` and `stillPick` choose the frame for each blinking spot when the map is still (`map_animations = 0`, or `mapStill` for a game whose map is always still: A Link to the Past, Super Mario Advance 2's level list).
+- **Crop and clean-up:** `crop_*` (what's shown), and always: `tight_*`, `glyphs` (lettering to erase), `recolor`, `masks` with `gridX`/`gridY`/`gridCell` (rebuild the map grid), `captureHide` (sprites drawn over the map), `underRect`/`underLayers`/`underHide` (pieces of bezel that give way to the map under them) and `tab`. `captureLayers` keeps only some BG layers in the capture, over black, with `captureHide` always applied (Tony Hawk's Pro Skater 3's goal list without the level behind it).
+- **Animation:** `animFrames` × `animStep` frames are recorded so markers blink; `animCycle` and `stillPick` choose the frame for each blinking spot when the map is still (`mapStill`, for a game whose map is always still: A Link to the Past, Super Mario Advance 2's level list).
 - `hideSprites`: sprites hidden on the game screen while a map is shown (the Metroids' mini-map). Sprite rules give a screen box, a tile range and a priority (`-1`: any).
 - `rate` copies text from another screen onto the map (Circle of the Moon's completion rate).
 - `dimWhenUnavailable`: dim the last map while it can't be opened.
@@ -107,11 +107,11 @@ Script lines: `TICK BUTTONS` (`A`, `B+UP`, `-`), `TICK SHOT:file.bmp` (both scre
 - **`tools/ramdiff.py --on a.ram b.ram --off c.ram d.ram`**: addresses whose value is the same in every "on" dump (map open) and different from all "off" dumps (gameplay). Take dumps in several places of the game to narrow it down.
 - **`tools/explore_bits.py a.ram b.ram c.ram ...`**: bytes whose bits are only ever set across an ordered series of dumps (progress flags, collected items).
 - **`tools/sheet.py OUT.png [--cols N] [--scale S] FILES...`**: tiles screenshots into a contact sheet.
-- **`tools/ra_mock.py`**: a stand-in RetroAchievements server on 127.0.0.1:8099, for testing without an account.
+- **`tools/ra_mock.py`**: a stand-in RetroAchievements server on 127.0.0.1:8099, for testing without an account. It has a Rich Presence script and a leaderboard for game 777, and `touch /tmp/ra_mock_down` makes unlocks fail as if the connection were lost.
 
 ## A typical workflow
 
-0. Write what the game should show as numbered rules in `docs/games/<slug>.md` (see `docs/games/README.md`), with its Releases row: the rules come first, then the profile, then the tests.
+0. Write what the game should show as numbered rules in `docs/games/<slug>.md` (see `docs/games/README.md`), with its Releases row: the rules come first, then the profile, then the tests. Fill its **Toggle** row too (GEN-14): `pages` if the second screen turns through several pages, `views` (with `HELD` if the other view is already kept, else `ONPRESS`) if there's another picture to show by hand, `none` if neither. The first page is what shows with the toggle off, and the pages come in a stable order.
 1. Play to a point where the map can be opened and make a save state in GBA DS; copy it into the harness's OUTDIR as `NAME.ss` and `load NAME`.
 2. With the harness, `hold` the map button, `shot` until the map is up, and note how many frames it takes.
 3. `dumpram` with the map open and closed in a few places; `ramdiff.py` gives the `mem` candidates. Check them with `peek`.

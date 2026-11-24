@@ -1,0 +1,2083 @@
+# GBA DS: Italian (machine translation, not yet reviewed).
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: it\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-GBADS-Autonym: Italiano\n"
+"X-GBADS-Script: latin\n"
+"X-GBADS-Status: machine\n"
+"X-GBADS-Locales: it_IT it_CH\n"
+
+msgid " (patch)"
+msgstr " (patch)"
+
+msgid " Checking for a new version..."
+msgstr " Controllo di una nuova versione..."
+
+msgid " It's the newest version."
+msgstr " È la versione più recente."
+
+msgid " ms"
+msgstr " ms"
+
+msgid " s"
+msgstr " s"
+
+msgid "\"Swipe up for quick menu\" at a game's start."
+msgstr "«Scorri verso l'alto per il menu rapido» all'avvio di un gioco."
+
+msgid "%ca%d"
+msgstr "%ca%d"
+
+msgid "%d file checked"
+msgid_plural "%d files checked"
+msgstr[0] "%d file controllato"
+msgstr[1] "%d file controllati"
+
+msgid "%d game found"
+msgid_plural "%d games found"
+msgstr[0] "%d gioco trovato"
+msgstr[1] "%d giochi trovati"
+
+msgid "%d game found."
+msgid_plural "%d games found."
+msgstr[0] "%d gioco trovato."
+msgstr[1] "%d giochi trovati."
+
+msgid "%d of %d"
+msgstr "%d di %d"
+
+msgid "%d of %d set for %s, kept in controllers.txt beside GBA DS's save states. The line for it is in gba-ds.log too: send it in to have it built into GBA DS for this device."
+msgstr "%d di %d impostati per %s, salvati in controllers.txt accanto agli stati di GBA DS. La riga è anche in gba-ds.log: inviala per farla integrare in GBA DS per questo dispositivo."
+
+msgid "%d on"
+msgstr "%d attivi"
+
+msgid "%d RetroArch state here"
+msgid_plural "%d RetroArch states here"
+msgstr[0] "%d stato RetroArch qui"
+msgstr[1] "%d stati RetroArch qui"
+
+msgid "%s"
+msgstr "%s"
+
+msgid "%s %s. Choose another if RetroArch keeps its states somewhere else."
+msgstr "%s %s. Scegline un'altra se RetroArch tiene i suoi stati altrove."
+
+msgid "%s (beside the ROM)"
+msgstr "%s (accanto alla ROM)"
+
+msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
+msgstr "%s come tasto scorciatoia, con Start, R1, L1, X, Y e B"
+
+msgid "%s has no button now"
+msgstr "%s non ha più un tasto"
+
+msgid "%s is now Start + Select"
+msgstr "%s ora è Start + Select"
+
+msgid "%s opens the menu: press another button"
+msgstr "%s apre il menu: premi un altro tasto"
+
+msgid "%s v%s. Restarting..."
+msgstr "%s v%s. Riavvio..."
+
+msgid "%s was %s's: that has no button now"
+msgstr "%s era di %s: ora non ha più un tasto"
+
+msgid "%s, %s"
+msgstr "%s, %s"
+
+msgid "%s, Select, Start or L3. Tap to keep it as it is"
+msgstr "%s, Select, Start o L3. Tocca per lasciarlo com'è"
+
+msgid "%u of %u achievements unlocked"
+msgstr "%u obiettivi su %u sbloccati"
+
+msgid ", RetroArch"
+msgstr ", RetroArch"
+
+msgid "1 minute"
+msgstr "1 minuto"
+
+msgid "10 s"
+msgstr "10 s"
+
+msgid "128 ms"
+msgstr "128 ms"
+
+msgid "15 s"
+msgstr "15 s"
+
+msgid "192 ms"
+msgstr "192 ms"
+
+msgid "2 minutes"
+msgstr "2 minuti"
+
+msgid "2x"
+msgstr "2x"
+
+msgid "30 s"
+msgstr "30 s"
+
+msgid "32 ms"
+msgstr "32 ms"
+
+msgid "3x"
+msgstr "3x"
+
+msgid "4x"
+msgstr "4x"
+
+msgid "5 minutes"
+msgstr "5 minuti"
+
+msgid "5x"
+msgstr "5x"
+
+msgid "64 ms"
+msgstr "64 ms"
+
+msgid "96 ms"
+msgstr "96 ms"
+
+msgid "A (right) button"
+msgstr "Pulsante A (destra)"
+
+msgid "A and B buttons"
+msgstr "Pulsanti A e B"
+
+msgid "A dark line under each row of pixels"
+msgstr "Una linea scura sotto ogni riga di pixel"
+
+msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
+msgstr "Un salvataggio del gioco già accanto, o dell'altro tipo, viene copiato la prima volta che giochi. .srm è il tipo usato da RetroArch: scegli anche la sua cartella dei salvataggi per condividere quello di ogni gioco con lui."
+
+msgid "A new version of GBA DS"
+msgstr "Una nuova versione di GBA DS"
+
+msgid "A pattern over every pixel, on both screens."
+msgstr "Una trama su ogni pixel, su entrambi gli schermi."
+
+msgid "A: the one lit above. Y: all games. X: undo this game's value"
+msgstr "A: quello evidenziato sopra. Y: tutti i giochi. X: annulla il valore di questo gioco"
+
+msgid "ACHIEVEMENT UNLOCKED"
+msgstr "OBIETTIVO SBLOCCATO"
+
+msgid "Achievements"
+msgstr "Obiettivi"
+
+msgid "Add a note (optional): what happened, and what you expected to happen."
+msgstr "Aggiungi una nota (facoltativa): cos'è successo e cosa ti aspettavi."
+
+msgid "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before."
+msgstr "Aggiunge GBA DS agli emulatori per i giochi Game Boy Advance in EmulationStation. Sceglilo per un gioco (Opzioni avanzate del gioco > Emulatore) o per tutti (impostazioni avanzate del sistema). Gli altri emulatori continuano a funzionare come prima."
+
+msgid "All"
+msgstr "Tutti"
+
+msgid "All %u achievements unlocked"
+msgstr "Tutti i %u obiettivi sbloccati"
+
+msgid "All games"
+msgstr "Tutti i giochi"
+
+msgid "Already the value for all games"
+msgstr "Già il valore di tutti i giochi"
+
+msgid "Always"
+msgstr "Sempre"
+
+msgid "Always on here"
+msgstr "Sempre attivo qui"
+
+msgid "Always on in this game: it needs it for full speed"
+msgstr "Sempre attivo in questo gioco: ne ha bisogno per girare a piena velocità"
+
+msgid "Always on, applied first (RetroArch's way: a patch named as the ROM). %s"
+msgstr "Sempre attivo, applicato per primo (alla maniera di RetroArch: una patch con il nome della ROM). %s"
+
+msgid "AM"
+msgstr "AM"
+
+msgid "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)"
+msgstr "Uno xdelta creato con compressione, che GBA DS non sa leggere: applicalo prima alla ROM, oppure ricrealo senza compressione (xdelta3 -S none)"
+
+msgid "Android's installer couldn't be reached"
+msgstr "Impossibile raggiungere il programma di installazione di Android"
+
+msgid "Another emulator's"
+msgstr "Di un altro emulatore"
+
+msgid "Apr"
+msgstr "apr"
+
+msgid "Are You Sure?"
+msgstr "Sei sicuro?"
+
+msgid "Are you sure? A: switch it %s now and carry on from here. Y: not yet (more changes first). B: call it off"
+msgstr "Sei sicuro? A: impostalo su «%s» ora e continua da qui. Y: non ancora (prima altre modifiche). B: annulla"
+
+msgid "Are you sure? A: use them now and carry on from here. B: call it off"
+msgstr "Sei sicuro? A: usale ora e continua da qui. B: annulla"
+
+msgid "Are you sure? Delete them"
+msgstr "Sei sicuro? Eliminali"
+
+msgid "Are you sure? Reset settings"
+msgstr "Sei sicuro? Ripristina le impostazioni"
+
+msgid "Are you sure? Save your game first. A: restart %s it now. Y: not yet (more changes first). B: call it off"
+msgstr "Sei sicuro? Prima salva la partita. A: riavvia ora, %s. Y: non ancora (prima altre modifiche). B: annulla"
+
+msgid "Are you sure? Save your game first. A: restart now. B: call it off"
+msgstr "Sei sicuro? Prima salva la partita. A: riavvia ora. B: annulla"
+
+msgid "Are you sure? Touch it again to delete every game's own settings. Anything else cancels."
+msgstr "Sei sicuro? Tocca di nuovo per eliminare le impostazioni specifiche di ogni gioco. Qualsiasi altro gesto annulla."
+
+msgid "Are you sure? Touch it again to put every setting back to its default. Anything else cancels."
+msgstr "Sei sicuro? Tocca di nuovo per riportare tutte le impostazioni ai valori predefiniti. Qualsiasi altro gesto annulla."
+
+msgid "As fast as it goes"
+msgstr "Il più veloce possibile"
+
+msgid "As the game started"
+msgstr "Come all'avvio del gioco"
+
+msgid "Aug"
+msgstr "ago"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Auto-load"
+msgstr "Caricamento automatico"
+
+msgid "Auto-Load: Off"
+msgstr "Caricamento automatico: No"
+
+msgid "Auto-Load: On"
+msgstr "Caricamento automatico: Sì"
+
+msgid "Automatic"
+msgstr "Automatico"
+
+msgid "Automatic checks: Off"
+msgstr "Controllo automatico: No"
+
+msgid "Automatic checks: On"
+msgstr "Controllo automatico: Sì"
+
+msgid "Automatic follows the system. Text that isn't translated yet stays in English."
+msgstr "Automatico segue la lingua del sistema. Il testo non ancora tradotto resta in inglese."
+
+msgid "B (bottom) button"
+msgstr "Pulsante B (basso)"
+
+msgid "Back"
+msgstr "Indietro"
+
+msgid "Back online"
+msgstr "Di nuovo online"
+
+msgid "Back to %s and the buttons it started with"
+msgstr "Torna a %s e ai pulsanti con cui era partito"
+
+msgid "BananaOS's systems list has no Game Boy Advance entry."
+msgstr "L'elenco dei sistemi di BananaOS non ha una voce per Game Boy Advance."
+
+msgid "Bezel logo"
+msgstr "Logo della cornice"
+
+msgid "Blue"
+msgstr "Blu"
+
+msgid "Blurry instead of sharp: usually leave off."
+msgstr "Sfocato invece che nitido: di solito lascialo disattivato."
+
+msgid "Both screens"
+msgstr "Entrambi gli schermi"
+
+msgid "Bottom screen"
+msgstr "Schermo in basso"
+
+msgid "Bottom screen brightness"
+msgstr "Luminosità dello schermo in basso"
+
+msgid "Bug Report"
+msgstr "Segnalazione di bug"
+
+msgid "Bug report saved in bug-reports"
+msgstr "Segnalazione di bug salvata in bug-reports"
+
+msgid "Bug report saved in bug-reports."
+msgstr "Segnalazione di bug salvata in bug-reports."
+
+msgid "Buttons"
+msgstr "Pulsanti"
+
+msgid "Buttons mapped"
+msgstr "Pulsanti assegnati"
+
+msgid "Can't be read"
+msgstr "Illeggibile"
+
+msgid "Can't be read: not a patch, or damaged"
+msgstr "Illeggibile: non è una patch, oppure è danneggiata"
+
+msgid "Can't find the GBA DS folder."
+msgstr "Impossibile trovare la cartella di GBA DS."
+
+msgid "Can't reach GBA DS's folder, using %s for now: %s"
+msgstr "Impossibile accedere alla cartella di GBA DS, per ora si usa %s: %s"
+
+msgid "Can't rewind further"
+msgstr "Impossibile riavvolgere oltre"
+
+msgid "Can't save files here: no states, logos or screenshots"
+msgstr "Impossibile salvare file qui: niente stati, loghi o screenshot"
+
+msgid "Can't save in the chosen folder, files not moved: %s"
+msgstr "Impossibile salvare nella cartella scelta, file non spostati: %s"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Centered"
+msgstr "Centrato"
+
+msgid "Changes some of the same bytes as %s, and goes over it there: they may not work together"
+msgstr "Modifica alcuni degli stessi byte di %s e li sovrascrive: potrebbero non funzionare insieme"
+
+msgid "Cheats"
+msgstr "Trucchi"
+
+msgid "Check now"
+msgstr "Controlla ora"
+
+msgid "Check ra_username and ra_password in gba-ds.cfg"
+msgstr "Controlla ra_username e ra_password in gba-ds.cfg"
+
+msgid "Check the account in EmulationStation's RetroAchievements settings"
+msgstr "Controlla l'account nelle impostazioni RetroAchievements di EmulationStation"
+
+msgid "Choose a folder in Android's file picker..."
+msgstr "Scegli una cartella nel selettore file di Android..."
+
+msgid "Choose GBA DS folder"
+msgstr "Scegli la cartella di GBA DS"
+
+msgid "Choose it again to close %s: %s"
+msgstr "Sceglilo di nuovo per chiudere %s: %s"
+
+msgid "Choose it again to restart: unsaved progress is lost"
+msgstr "Sceglilo di nuovo per riavviare: i progressi non salvati vanno persi"
+
+msgid "Choose ROM folder"
+msgstr "Scegli la cartella delle ROM"
+
+msgid "Choose save folder"
+msgstr "Scegli la cartella dei salvataggi"
+
+msgid "Chosen folder is inside GBA DS's own, files not moved: %s"
+msgstr "La cartella scelta è dentro quella di GBA DS, file non spostati: %s"
+
+msgid "Chosen folder not found, files not moved: %s"
+msgstr "Cartella scelta non trovata, file non spostati: %s"
+
+msgid "Chosen here:"
+msgstr "Scelta qui:"
+
+msgid "Close Game"
+msgstr "Chiudi il gioco"
+
+msgid "Close GBA DS"
+msgstr "Chiudi GBA DS"
+
+msgid "Closest to gap"
+msgstr "Il più vicino allo spazio"
+
+msgid "Closing a game saves where you are."
+msgstr "Chiudere un gioco salva il punto in cui sei."
+
+msgid "Color"
+msgstr "Colore"
+
+msgid "color"
+msgstr "colore"
+
+msgid "Color correction"
+msgstr "Correzione colore"
+
+msgid "Color Correction: Off"
+msgstr "Correzione colore: No"
+
+msgid "Color Correction: On"
+msgstr "Correzione colore: Sì"
+
+msgid "Colors as a Game Boy Advance's screen showed them."
+msgstr "I colori come li mostrava lo schermo di un Game Boy Advance."
+
+msgid "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps."
+msgstr "Conferma l'aggiornamento a v%s nel programma di installazione di Android. Android chiude GBA DS durante l'installazione; riaprilo dopo. Se Android chiede prima il permesso, consenti a GBA DS di installare app."
+
+msgid "Connect a controller and try again."
+msgstr "Collega un controller e riprova."
+
+msgid "Controls"
+msgstr "Comandi"
+
+msgid "Couldn't change %s."
+msgstr "Impossibile modificare %s."
+
+msgid "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."
+msgstr "Impossibile modificare i file in %s/custom_systems: consenti a GBA DS l'accesso a tutti i file nelle impostazioni di Android."
+
+msgid "Couldn't connect"
+msgstr "Impossibile connettersi"
+
+msgid "Couldn't find GBA DS's folder."
+msgstr "Impossibile trovare la cartella di GBA DS."
+
+msgid "Couldn't keep that choice."
+msgstr "Impossibile mantenere quella scelta."
+
+msgid "Couldn't load the achievements"
+msgstr "Impossibile caricare gli obiettivi"
+
+msgid "Couldn't load the game"
+msgstr "Impossibile caricare il gioco"
+
+msgid "Couldn't move GBA DS's files, they stay in %s"
+msgstr "Impossibile spostare i file di GBA DS, restano in %s"
+
+msgid "Couldn't open the file picker."
+msgstr "Impossibile aprire il selettore file."
+
+msgid "Couldn't open the sign-in box."
+msgstr "Impossibile aprire la finestra di accesso."
+
+msgid "Couldn't remove the setting file."
+msgstr "Impossibile rimuovere il file delle impostazioni."
+
+msgid "Couldn't save"
+msgstr "Impossibile salvare"
+
+msgid "Couldn't save the bug report."
+msgstr "Impossibile salvare la segnalazione di bug."
+
+msgid "Couldn't sign in as %s%s%s. Sign in to try again."
+msgstr "Impossibile accedere come %s%s%s. Accedi per riprovare."
+
+msgid "Couldn't write %s."
+msgstr "Impossibile scrivere %s."
+
+msgid "Couldn't write to %s."
+msgstr "Impossibile scrivere in %s."
+
+msgid "Custom"
+msgstr "Personalizzato"
+
+msgid "Custom logos"
+msgstr "Loghi personalizzati"
+
+msgid "Custom Logos: Do Not Use"
+msgstr "Loghi personalizzati: non usare"
+
+msgid "Custom Logos: Full Detail"
+msgstr "Loghi personalizzati: dettaglio completo"
+
+msgid "Custom Logos: Pixelated"
+msgstr "Loghi personalizzati: pixelati"
+
+msgid "D-pad"
+msgstr "Croce direzionale"
+
+msgid "D-pad down"
+msgstr "Croce direzionale giù"
+
+msgid "D-pad left"
+msgstr "Croce direzionale sinistra"
+
+msgid "D-pad right"
+msgstr "Croce direzionale destra"
+
+msgid "D-pad up"
+msgstr "Croce direzionale su"
+
+msgid "Dark"
+msgstr "Scuro"
+
+msgid "Darkens the bottom screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr "Oscura lo schermo in basso, solo in questa app: la luminosità del dispositivo non viene toccata (e questo valore non può superarla)."
+
+msgid "Darkens the top screen, in this app only: the device's own brightness is left alone (and this can't go above it)."
+msgstr "Oscura lo schermo in alto, solo in questa app: la luminosità del dispositivo non viene toccata (e questo valore non può superarla)."
+
+msgid "Dec"
+msgstr "dic"
+
+msgid "Del"
+msgstr "Canc"
+
+msgid "Delete per-game settings"
+msgstr "Elimina le impostazioni per gioco"
+
+msgid "Deleted the settings of %d games."
+msgstr "Le impostazioni di %d giochi sono state eliminate."
+
+msgid "Deleted the settings of 1 game."
+msgstr "Le impostazioni di 1 gioco sono state eliminate."
+
+msgid "Display"
+msgstr "Schermo"
+
+msgid "Done"
+msgstr "Fatto"
+
+msgid "Done (No Note)"
+msgstr "Fatto (senza nota)"
+
+msgid "Down"
+msgstr "Giù"
+
+msgid "Downloading"
+msgstr "Download in corso"
+
+msgid "Each pixel a little darker toward its edges"
+msgstr "Ogni pixel un po' più scuro verso i bordi"
+
+msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
+msgstr "Ottieni obiettivi in modalità casual con il tuo account retroachievements.org. GBA DS conserva un token di accesso, non la tua password."
+
+msgid "English"
+msgstr "English"
+
+msgid "Enter both your username and your password."
+msgstr "Inserisci nome utente e password."
+
+msgid "Enter your account in the sign-in box..."
+msgstr "Inserisci il tuo account nella finestra di accesso..."
+
+msgid "ES-DE's folder wasn't found."
+msgstr "Cartella di ES-DE non trovata."
+
+msgid "Every 0.5 s"
+msgstr "Ogni 0,5 s"
+
+msgid "Every 1.5 s"
+msgstr "Ogni 1,5 s"
+
+msgid "Every 3 s"
+msgstr "Ogni 3 s"
+
+msgid "Every button was skipped, so nothing changed."
+msgstr "Tutti i pulsanti sono stati saltati, quindi non è cambiato nulla."
+
+msgid "Every second"
+msgstr "Ogni secondo"
+
+msgid "Fails"
+msgstr "Falliscono"
+
+msgid "Fast (20 a second)"
+msgstr "Veloce (20 al secondo)"
+
+msgid "Fast forward"
+msgstr "Avanzamento rapido"
+
+msgid "Fast Forward: %dx"
+msgstr "Avanzamento rapido: %dx"
+
+msgid "Fast Forward: Max"
+msgstr "Avanzamento rapido: Max"
+
+msgid "Fast Forward: Off"
+msgstr "Avanzamento rapido: No"
+
+msgid "Fast forwarding..."
+msgstr "Avanzamento rapido..."
+
+msgid "Feb"
+msgstr "feb"
+
+msgid "First run only. B: back"
+msgstr "Solo la prima volta. B: indietro"
+
+msgid "Folders"
+msgstr "Cartelle"
+
+msgid "Folders, accounts, updates"
+msgstr "Cartelle, account, aggiornamenti"
+
+msgid "Follows how you hold the phone, and Android's own rotation lock."
+msgstr "Segue come tieni il telefono e il blocco rotazione di Android."
+
+msgid "Frame buffer"
+msgstr "Frame buffer"
+
+msgid "Frame Buffer: Always on here"
+msgstr "Frame buffer: sempre attivo qui"
+
+msgid "Frame Buffer: Off"
+msgstr "Frame buffer: No"
+
+msgid "Frame Buffer: On"
+msgstr "Frame buffer: Sì"
+
+msgid "Frames a second above the game, all the time."
+msgstr "I fotogrammi al secondo sopra il gioco, sempre."
+
+msgid "From RetroArch's settings:"
+msgstr "Dalle impostazioni di RetroArch:"
+
+msgid "Full detail"
+msgstr "Dettaglio completo"
+
+msgid "Full Width"
+msgstr "Larghezza intera"
+
+msgid "Game"
+msgstr "Gioco"
+
+msgid "Game below"
+msgstr "Gioco sotto"
+
+msgid "Game names"
+msgstr "Nomi dei giochi"
+
+msgid "Game on top"
+msgstr "Gioco sopra"
+
+msgid "Game restarted"
+msgstr "Gioco riavviato"
+
+msgid "Game screen scale"
+msgstr "Scala dello schermo di gioco"
+
+msgid "Games"
+msgstr "Giochi"
+
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept in %s."
+msgstr "I giochi vengono letti da %s (sottocartelle comprese). I salvataggi (%s) sono conservati in %s."
+
+msgid "Games are read from %s (subfolders too). Saves (%s) are kept next to the games."
+msgstr "I giochi vengono letti da %s (sottocartelle comprese). I salvataggi (%s) sono conservati accanto ai giochi."
+
+msgid "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this."
+msgstr "I giochi scelti nell'elenco Game Boy Advance di BananaOS partono in GBA DS quando supporta il secondo schermo per loro. Riavvia BananaOS dopo averlo cambiato."
+
+msgid "Games shown"
+msgstr "Giochi mostrati"
+
+msgid "Games without second-screen support play on one screen."
+msgstr "I giochi senza supporto per il secondo schermo si giocano su uno schermo solo."
+
+msgid "GBA"
+msgstr "GBA"
+
+msgid "GBA A"
+msgstr "GBA A"
+
+msgid "GBA A on the right button, or on the bottom one."
+msgstr "GBA A sul pulsante destro, o su quello in basso."
+
+msgid "GBA B"
+msgstr "GBA B"
+
+msgid "GBA Down"
+msgstr "GBA Giù"
+
+msgid "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."
+msgstr "GBA DS non può salvare file lì: consentigli l'accesso a tutti i file nelle impostazioni di Android, oppure scegli un'altra cartella."
+
+msgid "GBA DS in BananaOS's GBA list: Off"
+msgstr "GBA DS nell'elenco GBA di BananaOS: No"
+
+msgid "GBA DS in BananaOS's GBA list: On"
+msgstr "GBA DS nell'elenco GBA di BananaOS: Sì"
+
+msgid "GBA DS in EmulationStation: Off"
+msgstr "GBA DS in EmulationStation: No"
+
+msgid "GBA DS in EmulationStation: On"
+msgstr "GBA DS in EmulationStation: Sì"
+
+msgid "GBA DS in ES-DE: Off"
+msgstr "GBA DS in ES-DE: No"
+
+msgid "GBA DS in ES-DE: On"
+msgstr "GBA DS in ES-DE: Sì"
+
+msgid "GBA DS is now ES-DE's emulator for Game Boy Advance games. Quit ES-DE and open it again to see it."
+msgstr "GBA DS è ora l'emulatore di ES-DE per i giochi Game Boy Advance. Esci da ES-DE e riaprilo per vederlo."
+
+msgid "GBA DS is out of ES-DE's emulator list. Quit ES-DE and open it again to see it."
+msgstr "GBA DS non è più nell'elenco degli emulatori di ES-DE. Esci da ES-DE e riaprilo per vederlo."
+
+msgid "GBA DS Logo: Hide"
+msgstr "Logo GBA DS: Nascondi"
+
+msgid "GBA DS Logo: Show"
+msgstr "Logo GBA DS: Mostra"
+
+msgid "GBA DS Settings"
+msgstr "Impostazioni di GBA DS"
+
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept."
+msgstr "GBA DS v%s è disponibile (questa è la v%s). Scegli Aggiorna ora per scaricarla (%.1f MB) e installarla: Android chiede conferma. Giochi, salvataggi, stati e impostazioni vengono conservati."
+
+msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept."
+msgstr "GBA DS v%s è disponibile (questa è la v%s). Scegli Aggiorna ora per scaricarla (%.1f MB) e riavviare con essa; giochi, salvataggi, stati e impostazioni vengono conservati."
+
+msgid "GBA DS's bezel, or your own PNGs, round the picture."
+msgstr "La cornice di GBA DS, o i tuoi PNG, intorno all'immagine."
+
+msgid "GBA DS's files are kept there already."
+msgstr "I file di GBA DS sono già lì."
+
+msgid "GBA DS's files go to %s the next time it starts: close GBA DS and open it again."
+msgstr "I file di GBA DS andranno in %s al prossimo avvio: chiudi GBA DS e riaprilo."
+
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start."
+msgstr "I file propri di GBA DS (stati, impostazioni, trucchi, overlay) sono in %s e passeranno a %s al prossimo avvio."
+
+msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s."
+msgstr "I file propri di GBA DS (stati, impostazioni, trucchi, overlay) sono in %s."
+
+msgid "GBA L"
+msgstr "GBA L"
+
+msgid "GBA Left"
+msgstr "GBA Sinistra"
+
+msgid "GBA R"
+msgstr "GBA R"
+
+msgid "GBA Right"
+msgstr "GBA Destra"
+
+msgid "GBA Up"
+msgstr "GBA Su"
+
+msgid "Generated"
+msgstr "Generato"
+
+msgid "Green"
+msgstr "Verde"
+
+msgid "Held on its side: the two screens side by side. Either way round."
+msgstr "Tenuto di lato: i due schermi affiancati. In entrambi i versi."
+
+msgid "Held upright: the two screens one above the other. Either way up."
+msgstr "Tenuto in piedi: i due schermi uno sopra l'altro. In entrambi i versi."
+
+msgid "hex"
+msgstr "hex"
+
+msgid "Hex Color"
+msgstr "Colore esadecimale"
+
+msgid "Hold L2 to go back in time."
+msgstr "Tieni premuto L2 per tornare indietro nel tempo."
+
+msgid "Hold R2 to play faster."
+msgstr "Tieni premuto R2 per giocare più veloce."
+
+msgid "Home"
+msgstr "Home"
+
+msgid "Hotkey button"
+msgstr "Tasto scorciatoia"
+
+msgid "Hotkeys"
+msgstr "Scorciatoie"
+
+msgid "How dark the grid, scanlines and soft cells are."
+msgstr "Quanto sono scuri la griglia, le scanline e le celle morbide."
+
+msgid "How far back it goes."
+msgstr "Fino a dove si può tornare indietro."
+
+msgid "How fast Turbo A and Turbo B press."
+msgstr "Quanto veloci premono Turbo A e Turbo B."
+
+msgid "How the game's picture fills its screen."
+msgstr "Come l'immagine del gioco riempie il suo schermo."
+
+msgid "How the map or logo fills its screen."
+msgstr "Come la mappa o il logo riempie il suo schermo."
+
+msgid "hue"
+msgstr "tonalità"
+
+msgid "In a game, hold the hotkey button and press another"
+msgstr "In gioco, tieni premuto il tasto scorciatoia e premi un altro"
+
+msgid "In patches/%s"
+msgstr "In patches/%s"
+
+msgid "Inner Bezel Color"
+msgstr "Colore della cornice interna"
+
+msgid "Installed"
+msgstr "Installata"
+
+msgid "Installing"
+msgstr "Installazione in corso"
+
+msgid "Jan"
+msgstr "gen"
+
+msgid "Jul"
+msgstr "lug"
+
+msgid "Jun"
+msgstr "giu"
+
+msgid "Keep device aspect ratios"
+msgstr "Mantieni le proporzioni del dispositivo"
+
+msgid "Keep device shapes"
+msgstr "Mantieni le forme del dispositivo"
+
+msgid "Keep saves next to the games"
+msgstr "Tieni i salvataggi accanto ai giochi"
+
+msgid "Kept as it was in %d s if nothing is pressed"
+msgstr "Resta com'era tra %d s se non si preme nulla"
+
+msgid "Kept for every game"
+msgstr "Mantenuto per tutti i giochi"
+
+msgid "Known %s patch, tested: %s"
+msgstr "Patch %s nota, testata: %s"
+
+msgid "Known %s patch, untested: %s. The second screen may not work with it"
+msgstr "Patch %s nota, non testata: %s. Il secondo schermo potrebbe non funzionare con essa"
+
+msgid "Known %s patch: %s, made for %s. This ROM is another version: it may break the game"
+msgstr "Patch %s nota: %s, fatta per %s. Questa ROM è un'altra versione: potrebbe rompere il gioco"
+
+msgid "Known %s patch: %s, made for %s: it can't be switched on for this ROM"
+msgstr "Patch %s nota: %s, fatta per %s: non può essere attivata per questa ROM"
+
+msgid "Known romhack: %s, untested"
+msgstr "Romhack noto: %s, non testato"
+
+msgid "L button"
+msgstr "Pulsante L"
+
+msgid "Language"
+msgstr "Lingua"
+
+msgid "Last checked %s."
+msgstr "Ultimo controllo: %s."
+
+msgid "Later"
+msgstr "Più tardi"
+
+msgid "LCD ghosting"
+msgstr "Ghosting LCD"
+
+msgid "LCD Ghosting: Off"
+msgstr "Ghosting LCD: No"
+
+msgid "LCD Ghosting: On"
+msgstr "Ghosting LCD: Sì"
+
+msgid "LCD Grid"
+msgstr "Griglia LCD"
+
+msgid "Left"
+msgstr "Sinistra"
+
+msgid "Left out where it is: it's made for the unchanged ROM, so it has to be first (only one such patch can be on). Move it up with X"
+msgstr "Lasciata fuori dove si trova: è fatta per la ROM non modificata, quindi deve venire per prima (può essere attiva una sola patch di questo tipo). Spostala su con X"
+
+msgid "Left stick as D-pad"
+msgstr "Stick sinistro come croce direzionale"
+
+msgid "Left stick: left"
+msgstr "Stick sinistro: sinistra"
+
+msgid "Left stick: up"
+msgstr "Stick sinistro: su"
+
+msgid "Let the System Decide"
+msgstr "Decide il sistema"
+
+msgid "Light"
+msgstr "Chiaro"
+
+msgid "Light/dark mode"
+msgstr "Modalità chiara/scura"
+
+msgid "Like a GBA"
+msgstr "Come un GBA"
+
+msgid "Lines between the pixels, like a GBA's screen"
+msgstr "Linee tra i pixel, come sullo schermo di un GBA"
+
+msgid "Load failed"
+msgstr "Caricamento non riuscito"
+
+msgid "Load failed."
+msgstr "Caricamento non riuscito."
+
+msgid "Load State"
+msgstr "Carica stato"
+
+msgid "Load State %d"
+msgstr "Carica stato %d"
+
+msgid "Loading games..."
+msgstr "Caricamento dei giochi..."
+
+msgid "Loading the achievements..."
+msgstr "Caricamento degli obiettivi..."
+
+msgid "Loading thumbnail..."
+msgstr "Caricamento dell'anteprima..."
+
+msgid "machine translated"
+msgstr "traduzione automatica"
+
+msgid "Made for another version of the game: it can't be switched on for this ROM"
+msgstr "Fatta per un'altra versione del gioco: non può essere attivata per questa ROM"
+
+msgid "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator)."
+msgstr "Rende GBA DS l'emulatore per i giochi Game Boy Advance in ES-DE. Per un gioco che non supporta, scegline un altro in ES-DE (metadati del gioco > Emulatore alternativo)."
+
+msgid "Map"
+msgstr "Mappa"
+
+msgid "Map Buttons"
+msgstr "Assegna pulsanti"
+
+msgid "Map buttons"
+msgstr "Assegna pulsanti"
+
+msgid "Map refresh"
+msgstr "Aggiornamento della mappa"
+
+msgid "Mar"
+msgstr "mar"
+
+msgid "Match aspect ratios"
+msgstr "Abbina le proporzioni"
+
+msgid "Match display rate"
+msgstr "Abbina la frequenza dello schermo"
+
+msgid "Match Display Rate: Off"
+msgstr "Abbina la frequenza dello schermo: No"
+
+msgid "Match Display Rate: Off for now"
+msgstr "Abbina la frequenza dello schermo: No per ora"
+
+msgid "Match Display Rate: On"
+msgstr "Abbina la frequenza dello schermo: Sì"
+
+msgid "Match screen aspect ratios"
+msgstr "Abbina le proporzioni degli schermi"
+
+msgid "Match screen sizes and aspect ratios"
+msgstr "Abbina dimensioni e proporzioni degli schermi"
+
+msgid "Match sizes and shapes"
+msgstr "Abbina dimensioni e forme"
+
+msgid "Max: full speed, a warmer device and a shorter battery."
+msgstr "Max: piena velocità, un dispositivo più caldo e una batteria più corta."
+
+msgid "May"
+msgstr "mag"
+
+msgid "Medium (15 a second)"
+msgstr "Media (15 al secondo)"
+
+msgid "Modified ROM: the second screen may not work"
+msgstr "ROM modificata: il secondo schermo potrebbe non funzionare"
+
+msgid "Move"
+msgstr "Sposta"
+
+msgid "Moving it: Up / Down or tap where it goes, then A (or tap it again). The one lower in the list is applied later"
+msgstr "Spostamento: Su / Giù oppure tocca dove va, poi A (o toccalo di nuovo). Quello più in basso nell'elenco viene applicato dopo"
+
+msgid "Moving things leave a short trail, as on a GBA."
+msgstr "Ciò che si muove lascia una breve scia, come su un GBA."
+
+msgid "New"
+msgstr "Nuovo"
+
+msgid "No achievements for this ROM (MD5 %s)"
+msgstr "Nessun obiettivo per questa ROM (MD5 %s)"
+
+msgid "No cheats found (see Cheats in the wiki)"
+msgstr "Nessun trucco trovato (vedi Cheats nel wiki)"
+
+msgid "No controller found"
+msgstr "Nessun controller trovato"
+
+msgid "No es_systems.cfg found."
+msgstr "es_systems.cfg non trovato."
+
+msgid "No folder chosen."
+msgstr "Nessuna cartella scelta."
+
+msgid "No folders in this one"
+msgstr "Nessuna cartella in questa"
+
+msgid "No game has settings of its own."
+msgstr "Nessun gioco ha impostazioni proprie."
+
+msgid "No games found"
+msgstr "Nessun gioco trovato"
+
+msgid "No patches here yet"
+msgstr "Ancora nessuna patch qui"
+
+msgid "No quick state saved yet."
+msgstr "Nessuno stato rapido salvato finora."
+
+msgid "No RetroArch states here"
+msgstr "Nessuno stato RetroArch qui"
+
+msgid "no save state yet!"
+msgstr "nessuno stato salvato!"
+
+msgid "No supported games in"
+msgstr "Nessun gioco supportato in"
+
+msgid "None"
+msgstr "Nessuna"
+
+msgid "Not in the folder any more: it's left out"
+msgstr "Non più nella cartella: viene lasciata fuori"
+
+msgid "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA."
+msgstr "Non ripreso: lo stato automatico di RetroArch viene da un altro dei suoi core GBA. Per condividere gli stati, imposta il core GBA di RetroArch su mGBA."
+
+msgid "Not used"
+msgstr "Non usata"
+
+msgid "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions)."
+msgstr "NOTA: i giochi non supportati verranno giocati in RetroArch, ma senza il secondo schermo proprio di BananaOS (il suo pannello di gioco e i compagni)."
+
+msgid "Nothing"
+msgstr "Niente"
+
+msgid "Nothing mapped"
+msgstr "Niente assegnato"
+
+msgid "Nothing saved in slot %d yet"
+msgstr "Ancora niente salvato nello slot %d"
+
+msgid "Nothing to report yet."
+msgstr "Ancora niente da segnalare."
+
+msgid "Nov"
+msgstr "nov"
+
+msgid "Now"
+msgstr "Adesso"
+
+msgid "Oct"
+msgstr "ott"
+
+msgid "Off"
+msgstr "No"
+
+msgid "off"
+msgstr "disattivato"
+
+msgid "Off for slower devices: the table on one screen. Close and restart GBA DS to apply."
+msgstr "Disattivato per i dispositivi lenti: il tavolo su uno schermo. Chiudi e riavvia GBA DS per applicarlo."
+
+msgid "Off while a patch is on"
+msgstr "Disattivato finché una patch è attiva"
+
+msgid "Off."
+msgstr "No."
+
+msgid "Off. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr "No. Riavvia BananaOS (Impostazioni > Sistema) perché il suo menu lo usi."
+
+msgid "Off. Restart EmulationStation to apply."
+msgstr "No. Riavvia EmulationStation per applicarlo."
+
+msgid "Off: every game plays like an ordinary GBA game."
+msgstr "No: ogni gioco si gioca come un normale gioco GBA."
+
+msgid "Off: the left stick does nothing in games."
+msgstr "No: lo stick sinistro non fa nulla nei giochi."
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "On"
+msgstr "Sì"
+
+msgid "on"
+msgstr "attivato"
+
+msgid "On."
+msgstr "Sì."
+
+msgid "On. Restart BananaOS (Settings > System) for its menu to use it."
+msgstr "Sì. Riavvia BananaOS (Impostazioni > Sistema) perché il suo menu lo usi."
+
+msgid "On. Restart EmulationStation to see it."
+msgstr "Sì. Riavvia EmulationStation per vederlo."
+
+msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
+msgstr "Sono elencati solo i giochi con una schermata mappa (show_all = 1 li elenca tutti)"
+
+msgid "Only one screen: nothing to move"
+msgstr "Un solo schermo: niente da spostare"
+
+msgid "Only patches that are on have an order, and this is the only one"
+msgstr "Solo le patch attive hanno un ordine, e questa è l'unica"
+
+msgid "Only when your two screens differ in shape. Experimental."
+msgstr "Solo quando i tuoi due schermi hanno forme diverse. Sperimentale."
+
+msgid "Open quick menu"
+msgstr "Apri il menu rapido"
+
+msgid "Opens the bezel's own page, for whichever the game or all games have"
+msgstr "Apre la pagina della cornice, per quella che hanno il gioco o tutti i giochi"
+
+msgid "Orange"
+msgstr "Arancione"
+
+msgid "Outer Bezel Color"
+msgstr "Colore della cornice esterna"
+
+msgid "Overlay colors and logo"
+msgstr "Colori e logo degli overlay"
+
+msgid "Overlays"
+msgstr "Overlay"
+
+msgid "Overlays on"
+msgstr "Overlay attivi"
+
+msgid "Overlays: Custom"
+msgstr "Overlay: personalizzati"
+
+msgid "Overlays: Custom (in /overlays)"
+msgstr "Overlay: personalizzati (in /overlays)"
+
+msgid "Overlays: Generated"
+msgstr "Overlay: generati"
+
+msgid "Overlays: Off"
+msgstr "Overlay: No"
+
+msgid "Patch not applied: %s can't be read"
+msgstr "Patch non applicata: %s non è leggibile"
+
+msgid "Patch not applied: %s is for another ROM"
+msgstr "Patch non applicata: %s è per un'altra ROM"
+
+msgid "Patched, but a patch was left out: see Patches in the game's menu"
+msgstr "Patchato, ma una patch è stata lasciata fuori: vedi Patch nel menu del gioco"
+
+msgid "Patched: the second screen may not work"
+msgstr "Patchato: il secondo schermo potrebbe non funzionare"
+
+msgid "Patches"
+msgstr "Patch"
+
+msgid "Patches changed"
+msgstr "Patch modificate"
+
+msgid "Patches changed since the game started"
+msgstr "Patch modificate dall'avvio del gioco"
+
+msgid "Patches changed: carrying on from where you were"
+msgstr "Patch modificate: si prosegue da dove eri"
+
+msgid "Pattern strength"
+msgstr "Intensità della trama"
+
+msgid "Paused"
+msgstr "In pausa"
+
+msgid "Performance"
+msgstr "Prestazioni"
+
+msgid "Performance: Let the System Decide"
+msgstr "Prestazioni: decide il sistema"
+
+msgid "Performance: Set to Max"
+msgstr "Prestazioni: Max"
+
+msgid "Pictures in the middle of their screens, or close together."
+msgstr "Immagini al centro dei loro schermi, o vicine tra loro."
+
+msgid "Pinball two-screen view"
+msgstr "Vista a due schermi del flipper"
+
+msgid "Pink"
+msgstr "Rosa"
+
+msgid "Pinned: the bar stays up."
+msgstr "Fissata: la barra resta in alto."
+
+msgid "Pixel Perfect"
+msgstr "Pixel perfetto"
+
+msgid "Pixelated"
+msgstr "Pixelato"
+
+msgid "Placement, overlays"
+msgstr "Posizionamento, overlay"
+
+msgid "Plain"
+msgstr "Semplice"
+
+msgid "Play"
+msgstr "Gioca"
+
+msgid "Playing without achievements this time"
+msgstr "Questa volta si gioca senza obiettivi"
+
+msgid "PM"
+msgstr "PM"
+
+msgid "point"
+msgstr "punto"
+
+msgid "points"
+msgstr "punti"
+
+msgid "Preparing the game..."
+msgstr "Preparazione del gioco..."
+
+msgid "presets"
+msgstr "preset"
+
+msgid "Press %s"
+msgstr "Premi %s"
+
+msgid "Press a button"
+msgstr "Premi un pulsante"
+
+msgid "Press A or tap to close"
+msgstr "Premi A o tocca per chiudere"
+
+msgid "Press A to close"
+msgstr "Premi A per chiudere"
+
+msgid "press the left stick in"
+msgstr "premi lo stick sinistro"
+
+msgid "Purple"
+msgstr "Viola"
+
+msgid "push the left stick left"
+msgstr "spingi lo stick sinistro a sinistra"
+
+msgid "push the left stick up"
+msgstr "spingi lo stick sinistro in su"
+
+msgid "Push the stick: buttons don't count for this one."
+msgstr "Spingi lo stick: i pulsanti non contano per questo."
+
+msgid "Put .ips, .ups, .bps or .xdelta files in %s"
+msgstr "Metti file .ips, .ups, .bps o .xdelta in %s"
+
+msgid "Quick bar hint"
+msgstr "Suggerimento della barra rapida"
+
+msgid "Quick load state"
+msgstr "Caricamento rapido dello stato"
+
+msgid "Quick save state"
+msgstr "Salvataggio rapido dello stato"
+
+msgid "Quit"
+msgstr "Esci"
+
+msgid "R button"
+msgstr "Pulsante R"
+
+msgid "Raise it if the sound crackles."
+msgstr "Aumentalo se l'audio gracchia."
+
+msgid "Red"
+msgstr "Rosso"
+
+msgid "Red, green and blue stripes, gentle: for dim screens"
+msgstr "Strisce rosse, verdi e blu, leggere: per schermi poco luminosi"
+
+msgid "Red, green and blue stripes, like a GBA's screen"
+msgstr "Strisce rosse, verdi e blu, come lo schermo di un GBA"
+
+msgid "Red, green and blue stripes, strong: for bright screens"
+msgstr "Strisce rosse, verdi e blu, forti: per schermi luminosi"
+
+msgid "Reset"
+msgstr "Reimposta"
+
+msgid "Reset Bezels"
+msgstr "Reimposta le cornici"
+
+msgid "Reset settings to defaults"
+msgstr "Riporta le impostazioni ai valori predefiniti"
+
+msgid "Restart"
+msgstr "Riavvia"
+
+msgid "Restart from the top row to play with it (or it's used from the next start)"
+msgstr "Riavvia dalla riga in alto per giocare con essa (oppure viene usata dal prossimo avvio)"
+
+msgid "Restart from the top row to play with this order"
+msgstr "Riavvia dalla riga in alto per giocare con questo ordine"
+
+msgid "Restart Game"
+msgstr "Riavvia il gioco"
+
+msgid "Restart required"
+msgstr "Riavvio necessario"
+
+msgid "Resume"
+msgstr "Riprendi"
+
+msgid "Resumed. Tap or HOME for the menu"
+msgstr "Ripreso. Tocca o premi HOME per il menu"
+
+msgid "RetroAchievements couldn't start"
+msgstr "RetroAchievements couldn't start"
+
+msgid "RetroAchievements doesn't allow patched games"
+msgstr "RetroAchievements non è partito"
+
+msgid "RetroAchievements is off"
+msgstr "RetroAchievements non consente i giochi patchati"
+
+msgid "RETROACHIEVEMENTS · CASUAL"
+msgstr "RetroAchievements è disattivato"
+
+msgid "RetroAchievements: Off"
+msgstr "RetroAchievements: No"
+
+msgid "RetroAchievements: Sign In"
+msgstr "RetroAchievements: accedi"
+
+msgid "RetroAchievements: Sign Out"
+msgstr "RetroAchievements: esci"
+
+msgid "RetroAchievements: Signing In..."
+msgstr "RetroAchievements: accesso in corso..."
+
+msgid "RetroArch's settings weren't found here: choose the folder where it keeps its save states."
+msgstr "Impostazioni di RetroArch non trovate qui: scegli la cartella in cui tiene i suoi stati."
+
+msgid "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."
+msgstr "Impostazioni di RetroArch non trovate, quindi gli slot 0-9 e lo stato automatico tornano a essere propri di GBA DS."
+
+msgid "RetroArch's State Folder"
+msgstr "Cartella degli stati di RetroArch"
+
+msgid "RetroArch's state folder is found from its settings again: %s."
+msgstr "La cartella degli stati di RetroArch viene di nuovo trovata dalle sue impostazioni: %s."
+
+msgid "Rewind"
+msgstr "Riavvolgimento"
+
+msgid "Rewind length"
+msgstr "Durata del riavvolgimento"
+
+msgid "Rewind, fast forward"
+msgstr "Riavvolgimento, avanzamento rapido"
+
+msgid "Rewind: Off"
+msgstr "Riavvolgimento: No"
+
+msgid "Rewind: On"
+msgstr "Riavvolgimento: Sì"
+
+msgid "Rewinding..."
+msgstr "Riavvolgimento..."
+
+msgid "Right"
+msgstr "Destra"
+
+msgid "Romhack: %s%s"
+msgstr "Romhack: %s%s"
+
+msgid "Romhack: %s%s, untested"
+msgstr "Romhack: %s%s, non testato"
+
+msgid "Rotation: Auto"
+msgstr "Rotazione: automatica"
+
+msgid "Rotation: Landscape"
+msgstr "Rotazione: orizzontale"
+
+msgid "Rotation: Portrait"
+msgstr "Rotazione: verticale"
+
+msgid "Run at the display's rate: no small regular stutter."
+msgstr "Gira alla frequenza dello schermo: niente piccoli scatti regolari."
+
+msgid "Same as all games again"
+msgstr "Di nuovo come per tutti i giochi"
+
+msgid "Save failed"
+msgstr "Salvataggio non riuscito"
+
+msgid "Save failed."
+msgstr "Salvataggio non riuscito."
+
+msgid "Save files: .sav"
+msgstr "File di salvataggio: .sav"
+
+msgid "Save files: .srm (RetroArch's)"
+msgstr "File di salvataggio: .srm (di RetroArch)"
+
+msgid "Save on quit"
+msgstr "Salva all'uscita"
+
+msgid "Save on Quit: Off"
+msgstr "Salva all'uscita: No"
+
+msgid "Save on Quit: On"
+msgstr "Salva all'uscita: Sì"
+
+msgid "Save State"
+msgstr "Salva stato"
+
+msgid "Save State %d"
+msgstr "Salva stato %d"
+
+msgid "Save States: GBA DS's Own"
+msgstr "Stati: propri di GBA DS"
+
+msgid "Save States: Shared with RetroArch"
+msgstr "Stati: condivisi con RetroArch"
+
+msgid "Saved by another emulator: can't load it"
+msgstr "Salvato da un altro emulatore: impossibile caricarlo"
+
+msgid "Saved for all games"
+msgstr "Salvato per tutti i giochi"
+
+msgid "Saved for this game"
+msgstr "Salvato per questo gioco"
+
+msgid "Saved for when a patch is on"
+msgstr "Salvato per quando una patch è attiva"
+
+msgid "Saves will be kept next to the games."
+msgstr "I salvataggi saranno tenuti accanto ai giochi."
+
+msgid "Saves will be kept there."
+msgstr "I salvataggi saranno tenuti lì."
+
+msgid "Scale, shader, theme, color"
+msgstr "Scala, shader, tema, colore"
+
+msgid "Scale: Full Width"
+msgstr "Scala: larghezza intera"
+
+msgid "Scale: Pixel Perfect"
+msgstr "Scala: pixel perfetto"
+
+msgid "Scale: Stretch"
+msgstr "Scala: allunga"
+
+msgid "Scale: Zoom"
+msgstr "Scala: zoom"
+
+msgid "Scanlines"
+msgstr "Scanline"
+
+msgid "Screen placement"
+msgstr "Posizionamento degli schermi"
+
+msgid "Screen Placement: Centered"
+msgstr "Posizionamento degli schermi: centrato"
+
+msgid "Screen Placement: Closest to Gap"
+msgstr "Posizionamento degli schermi: più vicino allo spazio"
+
+msgid "Screen shapes"
+msgstr "Forme degli schermi"
+
+msgid "Screens"
+msgstr "Schermi"
+
+msgid "Screenshot failed"
+msgstr "Screenshot non riuscito"
+
+msgid "Screenshot saved"
+msgstr "Screenshot salvato"
+
+msgid "Second screen"
+msgstr "Secondo schermo"
+
+msgid "Second screen scale"
+msgstr "Scala del secondo schermo"
+
+msgid "Select"
+msgstr "Select"
+
+msgid "Select or Start still reach the game when tapped on their own, L3 still opens the quick menu"
+msgstr "Select o Start raggiungono ancora il gioco se toccati da soli, e L3 apre ancora il menu rapido"
+
+msgid "Sep"
+msgstr "set"
+
+msgid "Separate battery save"
+msgstr "Salvataggio batteria separato"
+
+msgid "Separate save states"
+msgstr "Stati separati"
+
+msgid "Set for now, but %s couldn't be written."
+msgstr "Impostato per ora, ma %s non è stato possibile scriverlo."
+
+msgid "Set to Max"
+msgstr "Imposta al massimo"
+
+msgid "Sets the shortcuts: the hotkey button held with another."
+msgstr "Imposta le scorciatoie: il tasto scorciatoia tenuto premuto con un altro."
+
+msgid "Sets which of this device's buttons does what."
+msgstr "Imposta quale dei pulsanti di questo dispositivo fa cosa."
+
+msgid "Settings"
+msgstr "Impostazioni"
+
+msgid "Settings are back to their defaults."
+msgstr "Le impostazioni sono tornate ai valori predefiniti."
+
+msgid "Shader"
+msgstr "Shader"
+
+msgid "Shader: LCD Grid"
+msgstr "Shader: griglia LCD"
+
+msgid "Shader: Off"
+msgstr "Shader: No"
+
+msgid "Shader: Scanlines"
+msgstr "Shader: scanline"
+
+msgid "Shader: Soft Cells"
+msgstr "Shader: celle morbide"
+
+msgid "Shader: Subpixels"
+msgstr "Shader: subpixel"
+
+msgid "Shader: Subpixels (Light)"
+msgstr "Shader: subpixel (leggero)"
+
+msgid "Shader: Subpixels (Strong)"
+msgstr "Shader: subpixel (forte)"
+
+msgid "Shorter can make the sound crackle on a slow device."
+msgstr "Più corto può far gracchiare l'audio su un dispositivo lento."
+
+msgid "Show FPS"
+msgstr "Mostra FPS"
+
+msgid "Show FPS: Off"
+msgstr "Mostra FPS: No"
+
+msgid "Show FPS: On"
+msgstr "Mostra FPS: Sì"
+
+msgid "Sign in again in the game list's Settings"
+msgstr "Accedi di nuovo nelle Impostazioni dell'elenco giochi"
+
+msgid "Sign-in failed"
+msgstr "Accesso non riuscito"
+
+msgid "Signed in as %s. Achievements are earned in casual mode."
+msgstr "Accesso effettuato come %s. Gli obiettivi si ottengono in modalità casual."
+
+msgid "Signed out of RetroAchievements."
+msgstr "Uscito da RetroAchievements."
+
+msgid "Signing in as %s..."
+msgstr "Accesso come %s..."
+
+msgid "Single screen only"
+msgstr "Un solo schermo"
+
+msgid "Single screen only: plays normally"
+msgstr "Un solo schermo: si gioca normalmente"
+
+msgid "Skip"
+msgstr "Salta"
+
+msgid "Skip this version"
+msgstr "Salta questa versione"
+
+msgid "Skipped in %d s if nothing is pressed"
+msgstr "Saltato tra %d s se non si preme nulla"
+
+msgid "Slot %d loaded"
+msgstr "Slot %d caricato"
+
+msgid "Slot %d: %s"
+msgstr "Slot %d: %s"
+
+msgid "Slot %d: %s %d, %d%s"
+msgstr "Slot %1$d: %3$d %2$s %4$d%5$s"
+
+msgid "Slot %d: %s %d, %d:%02d %s%s"
+msgstr "Slot %1$d: %3$d %2$s, %4$d:%5$02d %6$s%7$s"
+
+msgid "Slot %d: Empty"
+msgstr "Slot %d: vuoto"
+
+msgid "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
+msgstr "Gli slot 0-9 e lo stato automatico tornano a essere propri di GBA DS. Gli stati salvati nella cartella di RetroArch restano lì."
+
+msgid "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."
+msgstr "Gli slot 0-9 e lo stato automatico sono ora di RetroArch. Gli stati propri di GBA DS restano nella sua cartella, per quando lo riporterai indietro."
+
+msgid "Slots 0-9 and the automatic state are now shared with RetroArch, in %s."
+msgstr "Gli slot 0-9 e lo stato automatico sono ora condivisi con RetroArch, in %s."
+
+msgid "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."
+msgstr "Gli slot 0-9 e il punto di ripresa sono propri di GBA DS. Condivisi, sono di RetroArch: %s."
+
+msgid "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."
+msgstr "Gli slot 0-9 e il punto di ripresa sono propri di GBA DS. Per condividerli, scegli la cartella degli stati di RetroArch."
+
+msgid "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."
+msgstr "Gli slot 0-9 e il punto di ripresa sono di RetroArch (il suo core GBA impostato su mGBA): %s."
+
+msgid "Slow (10 a second)"
+msgstr "Lenta (10 al secondo)"
+
+msgid "Smooth scaling"
+msgstr "Scalatura morbida"
+
+msgid "Smoother, one frame more input delay."
+msgstr "Più morbido, un fotogramma in più di ritardo di input."
+
+msgid "SNES"
+msgstr "SNES"
+
+msgid "Soft Cells"
+msgstr "Celle morbide"
+
+msgid "Some files couldn't be moved, they're still in %s"
+msgstr "Alcuni file non è stato possibile spostarli, sono ancora in %s"
+
+msgid "Sound delay"
+msgstr "Ritardo audio"
+
+msgid "Space"
+msgstr "Spazio"
+
+msgid "Speed"
+msgstr "Velocità"
+
+msgid "Speed and sound"
+msgstr "Velocità e audio"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Starting a game picks up where you closed it."
+msgstr "Avviare un gioco riprende da dove l'avevi chiuso."
+
+msgid "State loaded."
+msgstr "Stato caricato."
+
+msgid "State saved to slot %d"
+msgstr "Stato salvato nello slot %d"
+
+msgid "State saved."
+msgstr "Stato salvato."
+
+msgid "Stick, buttons, hotkeys"
+msgstr "Stick, pulsanti, scorciatoie"
+
+msgid "Stretch"
+msgstr "Allunga"
+
+msgid "Submit a Bug Report"
+msgstr "Invia una segnalazione di bug"
+
+msgid "Subpixels"
+msgstr "Subpixel"
+
+msgid "Subpixels (Light)"
+msgstr "Subpixel (leggero)"
+
+msgid "Subpixels (Strong)"
+msgstr "Subpixel (forte)"
+
+msgid "Supported"
+msgstr "Supportato"
+
+msgid "Supported games only"
+msgstr "Solo giochi supportati"
+
+msgid "Sure?"
+msgstr "Sicuro?"
+
+msgid "Swap Screens"
+msgstr "Scambia gli schermi"
+
+msgid "Swap screens"
+msgstr "Scambia gli schermi"
+
+msgid "Swapped"
+msgstr "Scambiati"
+
+msgid "Swipe up for quick menu"
+msgstr "Scorri verso l'alto per il menu rapido"
+
+msgid "Switched off in gba-ds.cfg (retroachievements = 0)."
+msgstr "Disattivato in gba-ds.cfg (retroachievements = 0)."
+
+msgid "System"
+msgstr "Sistema"
+
+msgid "Tags in a ROM's file name, like (USA) or (En,Fr,De)."
+msgstr "I tag nel nome file di una ROM, come (USA) o (En,Fr,De)."
+
+msgid "Take Screenshot"
+msgstr "Fai uno screenshot"
+
+msgid "Takes effect after you close and restart GBA DS"
+msgstr "Ha effetto dopo aver chiuso e riavviato GBA DS"
+
+msgid "Tap again to close GBA DS."
+msgstr "Tocca di nuovo per chiudere GBA DS."
+
+msgid "Tap the screen or press HOME for the menu"
+msgstr "Tocca lo schermo o premi HOME per il menu"
+
+msgid "Tap the touchscreen to skip a button this device doesn't have"
+msgstr "Tocca il touchscreen per saltare un pulsante che questo dispositivo non ha"
+
+msgid "Tap to set none"
+msgstr "Tocca per non assegnarne nessuno"
+
+msgid "Tap to skip a button this device doesn't have"
+msgstr "Tocca per saltare un pulsante che questo dispositivo non ha"
+
+msgid "Teal"
+msgstr "Verde acqua"
+
+msgid "Tested romhack: %s"
+msgstr "Romhack testato: %s"
+
+msgid "That one comes as a keyboard key here: it can't be mapped. Tap to skip."
+msgstr "Questo qui arriva come tasto della tastiera: non può essere assegnato. Tocca per saltare."
+
+msgid "That one is already %s. Press another, or tap to skip."
+msgstr "Questo è già %s. Premine un altro, oppure tocca per saltare."
+
+msgid "That's inside GBA DS's own folder: choose one outside it."
+msgstr "È dentro la cartella di GBA DS: scegline una fuori."
+
+msgid "That's the hotkey button: press another"
+msgstr "È il tasto scorciatoia: premine un altro"
+
+msgid "the bottom face button"
+msgstr "il pulsante in basso"
+
+msgid "the button that opens GBA DS's menu (Home, Menu or Function)"
+msgstr "il pulsante che apre il menu di GBA DS (Home, Menu o Function)"
+
+msgid "the game"
+msgstr "il gioco"
+
+msgid "The game's pixels as they are"
+msgstr "I pixel del gioco così come sono"
+
+msgid "The GBA DS logo in the generated bezel."
+msgstr "Il logo GBA DS nella cornice generata."
+
+msgid "The hotkey button can be %s, Select, Start or L3"
+msgstr "Il tasto scorciatoia può essere %s, Select, Start o L3"
+
+msgid "the left face button"
+msgstr "il pulsante a sinistra"
+
+msgid "the left shoulder button"
+msgstr "il pulsante dorsale sinistro"
+
+msgid "The map and the logo"
+msgstr "La mappa e il logo"
+
+msgid "The menus' buttons: dark grey, or light grey like the web player's."
+msgstr "I pulsanti dei menu: grigio scuro, o grigio chiaro come il player web."
+
+msgid "The menus' color for what's selected, with a dark and a light version of each."
+msgstr "Il colore dei menu per ciò che è selezionato, con una versione scura e una chiara di ciascuno."
+
+msgid "the patch beside the ROM"
+msgstr "la patch accanto alla ROM"
+
+msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
+msgstr "Le patch non sono quelle dell'avvio del gioco: riavvialo per giocare con esse (oppure vengono usate dal prossimo avvio)"
+
+msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
+msgstr "Processore, memoria e grafica vanno a piena velocità finché GBA DS è aperto: il gioco più fluido, ma la batteria si scarica più in fretta e il dispositivo si scalda di più."
+
+msgid "the right face button"
+msgstr "il pulsante a destra"
+
+msgid "the right shoulder button"
+msgstr "il pulsante dorsale destro"
+
+msgid "the second left shoulder button"
+msgstr "il secondo pulsante dorsale sinistro"
+
+msgid "the second right shoulder button"
+msgstr "il secondo pulsante dorsale destro"
+
+msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
+msgstr "Il sistema imposta la velocità, come per i suoi altri emulatori. Se i giochi scattano o l'audio si interrompe, prova Imposta al massimo."
+
+msgid "the top face button"
+msgstr "il pulsante in alto"
+
+msgid "This folder can't be opened"
+msgstr "Questa cartella non può essere aperta"
+
+msgid "This game"
+msgstr "Questo gioco"
+
+msgid "This game has its own value. X, or going on past the last choice: same as all games"
+msgstr "Questo gioco ha un valore proprio. X, o andare oltre l'ultima scelta: come tutti i giochi"
+
+msgid "This game has no achievements yet"
+msgstr "Questo gioco non ha ancora obiettivi"
+
+msgid "This is GBA DS v%s."
+msgstr "Questa è GBA DS v%s."
+
+msgid "This is v%s. Look for a new version, and download and install it."
+msgstr "Questa è la v%s. Cerca una nuova versione, poi la scarica e la installa."
+
+msgid "This state can't be read"
+msgstr "Questo stato non può essere letto"
+
+msgid "This state was saved %s: it may not work"
+msgstr "Questo stato è stato salvato %s: potrebbe non funzionare"
+
+msgid "Together: %s"
+msgstr "Insieme: %s"
+
+msgid "Toggle selected shader"
+msgstr "Attiva/disattiva lo shader selezionato"
+
+msgid "Top screen"
+msgstr "Schermo in alto"
+
+msgid "Top screen brightness"
+msgstr "Luminosità dello schermo in alto"
+
+msgid "Touch or use the D-Pad"
+msgstr "Tocca o usa la croce direzionale"
+
+msgid "Turbo A"
+msgstr "Turbo A"
+
+msgid "Turbo B"
+msgstr "Turbo B"
+
+msgid "Turbo speed"
+msgstr "Velocità del turbo"
+
+msgid "Turns this ROM into another official release: %s"
+msgstr "Trasforma questa ROM in un'altra versione ufficiale: %s"
+
+msgid "Unexpected es_systems.cfg (see the log)."
+msgstr "es_systems.cfg inatteso (vedi il log)."
+
+msgid "Unknown version of this game"
+msgstr "Versione sconosciuta di questo gioco"
+
+msgid "Unlocked"
+msgstr "Sbloccato"
+
+msgid "Unlocks sent"
+msgstr "Sblocchi inviati"
+
+msgid "Unlocks will be sent when the connection is back"
+msgstr "Gli sblocchi verranno inviati quando tornerà la connessione"
+
+msgid "Unpinned: the bar hides after 5 seconds."
+msgstr "Sganciata: la barra si nasconde dopo 5 secondi."
+
+msgid "unsaved progress is lost"
+msgstr "i progressi non salvati vanno persi"
+
+msgid "Untested: the second screen may not work with it"
+msgstr "Non testata: il secondo schermo potrebbe non funzionare con essa"
+
+msgid "Up"
+msgstr "Su"
+
+msgid "Up to %d patches can be on at once"
+msgstr "Si possono attivare fino a %d patch alla volta"
+
+msgid "Up to %s"
+msgstr "Fino a %s"
+
+msgid "Update now"
+msgstr "Aggiorna ora"
+
+msgid "Updates"
+msgstr "Aggiornamenti"
+
+msgid "Updates, integrations"
+msgstr "Aggiornamenti, integrazioni"
+
+msgid "Use This Folder"
+msgstr "Usa questa cartella"
+
+msgid "Used from the next time the game starts"
+msgstr "Usato dal prossimo avvio del gioco"
+
+msgid "Volume %d%%"
+msgstr "Volume %d%%"
+
+msgid "What D-pad down gives the game."
+msgstr "Cosa dà la croce direzionale giù al gioco."
+
+msgid "What D-pad left gives the game."
+msgstr "Cosa dà la croce direzionale sinistra al gioco."
+
+msgid "What D-pad right gives the game."
+msgstr "Cosa dà la croce direzionale destra al gioco."
+
+msgid "What D-pad up gives the game."
+msgstr "Cosa dà la croce direzionale su al gioco."
+
+msgid "What the bottom face button gives the game."
+msgstr "Cosa dà il pulsante in basso al gioco."
+
+msgid "What the L shoulder button gives the game."
+msgstr "Cosa dà il pulsante dorsale L al gioco."
+
+msgid "What the left face button gives the game."
+msgstr "Cosa dà il pulsante a sinistra al gioco."
+
+msgid "What the R shoulder button gives the game."
+msgstr "Cosa dà il pulsante dorsale R al gioco."
+
+msgid "What the right face button gives the game."
+msgstr "Cosa dà il pulsante a destra al gioco."
+
+msgid "What the top face button gives the game."
+msgstr "Cosa dà il pulsante in alto al gioco."
+
+msgid "Where games are read from, and the folder their saves are kept in."
+msgstr "Da dove vengono letti i giochi, e la cartella in cui sono tenuti i loro salvataggi."
+
+msgid "Where games are read from. Their saves are kept next to them."
+msgstr "Da dove vengono letti i giochi. I loro salvataggi sono tenuti accanto a loro."
+
+msgid "Which games, names, saving"
+msgstr "Quali giochi, nomi, salvataggio"
+
+msgid "Which screen the game is on."
+msgstr "Su quale schermo sta il gioco."
+
+msgid "Which Screen: Both"
+msgstr "Quale schermo: entrambi"
+
+msgid "Which Screen: Bottom Only"
+msgstr "Quale schermo: solo in basso"
+
+msgid "Which Screen: Top Only"
+msgstr "Quale schermo: solo in alto"
+
+msgid "Which screens have them."
+msgstr "Quali schermi li hanno."
+
+msgid "with"
+msgstr "con la patch"
+
+msgid "with %s"
+msgstr "con %s"
+
+msgid "With a patch on, the game keeps its own battery save (\"<game> + <patch>\"): off, it uses the original's"
+msgstr "Con una patch attiva, il gioco tiene un proprio salvataggio della batteria («<gioco> + <patch>»): disattivato, usa quello dell'originale"
+
+msgid "With a patch on, the game keeps its own save states: off, it uses the original's (a state can come out garbled in the other)"
+msgstr "Con una patch attiva, il gioco tiene propri stati: disattivato, usa quelli dell'originale (uno stato può risultare corrotto nell'altro)"
+
+msgid "with another dump of the game (%s)"
+msgstr "con un altro dump del gioco (%s)"
+
+msgid "with another version of the game (other patches, or another ROM)"
+msgstr "con un'altra versione del gioco (altre patch, o un'altra ROM)"
+
+msgid "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds."
+msgstr "Con il controllo automatico attivo, GBA DS cerca una nuova versione una volta al giorno all'apertura dell'elenco giochi e chiede prima di scaricare qualsiasi cosa. Gli aggiornamenti arrivano dalle release su github.com/kyannon/gba-ds."
+
+msgid "With Four buttons picked under Controls in the quick bar, the four-button layout replaces these."
+msgstr "Con Quattro pulsanti scelto in Comandi nella barra rapida, il layout a quattro pulsanti sostituisce questi."
+
+msgid "With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."
+msgstr "Con SNES scelto in Comandi nella barra rapida, il layout SNES sostituisce questi nei livelli."
+
+msgid "With tags, like (USA)"
+msgstr "Con i tag, come (USA)"
+
+msgid "with the unchanged game (%s)"
+msgstr "con il gioco non modificato (%s)"
+
+msgid "without"
+msgstr "senza la patch"
+
+msgid "without the patches on"
+msgstr "senza le patch attive"
+
+msgid "X (top) button"
+msgstr "Pulsante X (alto)"
+
+msgid "Y (left) button"
+msgstr "Pulsante Y (sinistra)"
+
+msgid "Your own and scraped logos on the second screen."
+msgstr "I tuoi loghi e quelli recuperati sul secondo schermo."
+
+msgid "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors."
+msgstr "I tuoi PNG in gba-ds/overlays/. Uno schermo senza ne riceve la cornice generata nei suoi colori predefiniti."
+
+msgid "your place is saved"
+msgstr "la tua posizione è salvata"
+
+msgid "Your screens are the same shape: nothing to match"
+msgstr "I tuoi schermi hanno la stessa forma: niente da abbinare"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "‹"
+msgstr "‹"
+
+msgid "›"
+msgstr "›"
+
+#, c-format
+msgid "Sound delay raised to %d ms: the sound kept breaking up"
+msgstr "Ritardo del suono portato a %d ms: il suono continuava a interrompersi"

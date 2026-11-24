@@ -1,0 +1,272 @@
+{
+ "game": "Boktai: The Sun Is in Your Hand",
+ "rules": "docs/games/boktai-the-sun-is-in-your-hand.md",
+ "cases": [
+  {
+   "id": "bt-us-castle",
+   "rom": "U3IE",
+   "state": "boktai-the-sun-is-in-your-hand/us-castle.ss",
+   "desc": "walking about in a castle",
+   "rules": [
+    "BT-1",
+    "BT-2",
+    "BT-6",
+    "BT-8"
+   ],
+   "shots": {
+    "start": 120,
+    "later": 300
+   },
+   "checks": [
+    {
+     "rule": "BT-1",
+     "what": "the Map",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "BT-6",
+     "what": "game screen untouched",
+     "type": "no_log",
+     "match": "HUD on the second screen"
+    }
+   ]
+  },
+  {
+   "id": "bt-us-forest",
+   "rom": "U3IE",
+   "state": "boktai-the-sun-is-in-your-hand/us-forest.ss",
+   "desc": "walking about in a forest (an area where the Map's tabs sit elsewhere)",
+   "rules": [
+    "BT-1",
+    "BT-2",
+    "BT-8"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "BT-1",
+     "what": "the Map",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bt-us-map-open",
+   "rom": "U3IE",
+   "state": "boktai-the-sun-is-in-your-hand/us-castle-map-open.ss",
+   "desc": "the Map open on the game screen",
+   "rules": [
+    "BT-3"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "BT-3",
+     "what": "no capture while the menu is open",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bt-us-opening",
+   "rom": "U3IE",
+   "state": "boktai-the-sun-is-in-your-hand/us-opening-dialogue.ss",
+   "desc": "a conversation in the opening",
+   "rules": [
+    "BT-3"
+   ],
+   "shots": {
+    "start": 120
+   },
+   "checks": [
+    {
+     "rule": "BT-3",
+     "what": "nothing half-drawn: no map taken",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bt-us-title",
+   "rom": "U3IE",
+   "state": "boktai-the-sun-is-in-your-hand/us-title.ss",
+   "desc": "the title screen",
+   "rules": [
+    "BT-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "BT-4",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bt-us-file-select",
+   "rom": "U3IE",
+   "state": "boktai-the-sun-is-in-your-hand/us-file-select.ss",
+   "desc": "the file menu",
+   "rules": [
+    "BT-4"
+   ],
+   "shots": {
+    "start": 60
+   },
+   "checks": [
+    {
+     "rule": "BT-4",
+     "what": "no capture tried",
+     "type": "no_log",
+     "match": "map updated"
+    }
+   ]
+  },
+  {
+   "id": "bt-logo-u3ie",
+   "kind": "logo",
+   "rom": "U3IE",
+   "desc": "U3IE logo extraction",
+   "rules": [
+    "GEN-1",
+    "BT-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "bt-logo-u3ip",
+   "kind": "logo",
+   "rom": "U3IP",
+   "desc": "U3IP logo extraction",
+   "rules": [
+    "GEN-1",
+    "BT-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "bt-logo-u3ij",
+   "kind": "logo",
+   "rom": "U3IJ",
+   "desc": "U3IJ logo extraction",
+   "rules": [
+    "GEN-1",
+    "BT-5"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "bt-us-sun-row",
+   "rom": "U3IE",
+   "state": "boktai-the-sun-is-in-your-hand/us-forest.ss",
+   "desc": "the quick bar's Sun row: Dark empties the game's sun gauge, Full fills it",
+   "rules": [
+    "BT-9"
+   ],
+   "input": [
+    [
+     90,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     110,
+     "TAP:0.293,0.775"
+    ],
+    [
+     310,
+     "TAP:0.806,0.775"
+    ]
+   ],
+   "shots": {
+    "before": 105,
+    "dark": 300,
+    "full": 500
+   },
+   "golden": [],
+   "checks": [
+    {
+     "rule": "BT-9",
+     "what": "Dark empties the gauge",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       640,
+       636,
+       900,
+       672
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "dark",
+      "rect": [
+       640,
+       636,
+       900,
+       672
+      ],
+      "screen": "game"
+     },
+     "frac": 0.1
+    },
+    {
+     "rule": "BT-9",
+     "what": "Full fills it past where it began",
+     "type": "differs",
+     "a": {
+      "shot": "dark",
+      "rect": [
+       640,
+       636,
+       900,
+       672
+      ],
+      "screen": "game"
+     },
+     "b": {
+      "shot": "full",
+      "rect": [
+       640,
+       636,
+       900,
+       672
+      ],
+      "screen": "game"
+     },
+     "frac": 0.1
+    },
+    {
+     "rule": "BT-9",
+     "what": "Dark sets level 0",
+     "type": "log",
+     "match": "^frame \\d+: sun 0$"
+    },
+    {
+     "rule": "BT-9",
+     "what": "Full sets level 10",
+     "type": "log",
+     "match": "^frame \\d+: sun 10$"
+    }
+   ]
+  }
+ ]
+}

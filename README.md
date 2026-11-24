@@ -1,5 +1,7 @@
 # GBA DS
 
+[![Join the GBA DS Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/TCVHSkK9wp)
+
 <p align="center"><img src="docs/lineup.png" width="100%" alt="GBA DS on three dual-screen handhelds: Metroid: Zero Mission with its map on a DS-style handheld, Pokémon Pinball's table across both screens of one with a wide top screen, and Golden Sun with its menu on another"></p>
 
 A Game Boy Advance emulator for dual-screen handhelds (built for the Anbernic RG DS Plus, on ROCKNIX and on Android with GammaOS). The game runs on one screen, and the game's own map stays up on the other screen and keeps itself current as you explore, the way the DS Castlevanias work.
@@ -16,9 +18,9 @@ The idea here is "what if the Game Boy Advance had a second screen" -- part of w
 
 <sub>Stacked screens, pixel-perfect scaling, LCD grid on.</sub>
 
-GBA DS supports 56 games, with their regional releases and some romhacks of them: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen. Romhacks and other patches (`.ips`, `.ups`, `.bps`, `.xdelta`) can be switched on for each game in the pause menu (Extras → Patches).
+GBA DS supports 75 games, with their regional releases and some romhacks of them: see [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) in the wiki for the list and what each one shows on the second screen. Any other GBA game also runs; it just plays on one screen. So do Game Boy and Game Boy Color games (see [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games)). Romhacks and other patches (`.ips`, `.ups`, `.bps`, `.xdelta`) can be switched on for each game in the pause menu (Extras → Patches).
 
-**Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Overlays](https://github.com/kyannon/gba-ds/wiki/Overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
+**Documentation is in the [wiki](https://github.com/kyannon/gba-ds/wiki):** [Playing](https://github.com/kyannon/gba-ds/wiki/Playing) · [Supported games](https://github.com/kyannon/gba-ds/wiki/Supported-games) · [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games) · [Overlays](https://github.com/kyannon/gba-ds/wiki/Overlays) · [Settings](https://github.com/kyannon/gba-ds/wiki/Settings) · [Troubleshooting](https://github.com/kyannon/gba-ds/wiki/Troubleshooting) · [Adding second-screen compatibility for a game](https://github.com/kyannon/gba-ds/wiki/Adding-second-screen-compatibility-for-a-game) · [Philosophy](https://github.com/kyannon/gba-ds/wiki/Philosophy)
 
 ## How it works
 
@@ -105,6 +107,8 @@ GBA DS includes no games, BIOS files or other copyrighted game data. Use your ow
 GBA DS is free software: you can redistribute it and/or modify it under the terms of the [GNU General Public License](LICENSE), version 3, as published by the Free Software Foundation. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU General Public License](LICENSE) for more details.
 
 The parts of GBA DS made by others keep their own licences, all compatible with the GPL:
+
+What GBA DS sends over the network and keeps, and everything it is built from: the wiki's [Privacy](https://github.com/kyannon/gba-ds/wiki/Privacy) and [Licenses](https://github.com/kyannon/gba-ds/wiki/Licenses) pages (`wiki/Privacy.md`, `wiki/Licenses.md`).
 
 GBA DS statically links libmgba, which is © Jeffrey Pfau and licensed under MPL-2.0. The mGBA source is at <https://github.com/mgba-emu/mgba> (pinned commit in `scripts/mgba-options.sh`).
 

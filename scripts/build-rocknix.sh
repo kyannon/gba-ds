@@ -59,6 +59,10 @@ make -C "$DEPS/SDL2/build-aarch64" -j"$(nproc)" install
 # (the Makefile's SIDE), and a game list of only that game's releases. The
 # game's name and codes come from docs/games/<slug>.md (its title and its
 # Releases row); GBADS_SIDE_NAME / GBADS_SIDE_CODES ("A2NE A2NP") override.
+# A topic branch (an issue's fix, shared code, any branch but dev that is not
+# a game's) has no rules file: GBADS_SIDE=<branch name, slashes made dashes>
+# builds it the same way, with every game in the list (no codes), the Ports
+# entry "GBA DS <slug> testing" (GBADS_SIDE_NAME overrides).
 SIDE="${GBADS_SIDE:-}"
 SIDE_NAME="" SIDE_CODES=""
 if [ -n "$SIDE" ]; then
@@ -67,15 +71,21 @@ if [ -n "$SIDE" ]; then
 		exit 1
 	fi
 	RULES="docs/games/$SIDE.md"
+	if [ ! -f "$RULES" ] && [ -z "${GBADS_SIDE_CODES:-}" ]; then
+		# a topic branch, not a game's: every game stays in the list
+		SIDE_NAME="${GBADS_SIDE_NAME:-$SIDE}"
+		SIDE_CODES=""
+	else
 	SIDE_NAME="${GBADS_SIDE_NAME:-$(sed -n '1s/^# *//p' "$RULES" 2>/dev/null)}"
 	SIDE_CODES="${GBADS_SIDE_CODES:-$(grep -m1 '^| Releases |' "$RULES" 2>/dev/null | grep -o '`[A-Z0-9]\{4\}`' | tr -d '`' | tr '\n' ' ' | sed 's/ *$//')}"
 	if [ -z "$SIDE_NAME" ] || [ -z "$SIDE_CODES" ]; then
 		echo "GBADS_SIDE: $RULES needs its title (# Name) and a Releases row with the codes (\`A2NE\`), or set GBADS_SIDE_NAME and GBADS_SIDE_CODES" >&2
 		exit 1
 	fi
+	fi
 	# (no characters SD cards' file systems refuse: "Game: Subtitle" -> "Game - Subtitle")
 	SIDE_NAME="$(printf '%s' "$SIDE_NAME" | sed 's/ *: */ - /g; s#[/\\*?"<>|]##g')"
-	echo "side build: $SIDE, \"GBA DS $SIDE_NAME testing\", codes $SIDE_CODES"
+	echo "side build: $SIDE, \"GBA DS $SIDE_NAME testing\", codes ${SIDE_CODES:-(all games)}"
 fi
 
 # --- gba-ds ---------------------------------------------------------------
@@ -109,7 +119,8 @@ cp assets/fonts/Jost-OFL.txt "$PKG/licenses/Jost-OFL.txt"
 cp third_party/rcheevos/LICENSE "$PKG/licenses/rcheevos-LICENSE.txt"
 cp third_party/libwebp/COPYING "$PKG/licenses/libwebp-COPYING.txt"
 cp third_party/libwebp/PATENTS "$PKG/licenses/libwebp-PATENTS.txt"
-printf "GBA DS %s is free software under the GNU General Public License, version 3 only (GBA-DS-LICENSE.txt).\nIt statically links libmgba (c) Jeffrey Pfau, MPL-2.0.\nmGBA source: https://github.com/mgba-emu/mgba (commit %s)\nIts text is set in Jost (c) The Jost Project Authors, SIL Open Font License 1.1 (Jost-OFL.txt).\nRetroAchievements support: rcheevos (c) RetroAchievements, MIT (rcheevos-LICENSE.txt), %s.\nWebP images: libwebp (c) Google Inc., BSD 3-clause (libwebp-COPYING.txt, libwebp-PATENTS.txt), v1.6.0.\nGBA DS source: https://github.com/kyannon/gba-ds\n" "$VERSION" "$MGBA_COMMIT" "$(tail -1 third_party/rcheevos/VERSION)" > "$PKG/licenses/README.txt"
+cp third_party/rzstd/LICENSE.txt "$PKG/licenses/rzstd-LICENSE.txt"
+printf "GBA DS %s is free software under the GNU General Public License, version 3 only (GBA-DS-LICENSE.txt).\nIt statically links libmgba (c) Jeffrey Pfau, MPL-2.0.\nmGBA source: https://github.com/mgba-emu/mgba (commit %s)\nIts text is set in Jost (c) The Jost Project Authors, SIL Open Font License 1.1 (Jost-OFL.txt).\nRetroAchievements support: rcheevos (c) RetroAchievements, MIT (rcheevos-LICENSE.txt), %s.\nWebP images: libwebp (c) Google Inc., BSD 3-clause (libwebp-COPYING.txt, libwebp-PATENTS.txt), v1.6.0.\nRetroArch save states (zstd): the rzstd decoder from libretro-common (c) The RetroArch team, MIT (rzstd-LICENSE.txt).\nGBA DS source: https://github.com/kyannon/gba-ds\n" "$VERSION" "$MGBA_COMMIT" "$(tail -1 third_party/rcheevos/VERSION)" > "$PKG/licenses/README.txt"
 sed "s#/gba-ds/#/$APP/#g; s#gba-ds-error.log#$APP-error.log#" "dist/GBA DS.sh" > "$ROOT/build/pkg/$ENTRY.sh"
 # EmulationStation artwork for the Ports entry
 mkdir -p "$ROOT/build/pkg/images"
@@ -128,6 +139,22 @@ if [[ $VERSION == *-dev ]]; then
 	else
 		echo "web build failed (build/web.log): the zip has no web/gba-ds.wasm"
 	fi
+fi
+# The final dev build before a release carries test save states for the new
+# games (tools/make_device_states.py makes the folder): GBADS_DEVICE_STATES=DIR
+# copies its files into states/ (dev versions only; CLAUDE.md, "Final dev build").
+if [ -n "${GBADS_DEVICE_STATES:-}" ]; then
+	if [[ $VERSION != *-dev ]]; then
+		echo "GBADS_DEVICE_STATES: test states go only into -dev builds (VERSION is $VERSION)" >&2
+		exit 1
+	fi
+	if ! ls "$GBADS_DEVICE_STATES"/*.state > /dev/null 2>&1; then
+		echo "GBADS_DEVICE_STATES: no .state files in $GBADS_DEVICE_STATES (run tools/make_device_states.py)" >&2
+		exit 1
+	fi
+	mkdir -p "$PKG/states"
+	cp "$GBADS_DEVICE_STATES"/*.state "$GBADS_DEVICE_STATES"/TEST-STATES.txt "$PKG/states/"
+	echo "test states: $(ls "$PKG/states"/*.state | wc -l) in states/"
 fi
 chmod +x "$PKG"/*.sh "$PKG/gba-ds" "$ROOT/build/pkg/$ENTRY.sh"
 if [ -n "$SIDE" ]; then

@@ -6,6 +6,7 @@
 | Dumps | `A4NE` cartridge `8e923168` (tested) · `A4NP` cartridge `f50f82ad` (tested) · `A4ND` cartridge `c11757d7` (tested) · `A4NJ` cartridge `09185657` (tested) |
 | Profile | `src/profiles.c`: the `A4NE` entry (hm_compose; `A4NP` and `A4ND` the same); variant `A4NJ` (its own logo, hm_jpn) |
 | Tests | `tests/regress/harvest-moon-friends-of-mineral-town.json` (`tools/regress.py harvest-moon-friends-of-mineral-town`) |
+| Toggle | `views`, `ONPRESS`: the town map (HM-1) and the Farm Map (HM-7) · GEN-14 |
 | Status | supported (new in v1.4.10) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list harvest-moon-friends-of-mineral-town`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
@@ -27,6 +28,8 @@ Why the town map: the game has three screens of its own that a second screen cou
 **HM-5. Logo.** The logo is the title screen's wooden sign (sprites): HARVEST MOON with its Friends of Mineral Town board and posts, without the farmer on his horse at its left, the start prompt and the villagers. In Japan, 牧場物語 with its furigana and the ミネラルタウンのなかまたち banner. Frame 1000 from power-on.
 
 **HM-6. Game screen untouched.** Nothing leaves the game screen.
+
+**HM-7. Farm Map (the toggle's other view, GEN-14).** With **Contextual toggle** on, a press turns the second screen from the town map to the Farm Map, and the next press back: the whole farm at once, as the game draws it, shrunk to fit the screen (the farm is about twice the screen's width and two and a half times its height, so a little under half size, with black above and below or at the sides). It's the game's own Farm Map (START, its icon bar's fourth icon) opened on the hidden copy and scrolled over its whole extent, the pieces put together; the arrows at its edges and the little heads (the player's, the dog's) are left out, as are all sprites: a picture of the farm, nothing to follow. The picture fades out while it's taken (a few seconds) and the town map comes back if it can't be (a conversation, an event, a menu open in the game). *By hand: how the stitched Farm Map looks and how long it takes on the device. (checked on the device for v1.5.8, Nov 22, 2026)*
 
 ## Not covered yet
 
