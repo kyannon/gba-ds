@@ -1225,7 +1225,7 @@
    "state": "f-zero-gp-legend/us-gp-pause.ss",
    "desc": "Extras > Cheats with a file of about 500 made-up cheats (gaps, missing codes and names, a long name, a tab, duplicates, unquoted values, entries past the 512th): the list, held DOWN, and a cheat switched on",
    "rules": [
-    "GEN-16"
+    "GEN-17"
    ],
    "cheat_files": {
     "BFZE (USA) (Code Breaker).cht": "F-Zero - GP Legend (USA, Europe) (Code Breaker).cht"
@@ -1296,25 +1296,25 @@
    },
    "checks": [
     {
-     "rule": "GEN-16",
+     "rule": "GEN-17",
      "what": "505 cheats read: the 512 cap, gaps, and the ones with no code left out",
      "type": "log",
      "match": "cheats: 505 in 1 file"
     },
     {
-     "rule": "GEN-16",
+     "rule": "GEN-17",
      "what": "the file's own cheatN_enable values: four on at the start (the fifth, past a gap, is skipped)",
      "type": "log",
      "match": "cheats: 4 on from BFZE"
     },
     {
-     "rule": "GEN-16",
+     "rule": "GEN-17",
      "what": "one switched on in the list: five on",
      "type": "log",
      "match": "cheats: 5 on from BFZE"
     },
     {
-     "rule": "GEN-16",
+     "rule": "GEN-17",
      "what": "holding DOWN moved the highlight and scrolled the list",
      "type": "differs",
      "a": {

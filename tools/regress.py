@@ -269,7 +269,7 @@ def run_app(case, args, workdir):
         os.symlink(src, os.path.join(ad, "bios", "gba_bios.bin"))
         if "--asset_dir=" + ad not in extra:
             extra.append("--asset_dir=" + ad)
-    # GEN-16: "cheat_files" {name there: fixture under cheats/}, put in
+    # GEN-17: "cheat_files" {name there: fixture under cheats/}, put in
     # <asset_dir>/cheats/ (a file is matched to its ROM by name, and the case's
     # ROM is named by its code: "BFZE (USA) (Code Breaker).cht")
     if case.get("cheat_files"):

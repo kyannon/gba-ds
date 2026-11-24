@@ -2,6 +2,23 @@
 
 ## v1.6.2 (not yet released)
 
+### RetroAchievements
+- **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
+- **Rich Presence** shows under your totals in the Achievements page: the line RetroAchievements shows on your profile for the game.
+- **Challenge and progress indicators**: while an achievement's challenge is under way its badge sits at the bottom left of the second screen, and a measured achievement shows its progress (50/5,000) for a few seconds when it changes.
+- **Leaderboard popups and a running value** are ready (started, failed, submitted, your rank) but only appear in hardcore mode, which isn't on yet.
+- **GBA DS now says which mGBA it runs** to RetroAchievements (`GBADS/1.6.2 (Linux) mgba/0.11.0 ...`), with the version as numbers only.
+- **Hardcore rules are built, but hidden for now.** GBA DS can already play by RetroAchievements' hardcore rules (no loading states, rewind, cheats or bug reports, and the game starts over when the mode changes), but RetroAchievements hasn't approved it yet, so the menu item stays out of sight until they do. GBA DS earns casual achievements as before.
+- New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
+
+### Changes
+- **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
+
+### Fixes
+- **The pause menu's notes are no longer cut off in other languages.** A long translated note (French, German...) stopped mid-word, and the end of "Choose it again to close GBA DS: your place is saved" stayed in English in every language.
+- **Cheats with the same name are remembered separately.** When a cheat file had two cheats with the same name, switching one on brought both back on the next time the game started. Your existing choices still load as before.
+- **Choosing a RetroArch state folder with a very long path** (over 511 characters) now says the path is too long, instead of quietly saving a cut-off path that pointed somewhere else.
+
 ## v1.6.1 (2026-11-22)
 
 ### Menus and interface
