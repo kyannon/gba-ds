@@ -73,6 +73,7 @@ static struct {
 	int logoW, logoH;
 	float logoK;
 	bool logoTried;
+	uint64_t logoRetry;
 	int rumOn, rumOff;         /* the motor's own pulse, in frames left on and off (WWT-11) */
 	float rumLevel;
 	float resid;               /* the counts not yet given to the game (they're whole counts) */
@@ -538,8 +539,10 @@ static bool ww_wheel_shown(void) {
 
 /* ---- Gyro mode's second screen (WWT-2): the logo on white, tilting with the sensor's turning */
 static void ww_logo_load(void) {
-	if (ww.logoTried) return;
+	/* (the logo is made in the background at the start: asked for again every half second until it's there) */
+	if (ww.logo || (ww.logoTried && frameCount < ww.logoRetry)) return;
 	ww.logoTried = true;
+	ww.logoRetry = frameCount + 30;
 	bool pixelArt = false;
 	int sub = 1;
 	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
@@ -627,6 +630,7 @@ static void ww_setup(const MapProfile* lp, const char* rom) {
 	ww_cfg_load();
 	ww_sensor_open();
 	snprintf(ww.rom, sizeof(ww.rom), "%s", rom);
+	fprintf(stderr, "gyro: build 8: the buttons are drawn under the RetroAchievements banner, the logo is asked for until it is there\n");
 	fprintf(stderr, "rumble: this game's motor is limited to short pulses (WWT-11)\n");
 	fprintf(stderr, "gyro: dial on, sensitivity %d%%, sensor scale %d%%%s\n", ww.sens, ww.scale, ww.invert ? ", inverted" : "");
 	if (ww_can_touch()) {
