@@ -609,8 +609,8 @@ release zip, which replaces the main install.
   months first (from Oct 13, 2026: Apr 13, 2027, unless they take libmgba as
   the parent emulator); the plan and the rules page's checklist are in the
   project's `claude/issue-82-progress.md`. Every state load goes through
-  game.c `state_load`, which refuses in hardcore; rewind and cheats are
-  gated beside it (`cheats_sync`). The regression suite doesn't cover RA
+  game.c `state_load`, which refuses in hardcore; rewind, fast forward (`canFF`)
+  and cheats are gated beside it (`cheats_sync`). The regression suite doesn't cover RA
   (no mock server in regress.py): test with `tools/ra_mock.py` and
   `--ra_hardcore=1` (run it with `--update_check=0` from the game list: a
   host run once updated itself over `build/host`). The compliance document for

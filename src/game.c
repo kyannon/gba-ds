@@ -4246,7 +4246,7 @@ static void draw_menu(void) {
 			static char ffLabel[32];
 			if (cfg->fastForward && cfg->ffSpeed <= 0) snprintf(ffLabel, sizeof(ffLabel), tr("Fast Forward: Max"));
 			else if (cfg->fastForward) snprintf(ffLabel, sizeof(ffLabel), tr("Fast Forward: %dx"), cfg->ffSpeed);
-			label = cfg->fastForward ? ffLabel : N_("Fast Forward: Off");
+			label = ra_hardcore() ? N_("Fast Forward: Off in hardcore") : cfg->fastForward ? ffLabel : N_("Fast Forward: Off");
 		}
 		if (menuItems[i] == M_MATCH) label = !cfg->matchDisplay ? N_("Match Display Rate: Off"): pacedFallback ? N_("Match Display Rate: Off for now"): N_("Match Display Rate: On");
 		if (menuItems[i] == M_SHAPES) label = !en || !strcmp(cfg->screenMatch, "keep") ? N_("Keep device aspect ratios"):
@@ -6303,7 +6303,7 @@ static bool state_load(const char* path) {
 		fprintf(stderr, "load state: %s: refused in hardcore mode\n", path);
 		stateLoadKind = STATE_FILE_NONE;
 		stateLoadBios = BIOS_REFUSAL_NONE;
-		ui_osd("Hardcore mode: states can't be loaded");
+		ui_osd("Not in hardcore mode (Achievements)"); /* (the pause menu's words) */
 		return false;
 	}
 	bool fromGbads = false;
@@ -8499,7 +8499,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 	if (confirm_item(item) && armedItem != item) {
 		armedItem = item;
 		const char* lost = cfg->autoSave ? N_("your place is saved"): N_("unsaved progress is lost");
-		if (item == M_HARDCORE) snprintf(menuNote, sizeof(menuNote), ra_hardcore() ? tr("Again for casual: the game restarts") : tr("Again for hardcore: restarts, no cheats or loads"));
+		if (item == M_HARDCORE) snprintf(menuNote, sizeof(menuNote), ra_hardcore() ? tr("Again for casual: the game restarts") : tr("Again for hardcore: restarts, no cheats, loads or fast forward"));
 		else if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), tr("Choose it again to restart: unsaved progress is lost"));
 		else snprintf(menuNote, sizeof(menuNote), tr("Choose it again to close %s: %s"), item == M_EXIT ? "GBA DS" : tr("the game"), tr(lost));
 		return false;
@@ -9410,7 +9410,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 							ui_osd(ok ? "State saved." : "Save failed.");
 							if (ok) barLit = bb, barLitAt = barSince;
 						} else if (bb == BB_LOAD) {
-							if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
+							if (ra_hardcore()) ui_osd("Not in hardcore mode (Achievements)"); /* (as the pause menu's Load State says, before anything else) */
+							else if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
 							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true, barLit = bb, barLitAt = barSince; }
 							else ui_osd(load_failed_osd());
 						} else if (bb == BB_SETTINGS) {
@@ -9720,8 +9721,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		 * #44). No hotkeys meanwhile, and letting go of the hotkey doesn't
 		 * open the menu. */
 		const bool canRewind = cfg->rewind && !ra_hardcore();
+		const bool canFF = cfg->fastForward && !ra_hardcore(); /* (hardcore: no fast forward either; RetroAchievements counts it with the speed-ups they don't allow) */
+		if (!canFF) ffOn = false;
 		bool rewindHeld = canRewind && hkHold[HOLD_REWIND] >= 0 && btnNow[hkHold[HOLD_REWIND]] && !(mod && hk_is_action(hkHold[HOLD_REWIND]));
-		bool ffHeld = cfg->fastForward && hkHold[HOLD_FF] >= 0 && btnNow[hkHold[HOLD_FF]] && !(mod && hk_is_action(hkHold[HOLD_FF]));
+		bool ffHeld = canFF && hkHold[HOLD_FF] >= 0 && btnNow[hkHold[HOLD_FF]] && !(mod && hk_is_action(hkHold[HOLD_FF]));
 		bool ffMod = mod && !menuOpen && (rewindHeld || ffHeld);
 		if (ffMod) comboUsed = ffModUsed = true;
 		if (mod && !menuOpen && !ffMod) {
@@ -9738,7 +9741,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				/* (the quick state, as the quick bar's buttons) */
 				case HK_SAVE: ui_osd(state_save(gp.quick) ? "State saved." : "Save failed."); break;
 				case HK_LOAD:
-					if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
+					if (ra_hardcore()) ui_osd("Not in hardcore mode (Achievements)");
+					else if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
 					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true; }
 					else ui_osd(load_failed_osd());
 					break;
@@ -9752,7 +9756,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					else rewindOn = !rewindOn, ffOn = false;
 					break;
 				case HK_FF_TOGGLE:
-					if (!cfg->fastForward) ui_osd("Fast forward is off in the settings.");
+					if (ra_hardcore()) ui_osd("Fast forward isn't available in hardcore mode.");
+					else if (!cfg->fastForward) ui_osd("Fast forward is off in the settings.");
 					else ffOn = !ffOn, rewindOn = false;
 					break;
 				case HK_SHADER:
@@ -10025,7 +10030,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 
 		bool rewinding = rewindHeld || (rewindOn && canRewind);
-		bool ff = (ffHeld || (ffOn && cfg->fastForward)) && !rewinding;
+		bool ff = (ffHeld || ffOn) && !rewinding;
 		ffBox = ff;
 		/* Max (ff_speed 0): as many frames as fit in about 70% of a display
 		 * frame (the rest for drawing it), up to FF_MAX_RUNS; the sound
