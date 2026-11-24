@@ -7,6 +7,7 @@
 | Mods | `BPRE` Radical Red 4.1 `fba55dd8` (tested), Unbound 2.1.1.1 `4b3d4957` (tested), Gaia `b9465c5a` (tested), Saiph `32b2929c` (tested), Fuligin `8abbc1e1` (tested) · `AXVE` Light Platinum `41d07817` (tested) · `BPEE` Super MarioMon 1.5.1 `0aa91114` (tested), Emerald Rogue EX 2.1.1 `4cc15b8d` (tested), Flora Sky `7b6e6fb9` (tested), Glazed 9.1.0 `fda9453b` (tested), Theta Emerald EX `6ce0ea9f` (tested) |
 | Profile | `src/profiles.c`: the "Pokémon (preliminary)" section (`pk_pages`, one profile entry per engine and language group; the title logos' recipes `PK_LOGO_*` and `pkLogos`) |
 | Tests | `tests/regress/pokemon.json` (`tools/regress.py pokemon`) |
+| Toggle | `pages`: the Party and the Map, in turn; in a battle there is only the Party, so the button is inactive (PK-4) · GEN-14 |
 | Status | merged into `dev` (tested on the owner's RG DS Plus, BananaOS, Nov 20, 2026) |
 
 What GBA DS does with these games. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list pokemon`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

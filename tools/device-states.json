@@ -894,6 +894,208 @@
     "8": ["jp-world.ss", "The overworld: the world map with the marker (BOF2-3)"],
     "9": ["jp-worldmap.ss", "START's world map open on the game screen: the second screen shows the same map as walking about (BOF2-5)"]
    }
+  },
+  "kirby-and-the-amazing-mirror": {
+   "Kirby & The Amazing Mirror (USA)": {
+    "1": [
+     "us-hub.ss",
+     "the Rainbow Route hub early on (one room found): the Area map, the HUD on the game screen (KAM-2, KAM-3, KAM-4)"
+    ],
+    "2": [
+     "us-hub-full.ss",
+     "the hub with every map found: the whole Area map, no prompts, tabs or scroll arrows (KAM-2, KAM-3)"
+    ],
+    "3": [
+     "us-hub-door.ss",
+     "at the hub's golden mirror: press UP to go through; the Area map is taken again with the new room (KAM-2)"
+    ],
+    "4": [
+     "us-hub-paused.ss",
+     "saved with the game's own pause screen open: the logo; close it and the Area map comes (KAM-5, KAM-6, KAM-2)"
+    ],
+    "5": [
+     "us-tutorial.ss",
+     "the tutorial at the start (no map yet): the logo (KAM-5)"
+    ],
+    "6": [
+     "us-title.ss",
+     "the title: the logo (KAM-1, KAM-5)"
+    ]
+   },
+   "Kirby & The Amazing Mirror (Europe) (En,Fr,De,Es,It)": {
+    "1": [
+     "eu-map-area.ss",
+     "Europe: saved with the pause screen open on its Area map page: the logo (KAM-5, KAM-6)"
+    ],
+    "2": [
+     "eu-map-world.ss",
+     "Europe: saved with the pause screen open on its World map page: the logo (KAM-5, KAM-6)"
+    ],
+    "3": [
+     "eu-tutorial.ss",
+     "Europe: the tutorial at the start: the logo (KAM-5)"
+    ],
+    "4": [
+     "eu-select.ss",
+     "Europe: the file select: the logo (KAM-5)"
+    ],
+    "5": [
+     "eu-title.ss",
+     "Europe: the title: the logo (KAM-1, KAM-5)"
+    ]
+   },
+   "Hoshi no Kirby - Kagami no Daimeikyuu (Japan) (Rev 1)": {
+    "1": [
+     "jp-map-area.ss",
+     "Japan: saved with the pause screen open on its Area map page: the logo (KAM-5, KAM-6)"
+    ],
+    "2": [
+     "jp-map-world.ss",
+     "Japan: saved with the pause screen open on its World map page: the logo (KAM-5, KAM-6)"
+    ],
+    "3": [
+     "jp-tutorial.ss",
+     "Japan: the tutorial at the start: the logo (KAM-5)"
+    ],
+    "4": [
+     "jp-select.ss",
+     "Japan: the file select: the logo (KAM-5)"
+    ],
+    "5": [
+     "jp-title.ss",
+     "Japan: the title: the logo (KAM-1, KAM-5)"
+    ]
+   }
+  },
+  "kirby-nightmare-in-dream-land": {
+   "Kirby - Nightmare in Dream Land (USA)": {
+    "1": [
+     "us-level.ss",
+     "Vegetable Valley, no copy ability: the pause page's tip about copying; the HUD on the game screen (KND-2, KND-3)"
+    ],
+    "2": [
+     "us-spark.ss",
+     "Kirby with Spark: the Spark page (KND-2)"
+    ],
+    "3": [
+     "us-landed.ss",
+     "Kirby swallows a Sparky (LEFT, B, DOWN): the Spark page within about a third of a second (KND-2)"
+    ],
+    "4": [
+     "us-hub.ss",
+     "the hub of doors: the logo (KND-4)"
+    ],
+    "5": [
+     "us-card.ss",
+     "Vegetable Valley's title card: the logo (KND-4)"
+    ],
+    "6": [
+     "us-title.ss",
+     "the title: the logo (KND-1, KND-4)"
+    ]
+   },
+   "Kirby - Nightmare in Dream Land (Europe) (En,Fr,De,Es,It)": {
+    "1": [
+     "eu-level.ss",
+     "Europe: Vegetable Valley, no copy ability: the pause page's tip about copying (KND-2, KND-3)"
+    ],
+    "2": [
+     "eu-spark.ss",
+     "Europe: Kirby with Spark: the Spark page (KND-2)"
+    ],
+    "3": [
+     "eu-pause-beam.ss",
+     "Europe: the game's own pause page open with Beam: the logo at half strength, no fade (KND-5)"
+    ],
+    "4": [
+     "eu-spark-paused.ss",
+     "Europe: the game's own pause page open with Spark: the logo at half strength (KND-5)"
+    ],
+    "5": [
+     "eu-hub.ss",
+     "Europe: the hub of doors: the logo (KND-4)"
+    ],
+    "6": [
+     "eu-card.ss",
+     "Europe: the level's title card: the logo (KND-4)"
+    ],
+    "7": [
+     "eu-select.ss",
+     "Europe: the file select: the logo (KND-4)"
+    ],
+    "8": [
+     "eu-title.ss",
+     "Europe: the title: the logo (KND-1, KND-4)"
+    ]
+   },
+   "Hoshi no Kirby - Yume no Izumi Deluxe (Japan)": {
+    "1": [
+     "jp-level.ss",
+     "Japan: Vegetable Valley, no copy ability: the pause page's tip about copying (KND-2, KND-3)"
+    ],
+    "2": [
+     "jp-spark.ss",
+     "Japan: Kirby with Spark: the Spark page (KND-2)"
+    ],
+    "3": [
+     "jp-pause-beam.ss",
+     "Japan: the game's own pause page open with Beam: the logo at half strength, no fade (KND-5)"
+    ],
+    "4": [
+     "jp-spark-paused.ss",
+     "Japan: the game's own pause page open with Spark: the logo at half strength (KND-5)"
+    ],
+    "5": [
+     "jp-hub.ss",
+     "Japan: the hub of doors: the logo (KND-4)"
+    ],
+    "6": [
+     "jp-card.ss",
+     "Japan: the level's title card: the logo (KND-4)"
+    ],
+    "7": [
+     "jp-select.ss",
+     "Japan: the file select: the logo (KND-4)"
+    ],
+    "8": [
+     "jp-title.ss",
+     "Japan: the title: the logo (KND-1, KND-4)"
+    ]
+   }
+  },
+  "f-zero-climax": {
+   "F-Zero - Climax (Japan)": {
+    "1": [
+     "jp-race.ss",
+     "Grand Prix, Mute City: the HUD on the second screen, RANK bottom left of the game screen, the course map whole and twice as big (FZC-2, FZC-3, FZC-4)"
+    ],
+    "2": [
+     "jp-prefinish.ss",
+     "the final lap to the line: the HUD stays on the second screen past the finish; then the logo (FZC-4, FZC-6)"
+    ],
+    "3": [
+     "jp-results.ss",
+     "the RESULTS over the track: the logo (FZC-6)"
+    ],
+    "4": [
+     "jp-card.ss",
+     "the course card, then the fly-in with its name: the logo (FZC-6)"
+    ],
+    "5": [
+     "jp-menu.ss",
+     "the mode select: the logo (FZC-1, FZC-6)"
+    ]
+   },
+   "F-Zero Climax English Patch 1.1": {
+    "1": [
+     "en-race.ss",
+     "the English Patch 1.1 (a patched ROM named exactly as this): the race HUD as in the Japanese game (FZC-9)"
+    ],
+    "2": [
+     "en-menu.ss",
+     "its mode select: the translation's own logo (FZC-9)"
+    ]
+   }
   }
  }
 }

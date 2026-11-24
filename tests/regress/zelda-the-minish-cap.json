@@ -1545,6 +1545,166 @@
      "LOAD:zelda-the-minish-cap/us-ezlo-talking.ss"
     ]
    ]
+  },
+  {
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-town.ss",
+   "id": "tmc-us-toggle-view",
+   "desc": "the toggle on, on the map of Hyrule: HOME + A fades to black while the hidden copy takes Quest Status, then shows it; again, back to the map",
+   "rules": [
+    "GEN-14",
+    "TMC-1",
+    "TMC-4"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ],
+    [
+     320,
+     "HOME+A"
+    ],
+    [
+     324,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "fading": 203,
+    "black": 207,
+    "after": 260,
+    "back": 420
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "the other view: Quest Status, not the map",
+     "type": "differs",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.02
+    },
+    {
+     "rule": "GEN-14",
+     "what": "a second press brings the map back",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "back",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.05
+    },
+    {
+     "rule": "GEN-14",
+     "what": "the first press asks for the view",
+     "type": "log",
+     "match": "toggle: view 2 asked for"
+    },
+    {
+     "rule": "GEN-14",
+     "what": "and it came",
+     "type": "log",
+     "match": "toggle: view 2$"
+    }
+   ]
+  },
+  {
+   "rom": "BZME",
+   "state": "zelda-the-minish-cap/us-no-map.ss",
+   "id": "tmc-us-toggle-nomap",
+   "desc": "before the Map item Quest Status is the picture already: nothing to turn to, the press is ignored",
+   "rules": [
+    "GEN-14",
+    "TMC-4"
+   ],
+   "config": {
+    "toggle": "1"
+   },
+   "input": [
+    [
+     200,
+     "HOME+A"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "before": 190,
+    "after": 260
+   },
+   "checks": [
+    {
+     "rule": "GEN-14",
+     "what": "nothing changed",
+     "type": "same",
+     "a": {
+      "shot": "before",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "after",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "GEN-14",
+     "what": "ignored",
+     "type": "log",
+     "match": "toggle: not ready, ignored"
+    }
+   ]
   }
  ]
 }

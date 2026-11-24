@@ -159,7 +159,10 @@ and takes its shots and input as an app case does (GEN-8: what the panel
 says about the ROM). The game list shows the app's version at the top
 screen's bottom right, so these cases leave it out of the comparison:
 `"golden_mask": [[700, 720, 1024, 768]]` (rects painted over in both
-pictures before they're compared; any case can use it).
+pictures before they're compared; any case can use it). A fifth item, a shot's name
+(or a list of names), keeps a rect to those shots: `[40, 1440, 800, 1474, "system-language"]`
+leaves out the Updates row's note ("This is v<version>...") in that shot only, so a version
+change doesn't touch the case's other pictures (`aw-retroarch-settings`).
 
 A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS,
 BPS or xdelta) beside its ROM, named as the ROM with the patch's extension, so the app
@@ -181,6 +184,7 @@ app case runs with its own `--patch_dir`.
  "rules": ["FE-1", "FE-2", "FE-3"],
  "input": [[150, "START"], [154, "-"]],
  "config": {"layout": "single"},
+ "env": {"GBADS_TOGGLE_WAIT": "30"},
  "shots": {"start": 60, "page2": 420, "end": 720},
  "checks": [
   {"rule": "FE-2", "what": "the minimap at the bottom right",
@@ -190,6 +194,7 @@ app case runs with its own `--patch_dir`.
 }
 ```
 
+- `env` (optional) sets environment variables for the run: `GBADS_TOGGLE_WAIT=N` makes a page turn by hand wait N frames behind the fade (GEN-14), the way a view that has to be captured will.
 - `rom` is the release's game code (`roms/<rom>.zip`); `state` is relative
   to the fixtures' `states/`; `save` (optional) is a battery save from
   `saves/`, put beside the ROM.
@@ -200,6 +205,7 @@ app case runs with its own `--patch_dir`.
   keeping an earlier picture (show it from one state, then load the moment
   where it must stay).
 - `bios` (GEN-15): a fixture under `bios/` (the official GBA BIOS, `gba_bios.bin`, from the owner) put as `<asset_dir>/bios/gba_bios.bin`; the case's `config` `gba_bios: 1` switches it on. Its states are made with the harness (`HARNESS_BIOS=FILE harness ROM OUT SCRIPT`, which runs with that BIOS; Sonic Advance 2 waits inside the BIOS every frame, Advance Wars never does) and wrapped with `tools/retroarch_state.py wrap`: `sonic-advance-2/us-retroarch-bios-real.state` (real BIOS, inside it), `us-retroarch-hle-in-bios.state` (built-in BIOS, inside it).
+- `cheat_files` (GEN-17): `{name there: fixture under cheats/}`, copied into `<asset_dir>/cheats/`. A `.cht` file is matched to its ROM by name, and a case's ROM is named by its code, so name it `BFZE (USA) (Code Breaker).cht` (the code, then the tags).
 - `retroarch` (GEN-13) runs the case with save states shared with a
   stand-in RetroArch (`--state_folder=retroarch`): `cfg` is its
   retroarch.cfg's text, where `{states}` is its state folder in the case's
@@ -250,6 +256,42 @@ When a change is meant to alter what a game shows:
 
 A golden that changes without a rule changing is a regression until shown
 otherwise.
+
+## Rumble (issue #83)
+
+`tools/rumble_test.py` builds a tiny test ROM that switches the cartridge's rumble pin on and
+off, runs it headless at `rumble_strength` 100, 50 and 0, with Drill Dozer's game code (in
+mGBA's database) and with Pokemon Pinball's (not in it), the pins written with `strh` and with
+`strb` (the Pinball rumble patch's way), and checks the log's
+"rumble: the game asked for rumble (..., motor X)" line: the motor is asked for the game's level
+times the strength. It needs llvm-mc and llvm-objcopy and no fixtures. The motor itself (a
+controller's, or the device's through SDL's haptics) can only be tried on a device: the log
+says what was found at start ("rumble: haptic 0 (...): usable") and the first time a game
+asks for rumble ("rumble: the game asked for rumble (..., motor X)").
+
+Cartridge rumble for games mGBA doesn't know (emu.c `gpio_listen`, Nov 23, 2026): mGBA only
+listens to the motor pin for the game codes in its database and drops 8-bit stores to the
+cartridge, and the Pokemon Pinball rumble patch (`AGB-BPPE-USA_CartRumble_v1.1.ips`) keeps BPPE
+and writes the pins with `strb`. The live game's stores to the three GPIO registers switch the
+pin on at the first one (not for a cartridge with a sensor on that port: Boktai's light
+sensor, a gyro or tilt) and pass a byte on as the 16-bit write a cartridge bus makes of it. The patch sets the
+pins up once at boot and only uses them when the game's Game Boy Player flag
+(`gGameBoyPlayerEnabled`, 0x02019C0C) is off; the game only rumbles with its own Rumble option
+on (`gMain.saveData.rumbleEnabled`, 0x0200B201, in the battery save). Checked with the real
+patched ROM (CRC32 4eff7204) from a cold boot with that option forced on (a Code Breaker cheat,
+`3200B201 0001`): the log's rumble line at frame 1205; resuming that run's auto state rumbles
+too; a state saved before the patch was on doesn't (no pin setup) until Restart Game.
+
+Game Boy Player rumble (Mario & Luigi, Pokemon Pinball R&S, SMA4) is not supported. Correction
+of Nov 22's note: with mGBA's `gba.forceGbp` on the live game, the *unpatched* Pokemon Pinball
+does rumble over the link port once its own Rumble option is on (cold boot, the option forced
+on, rumble at frame 1205; traced Nov 23, 2026): the earlier 2500-frame trace never reached a
+table with the option on. That is how v1.6.1's side build rumbled with the patch on (the
+patch leaves the pins alone while the game's Game Boy Player flag is set), and removing
+forceGbp for the release is why the patch stopped. Not brought back: the Game Boy Player is
+only found at the boot logo, so a resumed state never has it (and a state saved with it holds
+the game's flag set, which also turns the patch's cartridge route off), and forcing it on a
+copy that extracts logos changed the logos. A future feature.
 
 ## Rules checked by hand
 

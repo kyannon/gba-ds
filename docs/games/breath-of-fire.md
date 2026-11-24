@@ -6,6 +6,7 @@
 | Dumps | `ABFE` cartridge `f06422a8` (tested) · `ABFP` cartridge `a1c3165d` (tested) · `ABFJ` cartridge `66e96b35` (tested) · `ABFX` cartridge `d3660549` (tested) |
 | Profile | `src/profiles.c`: the `ABFE` entry (`bof_compose`), with `ABFP`, `ABFJ` and `ABFX` in its codes |
 | Tests | `tests/regress/breath-of-fire.json` (`tools/regress.py breath-of-fire`) |
+| Toggle | `views`, `HELD`: the party overview (BOF-4) and the world map (BOF-3), where both exist; the overview is already kept (BOF-5) · GEN-14 |
 | Status | tried on the device (the owner, Nov 21, 2026) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list breath-of-fire`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

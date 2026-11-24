@@ -59,6 +59,10 @@ make -C "$DEPS/SDL2/build-aarch64" -j"$(nproc)" install
 # (the Makefile's SIDE), and a game list of only that game's releases. The
 # game's name and codes come from docs/games/<slug>.md (its title and its
 # Releases row); GBADS_SIDE_NAME / GBADS_SIDE_CODES ("A2NE A2NP") override.
+# A topic branch (an issue's fix, shared code, any branch but dev that is not
+# a game's) has no rules file: GBADS_SIDE=<branch name, slashes made dashes>
+# builds it the same way, with every game in the list (no codes), the Ports
+# entry "GBA DS <slug> testing" (GBADS_SIDE_NAME overrides).
 SIDE="${GBADS_SIDE:-}"
 SIDE_NAME="" SIDE_CODES=""
 if [ -n "$SIDE" ]; then
@@ -67,15 +71,21 @@ if [ -n "$SIDE" ]; then
 		exit 1
 	fi
 	RULES="docs/games/$SIDE.md"
+	if [ ! -f "$RULES" ] && [ -z "${GBADS_SIDE_CODES:-}" ]; then
+		# a topic branch, not a game's: every game stays in the list
+		SIDE_NAME="${GBADS_SIDE_NAME:-$SIDE}"
+		SIDE_CODES=""
+	else
 	SIDE_NAME="${GBADS_SIDE_NAME:-$(sed -n '1s/^# *//p' "$RULES" 2>/dev/null)}"
 	SIDE_CODES="${GBADS_SIDE_CODES:-$(grep -m1 '^| Releases |' "$RULES" 2>/dev/null | grep -o '`[A-Z0-9]\{4\}`' | tr -d '`' | tr '\n' ' ' | sed 's/ *$//')}"
 	if [ -z "$SIDE_NAME" ] || [ -z "$SIDE_CODES" ]; then
 		echo "GBADS_SIDE: $RULES needs its title (# Name) and a Releases row with the codes (\`A2NE\`), or set GBADS_SIDE_NAME and GBADS_SIDE_CODES" >&2
 		exit 1
 	fi
+	fi
 	# (no characters SD cards' file systems refuse: "Game: Subtitle" -> "Game - Subtitle")
 	SIDE_NAME="$(printf '%s' "$SIDE_NAME" | sed 's/ *: */ - /g; s#[/\\*?"<>|]##g')"
-	echo "side build: $SIDE, \"GBA DS $SIDE_NAME testing\", codes $SIDE_CODES"
+	echo "side build: $SIDE, \"GBA DS $SIDE_NAME testing\", codes ${SIDE_CODES:-(all games)}"
 fi
 
 # --- gba-ds ---------------------------------------------------------------

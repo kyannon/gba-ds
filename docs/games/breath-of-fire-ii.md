@@ -6,6 +6,7 @@
 | Dumps | `AB2E` cartridge `6f098da3` (tested) · `AB2P` cartridge `ff5e8e39` (tested) · `AB2J` cartridge `8a824a70` (tested) |
 | Profile | `src/profiles.c`: the `AB2E` entry (`bof2_compose`), with `AB2P` in its codes and `AB2J` as a variant of it (`bof2_jp`) |
 | Tests | `tests/regress/breath-of-fire-ii.json` (`tools/regress.py breath-of-fire-ii`) |
+| Toggle | `views`, `HELD`: the party overview and the world map (BOF2-3), where both exist; the overview is already kept (BOF2-4) · GEN-14 |
 | Status | checked on the device in all three releases (Nov 20, 2026) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list breath-of-fire-ii`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

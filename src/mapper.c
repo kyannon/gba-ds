@@ -12,7 +12,6 @@
 #endif
 
 static const SDL_Color C_BG = { 14, 14, 26, 255 };
-static const SDL_Color C_ROW = { 22, 22, 38, 255 };
 static const SDL_Color C_TEXT = { 236, 236, 244, 255 };
 static const SDL_Color C_DIM = { 140, 140, 172, 255 };
 static const SDL_Color C_GOLD = { 232, 200, 120, 255 };
@@ -437,7 +436,7 @@ void mapper_run(const Config* cfg) {
 		}
 
 		ui_clear();
-		for (int s = 0; s < nScreens; ++s) draw(s, &v, touch);
+		draw(ui_touch_screen(), &v, touch); /* (on the menu's screen only, as Settings is) */
 		ui_present();
 		SDL_Delay(15);
 	}

@@ -169,6 +169,9 @@ typedef struct MapProfile {
 	 * spot its info box takes no L; B twice, back to the map, first) */
 	MemProbe openAltIf[2];
 	MacroStep openAlt[8];
+	/* A byte written on the hidden copy before `open` (Kirby & The Amazing
+	 * Mirror: the pause menu's page, kept by the game from its last use) */
+	struct { uint32_t addr; uint8_t value; } openPoke;
 	/* Optional second step: once the map is up (mem probes), if open2If
 	 * matches, wait open2Delay frames and press open2 (A Link to the Past:
 	 * L again on the world map zooms out to the whole world). */
@@ -424,6 +427,8 @@ typedef struct MapProfile {
 	 * has no status bar (SM4-11) */
 	MemProbe logoIf[2];
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
+	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
+	bool logoIfLast;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
@@ -778,7 +783,7 @@ typedef struct MapProfile {
 	 * of only `underLayers` (bits 0-3 BG0-3, bit 4 sprites), made once per
 	 * capture: bezel pieces drawn over the map, like Zero Mission's corner
 	 * minimap, give way to the map underneath. */
-	struct { int x0, y0, x1, y1; } underRect[2];
+	struct { int x0, y0, x1, y1; } underRect[3];
 	unsigned underLayers;
 	SpriteRule underHide[2]; /* also left out of that render (on top of captureHide) */
 
@@ -826,6 +831,23 @@ typedef struct MapProfile {
 	/* Instead of compose: several pictures (pages shown in turn, `*step`
 	 * emulated frames each); out[0..*n) on return, *n the most on the way in */
 	const char* (*composePages)(Emu* s, const void* state, uint32_t* const* out, int* n, int* step, int w, int h);
+	/* composePages' pictures are pages (a status screen's three pages, the
+	 * party's members), which keep turning at their pace through new
+	 * captures, and not a marker's blinking frames (those restart with each
+	 * capture). Set for every game whose rules file has Toggle `pages`
+	 * (GEN-14): what the toggle turns by hand. */
+	bool pages;
+	/* composePages' pictures are views (the world map and the party screen):
+	 * the first shows, and stays, as it always did; the toggle (GEN-14) turns
+	 * to the next until the subject changes. Held: both come from the one
+	 * capture. Set for every game whose Toggle row says `views`, `HELD`. */
+	bool views;
+	/* GEN-14, ONPRESS: the other view isn't kept: a press makes the hidden copy
+	 * capture it (compose reads mapcap_alt_view()), the picture fading to black
+	 * while the game finds it. A press turns back the same way. altHere (optional):
+	 * whether the live game has another view right now (else always). */
+	bool onPress;
+	bool (*altHere)(Emu* live);
 	/* Values computed from the game's memory, read by MemProbes at
 	 * addresses from 0xF0000000 (memprobe_virtual, mapcap.h): Fire
 	 * Emblem's processes, which move between slots. */

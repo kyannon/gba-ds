@@ -242,16 +242,29 @@ public class GbaDsActivity extends SDLActivity {
         DisplayManager dm = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
         int mine = getWindowManager().getDefaultDisplay().getDisplayId();
         Display other = null;
+        /* Every display goes to launch.log (a USB-C screen such as the Retroid
+         * Dual Screen Add-on on an AYN Odin 2 may be listed with other flags
+         * or states than a built-in one, issue #65), then the one to use is
+         * chosen: not this activity's, and of those the one Android marks for
+         * presentations first, then one that is on, then the first. */
+        int bestScore = -1;
         for (Display d : dm.getDisplays()) {
             Point size = new Point();
             d.getRealSize(size);
-            Log.i(TAG, "display " + d.getDisplayId() + " \"" + d.getName() + "\" " + size.x + "x" + size.y
-                    + " rotation " + d.getRotation() + " flags 0x" + Integer.toHexString(d.getFlags())
+            int flags = d.getFlags();
+            LauncherActivity.launchLog(this, "display " + d.getDisplayId() + " \"" + d.getName() + "\" " + size.x + "x" + size.y
+                    + " rotation " + d.getRotation() + " flags 0x" + Integer.toHexString(flags)
+                    + ((flags & Display.FLAG_PRESENTATION) != 0 ? " (presentation)" : "") + " state " + d.getState()
                     + (d.getDisplayId() == mine ? " (game activity)" : ""));
-            if (d.getDisplayId() != mine && other == null) other = d;
+            if (d.getDisplayId() == mine) continue;
+            int score = ((flags & Display.FLAG_PRESENTATION) != 0 ? 2 : 0) + (d.getState() == Display.STATE_ON ? 1 : 0);
+            if (score > bestScore) {
+                bestScore = score;
+                other = d;
+            }
         }
         if (other == null) {
-            Log.i(TAG, "only one display: no second screen");
+            LauncherActivity.launchLog(this, "only one display: no second screen");
             return;
         }
         Point size = new Point();
@@ -270,7 +283,7 @@ public class GbaDsActivity extends SDLActivity {
         try {
             second.show();
             Trace.since(this, "second screen: Presentation.show() returned (its surface comes later: see 'second screen surface')", tShow);
-            Log.i(TAG, "second screen on display " + other.getDisplayId() + " (" + size.x + "x" + size.y + ")");
+            LauncherActivity.launchLog(this, "second screen on display " + other.getDisplayId() + " (" + size.x + "x" + size.y + ")");
         } catch (WindowManager.InvalidDisplayException e) {
             Log.e(TAG, "second screen: " + e);
             SecondScreen.nativeSetDisplay(0, 0);

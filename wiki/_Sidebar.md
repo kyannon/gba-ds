@@ -11,11 +11,14 @@
 **Use**
 - [[Playing]]
 - [[Supported games]]
+- [[Game Boy games]]
 - [[Overlays]]
 - [[Settings]]
 - [[Languages]]
 - [[Troubleshooting]]
 - [[Philosophy]]
+- [[Privacy]]
+- [[Licenses]]
 
 **Develop**
 - [[Adding second-screen compatibility for a game]]

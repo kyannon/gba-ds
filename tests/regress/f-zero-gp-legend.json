@@ -1218,6 +1218,133 @@
    "golden": [
     "logo"
    ]
+  },
+  {
+   "id": "fz-us-cheats-stress",
+   "rom": "BFZE",
+   "state": "f-zero-gp-legend/us-gp-pause.ss",
+   "desc": "Extras > Cheats with a file of about 500 made-up cheats (gaps, missing codes and names, a long name, a tab, duplicates, unquoted values, entries past the 512th): the list, held DOWN, and a cheat switched on",
+   "rules": [
+    "GEN-17"
+   ],
+   "cheat_files": {
+    "BFZE (USA) (Code Breaker).cht": "F-Zero - GP Legend (USA, Europe) (Code Breaker).cht"
+   },
+   "input": [
+    [
+     60,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     90,
+     "TAP:0.5,0.864"
+    ],
+    [
+     115,
+     "DOWN"
+    ],
+    [
+     118,
+     "-"
+    ],
+    [
+     121,
+     "DOWN"
+    ],
+    [
+     124,
+     "-"
+    ],
+    [
+     127,
+     "DOWN"
+    ],
+    [
+     130,
+     "-"
+    ],
+    [
+     133,
+     "A"
+    ],
+    [
+     136,
+     "-"
+    ],
+    [
+     160,
+     "DOWN"
+    ],
+    [
+     260,
+     "-"
+    ],
+    [
+     280,
+     "A"
+    ],
+    [
+     282,
+     "-"
+    ]
+   ],
+   "shots": {
+    "menu": 110,
+    "list": 150,
+    "held": 270,
+    "switched": 300
+   },
+   "checks": [
+    {
+     "rule": "GEN-17",
+     "what": "505 cheats read: the 512 cap, gaps, and the ones with no code left out",
+     "type": "log",
+     "match": "cheats: 505 in 1 file"
+    },
+    {
+     "rule": "GEN-17",
+     "what": "the file's own cheatN_enable values: four on at the start (the fifth, past a gap, is skipped)",
+     "type": "log",
+     "match": "cheats: 4 on from BFZE"
+    },
+    {
+     "rule": "GEN-17",
+     "what": "one switched on in the list: five on",
+     "type": "log",
+     "match": "cheats: 5 on from BFZE"
+    },
+    {
+     "rule": "GEN-17",
+     "what": "holding DOWN moved the highlight and scrolled the list",
+     "type": "differs",
+     "a": {
+      "shot": "list",
+      "rect": [
+       0,
+       60,
+       1024,
+       700
+      ]
+     },
+     "b": {
+      "shot": "held",
+      "rect": [
+       0,
+       60,
+       1024,
+       700
+      ]
+     }
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     200,
+     60
+    ]
+   ]
   }
  ]
 }
