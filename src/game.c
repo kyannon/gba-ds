@@ -1030,6 +1030,10 @@ static void gb_colours_setup(void) {
 static bool gb_colours_changed(void) {
 	return emu_is_gb(&emu) && (strcmp(cfg->gbPalette, gbPaletteAtStart) || strcmp(cfg->gbDual, gbDualAtStart));
 }
+static void draw_gb_ask(int scr);
+static bool gbAskOpen; /* leaving the menu with Game Boy colours that need a start: Restart now / Discard changes (GB-6, GB-7) */
+static int gbAskSel;
+static bool gbHadGameKey[2]; /* this game's own file had gb_palette / gb_dual as the game started */
 static bool tallLiveAtStart; /* pinball_live as this game started with it: a change counts only after a new start */
 static bool tallLive;      /* the live view: the table over both screens (update_tall) */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
@@ -3838,6 +3842,9 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "pinball_live") && !tallSupported) return N_("Not available in this game: only the pinball games have a table to show on both screens");
 	if ((!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
 		return N_("Not available in this game: its second screen has nothing to turn");
+	if (!strcmp(key, "gb_dual") && emu_gb_kind(&emu) != 1) return N_("Not available in this game: it is made for a Game Boy or for a Game Boy Color, not both");
+	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 2) return N_("Not available in this game: it is made for the Game Boy Color, with colors of its own");
+	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
@@ -4050,6 +4057,11 @@ static void draw_menu(void) {
 			int o = ui_other_screen();
 			draw_paused_label(o);
 		}
+		return;
+	}
+	if (gbAskOpen) {
+		draw_gb_ask(scr);
+		if (nScreens > 1) draw_paused_label(ui_other_screen());
 		return;
 	}
 	if (noteOpen) {
@@ -8242,6 +8254,60 @@ static void row_reset(const char* key) {
 	snprintf(menuNote, sizeof(menuNote), tr("Same as all games again"));
 }
 
+/* Display > Game Boy palette / Dual-mode games: back to what the game started with, in the
+ * layer they were changed in (a value this game's file got meanwhile goes away) */
+static void gb_keys_at_start(void) {
+	gbHadGameKey[0] = game_has(config_setting("gb_palette"));
+	gbHadGameKey[1] = game_has(config_setting("gb_dual"));
+}
+static void gb_discard(void) {
+	static const char* const keys[2] = { "gb_palette", "gb_dual" };
+	char* const field[2] = { cfg->gbPalette, cfg->gbDual };
+	const char* const start[2] = { gbPaletteAtStart, gbDualAtStart };
+	for (int i = 0; i < 2; ++i) {
+		if (!strcmp(field[i], start[i])) continue;
+		const Setting* st = config_setting(keys[i]);
+		if (!st) continue;
+		if (game_has(st) && !gbHadGameKey[i]) row_reset(keys[i]);
+		snprintf(field[i], 8, "%s", start[i]);
+		commit_current(keys[i]); /* (in the layer in force: this game's file if it has the key, else all games') */
+	}
+	menuNote[0] = 0;
+}
+
+static SDL_Rect gb_ask_btn(int scr, int i) {
+	MenuGeom g = menu_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	int w = SDL_min(r.w - g.margin * 2, g.h * 8), x = r.x - r.x + (r.w - w) / 2;
+	return (SDL_Rect) { x, r.h * 11 / 20 + i * (g.h + g.gap), w, g.h };
+}
+static void draw_gb_ask(int scr) {
+	MenuGeom g = menu_geom(scr);
+	SDL_Rect r = screens[scr].rect;
+	int cy = r.h * 3 / 10;
+	ui_label(scr, r.w / 2, cy, g.cap * 5 / 4, tr("Restart required"), C_TEXT);
+	ui_font_text(scr, TF_BODY, r.w / 2, cy + g.cap * 3, g.cap * 4 / 5, tr("The new colors count when the game starts again."), C_DIS, 0);
+	ui_font_text(scr, TF_BODY, r.w / 2, cy + g.cap * 5, g.cap * 4 / 5, tr("Restarting starts it from the top."), C_DIS, 0);
+	const char* label[2] = { tr("Restart now"), tr("Discard changes") };
+	for (int i = 0; i < 2; ++i) {
+		SDL_Rect b = gb_ask_btn(scr, i);
+		ui_key(scr, b, g.rad, i == gbAskSel ? KEY_SEL : KEY_PLAIN);
+		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, g.cap, label[i], C_TEXT);
+	}
+}
+/* true: the game starts again (*exitTo set) */
+static bool gb_ask_pick(int i, enum GameExit* exitTo) {
+	gbAskOpen = false;
+	if (i == 0) {
+		patchReloadNext = true; /* (no resume point: it has the old colours in it) */
+		*exitTo = GAME_RELOAD;
+		return true;
+	}
+	gb_discard();
+	menuOpen = false;
+	return false;
+}
+
 /* the controller on a settings page (the bar, then the rows) */
 static void rows_input(void) {
 	int n = rowN[curPage];
@@ -8686,6 +8752,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
 	game_keys_reload();
 	gb_colours_setup(); /* (GB-6, GB-7: for a Game Boy game) */
+	gb_keys_at_start();
+	gbAskOpen = false;
 	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	profile_set_rom(NULL, 0);
 	if (!emu_open(&emu, rom, gp.sav, true)) {
@@ -9136,6 +9204,18 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				continue;
 			}
 			if (p.screen != ui_touch_screen()) continue;
+			if (gbAskOpen) {
+				if (p.kind == 2) {
+					for (int i = 0; i < 2; ++i) {
+						if (in_rect(gb_ask_btn(p.screen, i), p.x, p.y)) {
+							gbAskSel = i;
+							if (gb_ask_pick(i, &exitTo)) done = true;
+							break;
+						}
+					}
+				}
+				continue;
+			}
 			if (achOpen) {
 				if (p.kind == 1) {
 					if (tab_at(p.screen, p.x, p.y, 2) == 0) {
@@ -9430,7 +9510,14 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 		if (done) break;
 
-		if (menuOpen && achOpen) {
+		if (menuOpen && gbAskOpen) {
+			if (btn_pressed(B_UP) || btn_pressed(B_DOWN)) gbAskSel = !gbAskSel;
+			if (btn_pressed(B_A)) {
+				if (gb_ask_pick(gbAskSel, &exitTo)) done = true;
+			} else if (btn_pressed(B_B) || btn_pressed(B_START)) {
+				gbAskOpen = false; /* (back to the menu, the changes kept) */
+			}
+		} else if (menuOpen && achOpen) {
 			int scr = ui_touch_screen();
 			static int held[2];
 			for (int k = 0; k < 2; ++k) {
@@ -9567,6 +9654,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				SDL_PauseAudioDevice(audio, 1);
 				SDL_ClearQueuedAudio(audio);
 			}
+		}
+		if (wasMenu && !menuOpen && gb_colours_changed()) {
+			menuOpen = true, gbAskOpen = true, gbAskSel = 0; /* (GB-6, GB-7: restart now, or discard the changes) */
 		}
 		if (wasMenu && !menuOpen) {
 			if (noteOpen) note_done(true); /* (closed some other way: saved with what's typed) */

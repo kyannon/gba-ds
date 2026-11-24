@@ -427,6 +427,11 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		return false;
 	}
 	e->platform = (int) e->core->platform(e->core);
+	e->gbKind = 0;
+	if (e->platform == mPLATFORM_GB) {
+		uint8_t h[EMU_HEADER_MAX];
+		if (emu_rom_header(romPath, h, sizeof(h))) e->gbKind = h[0x143] == 0xC0 ? 2 : h[0x143] == 0x80 ? 1 : 0;
+	}
 	mCoreInitConfig(e->core, NULL);
 	struct mCoreOptions opts = { .useBios = false, .volume = 0x100, .audioBuffers = 1024 };
 	mCoreConfigLoadDefaults(&e->core->config, &opts);
@@ -1022,6 +1027,10 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n) {
 	}
 	if (archive) archive->close(archive);
 	return ok;
+}
+
+int emu_gb_kind(const Emu* e) {
+	return e ? e->gbKind : 0;
 }
 
 bool emu_is_gb(const Emu* e) {

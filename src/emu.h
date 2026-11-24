@@ -57,6 +57,7 @@ typedef struct Emu {
 	/* The core's platform (mPlatform: mPLATFORM_GBA, mPLATFORM_GB). A Game Boy / Game Boy Color game
 	 * (issue #77) draws its 160x144 picture centred in the same GBA_W x GBA_H frame, at (picX, picY),
 	 * so the rest of the app sees a GBA-sized picture; for a GBA game it is the whole frame. */
+	int gbKind; /* a Game Boy game: 0 made for the plain Game Boy, 1 for either (dual-mode), 2 for the Game Boy Color alone */
 	int platform;
 	int picX, picY, picW, picH;
 	char gameCode[5];
@@ -88,6 +89,7 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n);
  * issue #77). Its title (up to 15 characters, unprintable ones "_"). */
 /* Is the game a Game Boy / Game Boy Color one (issue #77)? */
 bool emu_is_gb(const Emu* e);
+int emu_gb_kind(const Emu* e); /* Emu.gbKind */
 bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
 void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
