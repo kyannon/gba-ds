@@ -357,7 +357,7 @@
    "id": "wwt-us-slider",
    "rom": "RZWE",
    "state": "warioware-twisted/us-menu.ss",
-   "desc": "the sensitivity slider is in the quick bar: 10% at first (a drag of half the screen's width turns the wheel 9 degrees); moved to the top (25%), 22.5",
+   "desc": "the sensitivity slider is in the quick bar: 15% at first (a drag of half the screen's width turns the wheel 13.5 degrees); moved to the top (25%), 22.5",
    "rules": [
     "WWT-7"
    ],
@@ -417,15 +417,15 @@
    "checks": [
     {
      "rule": "WWT-7",
-     "what": "10% by default",
+     "what": "15% by default",
      "type": "log",
-     "match": "dial on, sensitivity 10%"
+     "match": "dial on, sensitivity 15%"
     },
     {
      "rule": "WWT-7",
-     "what": "9 degrees at 10%",
+     "what": "13.5 degrees at 15%",
      "type": "log",
-     "match": "let go at -9\\.0 degrees"
+     "match": "let go at -13\\.5 degrees"
     },
     {
      "rule": "WWT-7",

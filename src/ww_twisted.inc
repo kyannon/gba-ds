@@ -38,7 +38,7 @@
 #define WW_MAX_DEG 180.0f
 #define WW_SENS_MIN 5
 #define WW_SENS_MAX 25
-#define WW_SENS_DEFAULT 10
+#define WW_SENS_DEFAULT 15
 #define WW_TILT_KEEP 0.985f   /* Gyro mode's logo eases back to level, a frame's share */
 #define WW_RN 176             /* the wheel's rings: radii in pixels */
 #define WW_TILE 4             /* the checkered disc's squares */

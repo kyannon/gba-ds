@@ -10350,13 +10350,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				shotPending = false;
 				take_screenshot();
 			}
+			draw_ww_ui(); /* (under the RetroAchievements banner) */
 			ra_draw(nScreens > 1 ? 1 - game_screen() : 0); /* after the screenshot: not in it */
 			if (barOpen && !cfg->barPinned && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
 			draw_rewind();
 			draw_hint(); /* (under the bar, as it comes up) */
 			draw_bar();
 			draw_toggle_btn();
-			draw_ww_ui();
 			/* (the keeper: the game and its sound go on if this is held up; not
 			 * for tests, whose frames are counted exactly) */
 			const bool keep = cfg->keepSound && audio && !ff && !rewinding && !noPace && !ui_scripted();
