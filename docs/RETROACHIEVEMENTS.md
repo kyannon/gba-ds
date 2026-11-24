@@ -70,7 +70,7 @@ Loading states in hardcore: blocked (one function). Rewind / slowdown / frame ad
 
 ## 4. How it was tested
 
-On a host build against a stand-in RetroAchievements server (`tools/ra_mock.py`: login, game lookup, achievements with Rich Presence and a leaderboard, award and leaderboard submission, and an outage switch), and on the maintainer's Anbernic RG DS Plus (casual: unlock popups, the Achievements page, offline replay; hardcore: toggling, refusal of state loads, rewind and cheats off, resume to casual, banners). **Not tested against the real RetroAchievements server in hardcore**, since that can't count before approval. The regression suite does not cover RetroAchievements yet.
+On a host build against a stand-in RetroAchievements server (`tools/ra_mock.py`: login, game lookup, achievements with Rich Presence and a leaderboard, award and leaderboard submission, and an outage switch), and on the maintainer's Anbernic RG DS Plus (casual: unlock popups, the Achievements page, offline replay; hardcore: toggling both ways with the restart and banner, refusal of state loads, resume to casual). The rewind and cheat blocks in hardcore were checked by reading the code and have not been tried on the device or in a picture test. **Not tested against the real RetroAchievements server in hardcore**, since that can't count before approval. The regression suite does not cover RetroAchievements yet.
 
 ## 5. What GBA DS does to the running game (the audit)
 
