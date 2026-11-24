@@ -100,6 +100,7 @@ typedef struct Config {
 	char cheatDir[1024]; /* RetroArch .cht folders, ':'-separated (searched two levels deep) */
 	char patchDir[1024]; /* patches, a folder per game in it (GEN-9); default: <assetDir>/patches */
 	char libraryView[8]; /* game list: "list" (names), "grid" (two columns of logos) or "grid3" (three) */
+	char librarySort[8]; /* game list: "alpha" (A to Z, the default) or "recent" (last played first); favorites come first in both */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: the data folder */
 	char logoFolder[512]; /* scraped logos, found by the ROM's file name (GEN-11); empty: none */

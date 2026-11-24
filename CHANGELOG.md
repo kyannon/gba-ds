@@ -5,6 +5,10 @@
 ### New games
 - **WarioWare: Twisted!** (USA, and Mawaru Made in Wario in Japan): the game's gyro is played by turning the device. In Gyro mode, which every start begins in, the second screen is the game's logo on white that tilts with the device, with a **Touch!** button (or HOME + A). In **Touch mode** the touchscreen is a dial: touch anywhere and drag left or right to tilt the game that way, and let go to ease back to level; the second screen shows the game's menu wheel turning with it, with **Gyro!** and **Pause** buttons along the top. The dial's sensitivity (5% to 25%, 15% at first) is in the quick bar. The cartridge's motor is limited to short pulses here, since the gyro and the dial can make the game ask for far more rumble than the original's could. Known: no gyro sensor was found on the RG DS Plus under BananaOS yet, so there Touch mode is the way to play; the Europe release hasn't been tried; bug reports don't record the gyro.
 
+### Game list
+- **Sort the game list, and pin favorites to the top.** A bar of two buttons now sits at the top of the list, under the header, and scrolls away with the games: **A to Z** (as before) and **Recently played** (the game you played last first; games you haven't played yet follow, A to Z). Touch a button, or press Up from the first game, choose with Left / Right and press A. GBA DS remembers the sort you chose.
+- **Favorites:** touch the star on a game's tile, or press **Y** with the game selected, to make it a favorite. Favorites are listed first, whatever the sort, and the star turns gold; do it again to take it off.
+
 ### Fixes
 - **Rumble patches that stop the motor by switching the cartridge's motor pin off no longer leave the device rumbling.** Mario & Luigi: Superstar Saga's rumble patch started rumbling in the story intro and never stopped; it now stops when the game says so.
 

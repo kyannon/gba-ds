@@ -3,6 +3,7 @@
 GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS Plus), with the selected game's logo and resume picture on the other screen.
 
 - **Three views:** a list of names (the default), a two-column grid of the games' logos, or a three-column grid (smaller logos, more games on screen). Each press of **X** moves on to the next view, and so does the square button left of the **Supported** / **All** button, whose picture shows what the next press gives; GBA DS remembers which you chose.
+- **Sorting and favorites:** a bar at the top of the list (it scrolls away with the games, unlike the header) has two buttons: **A to Z** and **Recently played** (the game you played last first; games you haven't played yet come after, A to Z). Touch one, or press **Up** from the first game to reach the bar, choose with **Left** / **Right** and press **A**; **Down** goes back to the games. GBA DS remembers your choice (`library_sort` in `library.cfg`). **Favorites** always come first, whatever the sort: touch the star on a game's tile, or press **Y** with the game selected (the star turns gold; again to take it off). Favorites are kept in `favorites.txt` and the times you last played in `played.txt`, in GBA DS's states folder.
 - **Names** come from the file names, without tags like `(USA)` or `(En,Fr,De)`. When you have more than one regional copy of a game, a flag tells them apart. `name_tags = 1` in `gba-ds.cfg` keeps the tags.
 - **Which games:** the button between the view button and **Settings** says **Supported** (only games with second-screen support, see [[Supported games]]) or **All** (every GBA ROM; the others play normally on one screen). Touch it to switch; GBA DS remembers it (`show_all`).
 - **The other screen** shows the selected game's logo, and the picture where it will resume once you've played it.
@@ -15,6 +16,8 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | L1 / R1 | Page up / down |
 | A or Start, or tap a game | Play |
 | Drag | Scroll |
+| Y, or tap a game's star | Favorite on / off (favorites are listed first) |
+| Up from the first game | The sort bar: Left / Right, A to choose, Down to go back |
 | X, or tap the button left of Settings | Next view: list, two columns, three columns |
 | SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder, [GBA BIOS](#a-state-saved-with-a-gba-bios) and Updates (Linux) or Folders, RetroAchievements sign-in, GBA BIOS and Updates (Android)) |
 | B or HOME | Back to EmulationStation / the launcher |
