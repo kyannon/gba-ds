@@ -712,6 +712,8 @@ def main():
                 need.add("states/" + fx)
             if c.get("bios"):  # (GEN-15's player-supplied GBA BIOS)
                 need.add("bios/" + c["bios"])
+            for f in c.get("cheat_files", {}).values():  # (GEN-17's cheat files)
+                need.add("cheats/" + f)
         print("\n".join(sorted(need)))
         return
     if args.list:
