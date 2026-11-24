@@ -12,6 +12,7 @@
 - New wiki pages, Privacy and Licenses: what GBA DS sends and keeps, and what it is built from.
 
 ### Changes
+- **Rewind and fast forward can go on other buttons** (issue #88). Settings > Controls > Hotkeys has Rewind (hold) and Fast forward (hold), L2 and R2 at first (HOME + L2 and HOME + R2 work too), and two new shortcuts, Rewind on/off and Fast forward on/off, that keep going until you press them again (no button until you give them one). The Hotkeys list now scrolls, and its last row is no longer hidden under the note at the bottom. Map buttons and Hotkeys are now at the top of Controls, and they (and the state folder picker) show on the menu's screen only, not on both.
 - **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
 
 ### Fixes

@@ -64,7 +64,7 @@ In the game list's Settings > System, **Reset settings to defaults** puts every 
 | `border_color` | `000000` | Colour behind the map image where nothing else is drawn (RRGGBB). |
 | `show_fps` | `0` | Frames per second and % of full speed above the game, all the time. The quick bar (HOME + X) shows the frames per second whenever it's up. |
 | `match_display` | `0` | **Match Display Rate**: run the game at the display's refresh rate instead of the GBA's 59.73 frames a second, when the two are within 1.5% (a 60 Hz screen: 0.46% faster, sound resampled to match, which you can't hear), and present each frame in step with the display. The GBA's own rate on a 60 Hz screen shows one frame twice about every 3.7 seconds, a small regular stutter; matched, every frame gets exactly one refresh. A game that can't keep up (frames late for their refresh three seconds in a row) goes back to the GBA's rate until it's started again or the setting is turned on again (the menu says "Off for now"). Also in the pause menu. |
-| `rewind` | `1` | Keep a rewind buffer: hold **L2** to go back in time. Also in the pause menu (Extras). |
+| `rewind` | `1` | Keep a rewind buffer: hold **L2** (`rewind_button`) to go back in time. Also in the pause menu (Extras). |
 | `rewind_seconds` | `30` | How far back rewind goes (5-300). The buffer holds the differences between states, about 1 MB a second. |
 | `frame_buffer` | `0` | Prepare the next frame while the current one is shown: smoother, one frame (about 17 ms) more input delay. Also in the pause menu. Always on in the pinball games' two-screen tables (Pokémon Pinball, Sonic Pinball Party, Muppet Pinball Mayhem), which need it for full speed. |
 
@@ -103,9 +103,13 @@ How the Metroid map screens are tidied:
 | `hotkey_swap_screens` | `up` | Hotkey + this button swaps the screens. |
 | `hotkey_shader` | `down` | Hotkey + this button toggles the selected shader: off, and back on (the one last picked in the pause menu, or the LCD grid). |
 | `hotkey_toggle` | `a` | Hotkey + this button turns the second screen's page or view by hand (see `toggle` under Second screen). |
+| `hotkey_rewind_toggle` | `none` | Hotkey + this button starts rewinding until it's pressed again (or `none`). |
+| `hotkey_fast_forward_toggle` | `none` | Hotkey + this button starts fast-forwarding until it's pressed again (or `none`). |
+| `rewind_button` | `l2` | The button held to rewind, on its own or with the hotkey button (any of the buttons above but HOME and the hotkey button, or `none`). The game doesn't get it. |
+| `fast_forward_button` | `r2` | The button held to fast-forward, as `rewind_button`. |
 | `home_button` | `-1` | If HOME does nothing: launch once with `GBADS_DEBUG=1` (see [[Troubleshooting]]), press HOME, and put the "raw joystick ... button N" number from `gba-ds.log` here. |
 | `menu_combo` | `none` (Android: `select+start`) | `select+start`: SELECT and START pressed together also open the menu. The game doesn't see the pair; either button alone still reaches the game. |
-| `fast_forward` | `1` | Hold **R2** to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |
+| `fast_forward` | `1` | Hold **R2** (`fast_forward_button`) to fast-forward. `0`: R2 does nothing. Also in the pause menu (Extras). |
 | `ff_speed` | `3` | Fast-forward speed (hold R2): how many times as fast, or `max` for as fast as the device can. Fast Forward in the pause menu goes through 2 to 5 and Max. |
 
 ## Files and folders

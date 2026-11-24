@@ -89,7 +89,7 @@ Tap the touchscreen, or press **HOME** (Android: **SELECT + START** together, or
 - **Take Screenshot**: both screens as they look right now, with your display settings, stacked top to bottom into one PNG in `/storage/roms/screenshots` (Android: `GBA DS/screenshots`); `screenshot_dir` changes the folder.
 - **Submit a Bug Report**: the same as the quick bar's bug button (see [below](#the-quick-bar-and-bug-reports)), for the moment you opened the menu.
 - **Rewind: On / Off** and **Fast Forward** (its speed, or Off), side by side.
-- **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound, with **Rewinding...** in the middle of the second screen (**Can't rewind further** once you reach the start of the buffer); let go to play on from there. Off saves the little work it takes to keep the buffer.
+- **Rewind**: on by default. Hold **L2** to go back in time, up to 30 seconds (`rewind_seconds`), at double speed and without sound, with **Rewinding...** in the middle of the second screen (**Can't rewind further** once you reach the start of the buffer); let go to play on from there (HOME + L2 does the same). Off saves the little work it takes to keep the buffer.
 - **Fast Forward**: 3x by default. Hold **R2** to play that many times as fast, with **Fast forwarding...** in the middle of the second screen; all the other buttons still work meanwhile, so you can press A through text. Each press of the button goes on to the next speed: 2x, 3x, 4x, 5x, Max (as fast as your device can run the game; how fast that is depends on the device and the game, and the sound gets choppy), then Off (R2 does nothing, so a trigger pressed by accident can't skip you ahead), then 2x again. HOME + R2 fast-forwards too, the same way, if you're used to it from RetroArch.
 - **Save on Quit: On / Off** and **Auto-Load: On / Off**, side by side: whether closing the game saves a resume point, and whether starting it picks up from one (see Resume points above). Remembered for next time.
 
@@ -126,9 +126,9 @@ From these, what you did can be played back exactly, frame by frame. So when som
 | L1 / R1 | GBA L / R |
 | Start / Select | Start / Select |
 | HOME, or tap the touchscreen | Pause menu (Android: SELECT + START, or BACK) |
-| L2 (hold) | Rewind |
+| L2 (hold) | Rewind (another button can be chosen in [Hotkeys](#hotkeys)). HOME + L2 too |
 | L3 (press the left stick) | Quick bar (as swiping up; again to put it away) |
-| R2 (hold) | Fast-forward (default 3×; Fast Forward in Extras sets the speed or turns it off). HOME + R2 too |
+| R2 (hold) | Fast-forward (default 3×; Fast Forward in Extras sets the speed or turns it off; another button can be chosen in [Hotkeys](#hotkeys)). HOME + R2 too |
 | HOME + R1 / L1 | Quick save / load state (the same state as the quick bar's buttons) |
 | HOME + Start | Close GBA DS |
 | HOME + B | Close the game (back to the game list) |
@@ -141,12 +141,14 @@ If HOME doesn't open the menu on your device, see `home_button` in [[Settings]];
 
 ### Hotkeys
 
-The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and open **Controls** and choose **Hotkeys** (under Map buttons):
+The HOME + button shortcuts above are hotkeys: hold the hotkey button, then press the other one. To change them, open **Settings** in the game list and open **Controls** and choose **Hotkeys** (at the top, under Map buttons):
 
 - **Hotkey button**: HOME (the default), SELECT, START or L3. With SELECT or START, the button still reaches the game when you tap it on its own; with L3, a tap on its own still opens the quick bar. HOME opens the menu whichever is the hotkey.
 - **Close emulator** (closes GBA DS), **Close game** (back to the game list), **Quick save state**, **Quick load state**, **Open quick menu** (the quick bar), **Swap screens** and **Toggle selected shader** (off, and back on to the one picked in the pause menu's Shader) and **Turn the second screen** (with the contextual toggle on): the button for each.
+- **Rewind (hold)** and **Fast forward (hold)**: the button you hold to rewind or fast-forward, L2 and R2 at first. These work on their own, without the hotkey button, and with it too (HOME + L2 rewinds as L2 does). A button you give one of them no longer reaches the game, so if you move fast forward to Y, say, a game can't use Y while it's held. A button can be a held button and a shortcut's at once: hold it alone to rewind or fast-forward, with the hotkey button for the shortcut.
+- **Rewind on/off** and **Fast forward on/off**: hotkey + this button starts rewinding or fast-forwarding, which carries on until you press it again (no button at first). Starting one stops the other. Rewinding stops at the start of the buffer and waits there, with **Can't rewind further**, until you press it again.
 
-Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. **Reset** goes back to HOME and the buttons above; **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, HOME is the BACK button (Android keeps HOME for itself), and Hotkeys calls it Back.
+Pick a row (tap it, or the D-pad and A), then press the button you want for it. Tapping the touchscreen instead gives a shortcut no button (or keeps the hotkey button as it was). A button already used by another shortcut moves to the new one, and the other is left without. The list scrolls: the D-pad moves down it, or drag it with a finger. **Reset** goes back to HOME and the buttons above (L2 and R2 for the held buttons, none for the on/off ones); **Done** (or B) keeps your choices for every game, in `states/hotkeys.cfg`. They can also be set in `gba-ds.cfg` (see the Buttons section of [[Settings]]), but once you've used Hotkeys in Settings, its choices win until you delete `hotkeys.cfg`. On Android, HOME is the BACK button (Android keeps HOME for itself), and Hotkeys calls it Back.
 
 When GBA DS was started straight into a game, by a launcher or a frontend such as EmulationStation, there is no game list to go back to: **Close game** then closes GBA DS too, so both shortcuts do the same. With START as the hotkey, closing GBA DS is START + SELECT. With SELECT or START as the hotkey, the buttons you've given to shortcuts don't reach the game while the hotkey is held; the others do. If `menu_combo = select+start` is on too, SELECT + START opens the menu rather than doing a hotkey.
 

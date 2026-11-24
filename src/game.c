@@ -1244,6 +1244,13 @@ static bool suppress[B_COUNT];
 /* the hotkeys (hotkeys.c): the hotkey button, each action's button or -1 */
 static int hkMod = B_HOME;
 static int hkBtn[HK_COUNT];
+static int hkHold[HOLD_COUNT]; /* the buttons held to rewind / fast-forward, or -1 (issue #88) */
+static bool hk_is_action(int b) {
+	for (int i = 0; i < HK_COUNT; ++i) {
+		if (b >= 0 && hkBtn[i] == b) return true;
+	}
+	return false;
+}
 
 static void suppress_held(void) {
 	for (int b = 0; b < B_COUNT; ++b) suppress[b] = btnNow[b];
@@ -7648,10 +7655,13 @@ static void set_shader(int sh) {
  * L3 tapped alone opens the quick menu, as it does when it isn't the hotkey. */
 static void hotkeys_setup(void) {
 	hotkeys_resolve(cfg, &hkMod, hkBtn, true);
-	char line[200];
+	hotkeys_resolve_holds(cfg, hkMod, hkHold, true);
+	char line[400];
 	int n = snprintf(line, sizeof(line), "hotkey: %s +", hotkeyBtnNames[hkMod]);
 	for (int i = 0; i < HK_COUNT && n < (int) sizeof(line); ++i)
-		n += snprintf(line + n, sizeof(line) - n, " %s %s%s", hotkeyNames[i], hkBtn[i] >= 0 ? hotkeyBtnNames[hkBtn[i]] : "none", i + 1 < HK_COUNT ? "," : "");
+		n += snprintf(line + n, sizeof(line) - n, " %s %s,", hotkeyNames[i], hkBtn[i] >= 0 ? hotkeyBtnNames[hkBtn[i]] : "none");
+	for (int i = 0; i < HOLD_COUNT && n < (int) sizeof(line); ++i)
+		n += snprintf(line + n, sizeof(line) - n, " %s %s%s", holdNames[i], hkHold[i] >= 0 ? hotkeyBtnNames[hkHold[i]] : "none", i + 1 < HOLD_COUNT ? "," : "");
 	fprintf(stderr, "%s\n", line);
 }
 
@@ -8962,7 +8972,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	/* SELECT or START as the hotkey: a GBA button, held back from the game
 	 * while it's down and handed over if it comes up with nothing pressed */
 	const bool modIsGame = modBtn == B_SELECT || modBtn == B_START;
-	bool comboUsed = false, ffModUsed = false; /* (ffModUsed: hotkey + R2 fast-forwarded) */
+	bool comboUsed = false, ffModUsed = false; /* (ffModUsed: hotkey + a held button rewound or fast-forwarded) */
+	bool rewindOn = false, ffOn = false; /* turned on by their on/off hotkeys (issue #88), until pressed again */
 	int comboHold = -1, comboFrames = 0; /* menu combo: the button held back, frames since */
 	int comboPulse[2] = { 0, 0 };        /* SELECT, START handed to the game late */
 	int modPulse = 0; /* the hotkey button (SELECT or START), tapped alone: handed to the game */
@@ -9417,16 +9428,17 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 
 		/* ---- HOME (or the hotkey modifier) alone toggles the menu; with a button it's a hotkey */
 		bool mod = btnNow[modBtn];
-		/* Hotkey + R2 (R2 no action's button): fast-forward, as R2 alone,
-		 * with the game's buttons going through, so text can still be
-		 * skipped (RetroArch's habit; issue #44). No hotkeys meanwhile,
-		 * and letting go of the hotkey doesn't open the menu. */
-		bool ffMod = false;
-		if (mod && !menuOpen && cfg->fastForward && btnNow[B_R2] && !(cfg->rewind && !ra_hardcore() && btnNow[B_L2])) {
-			ffMod = true;
-			for (int i = 0; i < HK_COUNT; ++i) ffMod = ffMod && hkBtn[i] != B_R2;
-			if (ffMod) comboUsed = ffModUsed = true;
-		}
+		/* The held buttons (L2 / R2 at first; issue #88): held alone, or
+		 * with the hotkey when no action has the button. Hotkey + the
+		 * fast-forward button fast-forwards with the game's buttons going
+		 * through, so text can still be skipped (RetroArch's habit; issue
+		 * #44). No hotkeys meanwhile, and letting go of the hotkey doesn't
+		 * open the menu. */
+		const bool canRewind = cfg->rewind && !ra_hardcore();
+		bool rewindHeld = canRewind && hkHold[HOLD_REWIND] >= 0 && btnNow[hkHold[HOLD_REWIND]] && !(mod && hk_is_action(hkHold[HOLD_REWIND]));
+		bool ffHeld = cfg->fastForward && hkHold[HOLD_FF] >= 0 && btnNow[hkHold[HOLD_FF]] && !(mod && hk_is_action(hkHold[HOLD_FF]));
+		bool ffMod = mod && !menuOpen && (rewindHeld || ffHeld);
+		if (ffMod) comboUsed = ffModUsed = true;
 		if (mod && !menuOpen && !ffMod) {
 			for (int i = 0; i < HK_COUNT; ++i) {
 				if (hkBtn[i] < 0 || !btn_pressed(hkBtn[i])) continue;
@@ -9448,6 +9460,16 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				case HK_BAR: bar_toggle(); break;
 				case HK_SWAP: swap_screens(); break;
 				case HK_TOGGLE: toggle_press(); break;
+				/* (on until pressed again; the other one stops) */
+				case HK_REWIND_TOGGLE:
+					if (ra_hardcore()) ui_osd("Rewind isn't available in hardcore mode.");
+					else if (!cfg->rewind) ui_osd("Rewind is off in the settings.");
+					else rewindOn = !rewindOn, ffOn = false;
+					break;
+				case HK_FF_TOGGLE:
+					if (!cfg->fastForward) ui_osd("Fast forward is off in the settings.");
+					else ffOn = !ffOn, rewindOn = false;
+					break;
 				case HK_SHADER:
 					set_shader(cfg->shader != SH_OFF ? SH_OFF : cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID);
 					ui_osd("%s", shader_label(cfg->shader));
@@ -9625,12 +9647,17 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			continue;
 		}
 
-		if (btn_pressed(B_L3) && modBtn != B_L3) bar_toggle(); /* (L3: the quick menu, as a swipe up) */
+		if (btn_pressed(B_L3) && modBtn != B_L3 && hkHold[HOLD_REWIND] != B_L3 && hkHold[HOLD_FF] != B_L3) bar_toggle(); /* (L3: the quick menu, as a swipe up, unless it's held to rewind or fast-forward) */
 
 		/* ---- emulate */
 		uint32_t keys = 0;
 		for (int b = 0; b < B_COUNT; ++b) {
 			if (!btnNow[b]) suppress[b] = false; /* released: counts again */
+		}
+		/* a held button the game could use (one moved from L2 / R2) is kept
+		 * from it, until released */
+		for (int i = 0; i < HOLD_COUNT; ++i) {
+			if (hkHold[i] >= 0 && btnNow[hkHold[i]] && !(btnNow[modBtn] && hk_is_action(hkHold[i]))) suppress[hkHold[i]] = true;
 		}
 		if (modIsGame && btnNow[modBtn]) {
 			/* the hotkey (SELECT or START) held: the actions' buttons are
@@ -9695,8 +9722,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			lastKeys = keys;
 		}
 
-		bool rewinding = cfg->rewind && !ra_hardcore() && btnNow[B_L2];
-		bool ff = cfg->fastForward && btnNow[B_R2] && !rewinding;
+		bool rewinding = rewindHeld || (rewindOn && canRewind);
+		bool ff = (ffHeld || (ffOn && cfg->fastForward)) && !rewinding;
 		ffBox = ff;
 		/* Max (ff_speed 0): as many frames as fit in about 70% of a display
 		 * frame (the rest for drawing it), up to FF_MAX_RUNS; the sound
