@@ -413,7 +413,7 @@ void hotkeys_run(Config* cfg) {
 		}
 
 		ui_clear();
-		for (int s = 0; s < nScreens; ++s) draw(s, &v);
+		draw(ui_touch_screen(), &v); /* (on the menu's screen only, as Settings is) */
 		ui_present();
 		SDL_Delay(15);
 	}
