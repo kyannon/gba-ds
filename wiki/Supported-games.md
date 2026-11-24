@@ -72,6 +72,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Tony Hawk's Pro Skater 3 | `AT3E` (USA and Europe) `AT3F` `AT3D` | the goal list; optional four-button layout | |
 | V-Rally 3 | `AVRE` `AVRP` `AVRJ` | the stage's HUD, with the course map twice as big | |
 | Wario Land 4 (Wario Land Advance in Japan) | `AWAE` (USA and Europe) `AWAJ` | in levels: the pause screen, with the hearts, money, coins and the treasures found; in boss fights: the HUD | Color palette enhancement 1.1 (USA and Europe) |
+| WarioWare: Twisted! (Mawaru Made in Wario in Japan) | `RZWE` `RZWJ` (no European release tried) | the logo on white, tilting with the device's gyro; in Touch mode, the game's menu wheel turning with your finger | |
 | Yu-Gi-Oh! The Eternal Duelist Soul (Yu-Gi-Oh! Duel Monsters 5 Expert 1 in Japan) | `AY5E` `AY5J` | Card View of the card under the cursor | |
 | Yu-Gi-Oh! World Championship Tournament 2004 (Yu-Gi-Oh! Duel Monsters Expert 3 in Japan) | `BYWE` `BYWP` `BY3J` | Card View of the card under the cursor | |
 | Yu-Gi-Oh! Ultimate Masters: World Championship Tournament 2006 | `BY6E` `BY6P` | Card View of the card under the cursor | |
@@ -741,6 +742,16 @@ The USA and European release and the Japanese one (Wario Land Advance), tried in
 - In **boss fights,** the fight's opening plays on the game screen; once the countdown has settled at the top, the **hearts, the countdown and the boss's health bar** move to the top of the second screen, above the logo, until CLEAR!. TIME UP!! stays on the game screen.
 - On the title, the hub, a passage's level select, the Item Shop, the mini-games and the Sound Room, and from the moment Wario loses his last heart, the second screen shows the logo.
 - Not tried yet: Hard difficulty and the ending.
+
+## WarioWare: Twisted!
+
+The USA release and the Japanese one (Mawaru Made in Wario). The game plays by turning the console, which the cartridge senses with a gyro; GBA DS gives it the device's own gyro sensor, or a dial on the touchscreen.
+
+- **Gyro mode** (every start): the second screen shows the logo on white, tilting with the device as you turn it, with a **Touch!** button at the top (left, centre or right, as the contextual toggle's button; HOME + A does the same). Tapping the picture opens the pause menu as in every game.
+- **Touch mode:** the touchscreen is a dial. Touch anywhere and drag left to tilt the game left, right to tilt it right: the farther you drag, the farther it tilts (a drag of the whole screen's width is as far as it goes), and when you let go it eases back to level, like a rotary phone's dial. The second screen shows the game's own menu wheel turning with it. **Gyro!** goes back; **Pause** (in the opposite corner) opens the pause menu, since a tap on the picture is the dial's. Swiping up from the bottom edge still brings the quick bar.
+- **Sensitivity** is in the quick bar: 5% to 25% (15% at first), how far a drag tilts the game. It's kept for the game.
+- **The motor** (rumble) is limited in this game to short pulses at most four times a second, whatever the game asks for.
+- Known: the device's gyro sensor wasn't found on the RG DS Plus under BananaOS, so Gyro mode gives the game no turning there and Touch mode is how to play; the sensor's scale and direction haven't been checked against a real gyro. Bug reports don't record the gyro, so a report's keys play back inexactly in the gyro microgames.
 
 ## Yu-Gi-Oh! The Eternal Duelist Soul
 

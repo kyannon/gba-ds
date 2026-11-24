@@ -744,6 +744,11 @@ static const MapProfile* hideWhenProf;
 static int hideWhenN;
 static bool hideWhenOn;
 
+/* WarioWare: Twisted! (ww_twisted.inc, included below) */
+static void ww_step(void);
+static void ww_state_loaded(void);
+static float ww_rumble(float level);
+
 static void run_frame(uint32_t keys) {
 	frameKeys = keys;
 	unsigned bugAt = bugFrame & (BUG_LOG - 1);
@@ -809,6 +814,7 @@ static void run_frame(uint32_t keys) {
 	/* the copies' second frame (this one), alongside the game's */
 	twinFrameKeys = keys;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_start(i, twin_second, &twins[i]);
+	ww_step();
 	emu_frame(&emu, keys & 0x3FF);
 	++bugFrame;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_wait(i);
@@ -2751,13 +2757,14 @@ static const char* const icon_exit[] = {
  * into a canvas of that size (below) and scaled up with the picture. */
 enum { BAR_M = 4, BAR_STATUS_H = 14, BAR_BUTTONS_H = 24, BAR_MSG_H = 19, BAR_PICK_H = 24 };
 static bool sunHere; /* the cartridge has a sun sensor: the Sun row stands in the Controls row's place */
+static bool wwBarRow; /* WarioWare: Twisted!: its sensitivity slider stands in the same place (ww_twisted.inc) */
 static int bar_pick_h(void) {
-	return ctlProf || sunHere ? BAR_PICK_H : 0;
+	return ctlProf || sunHere || wwBarRow ? BAR_PICK_H : 0;
 }
 /* the row of time, FPS and battery: without the Controls row above it, tall enough that the pin
  * (2 px down, 12 high, its edge a row more) has a clear pixel row before the buttons */
 static int bar_status_h(void) {
-	return ctlProf || sunHere ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
+	return ctlProf || sunHere || wwBarRow ? BAR_STATUS_H : SDL_max(BAR_STATUS_H, 2 + 12 + 1 + 1);
 }
 static int game_screen(void);
 
@@ -3009,6 +3016,8 @@ static void ctl_draw(void);
 static bool ctl_tap(int s, int x, int y);
 static void sun_draw(void);
 static bool sun_tap(int s, int x, int y);
+static void ww_bar_draw(void);
+static bool ww_bar_tap(int s, int x, int y);
 static void save_prefs(void);
 
 static const char* const icon_pin[] = {
@@ -3164,6 +3173,7 @@ static void draw_bar(void) {
 	}
 	if (ctlProf) ctl_draw();
 	else if (sunHere) sun_draw();
+	else if (wwBarRow) ww_bar_draw();
 	static const char* const* const art[BB_COUNT] = { icon_save, icon_load, icon_gear, icon_bug, icon_exit };
 	bool lit = barLit >= 0 && SDL_GetTicks() - barLitAt < 1500;
 	for (int i = 0; i < BB_COUNT; ++i) {
@@ -6287,6 +6297,7 @@ static void state_rom_check(const char* path) {
 static StateFileKind stateLoadKind; /* (what the last state_load found: why it failed) */
 static BiosRefusal stateLoadBios;   /* (and whether it was the GBA BIOS, issue #78) */
 static bool state_load(const char* path) {
+	ww_state_loaded(); /* (WWT-2: Gyro mode again, the dial at rest) */
 	if (ra_hardcore()) {
 		/* (RetroAchievements hardcore: no state loads, whichever way it was asked for) */
 		fprintf(stderr, "load state: %s: refused in hardcore mode\n", path);
@@ -8100,6 +8111,8 @@ static void make_combat_canvas(void) {
 	combatPx = px; /* (hud.logoUnder) */
 }
 
+#include "ww_twisted.inc"
+
 static void draw_game(void) {
 	bool mapOn = (mc || logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
 	for (int s = 0; s < nScreens; ++s) {
@@ -8139,7 +8152,17 @@ static void draw_game(void) {
 		/* (and with hud.logoUnder, on the map before there's a map picture) */
 		bool logoBack = combatProf && combatProf->hud.logoUnder && mapShownIdx < 0 && (combatInGame || combatProf->hud.logoAlways);
 		if (overAlone && mapShownIdx >= 0) logoBack = false; /* (the phase banner, on the other armies' turn too) */
-		if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
+		if (ww_wheel_shown()) {
+			/* WarioWare: Twisted!'s Touch mode: the menu's wheel, turned with the dial (WWT-4) */
+			ww_wheel_update();
+			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
+			ui_image_pixels(s, ww.tex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
+		} else if (ww_gyro_shown()) {
+			/* Gyro mode: the logo on white, tilting with the sensor (WWT-2) */
+			ww_gyro_update();
+			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
+			ui_image_pixels(s, ww.tex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
+		} else if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, SHADER_ON);
 		} else if (hudShown && !logoForced) {
@@ -8622,6 +8645,7 @@ static void ss_setup(const char* rom, const char* code) {
 	mapInactive = false;
 	singleShowsMap = false;
 	logoOnly = false;
+	ww_setup(NULL, rom);
 	snapProf = NULL;
 	tallProf = NULL;
 	tallOn = false;
@@ -8647,6 +8671,7 @@ static void ss_setup(const char* rom, const char* code) {
 		const MapProfile* lp = profile_find(code);
 		memprobe_virtual = lp ? lp->virt : NULL;
 		logoOnly = lp && lp->logoOnly;
+		ww_setup(lp, rom);
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
 		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
 		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
@@ -9322,6 +9347,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				 * finger lifts without having swiped) */
 				int ts = ui_touch_screen();
 				float u = ui_px(ts);
+				if (ww_pointer(&p)) continue; /* WarioWare: Twisted!'s dial and buttons */
 				if (p.kind == 1 && toggle_btn_hit(p.screen, p.x, p.y)) {
 					/* the toggle button: its tap is its own, before "a tap opens the menu" */
 					tbDown = true, tbGX = p.x, tbGY = p.y;
@@ -9350,7 +9376,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						SDL_Point pt = { p.x, p.y };
 						barSince = SDL_GetTicks();
 						barBtn = bar_button_at(ts, p.x, p.y);
-						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : (ctl_tap(ts, p.x, p.y) || sun_tap(ts, p.x, p.y)) ? G_DONE : G_TRACK;
+						barGesture = barBtn >= 0 ? G_BTN : SDL_PointInRect(&pt, &pin) ? G_PIN : (ctl_tap(ts, p.x, p.y) || sun_tap(ts, p.x, p.y) || ww_bar_tap(ts, p.x, p.y)) ? G_DONE : G_TRACK;
 						barGX = p.x, barGY = p.y;
 						continue;
 					}
@@ -9701,7 +9727,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		if (mod && !menuOpen && !ffMod) {
 			for (int i = 0; i < HK_COUNT; ++i) {
 				if (hkBtn[i] < 0 || !btn_pressed(hkBtn[i])) continue;
-				if (i == HK_TOGGLE && !cfg->toggle) continue; /* (off: HOME + its button is as it always was) */
+				if (i == HK_TOGGLE && !cfg->toggle && !ww.dial) continue; /* (off: HOME + its button is as it always was) */
 				comboUsed = true;
 				if (debug) fprintf(stderr, "hotkey: %s\n", hotkeyNames[i]);
 				switch (i) {
@@ -9718,7 +9744,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					break;
 				case HK_BAR: bar_toggle(); break;
 				case HK_SWAP: swap_screens(); break;
-				case HK_TOGGLE: toggle_press(); break;
+				case HK_TOGGLE: if (ww.dial) ww_switch(); else toggle_press(); break;
 				/* (on until pressed again; the other one stops) */
 				case HK_REWIND_TOGGLE:
 					if (ra_hardcore()) ui_osd("Rewind isn't available in hardcore mode.");
@@ -10117,7 +10143,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		/* the game's motor, at the player's strength (issue #83); not while rewinding or fast-forwarding
 		 * (a frame in the loop isn't a frame of the game's time), and a paused game stops by itself:
 		 * each request to the motor runs out after 120 ms */
-		ui_rumble((rewinding || ran > 1 || ffMax) ? 0.0f : emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
+		ui_rumble((rewinding || ran > 1 || ffMax) ? 0.0f : ww_rumble(emu_rumble_level(&emu)) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
 		{ /* (the log says what the game did, for a device that doesn't buzz) */
 			static bool rumbleSaid, stopSaid;
 			if (rumbleSaid && !stopSaid && emu_rumble_level(&emu) <= 0) stopSaid = true, fprintf(stderr, "rumble: the game stopped rumble (frame %llu)\n", (unsigned long long) frameCount);
@@ -10325,6 +10351,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				shotPending = false;
 				take_screenshot();
 			}
+			draw_ww_ui(); /* (under the RetroAchievements banner) */
 			ra_draw(nScreens > 1 ? 1 - game_screen() : 0); /* after the screenshot: not in it */
 			if (barOpen && !cfg->barPinned && barGesture == G_NONE && SDL_GetTicks() - barSince > 5000) bar_close();
 			draw_rewind();
@@ -10462,6 +10489,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ra_game_end();
 	if (audio) SDL_CloseAudioDevice(audio);
 	if (audioConv) SDL_FreeAudioStream(audioConv);
+	ww_free();
 	mapcap_destroy(mc);
 	mc = NULL;
 	emu_rewind_deinit();

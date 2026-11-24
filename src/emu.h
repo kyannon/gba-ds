@@ -68,6 +68,7 @@ typedef struct Emu {
 	uint32_t fileCrc; /* the ROM file's own CRC32, before the patch */
 	bool audio;
 	void* rumble; /* the live game's rumble (emu_rumble_level), NULL for the hidden copies */
+	void* gyro; /* the cartridge's gyro source (emu_set_gyro): every GBA core has one, resting until it is given a value */
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */
 	/* a hidden copy's capture called off (mapcap_cancel): while it's set,
 	 * frames don't run, so whatever the capture waits for gives up at
@@ -107,6 +108,9 @@ float emu_rumble_level(const Emu* e);
 void emu_frame_blind(Emu* e, uint32_t keys);
 /* the cartridge has a sun sensor (Boktai) */
 bool emu_has_solar(Emu* e);
+/* The cartridge's gyro reading for the frames to come, in mGBA's units (WarioWare: Twisted!):
+ * 0 is at rest, 2^21 a count of the cartridge's 12-bit sample. Only that game reads it. */
+void emu_set_gyro(Emu* e, int32_t value);
 /* true while this core's capture has been called off (Emu.cancel) */
 bool emu_cancelled(const Emu* e);
 void emu_reset(Emu* e);

@@ -110,6 +110,9 @@ static float tapX, tapY;
 /* SWIPE:x0,y0,x1,y1 (fractions of the window): down, 4 moves a tick apart, up */
 static float swipe[4];
 static int swipeStep = -1;
+/* DRAG:x,y puts a finger down and leaves it there, MOVE:x,y moves it, LIFT lifts it (WarioWare: Twisted!'s dial) */
+static float dragX, dragY;
+static bool dragDown;
 static char pendingShot[160];
 static char pendingLoad[160]; /* LOAD:file in an input script (regression tests) */
 
@@ -146,7 +149,7 @@ void ui_load_script(const char* path) {
 		s->tick = t;
 		s->btns = 0;
 		s->action[0] = 0;
-		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
+		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "DRAG:", 5) || !strncmp(what, "MOVE:", 5) || !strcmp(what, "LIFT") || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
 		    !strncmp(what, "JOY", 3)) {
 			snprintf(s->action, sizeof(s->action), "%s", what);
 		} else {
@@ -216,6 +219,13 @@ static void run_script(void) {
 				push_finger(SDL_FINGERDOWN, swipe[0], swipe[1]);
 				swipeStep = 0;
 			}
+		} else if (!strncmp(s->action, "DRAG:", 5)) {
+			if (sscanf(s->action + 5, "%f,%f", &dragX, &dragY) == 2) push_finger(SDL_FINGERDOWN, dragX, dragY), dragDown = true;
+		} else if (!strncmp(s->action, "MOVE:", 5)) {
+			if (dragDown && sscanf(s->action + 5, "%f,%f", &dragX, &dragY) == 2) push_finger(SDL_FINGERMOTION, dragX, dragY);
+		} else if (!strcmp(s->action, "LIFT")) {
+			if (dragDown) push_finger(SDL_FINGERUP, dragX, dragY);
+			dragDown = false;
 		} else if (!strncmp(s->action, "SHOT:", 5)) {
 			snprintf(pendingShot, sizeof(pendingShot), "%s", s->action + 5);
 		} else if (!strncmp(s->action, "LOAD:", 5)) {

@@ -345,6 +345,8 @@ static const KnownDump knownDumps[] = {
 	{ "BZME", 0xabcebbb1, true, false, "Legend of Zelda, The - The Minish Cap (USA)" },
 	{ "BZMJ", 0x6ce771a5, true, false, "Zelda no Densetsu - Fushigi no Boushi (Japan)" },
 	{ "BZMP", 0xe8637292, true, false, "Legend of Zelda, The - The Minish Cap (Europe) (En,Fr,De,Es,It)" },
+	{ "RZWE", 0xcb4e844b, true, false, "WarioWare - Twisted! (USA, Australia)" },
+	{ "RZWJ", 0xe69964f1, true, false, "Mawaru - Made in Wario (Japan)" },
 	{ "U3IE", 0xe715ac45, true, false, "Boktai - The Sun Is in Your Hand (USA)" },
 	{ "U3IJ", 0xa09c0807, true, false, "Bokura no Taiyou - Taiyou Action RPG (Japan)" },
 	{ "U3IP", 0x9686c36b, true, false, "Boktai - The Sun Is in Your Hand (Europe) (En,Fr,De,Es,It)" },
