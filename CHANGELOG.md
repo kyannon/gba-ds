@@ -2,6 +2,11 @@
 
 ## v1.6.2 (not yet released)
 
+### New: Game Boy and Game Boy Color games (issue #77)
+- **GBA DS plays Game Boy and Game Boy Color games**, on one screen with the other idle dark grey, as a GBA played them. Put `.gb` and `.gbc` files (or zips) in your GBA folder or in `gb` / `gbc` folders beside it, set **Games shown** to **All**, and start them from GBA DS's own game list. Saves, save states, rewind and cheats work as for GBA games. Details on the new wiki page, [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games).
+- **New Game Boy rows** in the pause menu's Display page (and Settings > Display), for these games only: **Game Boy size** (the GBA frame, or the Game Boy's 160×144 picture as the whole screen) and **scale** (Pixel Perfect, Fit, Stretch); **palette** for monochrome games (Game's own, DMG, Pocket, Light, Grayscale, Super Game Boy); **Dual-mode games** in colour or in monochrome; **color correction** (as GBA, off, Game Boy Color, Game Boy Advance); **ghosting** (as GBA, off, light, smart, strong); and a **shader**, with a **Dot matrix** look. The ones that don't apply to the game are greyed out. Palette and dual-mode changes count from the next start: closing the menu asks to **restart now** or **discard changes**, and a resume point made with other colours isn't resumed.
+- Known: the shades, the Game Boy Color's colour matrix and the dot matrix are first guesses; screenshots and the quick bar's pictures use the GBA frame; no Super Game Boy borders, rumble, camera or link cable; no RetroAchievements; EmulationStation, BananaOS and Android frontends don't start these games yet; no list of known dumps yet (no "Modified ROM" note).
+
 ### RetroAchievements
 - **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
 - **Rich Presence** shows under your totals in the Achievements page: the line RetroAchievements shows on your profile for the game.
