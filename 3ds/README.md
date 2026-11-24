@@ -133,7 +133,10 @@ screens as close as before the merge, shot for shot, but for a few scenes
 where their timing drifts (a fade or a flash caught a frame apart) and the
 scripts' swap step, which the newer menu's layout moved for both. In Azahar:
 the game list, Mario Kart: Super Circuit into its menus at 59.8 frames a
-second with no sound underrun, and the pause menu.
+second with no sound underrun, and the pause menu; the interface in
+Traditional Chinese (`ctr/fonts_ctr.c` leaves out the two Chinese faces
+that hold whole character sets for file names, 7 MiB of program: the
+interface's own text is whole, a Chinese file name may show boxes).
 
 Every supported game, on the desktop build of the app on armGBA
 (`3ds/sim/app.mk`) against the same app on libmgba, with

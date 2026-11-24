@@ -31,7 +31,7 @@ include $(REPO)/3ds/emu/armgba.mk
 ARCH     := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 # As armGBA-3DS builds (its Makefile says why): -fwrapv or every game hangs after 128 seconds,
 # -flto because the core's hot paths cross its files.
-COMMON   := -g -fwrapv -flto -fomit-frame-pointer -ffunction-sections -mword-relocations $(ARCH) \
+COMMON   := -g -fwrapv -flto -fomit-frame-pointer -ffunction-sections -fdata-sections -mword-relocations $(ARCH) \
             -D__3DS__ -I$(CTRULIB)/include -I$(PORTLIBS)/include
 CFLAGS   := $(COMMON) -std=gnu11
 ASFLAGS  := -g $(ARCH)
@@ -41,8 +41,8 @@ LIBS     := -L$(CTRULIB)/lib -L$(PORTLIBS)/lib -lcitro2d -lcitro3d -lctru -lz -l
 D3 := $(REPO)/3ds
 S  := $(REPO)/src
 APP_SRC := $(addprefix $(S)/,main.c config.c i18n.c i18n_data.c font.c ui.c library.c mapper.c hotkeys.c game.c paths.c image.c brand_data.c \
-	bezel.c bezel_logo.c logo.c cheats.c folderpick.c textfont.c pixfont.c fonts_data.c ra.c sha256.c patch.c mapcap.c profiles.c logo_masks.c) \
-	$(D3)/emu/emu_armgba.c $(D3)/ctr/stubs.c
+	bezel.c bezel_logo.c logo.c cheats.c folderpick.c textfont.c pixfont.c ra.c sha256.c patch.c mapcap.c profiles.c logo_masks.c) \
+	$(D3)/emu/emu_armgba.c $(D3)/ctr/stubs.c $(D3)/ctr/fonts_ctr.c
 # WebP logos: libwebp's decoder, as ../../Makefile builds it
 WEBP_DIR := $(REPO)/third_party/libwebp
 WEBP_SRC := $(wildcard $(WEBP_DIR)/src/dec/*.c $(WEBP_DIR)/src/dsp/*.c $(WEBP_DIR)/src/utils/*.c)
