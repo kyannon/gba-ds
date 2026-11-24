@@ -15,6 +15,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.DocumentsContract;
 import android.system.ErrnoException;
 import android.system.Os;
@@ -79,7 +81,10 @@ public class GbaDsActivity extends SDLActivity {
         super.onCreate(state);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         LauncherActivity.launchLog(this, mBrokenLibraries ? "native libraries didn't load (SDL shows why)" : "native libraries loaded");
-        if (!mBrokenLibraries) openSecondScreen();
+        if (!mBrokenLibraries) {
+            openSecondScreen();
+            watchDisplays();
+        }
         IntentFilter f = new IntentFilter(INSTALL_STATUS);
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(installStatus, f, Context.RECEIVER_NOT_EXPORTED);
         else registerReceiver(installStatus, f);
@@ -228,6 +233,100 @@ public class GbaDsActivity extends SDLActivity {
     @Override
     public void setOrientationBis(int w, int h, boolean resizable, String hint) {
         setRequestedOrientation(orientationWanted());
+    }
+
+    /* ------------------------------------------------------------ a display comes or goes (issue #90) */
+
+    /* The game reads the displays once, and the native side lays the screens
+     * out once (ui.c), so a second display that appears (a USB-C screen
+     * plugged in, or woken, after the game started) or goes is taken in by
+     * starting the game again with the new layout: it saves the player's
+     * place first (nativeRelayout) and loads it on the way back in, whatever
+     * Save on quit and Auto-load say. */
+    static native void nativeRelayout();
+
+    private final Handler displayHandler = new Handler(Looper.getMainLooper());
+    private DisplayManager.DisplayListener displayListener;
+    private boolean layoutTwo;        /* whether a second display was there when the game started */
+    private int layoutSecondId = -1;  /* the display it was given, and its size then */
+    private final Point layoutSecondSize = new Point();
+    private boolean relaunching;
+    private boolean inBackground;
+
+    private final Runnable displayCheck = this::checkDisplays;
+
+    private void watchDisplays() {
+        DisplayManager dm = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        layoutTwo = hasSecondDisplay();
+        int mine = getWindowManager().getDefaultDisplay().getDisplayId();
+        for (Display d : dm.getDisplays()) {
+            if (d.getDisplayId() != mine) {
+                layoutSecondId = d.getDisplayId();
+                d.getRealSize(layoutSecondSize);
+                break;
+            }
+        }
+        displayListener = new DisplayManager.DisplayListener() {
+            @Override
+            public void onDisplayAdded(int id) {
+                Log.i(TAG, "display " + id + " added");
+                displayChanged();
+            }
+
+            @Override
+            public void onDisplayRemoved(int id) {
+                Log.i(TAG, "display " + id + " removed");
+                displayChanged();
+            }
+
+            @Override
+            public void onDisplayChanged(int id) {
+                if (id == layoutSecondId) displayChanged();
+            }
+        };
+        dm.registerDisplayListener(displayListener, displayHandler);
+    }
+
+    /** Events come in bursts (a display added, then changed, then its state): look once they settle. */
+    private void displayChanged() {
+        displayHandler.removeCallbacks(displayCheck);
+        displayHandler.postDelayed(displayCheck, 1000);
+    }
+
+    private void checkDisplays() {
+        if (relaunching || isFinishing() || isDestroyed()) return;
+        if (inBackground) return; /* (Android won't start an activity from there: onStart looks again) */
+        boolean two = hasSecondDisplay();
+        boolean sizeChanged = false;
+        if (two && layoutTwo && layoutSecondId >= 0) {
+            DisplayManager dm = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+            Display d = dm.getDisplay(layoutSecondId);
+            if (d == null) {
+                sizeChanged = true; /* (the one it was using went, another is there) */
+            } else {
+                Point size = new Point();
+                d.getRealSize(size);
+                sizeChanged = !size.equals(layoutSecondSize.x, layoutSecondSize.y);
+            }
+        }
+        if (two == layoutTwo && !sizeChanged) return;
+        LauncherActivity.launchLog(this, "displays changed (" + (layoutTwo ? "two" : "one") + " -> " + (two ? "two" : "one")
+                + (sizeChanged ? ", the second one's size or identity changed" : "") + "): restarting the game with the new layout");
+        relaunching = true;
+        nativeRelayout();
+        if (currentRom != null) {
+            /* read by the native side at the next start (android_relayout_resume) */
+            try (FileOutputStream o = new FileOutputStream(new File(getFilesDir(), "relayout.flag"))) {
+                o.write('1');
+            } catch (IOException e) {
+                Log.e(TAG, "relayout.flag: " + e);
+            }
+        }
+        Intent again = new Intent(this, LauncherActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (currentRom != null) again.putExtra("rom", currentRom);
+        switchTo = again;
+        /* the game saves its resume point and returns from main; SDL then finishes this activity */
+        SDLActivity.nativeSendQuit();
     }
 
     private void openSecondScreen() {
@@ -469,6 +568,8 @@ public class GbaDsActivity extends SDLActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        inBackground = false;
+        if (displayListener != null) displayChanged();
         if (second != null && secondHidden) {
             secondHidden = false;
             try {
@@ -483,6 +584,7 @@ public class GbaDsActivity extends SDLActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        inBackground = true;
         if (second != null && !secondHidden && !isFinishing()) {
             second.hide();
             secondHidden = true;
@@ -495,6 +597,11 @@ public class GbaDsActivity extends SDLActivity {
         try {
             unregisterReceiver(installStatus);
         } catch (IllegalArgumentException ignored) {
+        }
+        displayHandler.removeCallbacks(displayCheck);
+        if (displayListener != null) {
+            ((DisplayManager) getSystemService(Context.DISPLAY_SERVICE)).unregisterDisplayListener(displayListener);
+            displayListener = null;
         }
         if (second != null) {
             second.dismiss();

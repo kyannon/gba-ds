@@ -6389,7 +6389,11 @@ static void note_done(bool keep) {
 }
 
 static void auto_save(void) {
+#ifdef __ANDROID__
+	if (!cfg->autoSave && !android_relayout_save()) return; /* (issue #90: a restart for a display keeps the place) */
+#else
 	if (!cfg->autoSave) return;
+#endif
 	if (state_save(gp.autoState)) {
 		save_thumbs();
 		fprintf(stderr, "auto-saved %s\n", gp.autoState);
@@ -8063,6 +8067,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	set_page(0);
 	slot_pick_newest();
 
+	bool autoLoadNow = cfg->autoLoad;
+#ifdef __ANDROID__
+	if (android_relayout_resume()) autoLoadNow = true; /* (issue #90: restarted for a display: pick up the place) */
+#endif
 	if (cfg->loadState[0]) {
 		if (!state_load(cfg->loadState)) fprintf(stderr, "could not load %s\n", cfg->loadState);
 		cfg->loadState[0] = 0;
@@ -8074,7 +8082,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		remove(patchHandoff);
 		patchHandoff[0] = 0;
 		if (!stateWarned) ui_osd(ok ? "Patches changed: carrying on from where you were" : "Patches changed");
-	} else if (cfg->autoLoad && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
+	} else if (autoLoadNow && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
 			if (!stateWarned) ui_osd("Resumed. Tap or HOME for the menu");
 		} else if (stateLoadKind == STATE_FILE_OTHER_CORE) {

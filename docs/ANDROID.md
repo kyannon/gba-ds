@@ -839,3 +839,37 @@ one session"). Empty after each release.
   left out: `Window.setSustainedPerformanceMode`, which holds clocks steady
   for heat rather than raising them; `pin_cores` (no difference, see above).
 - Desktop kit: `stubs_gpu.c` has stand-ins that log the change.
+
+- **A second screen plugged in (or taken out) while a game runs now works
+  (issue #90).** GBA DS used to look at the displays once, when the game
+  started, so a USB-C screen connected or woken afterwards stayed unused until
+  you started the game again. Now it notices, and restarts the game once with
+  the new layout, picking up exactly where you were (even with Save on quit or
+  Auto-load off). The game restarts about a second after the screen shows up.
+
+### Notes for sessions: second display hot-plug (issue #90, `android`)
+
+- The simpler of the issue's two options: restart, not a live switch (`ui.c`
+  decides `nViews` and the layout at init; switching while a game runs would
+  be shared code and touch ROCKNIX and the regression cases).
+- `GbaDsActivity.watchDisplays` registers a `DisplayListener`; events are
+  debounced 1 s (`checkDisplays`). It restarts when `hasSecondDisplay()` differs
+  from what it was at start, or the second display's id or size changed. Not
+  while the app is in the background (Android blocks starting an activity from
+  there; `onStart` looks again). The restart is the "asked for another game"
+  path (`switchTo`, `LauncherActivity` choosing `GbaDsActivity` or
+  `GbaDsHereActivity` again from the displays, which also re-picks the
+  orientation).
+- Keeping the place: Java calls `nativeRelayout()` (android.c: `android_relayout_save`
+  makes game.c `auto_save` save even with `save_on_quit` off) and, when the
+  game was started with a ROM, writes `relayout.flag` in the app's own
+  storage; the next start's `android_relayout_resume` reads and removes it, so
+  game.c loads the auto state even with `auto_load` off. Started from the game
+  list (no ROM), the player comes back to the list; a game played from it is
+  saved.
+- Shared-file change (game.c, two `#ifdef __ANDROID__` lines): ROCKNIX is
+  unchanged (the host and ROCKNIX paths compile as before).
+- Not tried on a device. To check: start a game with nothing connected, plug
+  the screen in, and after about a second the game restarts and the map or
+  logo is on it, where you were. `launch.log` has "displays changed (one -> two)".
+  Unplugging goes back to one screen the same way.

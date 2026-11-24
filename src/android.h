@@ -85,6 +85,11 @@ bool android_second_size(int* w, int* h);
 /* A display's pixels per inch (view 0: the activity's, 1: the second), as
  * Android reports them; 0 if not known. */
 float android_display_ppi(int view);
+/* A display came or went and the activity is restarting the game (issue
+ * #90): the quit saves where the player is, and the next start loads it,
+ * whatever Save on quit / Auto-load say. _resume is true once per start. */
+bool android_relayout_save(void);
+bool android_relayout_resume(void);
 /* Copies a finished frame (ABGR8888, i.e. R,G,B,A bytes) to the second
  * display's surface, if it has one right now. */
 void android_second_present(SDL_Surface* frame);
