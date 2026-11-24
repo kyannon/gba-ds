@@ -4845,6 +4845,7 @@ static void update_hud(void) {
 }
 
 /* (the tall view's composer, update_tall: twins.c) */
+int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
 
 /* (update_tall hands the second screen's picture over: the textures) */
 static void tall_show(const uint32_t* second) {
