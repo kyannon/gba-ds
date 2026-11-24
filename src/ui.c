@@ -1518,7 +1518,8 @@ static void font_text_raw(int screen, int font, int x, int cy, int capPx, const 
  * showing the last picture. The second screen is drawn by the GPU into the
  * second display's window (android_second_begin/_end) or, failing that, by
  * a software renderer into views[1].surf. */
-enum { OP_IMAGE, OP_PIXELS, OP_FILL, OP_ROUND, OP_TEXT, OP_LABEL, OP_CLIP, OP_NOCLIP };
+enum { OP_IMAGE, OP_PIXELS, OP_FILL, OP_ROUND, OP_TEXT, OP_LABEL, OP_CLIP, OP_NOCLIP, OP_ROUND_TOP };
+static void fill_round_top(int screen, SDL_Rect r, SDL_Color c, int radius);
 typedef struct {
 	int kind, screen;
 	SDL_Texture* const* tex; /* per-view array, as passed in */
@@ -1632,6 +1633,7 @@ static bool sw_render(int v) {
 		case OP_PIXELS: ui_image_pixels(o->screen, o->tex, o->a, o->b, o->mode, o->d); break;
 		case OP_FILL: ui_fill(o->screen, o->r, o->col); break;
 		case OP_ROUND: ui_fill_round(o->screen, o->r, o->col, o->a); break;
+		case OP_ROUND_TOP: fill_round_top(o->screen, o->r, o->col, o->a); break;
 		case OP_TEXT: ui_text(o->screen, o->a, o->b, o->c, o->text, o->col); break;
 		case OP_LABEL: font_text_raw(o->screen, o->d & 15, o->a, o->b, o->c, o->text, o->col, (o->d >> 4) - 1); break;
 		case OP_CLIP: ui_clip(o->screen, &o->r); break;
@@ -3082,6 +3084,38 @@ void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
 	for (int i = 0; i < 4; ++i) SDL_RenderCopy(views[s->view].ren, t, &src[i], &dst[i]);
 }
 
+/* The top r.h rows of a rounded rectangle whose corners have the full radius
+ * even where r.h is less than twice it (ui_fill_round would shrink the radius
+ * to fit: a short strip's corners came out nearly square). The bottom is
+ * left square, for a strip that is laid over a body drawn rounded already. */
+static void fill_round_top(int screen, SDL_Rect r, SDL_Color c, int radius) {
+	RECORD(screen, OP_ROUND_TOP) {
+		o->r = r, o->col = c, o->a = radius;
+		return;
+	}
+	radius = SDL_min(radius, r.w / 2);
+	if (radius <= 0 || r.h <= 0) {
+		ui_fill(screen, r, c);
+		return;
+	}
+	int zone = SDL_min(r.h, radius); /* the rows that have a corner in them */
+	ui_fill(screen, (SDL_Rect) { r.x + radius, r.y, r.w - 2 * radius, r.h }, c);
+	if (r.h > radius) {
+		ui_fill(screen, (SDL_Rect) { r.x, r.y + radius, radius, r.h - radius }, c);
+		ui_fill(screen, (SDL_Rect) { r.x + r.w - radius, r.y + radius, radius, r.h - radius }, c);
+	}
+	Screen* s = &screens[screen];
+	SDL_Texture* t = disc_texture(s->view);
+	if (!t) return;
+	SDL_SetTextureColorMod(t, c.r, c.g, c.b);
+	SDL_SetTextureAlphaMod(t, c.a);
+	int h = DISC / 2, sh = SDL_max(1, h * zone / radius);
+	SDL_Rect src[2] = { { 0, 0, h, sh }, { h, 0, h, sh } };
+	int ox = s->rect.x + r.x, oy = s->rect.y + r.y;
+	SDL_Rect dst[2] = { { ox, oy, radius, zone }, { ox + r.w - radius, oy, radius, zone } };
+	for (int i = 0; i < 2; ++i) SDL_RenderCopy(views[s->view].ren, t, &src[i], &dst[i]);
+}
+
 
 /* ---------------------------------------------------------- keys and the theme
  * The menus' buttons look like a GBA's: a raised key with an edge under it.
@@ -3250,7 +3284,7 @@ void ui_key_palette(int state, SDL_Color* border, SDL_Color* rim, SDL_Color* hi,
 	}
 }
 
-void ui_key(int screen, SDL_Rect r, int radius, int state) {
+static void key_draw(int screen, SDL_Rect r, int radius, int state, bool trueCorners) {
 	inKey = true;
 	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
 	SDL_Color border, rim, hi, lo, edge, ring;
@@ -3271,11 +3305,17 @@ void ui_key(int screen, SDL_Rect r, int radius, int state) {
 	int bh = r.h - (in + 1) * 2, bx = r.x + in + 1, by = r.y + in + 1, bw = r.w - (in + 1) * 2;
 	for (int i = 1; i <= 6; ++i) {
 		SDL_Color m = { (lo.r * (6 - i) + hi.r * i) / 6, (lo.g * (6 - i) + hi.g * i) / 6, (lo.b * (6 - i) + hi.b * i) / 6, 255 };
-		ui_fill_round(screen, (SDL_Rect) { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 }, m, SDL_max(1, radius - in - 1));
+		SDL_Rect band = { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 };
+		/* (a short band keeps the body's corner radius when asked: otherwise its corners come out nearly square over the rounded body) */
+		if (trueCorners) fill_round_top(screen, band, m, SDL_max(1, radius - in - 1));
+		else ui_fill_round(screen, band, m, SDL_max(1, radius - in - 1));
 	}
 	inKey = false;
 	key_add(screen, r, state == KEY_PLAIN);
 }
+
+void ui_key(int screen, SDL_Rect r, int radius, int state) { key_draw(screen, r, radius, state, false); }
+void ui_key_round(int screen, SDL_Rect r, int radius, int state) { key_draw(screen, r, radius, state, true); }
 
 /* ---------------------------------------------------------- text in Jost
  * Rasterized by textfont.c, kept as white textures (tinted when drawn), per
