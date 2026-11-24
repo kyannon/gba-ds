@@ -51,7 +51,8 @@ No devkitPro needed on the machine: the builds run in the
 Buttons: A, B, L, R, START, SELECT and the D-pad (or the Circle Pad) are the
 GBA's. **ZL** is GBA DS's menu button (its HOME: the pause menu, and held
 with another button, the hotkeys: ZL + R saves a state, ZL + L loads it, ZL +
-X the quick menu, ZL + Y swaps the screens, ZL + START closes the game).
+X the quick menu, ZL + Up swaps the screens, ZL + B closes the game, ZL +
+START closes GBA DS; as GBA DS 1.6 has them).
 **ZR** is fast-forward, without sound (`ff_mute = 0` in `gba-ds.cfg` plays
 it sped up). The menus also work by touch.
 
@@ -129,9 +130,8 @@ Azahar, not yet on a console.
 upstream armGBA 2.0's core) has not been on a console yet. On the desktop:
 all 57 play scripts ran to the end on libmgba and on armGBA drawn as the 3DS
 draws (`3ds/test/dualrun.py --runs mgba,armgba-3ds`), with the two emulators'
-screens as close as before the merge, shot for shot, but for a few scenes
-where their timing drifts (a fade or a flash caught a frame apart) and the
-scripts' swap step, which the newer menu's layout moved for both. In Azahar:
+screens as close as before the merge, shot for shot (the scripts swap the
+screens with HOME + Up now, as GBA DS 1.6 has it). In Azahar:
 the game list, Mario Kart: Super Circuit into its menus at 59.8 frames a
 second with no sound underrun, and the pause menu; the interface in
 Traditional Chinese (`ctr/fonts_ctr.c` leaves out the two Chinese faces

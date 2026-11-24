@@ -30,9 +30,9 @@ wait 30
 shot hk-menu
 press HOME 6
 wait 30
-press HOME+Y 6
+press HOME+UP 6
 wait 20
 shot hk-swapped
-press HOME+Y 6
+press HOME+UP 6
 wait 20
 shot hk-back

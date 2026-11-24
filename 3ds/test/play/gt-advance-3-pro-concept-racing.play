@@ -25,10 +25,10 @@ wait 30
 shot homemenu
 press HOME 6
 wait 30
-press HOME+Y 6
+press HOME+UP 6
 wait 20
 shot swapped
-press HOME+Y 6
+press HOME+UP 6
 wait 20
 shot back
 # save / load (HOME+R, move, HOME+L)

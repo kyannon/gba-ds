@@ -18,10 +18,10 @@ wait 60
 shot pause
 press B 4
 wait 30
-press HOME+Y 6
+press HOME+UP 6
 wait 20
 shot swapped
-press HOME+Y 6
+press HOME+UP 6
 wait 20
 shot back
 press HOME+R 6

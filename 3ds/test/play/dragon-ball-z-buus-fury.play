@@ -28,10 +28,10 @@ shot moved
 press HOME+L 6
 wait 10
 shot loaded
-press HOME+Y 6
+press HOME+UP 6
 wait 20
 shot swapped
-press HOME+Y 6
+press HOME+UP 6
 wait 20
 shot back
 # added by the 3DS check: the story's dialogue is still up here; press on through it, then walk and open the Scouter
