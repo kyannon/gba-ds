@@ -9,6 +9,9 @@
 - **Sort the game list, and pin favorites to the top.** A bar of two buttons now sits at the top of the list, under the header, and scrolls away with the games: **A to Z** (as before) and **Recently played** (the game you played last first; games you haven't played yet follow, A to Z). Touch a button, or press Up from the first game, choose with Left / Right and press A. GBA DS remembers the sort you chose.
 - **Favorites:** touch the star on a game's tile, or press **Y** with the game selected, to make it a favorite. Favorites are listed first, whatever the sort, and the star turns gold; do it again to take it off.
 
+### RetroAchievements
+- **Hardcore mode (still hidden until RetroAchievements approves it) now turns fast forward off**, as it does rewind, cheats and loading states, since GBA DS reads RetroAchievements' ban on frame advance as covering any speed-up. Fast forward still works in casual mode.
+
 ### Fixes
 - **Highlighted buttons and rows have the same round top corners as bottom ones.** The top corners of a lit or selected button (the pause menu's tabs, the quick bar, the game list's buttons) were nearly square next to the bottom ones.
 - **Pokémon: the Town Map shows on the second screen in FRLG+ 1.5.1**, the FireRed romhack (BPS patch or ROM). Its Bag wraps round from the last pocket to the first, so the map was never found and only the Party showed. GBA DS now finds the Key Items pocket by its tab, in any Bag that wraps. FRLG+ 1.5.1 is added to the tested romhacks.
