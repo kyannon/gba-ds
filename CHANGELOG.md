@@ -9,6 +9,7 @@
 - **Hardcore mode (still hidden until RetroAchievements approves it) now turns fast forward off**, as it does rewind, cheats and loading states, since GBA DS reads RetroAchievements' ban on frame advance as covering any speed-up. Fast forward still works in casual mode.
 
 ### Fixes
+- **Game Boy: the Super Game Boy palette now gives Super Game Boy games their own colours** (issue #91). Games that support the Super Game Boy, such as Castlevania Legends, stayed grey with *Super Game Boy* chosen; they now play as on a Super Game Boy and show the colours they were made with (still without the border). Like the other palette choices it counts from the next start.
 - **Pokémon: the Town Map shows on the second screen in FRLG+ 1.5.1**, the FireRed romhack (BPS patch or ROM). Its Bag wraps round from the last pocket to the first, so the map was never found and only the Party showed. GBA DS now finds the Key Items pocket by its tab, in any Bag that wraps. FRLG+ 1.5.1 is added to the tested romhacks.
 - **Rumble patches that stop the motor by switching the cartridge's motor pin off no longer leave the device rumbling.** Mario & Luigi: Superstar Saga's rumble patch started rumbling in the story intro and never stopped; it now stops when the game says so.
 

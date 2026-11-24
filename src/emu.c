@@ -500,9 +500,13 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	}
 	e->platform = (int) e->core->platform(e->core);
 	e->gbKind = 0;
+	bool sgbHeader = false; /* the cartridge says it supports the Super Game Boy (0x146 = 3) */
 	if (e->platform == mPLATFORM_GB) {
 		uint8_t h[EMU_HEADER_MAX];
-		if (emu_rom_header(romPath, h, sizeof(h))) e->gbKind = h[0x143] == 0xC0 ? 2 : h[0x143] == 0x80 ? 1 : 0;
+		if (emu_rom_header(romPath, h, sizeof(h))) {
+			e->gbKind = h[0x143] == 0xC0 ? 2 : h[0x143] == 0x80 ? 1 : 0;
+			sgbHeader = h[0x146] == 0x03 && h[0x143] != 0xC0;
+		}
 	}
 	mCoreInitConfig(e->core, NULL);
 	struct mCoreOptions opts = { .useBios = false, .volume = 0x100, .audioBuffers = 1024 };
@@ -514,11 +518,15 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		 * gave it (mGBA's table of the colour boot ROM's palettes, no boot ROM needed). Settings
 		 * for the other models and colours come later (they are these same mGBA options). */
 		mCoreConfigSetDefaultValue(&e->core->config, "gb.model", "AGB");
-		mCoreConfigSetDefaultValue(&e->core->config, "sgb.model", "AGB");
+		/* (GB-6, GB-11: "Super Game Boy" palette) a game that supports the Super Game Boy (header 0x146 = 3) runs as on
+		 * one, without its border (sgb.borders below), so it sends its own colours to it; a dual-mode one only
+		 * while it is kept in monochrome (GB-7). Otherwise the Game Boy Color hardware (GB-1). */
+		bool asSgb = gbOpt.colors == 3 && sgbHeader && (e->gbKind == 0 || (e->gbKind == 1 && gbOpt.mono));
+		mCoreConfigSetDefaultValue(&e->core->config, "sgb.model", asSgb ? "SGB" : "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.model", "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.hybridModel", gbOpt.mono ? "DMG" : "AGB"); /* (GB-7) */
-		mCoreConfigSetDefaultValue(&e->core->config, "cgb.sgbModel", "AGB");
-		mCoreConfigSetDefaultIntValue(&e->core->config, "gb.colors", gbOpt.colors); /* (GB-6: 1 is GB_COLORS_CGB) */
+		mCoreConfigSetDefaultValue(&e->core->config, "cgb.sgbModel", asSgb && gbOpt.mono ? "SGB" : "AGB");
+		mCoreConfigSetDefaultIntValue(&e->core->config, "gb.colors", asSgb ? 0 : gbOpt.colors); /* (GB-6: 1 is GB_COLORS_CGB; none for a game running as an SGB: its own packets colour it, a table would override them) */
 		if (gbOpt.usePal) {
 			for (int i = 0; i < 12; ++i) {
 				char key[16];

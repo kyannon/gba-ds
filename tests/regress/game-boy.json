@@ -1,0 +1,166 @@
+{
+ "game": "Game Boy and Game Boy Color games",
+ "rules": "docs/GAME-BOY.md",
+ "cases": [
+  {
+   "id": "gb-sgb-castlevania-legends-colours",
+   "rom": "g6cn",
+   "desc": "Castlevania Legends (SGB Enhanced) with the Super Game Boy palette: it plays as on a Super Game Boy and shows its own colours, not grey (issue #91)",
+   "rules": [
+    "GB-11"
+   ],
+   "config": {
+    "gb_palette": "sgb"
+   },
+   "input": [
+    [
+     300,
+     "START"
+    ],
+    [
+     320,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     620,
+     "-"
+    ],
+    [
+     900,
+     "START"
+    ],
+    [
+     920,
+     "-"
+    ],
+    [
+     1200,
+     "START"
+    ],
+    [
+     1220,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 1460
+   },
+   "golden": [
+    "title"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "title",
+     "probes": [
+      [
+       320,
+       264,
+       "FF1008"
+      ],
+      [
+       712,
+       248,
+       "FFDE10"
+      ],
+      [
+       672,
+       440,
+       "C6C6C6"
+      ],
+      [
+       272,
+       488,
+       "0029FF"
+      ]
+     ],
+     "rule": "GB-11",
+     "what": "the red, gold, blue and grey of its title screen",
+     "tol": 8
+    }
+   ]
+  },
+  {
+   "id": "gb-own-castlevania-legends-grey",
+   "rom": "g6cn",
+   "desc": "the same game with Game's own palette: shades of grey as before (GB-6, GB-1), no Super Game Boy colours",
+   "rules": [
+    "GB-1",
+    "GB-6",
+    "GB-11"
+   ],
+   "input": [
+    [
+     300,
+     "START"
+    ],
+    [
+     320,
+     "-"
+    ],
+    [
+     600,
+     "START"
+    ],
+    [
+     620,
+     "-"
+    ],
+    [
+     900,
+     "START"
+    ],
+    [
+     920,
+     "-"
+    ],
+    [
+     1200,
+     "START"
+    ],
+    [
+     1220,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 1460
+   },
+   "golden": [
+    "title"
+   ],
+   "checks": [
+    {
+     "type": "not_pixels",
+     "screen": "game",
+     "shot": "title",
+     "probes": [
+      [
+       320,
+       264,
+       "FF1008"
+      ],
+      [
+       712,
+       248,
+       "FFDE10"
+      ],
+      [
+       272,
+       488,
+       "0029FF"
+      ]
+     ],
+     "rule": "GB-11",
+     "what": "none of the Super Game Boy colours",
+     "tol": 8
+    }
+   ]
+  }
+ ]
+}
