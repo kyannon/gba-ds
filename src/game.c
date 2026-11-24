@@ -6952,7 +6952,8 @@ static void note_done(bool keep) {
 static void gb_colours_key(char* out, size_t n) {
 	int k = emu_gb_kind(&emu);
 	bool mono = k == 0 || (k == 1 && !strcmp(gbDualAtStart, "mono"));
-	snprintf(out, n, "%s %s", emu_is_gb(&emu) && mono ? gbPaletteAtStart : "-", k == 1 ? gbDualAtStart : "-");
+	/* (+sgb: it ran as a Super Game Boy, GB-11: another machine's state, so a resume point from before that, or from a game run the other way, isn't loaded) */
+	snprintf(out, n, "%s%s %s", emu_is_gb(&emu) && mono ? gbPaletteAtStart : "-", emu_gb_sgb(&emu) ? "+sgb" : "", k == 1 ? gbDualAtStart : "-");
 }
 static void gb_colours_note_path(char* out, size_t n) {
 	snprintf(out, n, "%s.colours", gp.autoState);

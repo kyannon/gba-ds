@@ -518,10 +518,13 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		 * gave it (mGBA's table of the colour boot ROM's palettes, no boot ROM needed). Settings
 		 * for the other models and colours come later (they are these same mGBA options). */
 		mCoreConfigSetDefaultValue(&e->core->config, "gb.model", "AGB");
-		/* (GB-6, GB-11: "Super Game Boy" palette) a game that supports the Super Game Boy (header 0x146 = 3) runs as on
-		 * one, without its border (sgb.borders below), so it sends its own colours to it; a dual-mode one only
-		 * while it is kept in monochrome (GB-7). Otherwise the Game Boy Color hardware (GB-1). */
-		bool asSgb = gbOpt.colors == 3 && sgbHeader && (e->gbKind == 0 || (e->gbKind == 1 && gbOpt.mono));
+		/* (GB-11) a game that supports the Super Game Boy (header 0x146 = 3) runs as on one, without its
+		 * border (sgb.borders below), so it sends its own colours to it: by default (Game's own) and with
+		 * the Super Game Boy palette (GB-6); a dual-mode one only while it is kept in monochrome (GB-7).
+		 * Another palette (DMG, Pocket, Light, Grayscale) is the Game Boy Color hardware with those shades.
+		 * Otherwise the Game Boy Color hardware (GB-1). */
+		bool asSgb = (gbOpt.colors == 1 || gbOpt.colors == 3) && sgbHeader && (e->gbKind == 0 || (e->gbKind == 1 && gbOpt.mono));
+		e->gbSgb = asSgb;
 		mCoreConfigSetDefaultValue(&e->core->config, "sgb.model", asSgb ? "SGB" : "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.model", "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.hybridModel", gbOpt.mono ? "DMG" : "AGB"); /* (GB-7) */
@@ -1124,6 +1127,9 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n) {
 	return ok;
 }
 
+bool emu_gb_sgb(const Emu* e) {
+	return e && e->gbSgb;
+}
 int emu_gb_kind(const Emu* e) {
 	return e ? e->gbKind : 0;
 }
