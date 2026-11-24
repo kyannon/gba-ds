@@ -14,6 +14,11 @@
 ### Changes
 - **F-Zero Climax: Time Attack, Survival and Course Edit's test run work well.** v1.6 had only Grand Prix checked; the player who contributed the game support has now tried the other three, and they work well.
 
+### Fixes
+- **The pause menu's notes are no longer cut off in other languages.** A long translated note (French, German...) stopped mid-word, and the end of "Choose it again to close GBA DS: your place is saved" stayed in English in every language.
+- **Cheats with the same name are remembered separately.** When a cheat file had two cheats with the same name, switching one on brought both back on the next time the game started. Your existing choices still load as before.
+- **Choosing a RetroArch state folder with a very long path** (over 511 characters) now says the path is too long, instead of quietly saving a cut-off path that pointed somewhere else.
+
 ## v1.6.1 (2026-11-22)
 
 ### Menus and interface

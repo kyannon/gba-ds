@@ -11,10 +11,12 @@
 
 /* ---------------------------------------------------------------- names */
 
+#define TAG_LEN 48 /* a "(...)" tag of a file name, lower case */
+
 /* "Metroid Fusion (World) (Code Breaker).cht" -> title "metroid fusion",
  * tags "world" and "code breaker". Lower case, letters and digits only,
  * single spaces; '_' counts as a space (ROMs named Metroid_Fusion_USA). */
-static void title_of(const char* file, char* title, size_t tsize, char tags[][48], int* ntags, int maxTags) {
+static void title_of(const char* file, char* title, size_t tsize, char tags[][TAG_LEN], int* ntags, int maxTags) {
 	const char* base = strrchr(file, '/');
 	base = base ? base + 1 : file;
 	char tmp[512];
@@ -24,7 +26,7 @@ static void title_of(const char* file, char* title, size_t tsize, char tags[][48
 	size_t o = 0;
 	int depth = 0;
 	bool space = true;
-	char tag[48];
+	char tag[TAG_LEN];
 	size_t tl = 0;
 	if (ntags) *ntags = 0;
 	for (const char* p = tmp; *p; ++p) {
@@ -38,7 +40,7 @@ static void title_of(const char* file, char* title, size_t tsize, char tags[][48
 			if (depth > 0) --depth;
 			if (ntags && *ntags < maxTags && tl) {
 				tag[tl] = 0;
-				snprintf(tags[(*ntags)++], 48, "%s", tag);
+				snprintf(tags[(*ntags)++], TAG_LEN, "%s", tag);
 			}
 			continue;
 		}
@@ -59,36 +61,43 @@ static void title_of(const char* file, char* title, size_t tsize, char tags[][48
 	title[o] = 0;
 }
 
+enum { REGION_ANY, REGION_USA, REGION_JAPAN, REGION_EUROPE, REGION_COUNT };
+
+/* The region a game code's last letter stands for: Europe takes P, the
+ * language releases (D F S I H), X Y Z and U (Australia). */
 static int region_of(char codeLetter) {
 	switch (codeLetter) {
-	case 'E': return 1; /* USA */
-	case 'J': return 2; /* Japan */
-	case 'P': case 'D': case 'F': case 'S': case 'I': case 'H': case 'X': case 'Y': case 'Z': case 'U': return 3;
-	default: return 0;
+	case 'E': return REGION_USA;
+	case 'J': return REGION_JAPAN;
+	case 'P': case 'D': case 'F': case 'S': case 'I': case 'H': case 'X': case 'Y': case 'Z': case 'U': return REGION_EUROPE;
+	default: return REGION_ANY;
 	}
 }
 
-/* Does a tag like "usa", "usa, europe", "world" fit region r (0 = any)? */
+/* Does a tag like "usa", "usa, europe", "world" fit region r (REGION_ANY: any)?
+ * 1: yes; -1: it names regions, but not ours; 0: it names no region. */
 static int tag_region_match(const char* tag, int r) {
-	static const char* const names[4][3] = { { 0 }, { "usa", "us", 0 }, { "japan", "jp", 0 }, { "europe", "eu", 0 } };
+	static const char* const names[REGION_COUNT][3] = {
+		{ 0 }, { "usa", "us", 0 }, { "japan", "jp", 0 }, { "europe", "eu", 0 }
+	};
 	bool isRegion = false;
-	char t[48];
+	char t[TAG_LEN];
 	snprintf(t, sizeof(t), "%s", tag);
 	for (char* w = strtok(t, ", "); w; w = strtok(NULL, ", ")) {
 		if (!strcmp(w, "world")) return 1;
-		for (int k = 1; k < 4; ++k) {
+		for (int k = REGION_USA; k < REGION_COUNT; ++k) {
 			for (int j = 0; names[k][j]; ++j) {
 				if (!strcmp(w, names[k][j])) {
 					isRegion = true;
-					if (r == 0 || r == k) return 1;
+					if (r == REGION_ANY || r == k) return 1;
 				}
 			}
 		}
 	}
-	return isRegion ? -1 : 0; /* -1: a region, but not ours; 0: not a region tag */
+	return isRegion ? -1 : 0;
 }
 
-static int type_of(char tags[][48], int n, char* label, size_t lsize) {
+static int type_of(char tags[][TAG_LEN], int n, char* label, size_t lsize) {
 	snprintf(label, lsize, "Cheats");
 	for (int i = 0; i < n; ++i) {
 		if (strstr(tags[i], "code breaker") || strstr(tags[i], "codebreaker")) {
@@ -118,7 +127,7 @@ typedef struct {
 } Search;
 
 static void consider(Search* s, const char* path) {
-	char title[256], tags[8][48], label[64];
+	char title[256], tags[8][TAG_LEN], label[64];
 	int ntags = 0;
 	title_of(path, title, sizeof(title), tags, &ntags, 8);
 	size_t tl = strlen(title);
@@ -145,22 +154,30 @@ static void consider(Search* s, const char* path) {
 	snprintf(f->label, sizeof(f->label), "%s", label);
 }
 
+/* Looks at every .cht file in dir and in the folders up to two levels below
+ * it (RetroArch keeps them in one folder per system). */
 static void scan(Search* s, const char* dir, int depth) {
 	DIR* d = opendir(dir);
 	if (!d) return;
 	struct dirent* de;
 	while ((de = readdir(d))) {
 		if (de->d_name[0] == '.') continue;
+		const char* ext = strrchr(de->d_name, '.');
+		bool cht = ext && !strcasecmp(ext, ".cht");
+		if (de->d_type == DT_REG && !cht) continue; /* (a library has thousands of files: no stat for these) */
 		char full[1024];
 		snprintf(full, sizeof(full), "%s/%s", dir, de->d_name);
-		struct stat st;
-		if (stat(full, &st) != 0) continue;
-		if (S_ISDIR(st.st_mode)) {
-			if (depth < 2) scan(s, full, depth + 1);
-			continue;
+		bool isDir = de->d_type == DT_DIR;
+		if (!isDir && de->d_type != DT_REG) { /* a link, or a file system that doesn't say */
+			struct stat st;
+			if (stat(full, &st) != 0) continue;
+			isDir = S_ISDIR(st.st_mode);
 		}
-		const char* ext = strrchr(de->d_name, '.');
-		if (ext && !strcasecmp(ext, ".cht")) consider(s, full);
+		if (isDir) {
+			if (depth < 2) scan(s, full, depth + 1);
+		} else if (cht) {
+			consider(s, full);
+		}
 	}
 	closedir(d);
 }
@@ -187,11 +204,13 @@ static void unquote(const char* v, char* out, size_t size) {
 	out[o] = 0;
 }
 
+/* Reads one .cht file: lines "cheatN_desc", "cheatN_code" and
+ * "cheatN_enable" (N below CHEATS_PER_FILE_MAX), the value quoted or not.
+ * A cheat with no code is dropped. */
 static void parse_file(Cheats* c, int fileIdx) {
 	FILE* f = fopen(c->files[fileIdx].path, "r");
 	if (!f) return;
-	enum { MAXC = 512 };
-	struct { char desc[128]; char* code; bool on; } tmp[MAXC];
+	struct { char desc[128]; char* code; bool on; } tmp[CHEATS_PER_FILE_MAX];
 	memset(tmp, 0, sizeof(tmp));
 	int maxIdx = -1;
 	char line[4096];
@@ -201,7 +220,7 @@ static void parse_file(Cheats* c, int fileIdx) {
 		if (strncmp(p, "cheat", 5) || !isdigit((unsigned char) p[5])) continue;
 		char* end;
 		long i = strtol(p + 5, &end, 10);
-		if (i < 0 || i >= MAXC || *end != '_') continue;
+		if (i < 0 || i >= CHEATS_PER_FILE_MAX || *end != '_') continue;
 		char* eq = strchr(end, '=');
 		if (!eq) continue;
 		char key[32];
@@ -213,18 +232,22 @@ static void parse_file(Cheats* c, int fileIdx) {
 		char val[4096];
 		unquote(eq + 1, val, sizeof(val));
 		if (!strcmp(key, "desc")) snprintf(tmp[i].desc, sizeof(tmp[i].desc), "%s", val);
-		else if (!strcmp(key, "code")) free(tmp[i].code), tmp[i].code = strdup(val);
-		else if (!strcmp(key, "enable")) tmp[i].on = !strcasecmp(val, "true") || !strcmp(val, "1");
+		else if (!strcmp(key, "code")) {
+			free(tmp[i].code);
+			tmp[i].code = strdup(val);
+		} else if (!strcmp(key, "enable")) tmp[i].on = !strcasecmp(val, "true") || !strcmp(val, "1");
 		else continue;
 		if (i > maxIdx) maxIdx = (int) i;
 	}
 	fclose(f);
+	/* room for all of them at once (at most maxIdx + 1 are kept) */
+	Cheat* grown = maxIdx >= 0 ? realloc(c->items, sizeof(*c->items) * (c->n + maxIdx + 1)) : NULL;
+	if (grown) c->items = grown; /* (when realloc fails, the old block stays and these cheats are dropped) */
 	for (int i = 0; i <= maxIdx; ++i) {
-		if (!tmp[i].code || !tmp[i].code[0]) {
+		if (!grown || !tmp[i].code || !tmp[i].code[0]) {
 			free(tmp[i].code);
 			continue;
 		}
-		c->items = realloc(c->items, sizeof(*c->items) * (c->n + 1));
 		Cheat* ch = &c->items[c->n++];
 		memset(ch, 0, sizeof(*ch));
 		snprintf(ch->desc, sizeof(ch->desc), "%s", tmp[i].desc[0] ? tmp[i].desc : "(no name)");
@@ -236,20 +259,40 @@ static void parse_file(Cheats* c, int fileIdx) {
 
 /* ---------------------------------------------------------------- prefs */
 
-/* <state_dir>/<game>.cheats: a header line, then "<cht file name>\t<desc>"
- * for each cheat that is on. */
 static const char* file_name(const char* path) {
 	const char* b = strrchr(path, '/');
 	return b ? b + 1 : path;
+}
+
+/* <state_dir>/<game>.cheats: a header line, then "<cht file name>\t<desc>"
+ * for each cheat that is on. Cheats of one file with the same description are
+ * told apart by "\t#k" after the description (k counting from 0 among them);
+ * a line without it (older versions', or a cheat whose description is its
+ * file's only one) means every cheat with that description. */
+static int same_before(const Cheats* c, int i) {
+	int k = 0;
+	for (int j = 0; j < i; ++j) {
+		if (c->items[j].file == c->items[i].file && !strcmp(c->items[j].desc, c->items[i].desc)) ++k;
+	}
+	return k;
+}
+static bool has_same_after(const Cheats* c, int i) {
+	for (int j = 0; j < c->n; ++j) {
+		if (j != i && c->items[j].file == c->items[i].file && !strcmp(c->items[j].desc, c->items[i].desc)) return true;
+	}
+	return false;
 }
 
 void cheats_save(const Cheats* c) {
 	if (!c->prefs[0] || !c->n) return;
 	FILE* f = fopen(c->prefs, "w");
 	if (!f) return;
-	fprintf(f, "# gba-ds cheats that are on: cht file<TAB>description\n");
+	fprintf(f, "# gba-ds cheats that are on: cht file<TAB>description[<TAB>#n for one of several with that description]\n");
 	for (int i = 0; i < c->n; ++i) {
-		if (c->items[i].on) fprintf(f, "%s\t%s\n", file_name(c->files[c->items[i].file].path), c->items[i].desc);
+		if (!c->items[i].on) continue;
+		fprintf(f, "%s\t%s", file_name(c->files[c->items[i].file].path), c->items[i].desc);
+		if (has_same_after(c, i)) fprintf(f, "\t#%d", same_before(c, i));
+		fputc('\n', f);
 	}
 	fclose(f);
 }
@@ -265,8 +308,16 @@ static void load_prefs(Cheats* c) {
 		char* tab = strchr(line, '\t');
 		if (!tab) continue;
 		*tab = 0;
+		char* desc = tab + 1;
+		int which = -1; /* every cheat with this description */
+		char* mark = strrchr(desc, '\t');
+		if (mark && mark[1] == '#' && mark[2] >= '0' && mark[2] <= '9' && strspn(mark + 2, "0123456789") == strlen(mark + 2)) {
+			which = atoi(mark + 2);
+			*mark = 0;
+		}
 		for (int i = 0; i < c->n; ++i) {
-			if (!strcmp(c->items[i].desc, tab + 1) && !strcmp(file_name(c->files[c->items[i].file].path), line)) {
+			if (!strcmp(c->items[i].desc, desc) && !strcmp(file_name(c->files[c->items[i].file].path), line) &&
+			    (which < 0 || same_before(c, i) == which)) {
 				c->items[i].on = true;
 			}
 		}
@@ -300,10 +351,10 @@ void cheats_load(Cheats* c, const Config* cfg, const char* romPath, const char* 
 
 void cheats_apply(const Cheats* c, Emu* e) {
 	emu_cheats_clear(e);
-	const char* codes[512];
+	const char* codes[CHEATS_PER_FILE_MAX];
 	for (int f = 0; f < c->nFiles; ++f) {
 		int n = 0;
-		for (int i = 0; i < c->n && n < 512; ++i) {
+		for (int i = 0; i < c->n && n < CHEATS_PER_FILE_MAX; ++i) {
 			if (c->items[i].file == f && c->items[i].on) codes[n++] = c->items[i].code;
 		}
 		if (n) {

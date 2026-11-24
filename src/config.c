@@ -469,7 +469,7 @@ static const SettingChoice chFF[] = { { N_("off"), "Off", 0 }, { "2", "2x", 2 },
 static const SettingChoice chRewind[] = { { "10", "10 s", 10 }, { "15", "15 s", 15 }, { "30", "30 s", 30 }, { "60", "1 minute", 60 }, { "120", "2 minutes", 120 }, { "300", "5 minutes", 300 } };
 static const SettingChoice chLatency[] = { { "32", "32 ms", 32 }, { "64", "64 ms", 64 }, { "96", "96 ms", 96 }, { "128", "128 ms", 128 }, { "192", "192 ms", 192 } };
 static const SettingChoice chPerf[] = { { "system", "Let the System Decide", 0 }, { "max", "Set to Max", 1 } };
-/* Automatic, English, then every catalogue by its own name (i18n_data.h: made from assets/i18n/*.po) */
+/* Automatic, English, then every catalogue by its own name (i18n_data.h: made from the .po files in assets/i18n) */
 static const SettingChoice chLanguage[] = { { "auto", "Automatic", 0 }, { "en", "English", 0 }, I18N_CHOICES };
 static const SettingChoice chInterval[] = { { "30", "Every 0.5 s", 30 }, { "60", "Every second", 60 }, { "90", "Every 1.5 s", 90 }, { "180", "Every 3 s", 180 } };
 
