@@ -72,6 +72,7 @@ static struct {
 	int logoW, logoH;
 	float logoK;
 	bool logoTried;
+	uint64_t labelUntil;       /* the slider's percentage shows while it is changed, and a moment after (frames) */
 	float resid;               /* the counts not yet given to the game (they're whole counts) */
 	int sens, scale, invert;   /* the slider (25-200%), the sensor's scale (%), the sensor's direction */
 	char axis;                 /* the sensor's axis: z, through the screen */
@@ -691,9 +692,16 @@ static void draw_ww_ui(void) {
 		int kx = track.x + (ww.sens - WW_SENS_MIN) * (track.w - 1) / (WW_SENS_MAX - WW_SENS_MIN);
 		cv_rect((SDL_Rect) { track.x, track.y, kx - track.x, track.h }, (SDL_Color) { 150, 150, 190, 255 });
 		cv_key((SDL_Rect) { kx - 3, cy - 6, 7, 12 }, ww.press == WWP_SLIDER ? KEY_SEL : KEY_PLAIN);
-		char pc[8];
-		snprintf(pc, sizeof(pc), "%d%%", ww.sens);
-		cv_label(wwLabelLeft ? track.x - 18 : track.x + track.w + 18, cy, false, pc, G_TEXT, 30);
+		if (ww.press == WWP_SLIDER || frameCount < ww.labelUntil) {
+			/* (with an outline, to read over the picture) */
+			char pc[8];
+			snprintf(pc, sizeof(pc), "%d%%", ww.sens);
+			int lx = wwLabelLeft ? track.x - 18 : track.x + track.w + 18;
+			for (int dy = -1; dy <= 1; ++dy)
+				for (int dx = -1; dx <= 1; ++dx)
+					if (dx || dy) cv_label(lx + dx, cy + dy, false, pc, (SDL_Color) { 0, 0, 0, 255 }, 30);
+			cv_label(lx, cy, false, pc, (SDL_Color) { 255, 255, 255, 255 }, 30);
+		}
 	}
 	cvBuf = barPx, cvRows = GBA_H;
 	for (int v = 0; v < nViews; ++v) {
@@ -734,6 +742,7 @@ static bool ww_pointer(const Pointer* p) {
 			if (ww.touch && ww_ui_hit(s, p->x, p->y, 1)) {
 				ww.press = WWP_SLIDER;
 				ww.sens = ww_slider_value(s, p->x);
+				ww.labelUntil = frameCount + 45;
 				return true;
 			}
 		}
@@ -752,6 +761,7 @@ static bool ww_pointer(const Pointer* p) {
 		} else if (ww.press == WWP_SLIDER) {
 			int s = ww_ui_screen();
 			if (s >= 0) ww.sens = ww_slider_value(s, p->x);
+			ww.labelUntil = frameCount + 45;
 		} else if ((ww.press == WWP_BUTTON || ww.press == WWP_PAUSE) && p->y - ww.pressY <= -u * 10) {
 			/* a swipe up that began on it: the quick bar */
 			ww.press = WWP_NONE;
@@ -766,6 +776,7 @@ static bool ww_pointer(const Pointer* p) {
 			ww.down = false;
 			fprintf(stderr, "frame %llu: dial: let go at %.1f degrees\n", (unsigned long long) frameCount, ww.angle);
 		} else if (press == WWP_SLIDER) {
+			ww.labelUntil = frameCount + 45; /* (a moment after the finger lifts) */
 			ww_cfg_save();
 			fprintf(stderr, "frame %llu: dial: sensitivity %d%%\n", (unsigned long long) frameCount, ww.sens);
 		} else if (press == WWP_BUTTON) {

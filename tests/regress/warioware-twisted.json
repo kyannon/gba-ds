@@ -57,7 +57,10 @@
      "type": "no_log",
      "match": "gyro: Touch mode"
     }
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   },
   {
    "id": "wwt-jp-title",
@@ -73,7 +76,10 @@
    },
    "golden": [
     "gyro"
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   },
   {
    "id": "wwt-us-touch",
@@ -148,7 +154,10 @@
      "type": "log",
      "match": "wheel: taken"
     }
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   },
   {
    "id": "wwt-jp-touch",
@@ -177,7 +186,10 @@
      "type": "log",
      "match": "wheel: taken"
     }
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   },
   {
    "id": "wwt-us-dial",
@@ -328,13 +340,16 @@
       ]
      }
     }
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   },
   {
    "id": "wwt-us-slider",
    "rom": "RZWE",
    "state": "warioware-twisted/us-menu.ss",
-   "desc": "the slider starts at 25%: a drag of half the screen turns the wheel a quarter of 90 degrees; at the top, all 90",
+   "desc": "the slider starts at 25%: a drag of half the screen turns the wheel a quarter of 90 degrees; at the top, all 90; while the slider is held its percentage shows, outlined (and not otherwise)",
    "rules": [
     "WWT-7"
    ],
@@ -374,14 +389,28 @@
     [
      420,
      "LIFT"
+    ],
+    [
+     460,
+     "DRAG:0.4,0.919"
+    ],
+    [
+     470,
+     "MOVE:0.45,0.919"
+    ],
+    [
+     500,
+     "LIFT"
     ]
    ],
    "shots": {
     "slider": 130,
-    "max": 340
+    "max": 340,
+    "label": 485
    },
    "golden": [
-    "slider"
+    "slider",
+    "label"
    ],
    "checks": [
     {
@@ -408,7 +437,10 @@
      "type": "log",
      "match": "let go at -90\\.0 degrees"
     }
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   },
   {
    "id": "wwt-us-tilt",
@@ -426,7 +458,10 @@
    },
    "golden": [
     "tilt"
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   },
   {
    "id": "wwt-us-pause",
@@ -483,7 +518,10 @@
       ]
      }
     }
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   },
   {
    "id": "wwt-us-sensor",
@@ -508,7 +546,10 @@
      "type": "log",
      "match": "sensor counts -?458 "
     }
-   ]
+   ],
+   "config": {
+    "audio_auto": 0
+   }
   }
  ]
 }
