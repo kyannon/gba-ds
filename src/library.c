@@ -29,6 +29,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <math.h>
 #ifndef __wasi__
 #include <sys/resource.h>
 #include <sys/syscall.h>
@@ -44,6 +45,8 @@ typedef struct {
 	                        * file beside it, their sizes added and the later time) */
 	char patch[512]; /* the names of the patches it's played with (GEN-9: beside it, then switched on; " + " between), or "" */
 	PatchChoice patchOn; /* the ones switched on in its patches folder */
+	bool fav;            /* a favorite: listed first, whatever the sort */
+	long long played;    /* when it was last started (seconds), 0: never */
 } GameEntry;
 
 static GameEntry* games;
@@ -59,8 +62,97 @@ static const SDL_Color C_DIM = { 140, 140, 172, 255 };
 #define C_GOLD ui_accent_color(AC_HI)
 static const SDL_Color C_TAG = { 52, 120, 96, 255 };
 
+/* Favorites and when each game was last played, kept by ROM path in
+ * <state_dir>/favorites.txt (one path a line) and played.txt ("seconds path"
+ * a line). They stay when a game isn't listed for a while (Supported / All,
+ * a folder that's away). The list's order: favorites first, then A to Z or
+ * the most recently played first (the ones never played after them, A to Z),
+ * by library_sort. */
+typedef struct {
+	char path[1024];
+	bool fav;
+	long long played;
+} Mark;
+static Mark* marks;
+static int nMarks, capMarks;
+static bool marksLoaded;
+static int sortMode; /* 0: A to Z, 1: recently played */
+
+static Mark* mark_find(const char* path, bool create) {
+	for (int i = 0; i < nMarks; ++i)
+		if (!strcmp(marks[i].path, path)) return &marks[i];
+	if (!create) return NULL;
+	if (nMarks == capMarks) {
+		capMarks = capMarks ? capMarks * 2 : 64;
+		marks = realloc(marks, sizeof(*marks) * capMarks);
+	}
+	Mark* m = &marks[nMarks++];
+	memset(m, 0, sizeof(*m));
+	snprintf(m->path, sizeof(m->path), "%s", path);
+	return m;
+}
+
+static void marks_load(const Config* cfg) {
+	if (marksLoaded) return;
+	marksLoaded = true;
+	char file[1100], line[1100];
+	snprintf(file, sizeof(file), "%s/favorites.txt", cfg->stateDir);
+	FILE* f = fopen(file, "r");
+	if (f) {
+		while (fgets(line, sizeof(line), f)) {
+			line[strcspn(line, "\r\n")] = 0;
+			if (line[0]) mark_find(line, true)->fav = true;
+		}
+		fclose(f);
+	}
+	snprintf(file, sizeof(file), "%s/played.txt", cfg->stateDir);
+	f = fopen(file, "r");
+	if (f) {
+		while (fgets(line, sizeof(line), f)) {
+			line[strcspn(line, "\r\n")] = 0;
+			char* sp = strchr(line, ' ');
+			if (!sp || !sp[1]) continue;
+			*sp = 0;
+			mark_find(sp + 1, true)->played = atoll(line);
+		}
+		fclose(f);
+	}
+}
+
+static void marks_save(const Config* cfg) {
+	char file[1100];
+	snprintf(file, sizeof(file), "%s/favorites.txt", cfg->stateDir);
+	FILE* f = fopen(file, "w");
+	if (f) {
+		for (int i = 0; i < nMarks; ++i)
+			if (marks[i].fav) fprintf(f, "%s\n", marks[i].path);
+		fclose(f);
+	}
+	snprintf(file, sizeof(file), "%s/played.txt", cfg->stateDir);
+	f = fopen(file, "w");
+	if (f) {
+		for (int i = 0; i < nMarks; ++i)
+			if (marks[i].played > 0) fprintf(f, "%lld %s\n", marks[i].played, marks[i].path);
+		fclose(f);
+	}
+}
+
 static int cmp_games(const void* a, const void* b) {
-	return strcasecmp(((const GameEntry*) a)->name, ((const GameEntry*) b)->name);
+	const GameEntry *x = a, *y = b;
+	if (x->fav != y->fav) return x->fav ? -1 : 1;
+	if (sortMode == 1 && x->played != y->played) return x->played > y->played ? -1 : 1;
+	int c = strcasecmp(x->name, y->name);
+	return c ? c : strcmp(x->path, y->path);
+}
+
+static void sort_games(const Config* cfg) {
+	marks_load(cfg);
+	for (int i = 0; i < nGames; ++i) {
+		const Mark* m = mark_find(games[i].path, false);
+		games[i].fav = m && m->fav;
+		games[i].played = m ? m->played : 0;
+	}
+	qsort(games, nGames, sizeof(*games), cmp_games);
 }
 
 /* Game codes of the ROMs, remembered by path, size and date: reading one
@@ -653,7 +745,7 @@ static void scan(Config* cfg) {
 		scan_siblings(cfg, d);
 	}
 	code_cache_save(cfg);
-	qsort(games, nGames, sizeof(*games), cmp_games);
+	sort_games(cfg);
 	/* Region flags, only where the library holds the same game from more
 	 * than one region: same first three code letters, different last one. */
 	for (int i = 0; i < nGames; ++i) {
@@ -849,6 +941,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 
 typedef struct {
 	int headerH, listH, m, gap, tileW, tileH, rowH, cols, visibleRows;
+	int barH; /* the sort bar above the first row: part of the list, it scrolls away (0 with no games) */
 } ListGeom;
 
 /* The game list as names (default) or a grid of logos, two or three columns
@@ -879,13 +972,14 @@ static ListGeom list_geom(int scr) {
 	}
 	g.tileW = (r.w - g.m * 2 - g.gap * (g.cols - 1)) / g.cols;
 	g.rowH = g.tileH + g.gap;
+	g.barH = nGames ? px * 18 : 0;
 	g.visibleRows = SDL_max(1, (g.listH - g.m) / g.rowH);
 	return g;
 }
 
 static SDL_Rect tile_rect(ListGeom* g, int i, int scroll) {
 	int row = i / g->cols, col = i % g->cols;
-	return (SDL_Rect) { g->m + col * (g->tileW + g->gap), g->headerH + g->m + row * g->rowH - scroll, g->tileW, g->tileH };
+	return (SDL_Rect) { g->m + col * (g->tileW + g->gap), g->headerH + g->m + g->barH + row * g->rowH - scroll, g->tileW, g->tileH };
 }
 
 /* each game's logo, loaded on first sight; reloaded when a new one is extracted */
@@ -905,6 +999,79 @@ static void retry_tiles_without_logo(void) {
 	for (int i = 0; i < 256; ++i)
 		if (!tileLogo[i][0] && !tileLogo[i][1]) tileTried[i] = false;
 	if (!logoTex[0] && !logoTex[1]) thumbFor = -2;
+}
+
+/* The sort bar: the top row of the list itself, not of the header, so it
+ * scrolls away with the games. Two buttons (A to Z, Recently played) and a
+ * hint for the favorites' star. */
+static const char* const sortNames[2] = { N_("A to Z"), N_("Recently played") };
+static bool barFocus; /* the D-pad is on the bar (Up from the first game) */
+static int barSel;    /* and on this button */
+
+static SDL_Rect sort_button(int scr, const ListGeom* g, int scroll, int which) {
+	float px = ui_px(scr);
+	int h = px * 13, x = g->m, w0 = px * 34, w1 = px * 62, gap = px * 3;
+	int y = g->headerH + g->m + (int) (px * 2) - scroll; /* (a little below the header, so no key's top edge is lost) */
+	return which == 0 ? (SDL_Rect) { x, y, w0, h } : (SDL_Rect) { x + w0 + gap, y, w1, h };
+}
+
+/* A filled five-pointed star, by scanlines (no polygon call to lean on). */
+static void draw_star(int scr, int cx, int cy, int r, SDL_Color c) {
+	float vx[10], vy[10];
+	for (int k = 0; k < 10; ++k) {
+		float a = -3.14159265f / 2 + k * 3.14159265f / 5, rr = (k & 1) ? r * 0.42f : (float) r;
+		vx[k] = cx + cosf(a) * rr;
+		vy[k] = cy + sinf(a) * rr + r * 0.06f;
+	}
+	for (int y = cy - r; y <= cy + r; ++y) {
+		float yy = y + 0.5f, xs[10];
+		int n = 0;
+		for (int k = 0; k < 10; ++k) {
+			int j = (k + 1) % 10;
+			float y0 = vy[k], y1 = vy[j];
+			if ((y0 <= yy && y1 > yy) || (y1 <= yy && y0 > yy)) xs[n++] = vx[k] + (yy - y0) / (y1 - y0) * (vx[j] - vx[k]);
+		}
+		for (int a = 1; a < n; ++a)
+			for (int b = a; b > 0 && xs[b] < xs[b - 1]; --b) {
+				float t = xs[b];
+				xs[b] = xs[b - 1], xs[b - 1] = t;
+			}
+		for (int a = 0; a + 1 < n; a += 2) ui_fill(scr, (SDL_Rect) { (int) (xs[a] + 0.5f), y, SDL_max(1, (int) (xs[a + 1] - xs[a] + 0.5f)), 1 }, c);
+	}
+}
+
+/* where a tile's star is touched: its right end in the list, its corner in the grids */
+static SDL_Rect star_rect(int scr, const SDL_Rect* t) {
+	float px = ui_px(scr);
+	if (viewCols == 1) return (SDL_Rect) { t->x + t->w - (int) (px * 14), t->y, (int) (px * 14), t->h };
+	return (SDL_Rect) { t->x, t->y, (int) (px * 14), (int) (px * 14) };
+}
+
+#define STAR_GOLD ((SDL_Color) { 255, 200, 64, 255 })
+static void draw_star_mark(int scr, const SDL_Rect* t, bool fav) {
+	SDL_Rect s = star_rect(scr, t);
+	float px = ui_px(scr);
+	SDL_Color c = fav ? STAR_GOLD : C_DIM;
+	draw_star(scr, s.x + s.w / 2, s.y + s.h / 2, (int) (px * (viewCols == 3 ? 3.0f : 3.6f)), c);
+}
+
+static void draw_sort_bar(int scr, const ListGeom* g, int scroll) {
+	if (!g->barH) return;
+	float px = ui_px(scr);
+	for (int w = 0; w < 2; ++w) {
+		SDL_Rect b = sort_button(scr, g, scroll, w);
+		bool active = sortMode == w, focus = barFocus && barSel == w;
+		ui_key(scr, b, px * 3, focus ? KEY_SEL : active ? KEY_LIT : KEY_PLAIN);
+		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 4.5f, tr(sortNames[w]), C_TEXT);
+	}
+	SDL_Rect last = sort_button(scr, g, scroll, 1);
+	int right = screens[scr].rect.w - g->m - px * 2, cy = last.y + last.h / 2;
+	const char* hint = tr("Y: favorite");
+	int hw = ui_label_width(scr, px * 4, hint);
+	if (right - hw - px * 10 > last.x + last.w + px * 4) {
+		ui_label(scr, right - hw / 2, cy, px * 4, hint, C_DIM);
+		draw_star(scr, right - hw - px * 5, cy, (int) (px * 3.2f), STAR_GOLD);
+	}
 }
 
 static SDL_Rect settings_button(int scr) {
@@ -1038,7 +1205,7 @@ static void save_library_cfg(const Config* cfg) {
 	snprintf(file, sizeof(file), "%s/library.cfg", cfg->stateDir);
 	FILE* f = fopen(file, "w");
 	if (!f) return;
-	fprintf(f, "# written by the game list\nlibrary_view = %s\n", view_name());
+	fprintf(f, "# written by the game list\nlibrary_view = %s\nlibrary_sort = %s\n", view_name(), sortMode == 1 ? "recent" : "alpha");
 	/* (Settings > Save States: shared with RetroArch or not, issue #39) */
 	fprintf(f, "state_folder = %s\n", strcmp(cfg->stateFolder, "retroarch") ? "gbads" : "retroarch");
 	/* (Settings > RetroArch's Folder: one chosen by hand, or empty: found from RetroArch's settings) */
@@ -1064,6 +1231,32 @@ static void toggle_view(Config* cfg) {
 	viewCols = viewCols % 3 + 1;
 	snprintf(cfg->libraryView, sizeof(cfg->libraryView), "%s", view_name());
 	save_library_cfg(cfg);
+}
+
+/* The list made again in its new order, the selection staying on its game. */
+static int resort(const Config* cfg, int sel) {
+	char keep[1024] = "";
+	if (sel >= 0 && sel < nGames) snprintf(keep, sizeof(keep), "%s", games[sel].path);
+	sort_games(cfg);
+	free_tiles();
+	thumbFor = -2;
+	for (int i = 0; i < nGames; ++i)
+		if (!strcmp(games[i].path, keep)) return i;
+	return nGames ? 0 : -1;
+}
+
+static int set_sort(Config* cfg, int mode, int sel) {
+	sortMode = mode;
+	snprintf(cfg->librarySort, sizeof(cfg->librarySort), "%s", mode == 1 ? "recent" : "alpha");
+	save_library_cfg(cfg);
+	return resort(cfg, sel);
+}
+
+static int toggle_fav(const Config* cfg, int sel) {
+	Mark* m = mark_find(games[sel].path, true);
+	m->fav = !m->fav;
+	marks_save(cfg);
+	return resort(cfg, sel);
 }
 
 /* Can GBA DS write where it keeps its files (states, logos, screenshots)?
@@ -1109,11 +1302,12 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	for (int i = 0; i < nGames && i < 256; ++i) {
 		SDL_Rect t = tile_rect(&g, i, scroll);
 		if (t.y + t.h <= g.headerH || t.y >= r.h) continue;
-		bool on = i == sel;
+		bool on = i == sel && !barFocus;
 		ui_key(scr, t, px * 3, on ? KEY_SEL : KEY_PLAIN);
+		draw_star_mark(scr, &t, games[i].fav);
 		if (listMode) {
 			/* name on the left; region flag and "Single screen only" on the right */
-			int right = t.x + t.w - px * 5;
+			int right = t.x + t.w - px * 14;
 			if (games[i].flag >= 0) {
 				int fh = px * 7;
 				int fw = brandH[games[i].flag] ? brandW[games[i].flag] * fh / brandH[games[i].flag] : 0;
@@ -1170,6 +1364,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 			ui_label(scr, tg.x + tg.w / 2, tg.y + tg.h / 2, px * 4, "Single screen only", C_TEXT);
 		}
 	}
+	draw_sort_bar(scr, &g, scroll);
 	/* header drawn last so tiles scroll underneath it */
 	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, g.headerH }, C_HEADER);
 	SDL_Rect sb = settings_button(scr);
@@ -2569,21 +2764,25 @@ static void prioritise(int scr, int sel, int scroll) {
 static int clamp_scroll(int scr, int scroll) {
 	ListGeom g = list_geom(scr);
 	int rows = (nGames + g.cols - 1) / g.cols;
-	int max = g.m * 2 + rows * g.rowH - g.gap - g.listH;
+	int max = g.m * 2 + g.barH + rows * g.rowH - g.gap - g.listH;
 	if (max < 0) max = 0;
 	return scroll < 0 ? 0 : scroll > max ? max : scroll;
 }
 
 static int keep_visible(int scr, int sel, int scroll) {
 	ListGeom g = list_geom(scr);
-	int top = (sel / g.cols) * g.rowH;
+	int tileTop = g.barH + (sel / g.cols) * g.rowH;
+	int top = sel < g.cols ? 0 : tileTop; /* (the first row brings the sort bar back into view) */
 	if (top < scroll) scroll = top;
-	if (top + g.tileH + g.m * 2 > scroll + g.listH) scroll = top + g.tileH + g.m * 2 - g.listH;
+	if (tileTop + g.tileH + g.m * 2 > scroll + g.listH) scroll = tileTop + g.tileH + g.m * 2 - g.listH;
 	return clamp_scroll(scr, scroll);
 }
 
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	storage_check(cfg);
+	sortMode = !strcmp(cfg->librarySort, "recent") ? 1 : 0;
+	barFocus = false;
+	barSel = sortMode;
 
 	/* the last game played (reselected) */
 	char lastFile[1100], last[1024] = "";
@@ -2609,6 +2808,8 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			entry_patches(cfg, &games[i], file ? file + 1 : games[i].path, (long long) st.st_size, (long long) st.st_mtime);
 		}
 		fprintf(stderr, "library: %d game(s), folders unchanged\n", nGames);
+		sort_games(cfg); /* (a game just played comes first in Recently played) */
+		free_tiles();
 	}
 	thumbFor = -2;
 
@@ -2843,7 +3044,18 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			continue;
 		}
 
-		if (nGames) {
+		if (barFocus) {
+			/* on the sort bar: Left / Right pick a button, A applies it, Down goes back to the games */
+			if (btn_pressed(B_LEFT)) barSel = 0;
+			if (btn_pressed(B_RIGHT)) barSel = 1;
+			if (btn_pressed(B_DOWN)) barFocus = false;
+			if (btn_pressed(B_A) || btn_pressed(B_START)) sel = set_sort(cfg, barSel, sel);
+		} else if (nGames) {
+			if (btn_pressed(B_Y) && sel >= 0) {
+				/* Y: the selected game a favorite, or not any more */
+				sel = toggle_fav(cfg, sel);
+				scroll = keep_visible(ls, sel, scroll);
+			}
 			/* up/down: a row, left/right: a column, L/R: a screenful */
 			int dir = 0;
 			if (btn_pressed(B_DOWN)) dir = g.cols, repeat = 0;
@@ -2856,13 +3068,18 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			}
 			if (btn_pressed(B_R)) dir = g.cols * g.visibleRows;
 			if (btn_pressed(B_L)) dir = -g.cols * g.visibleRows;
+			if (btn_pressed(B_UP) && sel < g.cols) {
+				/* Up from the first row: the sort bar above it */
+				barFocus = true, barSel = sortMode, dir = 0;
+				scroll = 0;
+			}
 			if (dir) {
 				sel += dir;
 				if (sel < 0) sel = 0;
 				if (sel >= nGames) sel = nGames - 1;
 				scroll = keep_visible(ls, sel, scroll);
 			}
-			if (btn_pressed(B_A) || btn_pressed(B_START)) chosen = sel;
+			if (!barFocus && (btn_pressed(B_A) || btn_pressed(B_START))) chosen = sel;
 		}
 		if (btn_pressed(B_B) || btn_released(B_HOME)) quit = true;
 
@@ -2906,6 +3123,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 					break;
 				}
 				pressed = true;
+				barFocus = false; /* (touching takes the D-pad's place off the bar) */
 				dragging = false;
 				pressY = p.y;
 				pressScroll = scroll;
@@ -2916,11 +3134,31 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 				pressed = false;
 				if (dragging) continue;
 				if (p.y >= g.headerH) {
-					for (int i = 0; i < nGames; ++i) {
+					SDL_Point pt = { p.x, p.y };
+					bool used = false;
+					for (int w = 0; w < 2 && nGames && !used; ++w) {
+						SDL_Rect b = sort_button(ls, &g, scroll, w);
+						if (SDL_PointInRect(&pt, &b)) {
+							used = true;
+							barFocus = false;
+							sel = set_sort(cfg, w, sel);
+							scroll = keep_visible(ls, sel, scroll);
+						}
+					}
+					for (int i = 0; i < nGames && !used; ++i) {
 						SDL_Rect t = tile_rect(&g, i, scroll);
 						if (p.x >= t.x && p.x < t.x + t.w && p.y >= t.y && p.y < t.y + t.h) {
-							sel = i;
-							chosen = i;
+							barFocus = false;
+							SDL_Rect st = star_rect(ls, &t);
+							if (SDL_PointInRect(&pt, &st)) {
+								/* the star: a favorite, or not (the list is made again) */
+								sel = toggle_fav(cfg, i);
+								scroll = keep_visible(ls, sel, scroll);
+							} else {
+								sel = i;
+								chosen = i;
+							}
+							used = true;
 						}
 					}
 				}
@@ -2946,6 +3184,9 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 	free_tiles();
 	if (chosen < 0) return false;
 	snprintf(outPath, outSize, "%s", games[chosen].path);
+	/* (Recently played) */
+	mark_find(outPath, true)->played = (long long) time(NULL);
+	marks_save(cfg);
 	f = fopen(lastFile, "w");
 	if (f) {
 		fprintf(f, "%s\n", outPath);
