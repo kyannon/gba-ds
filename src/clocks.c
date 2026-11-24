@@ -17,6 +17,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <stdarg.h>
+
 #define GOV_STATE "/tmp/gba-ds-governors.state"
 #define GOV_MAX 16
 
@@ -31,6 +33,21 @@ static const char* sysfs(void) {
 	const char* r = getenv("GBADS_SYSFS");
 	return r && r[0] ? r : "/sys";
 }
+/* BananaOS sets the governors itself (its banana-perf): GBA DS leaves them */
+static bool on_banana(void) {
+	return access("/etc/banana", F_OK) == 0;
+}
+
+/* printf onto the end of buf (size bytes), *len bytes used: what doesn't fit is cut off */
+static void appendf(char* buf, size_t size, size_t* len, const char* fmt, ...) __attribute__((format(printf, 4, 5)));
+static void appendf(char* buf, size_t size, size_t* len, const char* fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	*len += (size_t) vsnprintf(buf + *len, size - *len, fmt, ap);
+	va_end(ap);
+	if (*len >= size) *len = size - 1;
+}
+
 static const char* short_name(const char* path) {
 	const char* p = strstr(path, "cpufreq/");
 	if (p) return p + 8;
@@ -120,7 +137,7 @@ static void save_state(void) {
 }
 
 bool clocks_available(void) {
-	if (access("/etc/banana", F_OK) == 0) return false;
+	if (on_banana()) return false;
 	char paths[GOV_MAX][160];
 	int n = governors(paths, GOV_MAX);
 	for (int i = 0; i < n; ++i) {
@@ -130,7 +147,7 @@ bool clocks_available(void) {
 }
 
 void clocks_set(bool max) {
-	if (access("/etc/banana", F_OK) == 0) return;
+	if (on_banana()) return;
 	char paths[GOV_MAX][160];
 	int n = governors(paths, GOV_MAX);
 	char log[1200] = "";
@@ -146,18 +163,14 @@ void clocks_set(bool max) {
 			snprintf(changed[nChanged].path, sizeof(changed[nChanged].path), "%s", paths[i]);
 			snprintf(changed[nChanged].was, sizeof(changed[nChanged].was), "%s", was);
 			++nChanged;
-			len += (size_t) snprintf(log + len, len < sizeof(log) ? sizeof(log) - len : 0, " %s %s->%s",
-			                         short_name(paths[i]), was, perf);
-			if (len >= sizeof(log)) len = sizeof(log) - 1;
+			appendf(log, sizeof(log), &len, " %s %s->%s", short_name(paths[i]), was, perf);
 		}
 		save_state();
 		fprintf(stderr, "performance: set to max%s%s\n", nChanged ? ":" : " (the governors were already at performance)", log);
 	} else {
 		for (int i = 0; i < nChanged; ++i) {
 			write_line(changed[i].path, changed[i].was);
-			len += (size_t) snprintf(log + len, len < sizeof(log) ? sizeof(log) - len : 0, " %s",
-			                         changed[i].was);
-			if (len >= sizeof(log)) len = sizeof(log) - 1;
+			appendf(log, sizeof(log), &len, " %s", changed[i].was);
 		}
 		bool had = nChanged > 0;
 		nChanged = 0;
@@ -168,9 +181,7 @@ void clocks_set(bool max) {
 		for (int i = 0; i < n; ++i) {
 			char g[40];
 			if (!read_line(paths[i], g, sizeof(g))) continue;
-			nl += (size_t) snprintf(now + nl, nl < sizeof(now) ? sizeof(now) - nl : 0, " %s=%s",
-			                        short_name(paths[i]), g);
-			if (nl >= sizeof(now)) nl = sizeof(now) - 1;
+			appendf(now, sizeof(now), &nl, " %s=%s", short_name(paths[i]), g);
 		}
 		fprintf(stderr, "performance: the system decides%s;%s\n", had ? " (governors put back)" : "", now[0] ? now : " no governors found");
 	}

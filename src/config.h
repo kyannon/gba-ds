@@ -23,9 +23,16 @@ extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid
 #define FF_SPEED_MAX 5
 /* Hotkeys: the hotkey button held with an action's button does the action
  * (game.c). gba-ds.cfg: hotkey_<name> = a button (a, b, x, y, l, r, l2, r2,
- * select, start, l3, up, down, left, right) or none. */
-enum { HK_QUIT, HK_GAME, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_TOGGLE, HK_COUNT };
+ * select, start, l3, up, down, left, right) or none. HK_REWIND_TOGGLE and
+ * HK_FF_TOGGLE turn rewinding / fast-forwarding on until pressed again
+ * (issue #88; no button at first). */
+enum { HK_QUIT, HK_GAME, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_TOGGLE, HK_REWIND_TOGGLE, HK_FF_TOGGLE, HK_COUNT };
 extern const char* const hotkeyNames[HK_COUNT]; /* quit (close the emulator), close_game, save_state, ... */
+/* Held buttons (issue #88): rewind and fast forward while a button is held,
+ * on its own or with the hotkey button (rewind_button = l2,
+ * fast_forward_button = r2 at first; or none). */
+enum { HOLD_REWIND, HOLD_FF, HOLD_COUNT };
+extern const char* const holdNames[HOLD_COUNT]; /* rewind_button, fast_forward_button */
 
 /* custom_logos (GEN-11): the player's own and scraped logos shrunk to GBA
  * pixels, at full detail (the same size), or not used. */
@@ -70,6 +77,7 @@ typedef struct Config {
 	bool abSwap;       /* GBA A on the bottom face button instead of the right one */
 	char hotkey[16];   /* home | select | start | l3 (older names: guide = home, back = select) */
 	char hotkeyBtn[HK_COUNT][8]; /* each hotkey action's button (hotkey_quit ...), or none */
+	char holdBtn[HOLD_COUNT][8]; /* the buttons held to rewind / fast-forward (rewind_button ...), or none */
 	int shaderLast;    /* the shader the shader hotkey turns back on (shader_last) */
 	char menuCombo[16]; /* select+start | none: buttons held together that open the pause menu */
 	int homeButton;    /* raw joystick button number that acts as HOME (-1 = off) */
@@ -99,7 +107,7 @@ typedef struct Config {
 	char dataDir[512]; /* data_dir: GBA DS's data folder (states/, cheats/...); default: the app's folder (paths.c data_dir_setup) */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */
-	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c layout_pictures) */
+	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c ui_layout_pictures) */
 	char screenPlace[8];  /* center | no_gap: two screens' pictures centred, or against the edges nearest each other (issue #46) */
 	char screenPpi[32];   /* "top,bottom": the screens' pixels per inch, instead of what the system says */
 	char touchMap[16];    /* window | screen: how touch coordinates map */

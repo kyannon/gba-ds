@@ -35,6 +35,12 @@ static bool have_curl_program(void) {
 
 static int curl_program(const char* url, const char* ua, int timeout, const char* part, char** body, size_t* len, char* err,
                         size_t errSize, volatile bool* cancel) {
+	size_t cap = 65536, got = 0;
+	char* buf = malloc(cap + 1);
+	if (!buf) {
+		snprintf(err, errSize, "out of memory");
+		return -1;
+	}
 	char tmo[16];
 	snprintf(tmo, sizeof(tmo), "%d", timeout);
 	char* argv[24];
@@ -57,9 +63,13 @@ static int curl_program(const char* url, const char* ua, int timeout, const char
 	argv[n++] = (char*) url;
 	argv[n] = NULL;
 	int po[2], pe[2];
-	if (pipe(po)) return -1;
+	if (pipe(po)) {
+		free(buf);
+		return -1;
+	}
 	if (pipe(pe)) {
 		close(po[0]), close(po[1]);
+		free(buf);
 		return -1;
 	}
 	posix_spawn_file_actions_t fa;
@@ -88,12 +98,11 @@ static int curl_program(const char* url, const char* ua, int timeout, const char
 	close(po[1]), close(pe[1]);
 	if (e) {
 		close(po[0]), close(pe[0]);
+		free(buf);
 		snprintf(err, errSize, "can't run curl: %s", strerror(e));
 		return -1;
 	}
-	/* stdout: the body (no outPath) then the status code; stderr: why */
-	size_t cap = 65536, got = 0;
-	char* buf = malloc(cap + 1);
+	/* stdout: the body (none when it goes to the part file) then the status code; stderr: why */
 	char ebuf[512];
 	size_t elen = 0;
 	/* read both pipes until both close, checking *cancel every 200 ms
@@ -193,7 +202,7 @@ static bool libcurl_load(void) {
 	void (*global_init)(long) = (void (*)(long)) SDL_LoadFunction(h, "curl_global_init");
 	lc.ok = lc.easy_init && lc.easy_setopt && lc.easy_perform && lc.easy_getinfo && lc.easy_cleanup && lc.slist_append &&
 	        lc.slist_free_all && lc.easy_strerror && global_init;
-	if (lc.ok) global_init(3);
+	if (lc.ok) global_init(3); /* (CURL_GLOBAL_ALL) */
 	return lc.ok;
 }
 

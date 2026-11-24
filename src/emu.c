@@ -6,6 +6,7 @@
 #include <mgba/internal/gba/cheats.h>
 #include <mgba/internal/gba/bios.h>
 #include <mgba/internal/gba/serialize.h>
+#include <mgba/internal/gba/cart/gpio.h>
 #undef GBA_H
 #include "emu.h"
 
@@ -412,6 +413,39 @@ float emu_rumble_level(const Emu* e) {
 	return e->rumble ? ((EmuRumble*) e->rumble)->level : 0.0f;
 }
 
+/* Cartridge rumble for games mGBA doesn't know (issue #83). A romhack's rumble patch drives the
+ * cartridge's motor pin (GPIO pin 3) as Drill Dozer does, but mGBA
+ * - only listens to that pin for the game codes in its database (Pokemon Pinball's
+ *   "CartRumble" patch keeps BPPE), and keeps that device list in states;
+ * - drops 8-bit stores to the cartridge ("Unimplemented memory Store8"), where a real cartridge
+ *   bus takes a byte as a 16-bit write of it twice; that patch writes the pins with strb.
+ * So the game being played (and only it) has its stores to the three GPIO registers looked at:
+ * the first one switches the motor pin on (unless the cartridge has a sensor on that port), and
+ * an 8-bit one is passed on as that 16-bit write. A game that never writes there is untouched:
+ * no device added, the ROM not copied. */
+static void (*mgbaStore8)(struct ARMCore*, uint32_t, int8_t, int*);
+static void (*mgbaStore16)(struct ARMCore*, uint32_t, int16_t, int*);
+
+static bool gpio_listen(struct ARMCore* cpu, uint32_t address) {
+	if ((address >> 24) != 0x08 || !IS_GPIO_REGISTER(address & 0xFFFFFE)) return false;
+	struct GBACartridgeHardware* hw = &((struct GBA*) cpu->master)->memory.hw;
+	if (!(hw->devices & (HW_RUMBLE | HW_LIGHT_SENSOR | HW_GYRO | HW_TILT))) GBAHardwareInitRumble(hw);
+	return (hw->devices & HW_GPIO) != 0;
+}
+
+static void gpio_store8(struct ARMCore* cpu, uint32_t address, int8_t value, int* cycleCounter) {
+	if (gpio_listen(cpu, address)) {
+		uint8_t b = (uint8_t) value;
+		GBAHardwareGPIOWrite(&((struct GBA*) cpu->master)->memory.hw, address & 0xFFFFFE, (uint16_t) (b | b << 8));
+	}
+	mgbaStore8(cpu, address, value, cycleCounter); /* (its wait states; it stores nothing there) */
+}
+
+static void gpio_store16(struct ARMCore* cpu, uint32_t address, int16_t value, int* cycleCounter) {
+	gpio_listen(cpu, address);
+	mgbaStore16(cpu, address, value, cycleCounter);
+}
+
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
@@ -473,6 +507,10 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 			r->integrator.setRumble = emu_rumble_set;
 			e->rumble = r;
 			e->core->setPeripheral(e->core, mPERIPH_RUMBLE, &r->integrator.d);
+			struct ARMCore* cpu = ((struct GBA*) e->core->board)->cpu;
+			if (!mgbaStore8) mgbaStore8 = cpu->memory.store8, mgbaStore16 = cpu->memory.store16;
+			cpu->memory.store8 = gpio_store8;
+			cpu->memory.store16 = gpio_store16;
 		}
 	}
 	/* (testing: GBADS_RTC_FIXED=<unix seconds> holds the cartridge clock still, for games
@@ -1609,6 +1647,11 @@ static void split_release(Emu* e) {
 	pthread_mutex_unlock(&hideLock);
 	split.hud.d.deinit(&split.hud.d);
 	memset(&split, 0, sizeof(split));
+	/* (and what the last game set beside it: Pokemon Pinball's tall view leaves the HUD's
+	 * layers on the game (emu_hud_copy, emu_hud_copy_above), and a game started after it in
+	 * the same run kept its HUD on both screens) */
+	splitCopying = false;
+	copyAbove = 0;
 }
 
 bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int nObjs, uint32_t* hud) {
@@ -1618,6 +1661,7 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 	if (!split.installed) {
 		if (!on) return true;
 		memset(&split, 0, sizeof(split));
+		splitCopying = false; /* (emu_hud_copy needs the split installed: nothing to keep) */
 		GBAVideoSoftwareRendererCreate(&split.hud);
 		split.hud.outputBuffer = (mColor*) hud;
 		split.hudBuf = hud;

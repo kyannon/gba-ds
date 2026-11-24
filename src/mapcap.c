@@ -20,7 +20,7 @@ struct MapCapture {
 	size_t cropPixels;
 	int cx, cy, cw, ch; /* active crop */
 	bool tight;
-	bool clean; /* map_crop: also erase button-prompt lettering (profile glyphs) */
+	bool clean; /* mapcap_create's tight: also tidy the picture (the profile's under rectangles, glyphs, recolouring and tab) */
 	int failures; /* consecutive failed captures (guarded by lock) */
 	/* profile.rate: the label copied from the pause screen (worker thread only) */
 	uint32_t rateBuf[256 * 16];

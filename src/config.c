@@ -10,8 +10,11 @@
 #include <strings.h>
 
 const char* const shaderNames[SH_COUNT] = { N_("off"), "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
-const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader", "toggle" };
-static const char* const hotkeyDefaults[HK_COUNT] = { "start", "b", "r", "l", "x", "up", "down", "a" };
+const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader", "toggle",
+	                                          "rewind_toggle", "fast_forward_toggle" };
+static const char* const hotkeyDefaults[HK_COUNT] = { "start", "b", "r", "l", "x", "up", "down", "a", "none", "none" };
+const char* const holdNames[HOLD_COUNT] = { "rewind_button", "fast_forward_button" };
+static const char* const holdDefaults[HOLD_COUNT] = { "l2", "r2" };
 
 void config_defaults(Config* c) {
 	memset(c, 0, sizeof(*c));
@@ -23,6 +26,7 @@ void config_defaults(Config* c) {
 	strcpy(c->accent, "purple");
 	strcpy(c->hotkey, "home");
 	for (int i = 0; i < HK_COUNT; ++i) strcpy(c->hotkeyBtn[i], hotkeyDefaults[i]);
+	for (int i = 0; i < HOLD_COUNT; ++i) strcpy(c->holdBtn[i], holdDefaults[i]);
 	c->shaderLast = SH_GRID;
 	strcpy(c->menuCombo, "none");
 	strcpy(c->romDir, "/storage/roms/gba");
@@ -196,6 +200,12 @@ static bool set_option(Config* c, const char* key, const char* val) {
 			for (char* p = c->hotkeyBtn[i]; *p; ++p) *p = (char) tolower((unsigned char) *p);
 			return true;
 		}
+	}
+	for (int i = 0; i < HOLD_COUNT; ++i) {
+		if (strcmp(key, holdNames[i])) continue;
+		snprintf(c->holdBtn[i], sizeof(c->holdBtn[i]), "%s", val);
+		for (char* p = c->holdBtn[i]; *p; ++p) *p = (char) tolower((unsigned char) *p);
+		return true;
 	}
 	if (!strcmp(key, "shader_last")) {
 		for (int i = 1; i < SH_COUNT; ++i) {
@@ -426,9 +436,12 @@ void config_usage(const char* argv0) {
 	        "  --map-interval=N       frames between map refreshes (90)\n"
 	        "  --ab-swap              GBA A on the bottom face button\n"
 	        "  --hotkey=home|select|start|l3   the hotkey button, held with another for a shortcut\n"
-	        "  --hotkey-quit=BUTTON (and -close-game, -save-state, -load-state, -quick-menu, -swap-screens, -shader)\n"
+	        "  --hotkey-quit=BUTTON (and -close-game, -save-state, -load-state, -quick-menu, -swap-screens, -shader,\n"
+	        "                         -toggle, -rewind-toggle, -fast-forward-toggle)\n"
 	        "                         each shortcut's button (a, b, x, y, l, r, l2, r2, select,\n"
 	        "                         start, l3, up, down, left, right) or none\n"
+	        "  --rewind-button=BUTTON, --fast-forward-button=BUTTON   held to rewind / fast-forward\n"
+	        "                         (l2, r2), on its own or with the hotkey button, or none\n"
 	        "  --menu-combo=select+start|none   buttons that open the menu together (none)\n"
 	        "  --home-button=N        raw joystick button that acts as HOME (see GBADS_DEBUG=1 log)\n"
 	        "  --no-auto-resume       don't save on exit / resume on launch\n"
@@ -492,7 +505,7 @@ static const SettingChoice chFF[] = { { N_("off"), "Off", 0 }, { "2", "2x", 2 },
 static const SettingChoice chRewind[] = { { "10", "10 s", 10 }, { "15", "15 s", 15 }, { "30", "30 s", 30 }, { "60", "1 minute", 60 }, { "120", "2 minutes", 120 }, { "300", "5 minutes", 300 } };
 static const SettingChoice chLatency[] = { { "32", "32 ms", 32 }, { "64", "64 ms", 64 }, { "96", "96 ms", 96 }, { "128", "128 ms", 128 }, { "192", "192 ms", 192 } };
 static const SettingChoice chPerf[] = { { "system", "Let the System Decide", 0 }, { "max", "Set to Max", 1 } };
-/* Automatic, English, then every catalogue by its own name (i18n_data.h: made from assets/i18n/*.po) */
+/* Automatic, English, then every catalogue by its own name (i18n_data.h: made from the .po files in assets/i18n) */
 static const SettingChoice chLanguage[] = { { "auto", "Automatic", 0 }, { "en", "English", 0 }, I18N_CHOICES };
 static const SettingChoice chInterval[] = { { "30", "Every 0.5 s", 30 }, { "60", "Every second", 60 }, { "90", "Every 1.5 s", 90 }, { "180", "Every 3 s", 180 } };
 

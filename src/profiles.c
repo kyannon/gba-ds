@@ -3355,7 +3355,7 @@ static const ZlRegion zlRegions[] = {
 static const ZlRegion* zl_r(Emu* e) {
 	return &zlRegions[e->gameCode[3] == 'J' ? 1 : 0];
 }
-#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (ZL_V_FREE) or a Zoid choosing */
+#define ZL_V_LIVE 0xF0000060   /* 1 where a picture is taken: walking about (zl_free) or a Zoid choosing */
 #define ZL_V_MAP 0xF0000061    /* 1 with the map screen up */
 #define ZL_V_FORGET 0xF0000062 /* 1 on the title, or a battle playing out: what was shown goes (ZL-3, ZL-4) */
 #define ZL_V_PLAYOUT 0xF0000063 /* 1 in a battle, no Zoid choosing: the logo (ZL-3) */
@@ -4828,8 +4828,8 @@ static uint32_t ls_virt(Emu* e, uint32_t addr) {
 #define BK_AREA 0x02000004
 /* the health bar (Banjo's head and his honeycombs) on the pause screen:
  * x 4 to ~123 with the 100% file's ten honeycombs, rows 12-27; the Totals
- * page's world name, rows 12-22 (its rows start at 36): BK_TOP rows, the
- * name's band and the health's */
+ * page's world name, rows 12-22 (its rows start at 36): BK_TOP_Y0 to
+ * BK_TOP_Y1 are the rows that hold both */
 #define BK_TOP_Y0 8
 #define BK_TOP_Y1 31
 #define BK_HEALTH_X1 150 /* (the notes start at x 184) */
@@ -10829,8 +10829,8 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
-		/* Super Mario Advance 4: Super Mario Bros. 3 (USA; Europe and Japan
-		 * in sma4_eur / sma4_jpn). The byte at 0x03003DE2 says where Mario
+		/* Super Mario Advance 4: Super Mario Bros. 3 (USA; Europe in
+		 * sma4_eur, Japan and the USA's Rev 1 in sma4_moved). The byte at 0x03003DE2 says where Mario
 		 * is: 0x41 the world map, 0x40 a level, 0x08-0x09 a Toad House,
 		 * a Spade panel game or a king's room (the level engine, with the
 		 * world map's status bar along the bottom), bit 7 set on the title,
@@ -12286,7 +12286,7 @@ static const MapProfile profiles[] = {
 	},
 	{
 		/* Yu-Gi-Oh! 7 Trials to Glory (USA): the Card View of the card under
-		 * the cursor, see yw_compose (YWC-1 to YWC-4) */
+		 * the cursor, see yw_compose_for (YWC-1 to YWC-4) */
 		.codes = { "BY7E" },
 		.title = "Yu-Gi-Oh! 7 Trials to Glory",
 		.compose = yw_compose_us,
