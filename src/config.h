@@ -38,6 +38,7 @@ typedef struct Config {
 	char mapScale[16]; /* map:  integer | fit | stretch */
 	char gbSize[8];    /* Game Boy games (GB-2): gba = the picture in the GBA's 240x160 frame | native = the 160x144 picture is the frame */
 	char gbCorrection[8]; /* GB-8: same | off | gbc | gba */
+	char gbShader[12]; /* GB-10: same | off | grid | scanlines | soft | dots */
 	char gbGhosting[8]; /* GB-9: same | off | light | smart | strong */
 	char gbPalette[8]; /* GB-6: own | dmg | pocket | light | gray | sgb: a monochrome game's shades (from the next start) */
 	char gbDual[8];    /* GB-7: colour | mono: a dual-mode game in colour, or as on a plain Game Boy (from the next start) */

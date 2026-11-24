@@ -3248,7 +3248,21 @@ static int item_at(int scr, int x, int y) {
 }
 
 /* Display > Shader: the label and the note under the buttons, by SH_* */
-#define SHADER_ON (cfg->shader != SH_OFF)
+/* the pattern a Game Boy game has (GB-10): its own choice, else the GBA's; Dot matrix is the grid (and
+ * dots_filter's shadows) */
+static int shader_now(void) {
+	if (emu_is_gb(&emu) && strcmp(cfg->gbShader, "same")) {
+		static const struct { const char* key; int sh; } m[] = { { "grid", SH_GRID }, { "scanlines", SH_SCANLINES }, { "soft", SH_SOFT }, { "dots", SH_GRID } };
+		for (size_t i = 0; i < sizeof(m) / sizeof(m[0]); ++i)
+			if (!strcmp(cfg->gbShader, m[i].key)) return m[i].sh;
+		return SH_OFF;
+	}
+	return cfg->shader;
+}
+static bool dots_on(void) {
+	return emu_is_gb(&emu) && !strcmp(cfg->gbShader, "dots");
+}
+#define SHADER_ON (shader_now() != SH_OFF)
 static const char* const shaderLabels[SH_COUNT] = {
 	N_("Shader: Off"), N_("Shader: LCD Grid"), N_("Shader: Scanlines"), N_("Shader: Soft Cells"),
 	N_("Shader: Subpixels (Light)"), N_("Shader: Subpixels"), N_("Shader: Subpixels (Strong)"),
@@ -3282,6 +3296,28 @@ static int ghost_mode(void) {
 static int correction_mode(void) {
 	if (emu_is_gb(&emu) && strcmp(cfg->gbCorrection, "same")) return !strcmp(cfg->gbCorrection, "gbc") ? 2 : !strcmp(cfg->gbCorrection, "gba") ? 1 : 0;
 	return cfg->colorCorrection ? 1 : 0;
+}
+/* Dot matrix (GB-10): a Game Boy's screen put a faint shadow, down and to the right, behind what
+ * is darker than the background: each pixel is darkened by how much darker the pixel up and to
+ * its left is than it. The grid is the shader's (shader_now). Only the 160x144 picture. */
+static uint32_t dotsOut[GBA_W * GBA_H];
+static const uint32_t* dots_filter(const uint32_t* fb) {
+	memcpy(dotsOut, fb, sizeof(dotsOut));
+	for (int y = 1; y < emu.picH; ++y) {
+		for (int x = 1; x < emu.picW; ++x) {
+			int at = (emu.picY + y) * GBA_W + emu.picX + x;
+			uint32_t p = fb[at], s = fb[at - GBA_W - 1];
+			int lp = ((p & 255) * 77 + (p >> 8 & 255) * 151 + (p >> 16 & 255) * 28) >> 8;
+			int ls = ((s & 255) * 77 + (s >> 8 & 255) * 151 + (s >> 16 & 255) * 28) >> 8;
+			int d = lp - ls; /* how much darker the one up and left is */
+			if (d <= 0) continue;
+			int keep = 256 - (d * 90 >> 8); /* (up to a third darker, for black beside white) */
+			uint32_t r = p & 0xFF000000u;
+			for (int sh = 0; sh < 24; sh += 8) r |= (uint32_t) (((p >> sh & 255) * keep) >> 8) << sh;
+			dotsOut[at] = r;
+		}
+	}
+	return dotsOut;
 }
 static const uint32_t* ghost_frame(const uint32_t* fb, int mode) {
 	if (ghostHave && frameCount == ghostFrame) return ghostOut; /* (the same frame drawn again) */
@@ -7773,7 +7809,7 @@ static void set_shader(int sh) {
 	bool subBefore = cfg->shader >= SH_SUB_LIGHT;
 	cfg->shader = sh;
 	if (sh != SH_OFF) cfg->shaderLast = sh;
-	ui_shader(cfg->shader);
+	ui_shader(shader_now());
 	if (subBefore || cfg->shader >= SH_SUB_LIGHT) rebuild_textures(); /* (the subpixels' brightening is in the colour table) */
 	commit_current("shader");
 	save_prefs();
@@ -8211,9 +8247,9 @@ static void commit_current(const char* key) {
 /* put a changed setting to use in the game now */
 static void setting_applied(const Setting* st) {
 	const char* k = st->key;
-	if (!strcmp(k, "shader") || !strcmp(k, "lcd_strength")) {
+	if (!strcmp(k, "shader") || !strcmp(k, "lcd_strength") || !strcmp(k, "gb_shader")) {
 		if (cfg->shader != SH_OFF) cfg->shaderLast = cfg->shader;
-		ui_shader(cfg->shader);
+		ui_shader(shader_now());
 		rebuild_textures();
 	} else if (!strcmp(k, "color_correction") || !strcmp(k, "gb_correction")) {
 		ui_color_correction(correction_mode());
@@ -8914,9 +8950,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	if (fromLibrary) page_add(PG_GAME, M_LIBRARY);
 	page_add(PG_GAME, M_EXIT);
 	ui_color_correction(correction_mode()); /* (Display > Color Correction, for this session's pictures) */
-	ui_shader(cfg->shader);
+	ui_shader(shader_now());
 #define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
-	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"), ROW(PG_DISPLAY, "gb_palette"), ROW(PG_DISPLAY, "gb_dual"), ROW(PG_DISPLAY, "gb_correction"), ROW(PG_DISPLAY, "gb_ghosting"); /* (GB-2) */
+	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"), ROW(PG_DISPLAY, "gb_palette"), ROW(PG_DISPLAY, "gb_dual"), ROW(PG_DISPLAY, "gb_correction"), ROW(PG_DISPLAY, "gb_ghosting"), ROW(PG_DISPLAY, "gb_shader"); /* (GB-2) */
 	ROW(PG_DISPLAY, "scale");
 	ROW(PG_DISPLAY, "map_scale");
 	ROW(PG_DISPLAY, "shader");
@@ -9568,6 +9604,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				case HK_SWAP: swap_screens(); break;
 				case HK_TOGGLE: toggle_press(); break;
 				case HK_SHADER:
+					if (emu_is_gb(&emu) && strcmp(cfg->gbShader, "same")) { /* (this game has its own pattern: the hotkey turns that off and on) */
+						snprintf(cfg->gbShader, sizeof(cfg->gbShader), "%s", shader_now() != SH_OFF ? "off" : "dots");
+						ui_shader(shader_now());
+						commit_current("gb_shader");
+						ui_osd("%s", shader_now() != SH_OFF ? "Shader: On" : "Shader: Off");
+						break;
+					}
 					set_shader(cfg->shader != SH_OFF ? SH_OFF : cfg->shaderLast > SH_OFF && cfg->shaderLast < SH_COUNT ? cfg->shaderLast : SH_GRID);
 					ui_osd("%s", shader_label(cfg->shader));
 					break;
@@ -10206,6 +10249,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
 		if (tallLive) shownFb = cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's upper half on the top screen) */
 		if (ghost_mode() != GH_OFF) shownFb = ghost_frame(shownFb, ghost_mode());
+		if (dots_on()) shownFb = dots_filter(shownFb);
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {
