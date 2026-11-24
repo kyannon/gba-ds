@@ -2,6 +2,9 @@
 
 ## v1.6.2 (not yet released)
 
+### Fixes
+- **Rumble patches that stop the motor by switching the cartridge's motor pin off no longer leave the device rumbling.** Mario & Luigi: Superstar Saga's rumble patch started rumbling in the story intro and never stopped; it now stops when the game says so.
+
 ## v1.6.1.1 (2026-11-23)
 
 ### New: Game Boy and Game Boy Color games (issue #77)
