@@ -8511,7 +8511,8 @@ static void logo_refresh(void) {
 }
 
 /* The 5-second health report and the sound delay's automatic raising. One per
- * game session, from health_init: the counts are the session's own (not the
+ * game session, from health_init: the counts (its own and the stall, keeper,
+ * timing and slow-frame counts it reports) are the session's own (not the
  * last game's: its last frame is the "slow" gap before this one's first, and
  * its time in the game list is not preemption of this one). */
 typedef struct {
@@ -8536,6 +8537,12 @@ typedef struct {
 static void health_init(Health* h, int audioLatencyMs, int freq) {
 	*h = (Health) { .audioMs = audioLatencyMs, .targetQueued = freq * audioLatencyMs / 1000, .dryQueueBefore = 1,
 		            .queueLo = 1 << 30, .queueHi = -1, .preemptT0 = thread_preemptions() };
+	/* (the file-wide counts the reports read start again too: a game closed
+	 * before its first report left its stalls and times in them) */
+	stallCount = stallLogged = 0, stallWorst = 0;
+	keptTotal = 0;
+	emuTicks = drawTicks = 0;
+	slowCount = 0, slowWorst.total = 0;
 }
 static void health_frame(Health* h, const HealthFrame* in) {
 	const uint64_t frameCount = in->frame;
