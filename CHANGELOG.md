@@ -18,6 +18,7 @@
 - **The pause menu's notes are no longer cut off in other languages.** A long translated note (French, German...) stopped mid-word, and the end of "Choose it again to close GBA DS: your place is saved" stayed in English in every language.
 - **Cheats with the same name are remembered separately.** When a cheat file had two cheats with the same name, switching one on brought both back on the next time the game started. Your existing choices still load as before.
 - **Choosing a RetroArch state folder with a very long path** (over 511 characters) now says the path is too long, instead of quietly saving a cut-off path that pointed somewhere else.
+- **A game started after Pokémon Pinball: Ruby & Sapphire no longer shows its status bar on both screens.** Going back to the game list from Pokémon Pinball and starting a game whose status bar moves to the second screen (Super Mario Advance 4, for one) left the status bar on the game's screen too, and on Super Mario Advance 4's world map a few of its rows. Closing GBA DS in between avoided it.
 
 ## v1.6.1 (2026-11-22)
 
