@@ -3284,7 +3284,7 @@ void ui_key_palette(int state, SDL_Color* border, SDL_Color* rim, SDL_Color* hi,
 	}
 }
 
-static void key_draw(int screen, SDL_Rect r, int radius, int state, bool trueCorners) {
+void ui_key(int screen, SDL_Rect r, int radius, int state) {
 	inKey = true;
 	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
 	SDL_Color border, rim, hi, lo, edge, ring;
@@ -3306,16 +3306,12 @@ static void key_draw(int screen, SDL_Rect r, int radius, int state, bool trueCor
 	for (int i = 1; i <= 6; ++i) {
 		SDL_Color m = { (lo.r * (6 - i) + hi.r * i) / 6, (lo.g * (6 - i) + hi.g * i) / 6, (lo.b * (6 - i) + hi.b * i) / 6, 255 };
 		SDL_Rect band = { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 };
-		/* (a short band keeps the body's corner radius when asked: otherwise its corners come out nearly square over the rounded body) */
-		if (trueCorners) fill_round_top(screen, band, m, SDL_max(1, radius - in - 1));
-		else ui_fill_round(screen, band, m, SDL_max(1, radius - in - 1));
+		/* (a short band keeps the body's corner radius: ui_fill_round would shrink it to fit the band's height, and its corners came out nearly square over the rounded body, plain on a lit key) */
+		fill_round_top(screen, band, m, SDL_max(1, radius - in - 1));
 	}
 	inKey = false;
 	key_add(screen, r, state == KEY_PLAIN);
 }
-
-void ui_key(int screen, SDL_Rect r, int radius, int state) { key_draw(screen, r, radius, state, false); }
-void ui_key_round(int screen, SDL_Rect r, int radius, int state) { key_draw(screen, r, radius, state, true); }
 
 /* ---------------------------------------------------------- text in Jost
  * Rasterized by textfont.c, kept as white textures (tinted when drawn), per

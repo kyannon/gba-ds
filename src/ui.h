@@ -157,7 +157,6 @@ void ui_fill_round(int screen, SDL_Rect local, SDL_Color c, int radius);
 /* the menus' buttons: a raised key (see ui.c), in the dark or light theme */
 enum { KEY_PLAIN, KEY_SEL, KEY_LIT };
 void ui_key(int screen, SDL_Rect local, int radius, int state);
-void ui_key_round(int screen, SDL_Rect local, int radius, int state); /* the same key with its highlight's top corners as round as its bottom ones (ui_key's are squarer) */
 void ui_theme(int light);
 /* The menus' accent colour (Settings > Display > Color): what's selected, the
  * edges and glows, the panels' tint and the highlight for chosen values,

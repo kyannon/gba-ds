@@ -1061,7 +1061,7 @@ static void draw_sort_bar(int scr, const ListGeom* g, int scroll) {
 	for (int w = 0; w < 2; ++w) {
 		SDL_Rect b = sort_button(scr, g, scroll, w);
 		bool active = sortMode == w, focus = barFocus && barSel == w;
-		ui_key_round(scr, b, px * 3, focus ? KEY_SEL : active ? KEY_LIT : KEY_PLAIN);
+		ui_key(scr, b, px * 3, focus ? KEY_SEL : active ? KEY_LIT : KEY_PLAIN);
 		ui_label(scr, b.x + b.w / 2, b.y + b.h / 2, px * 4.5f, tr(sortNames[w]), C_TEXT);
 	}
 	SDL_Rect last = sort_button(scr, g, scroll, 1);
