@@ -36,8 +36,10 @@
 #define WW_BACK_DEG_S 180.0f  /* how fast it turns back to 0 when the finger lifts (WWT-5) */
 #define WW_FULL_DEG 90.0f     /* the angle of a drag of half the screen's width at 100% (WWT-5) */
 #define WW_MAX_DEG 180.0f
-#define WW_SENS_MIN 25
-#define WW_SENS_MAX 200
+#define WW_SENS_MIN 1
+#define WW_SENS_MAX 100
+#define WW_SENS_DEFAULT 25
+#define WW_TILT_KEEP 0.985f   /* Gyro mode's logo eases back to level, a frame's share */
 #define WW_RN 176             /* the wheel's rings: radii in pixels */
 #define WW_TILE 4             /* the checkered disc's squares */
 #define WW_KEY_W 46
@@ -46,7 +48,8 @@
 #define WW_CX 119.5f          /* the wheel's centre in the menu's picture */
 #define WW_CY 111.5f
 
-enum { WWP_NONE, WWP_BUTTON, WWP_SLIDER, WWP_DIAL };
+enum { WWP_NONE, WWP_BUTTON, WWP_SLIDER, WWP_DIAL, WWP_PAUSE, WWP_IGNORE };
+static void open_menu(void);
 enum { WWS_NONE, WWS_TEST, WWS_IIO, WWS_SDL };
 
 typedef struct {
@@ -64,6 +67,11 @@ static struct {
 	volatile bool down;        /* a finger is on the dial */
 	volatile float dragFrac;   /* how far it has gone, in half-screens, left negative */
 	float angle;               /* the dial's angle in degrees, right (clockwise) positive */
+	float tilt, shownTilt;     /* Gyro mode's logo: the sensor's turning added up, easing back to 0 */
+	uint32_t* logo;            /* the logo, RGBA bytes, and its size and source pixels to a screen pixel */
+	int logoW, logoH;
+	float logoK;
+	bool logoTried;
 	float resid;               /* the counts not yet given to the game (they're whole counts) */
 	int sens, scale, invert;   /* the slider (25-200%), the sensor's scale (%), the sensor's direction */
 	char axis;                 /* the sensor's axis: z, through the screen */
@@ -95,7 +103,7 @@ static struct {
 	SDL_Texture* cvTex[2];
 	SDL_Renderer* cvTexRen[2];
 	char cfgPath[600];
-} ww = { .sens = 100, .scale = 100, .axis = 'z', .fd = -1 };
+} ww = { .sens = WW_SENS_DEFAULT, .scale = 100, .axis = 'z', .fd = -1 };
 
 static float ww_clampf(float v, float lo, float hi) {
 	return v < lo ? lo : v > hi ? hi : v;
@@ -104,7 +112,7 @@ static float ww_clampf(float v, float lo, float hi) {
 /* ---- the settings kept for the game: the slider, and the sensor's scale, direction and axis
  * (`states/<game>.gyro`: lines "sensitivity 100", "scale 100", "invert 0", "axis z") */
 static void ww_cfg_load(void) {
-	ww.sens = 100, ww.scale = 100, ww.invert = 0, ww.axis = 'z';
+	ww.sens = WW_SENS_DEFAULT, ww.scale = 100, ww.invert = 0, ww.axis = 'z';
 	snprintf(ww.cfgPath, sizeof(ww.cfgPath), "%s/%s.gyro", cfg->stateDir, gp.base);
 	FILE* f = fopen(ww.cfgPath, "r");
 	if (!f) return;
@@ -264,6 +272,7 @@ static void ww_step(void) {
 	if (!ww.dial) return;
 	float prev = ww.angle, rate;
 	if (ww.touch) {
+		ww.tilt = 0;
 		if (ww.down) {
 			float target = ww_clampf(ww.dragFrac * WW_FULL_DEG * ww.sens / 100.0f, -WW_MAX_DEG, WW_MAX_DEG);
 			float d = ww_clampf((target - ww.angle) * 0.35f, -WW_VMAX_DEG_S / WW_FPS, WW_VMAX_DEG_S / WW_FPS);
@@ -277,6 +286,7 @@ static void ww_step(void) {
 	} else {
 		ww.angle = 0;
 		rate = ww_sensor_rate() * ww.scale / 100.0f;
+		ww.tilt = ww_clampf((ww.tilt + rate / WW_FPS) * WW_TILT_KEEP, -WW_MAX_DEG, WW_MAX_DEG);
 	}
 	float want = rate * WW_COUNTS_PER_DEG_S + ww.resid;
 	int c = (int) lrintf(ww_clampf(want, -WW_MAX_COUNTS, WW_MAX_COUNTS));
@@ -291,7 +301,7 @@ static void ww_step(void) {
 
 /* the dial and the game's gyro back to rest (a state loaded, a mode switched) */
 static void ww_rest(void) {
-	ww.down = false, ww.dragFrac = 0, ww.angle = 0, ww.resid = 0, ww.press = WWP_NONE, ww.dirty = true;
+	ww.down = false, ww.dragFrac = 0, ww.angle = 0, ww.tilt = 0, ww.resid = 0, ww.press = WWP_NONE, ww.dirty = true;
 	if (ww.dial) emu_set_gyro(&emu, 0);
 }
 
@@ -494,9 +504,50 @@ static bool ww_wheel_shown(void) {
 	return ww.dial && ww.touch && ww.wheelReady && ww_can_touch();
 }
 
-/* the wheel's picture for this frame, on every view's texture */
-static void ww_wheel_update(void) {
-	bool fresh = false;
+/* ---- Gyro mode's second screen (WWT-2): the logo on white, tilting with the sensor's turning */
+static void ww_logo_load(void) {
+	if (ww.logoTried) return;
+	ww.logoTried = true;
+	bool pixelArt = false;
+	int sub = 1;
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
+	if (!lg) return;
+	ww.logo = malloc((size_t) lg->w * lg->h * 4);
+	if (ww.logo) {
+		SDL_LockSurface(lg);
+		for (int y = 0; y < lg->h; ++y) memcpy(ww.logo + (size_t) y * lg->w, (uint8_t*) lg->pixels + (size_t) y * lg->pitch, (size_t) lg->w * 4);
+		SDL_UnlockSurface(lg);
+		ww.logoW = lg->w, ww.logoH = lg->h;
+		float fit = fminf(1.0f, fminf((float) GBA_W * sub / lg->w, (float) GBA_H * sub / lg->h));
+		ww.logoK = (float) sub / fit; /* (source pixels to a screen pixel) */
+	}
+	SDL_FreeSurface(lg);
+}
+
+static bool ww_gyro_shown(void) {
+	if (!ww.dial || ww.touch || !ww_can_touch()) return false;
+	ww_logo_load();
+	return ww.logo != NULL;
+}
+
+static void ww_gyro_draw(float deg, uint32_t* out) {
+	float a = deg * (float) (M_PI / 180.0), ca = cosf(a), sa = sinf(a);
+	for (int y = 0; y < GBA_H; ++y)
+		for (int x = 0; x < GBA_W; ++x) {
+			float dx = x + 0.5f - GBA_W / 2.0f, dy = y + 0.5f - GBA_H / 2.0f;
+			int sx = (int) floorf((dx * ca + dy * sa) * ww.logoK + ww.logoW / 2.0f);
+			int sy = (int) floorf((-dx * sa + dy * ca) * ww.logoK + ww.logoH / 2.0f);
+			uint32_t c = 0xFFFFFFFF;
+			if (sx >= 0 && sy >= 0 && sx < ww.logoW && sy < ww.logoH) {
+				uint8_t* p = (uint8_t*) &ww.logo[sy * ww.logoW + sx]; /* RGBA bytes */
+				int al = p[3], o = 0xFF;
+				c = 0xFF000000 | (uint32_t) (o + (p[2] - o) * al / 255) << 16 | (uint32_t) (o + (p[1] - o) * al / 255) << 8 | (uint32_t) (o + (p[0] - o) * al / 255);
+			}
+			out[y * GBA_W + x] = c;
+		}
+}
+
+static void ww_tex_make(bool* fresh) {
 	for (int v = 0; v < nViews; ++v) {
 		if (ww.tex[v] && ww.texRen[v] != views[v].ren) ww.tex[v] = NULL;
 		if (!ww.tex[v]) {
@@ -504,12 +555,28 @@ static void ww_wheel_update(void) {
 			ww.texRen[v] = views[v].ren;
 			if (!ww.tex[v]) continue;
 			SDL_SetTextureBlendMode(ww.tex[v], SDL_BLENDMODE_NONE);
-			fresh = true;
+			*fresh = true;
 		}
 	}
+}
+
+static void ww_gyro_update(void) {
+	bool fresh = false;
+	ww_tex_make(&fresh);
+	if (!fresh && !ww.dirty && ww.shownTilt == ww.tilt) return;
+	ww_gyro_draw(ww.tilt, ww.px);
+	ww.shownTilt = ww.tilt, ww.shownAngle = 1000, ww.dirty = false;
+	for (int v = 0; v < nViews; ++v)
+		if (ww.tex[v]) ui_update_texture(ww.tex[v], ww.px, GBA_W * 4);
+}
+
+/* the wheel's picture for this frame, on every view's texture */
+static void ww_wheel_update(void) {
+	bool fresh = false;
+	ww_tex_make(&fresh);
 	if (!fresh && !ww.dirty && ww.shownAngle == ww.angle) return;
 	ww_wheel_draw(&ww.wheel, ww.angle, ww.px);
-	ww.shownAngle = ww.angle, ww.dirty = false;
+	ww.shownAngle = ww.angle, ww.shownTilt = 1000, ww.dirty = false;
 	for (int v = 0; v < nViews; ++v)
 		if (ww.tex[v]) ui_update_texture(ww.tex[v], ww.px, GBA_W * 4);
 }
@@ -518,7 +585,8 @@ static void ww_wheel_update(void) {
 static void ww_setup(const MapProfile* lp, const char* rom) {
 	ww_wheel_stop();
 	ww.dial = lp && lp->gyroDial;
-	ww.touch = false, ww.down = false, ww.dragFrac = 0, ww.angle = 0, ww.resid = 0, ww.press = WWP_NONE, ww.dirty = true, ww.shownAngle = 1000;
+	ww.touch = false, ww.down = false, ww.dragFrac = 0, ww.angle = 0, ww.tilt = 0, ww.resid = 0, ww.press = WWP_NONE, ww.dirty = true, ww.shownAngle = ww.shownTilt = 1000;
+	free(ww.logo), ww.logo = NULL, ww.logoTried = false;
 	if (!ww.dial) {
 		ww_sensor_close();
 		return;
@@ -541,6 +609,7 @@ static void ww_setup(const MapProfile* lp, const char* rom) {
 }
 
 static void ww_free(void) {
+	free(ww.logo), ww.logo = NULL, ww.logoTried = false;
 	ww_wheel_stop();
 	ww_sensor_close();
 	for (int v = 0; v < 2; ++v) {
@@ -559,14 +628,24 @@ static int ww_ui_screen(void) {
 	return s == ui_touch_screen() ? s : -1;
 }
 
+static SDL_Rect wwPause; /* (set by ww_ui_geom) */
+static bool wwLabelLeft;
+
 /* the key and the slider's track, in the canvas's pixels */
 static void ww_ui_geom(int s, SDL_Rect* key, SDL_Rect* track) {
 	SDL_Rect pic = bar_pic_full(s);
 	float u = (float) pic.w / GBA_W;
 	int margin = (int) ((screens[s].rect.h - (pic.y + pic.h)) / u);
 	int y = margin >= WW_KEY_H + 3 ? GBA_H + (SDL_min(margin, WW_ROWS - GBA_H) - WW_KEY_H - 1) / 2 : GBA_H - 6 - WW_KEY_H - 1;
-	*key = (SDL_Rect) { 6, y, WW_KEY_W, WW_KEY_H };
-	*track = (SDL_Rect) { 6 + WW_KEY_W + 12, y + WW_KEY_H / 2 - 1, 118, 3 };
+	/* the key where the contextual toggle's button goes (Settings: left, centre, right; GEN-14); in Touch mode, with the
+	 * slider beside it and the Pause button in the opposite corner, a centred key goes to the left */
+	bool right = !strcmp(cfg->toggleButton, "right"), centre = !strcmp(cfg->toggleButton, "center") && !ww.touch;
+	int kx = right ? GBA_W - 6 - WW_KEY_W : centre ? (GBA_W - WW_KEY_W) / 2 : 6;
+	*key = (SDL_Rect) { kx, y, WW_KEY_W, WW_KEY_H };
+	wwPause = (SDL_Rect) { right ? 6 : GBA_W - 6 - WW_KEY_W, y, WW_KEY_W, WW_KEY_H };
+	wwLabelLeft = right;
+	int tw = 70;
+	*track = (SDL_Rect) { right ? kx - 12 - tw : kx + WW_KEY_W + 12, y + WW_KEY_H / 2 - 1, tw, 3 };
 }
 
 /* a canvas rect on the screen (its own pixels), grown by pad GBA pixels */
@@ -576,10 +655,10 @@ static SDL_Rect ww_on_screen(int s, SDL_Rect r, int pad) {
 	return (SDL_Rect) { pic.x + (int) ((r.x - pad) * u), pic.y + (int) ((r.y - pad) * u), (int) ((r.w + 2 * pad) * u), (int) ((r.h + 2 * pad) * u) };
 }
 
-static bool ww_ui_hit(int s, int x, int y, bool slider) {
+static bool ww_ui_hit(int s, int x, int y, int what) { /* 0 the key, 1 the slider, 2 Pause */
 	SDL_Rect key, track;
 	ww_ui_geom(s, &key, &track);
-	SDL_Rect r = slider ? (SDL_Rect) { track.x - 4, key.y, track.w + 8, key.h } : key;
+	SDL_Rect r = what == 1 ? (SDL_Rect) { track.x - 4, key.y, track.w + 8, key.h } : what == 2 && ww.touch ? wwPause : key;
 	SDL_Rect sr = ww_on_screen(s, r, 3);
 	SDL_Point pt = { x, y };
 	return SDL_PointInRect(&pt, &sr);
@@ -590,8 +669,7 @@ static int ww_slider_value(int s, int x) {
 	ww_ui_geom(s, &key, &track);
 	SDL_Rect sr = ww_on_screen(s, track, 0);
 	float f = ww_clampf((float) (x - sr.x) / (float) sr.w, 0, 1);
-	int steps = (WW_SENS_MAX - WW_SENS_MIN) / 5;
-	return WW_SENS_MIN + 5 * (int) lrintf(f * steps);
+	return WW_SENS_MIN + (int) lrintf(f * (WW_SENS_MAX - WW_SENS_MIN));
 }
 
 static void draw_ww_ui(void) {
@@ -604,6 +682,10 @@ static void draw_ww_ui(void) {
 	cv_key(key, ww.press == WWP_BUTTON ? KEY_SEL : KEY_PLAIN);
 	cv_label(key.x + key.w / 2, key.y + key.h / 2, true, ww.touch ? "Gyro!" : "Touch!", ui_key_ink(), key.w - 6);
 	if (ww.touch) {
+		cv_key(wwPause, ww.press == WWP_PAUSE ? KEY_SEL : KEY_PLAIN);
+		cv_label(wwPause.x + wwPause.w / 2, wwPause.y + wwPause.h / 2, true, "Pause", ui_key_ink(), wwPause.w - 6);
+	}
+	if (ww.touch) {
 		int cy = track.y + track.h / 2;
 		cv_round((SDL_Rect) { track.x - 1, track.y - 1, track.w + 2, track.h + 2 }, 2, (SDL_Color) { 20, 16, 36, 255 });
 		int kx = track.x + (ww.sens - WW_SENS_MIN) * (track.w - 1) / (WW_SENS_MAX - WW_SENS_MIN);
@@ -611,7 +693,7 @@ static void draw_ww_ui(void) {
 		cv_key((SDL_Rect) { kx - 3, cy - 6, 7, 12 }, ww.press == WWP_SLIDER ? KEY_SEL : KEY_PLAIN);
 		char pc[8];
 		snprintf(pc, sizeof(pc), "%d%%", ww.sens);
-		cv_label(track.x + track.w + 18, cy, false, pc, G_TEXT, 30);
+		cv_label(wwLabelLeft ? track.x - 18 : track.x + track.w + 18, cy, false, pc, G_TEXT, 30);
 	}
 	cvBuf = barPx, cvRows = GBA_H;
 	for (int v = 0; v < nViews; ++v) {
@@ -641,18 +723,23 @@ static bool ww_pointer(const Pointer* p) {
 	if (p->kind == 1) {
 		int s = ww_ui_screen();
 		if (s >= 0 && p->screen == s) {
-			if (ww_ui_hit(s, p->x, p->y, false)) {
+			if (ww_ui_hit(s, p->x, p->y, 0)) {
 				ww.press = WWP_BUTTON, ww.pressY = p->y;
 				return true;
 			}
-			if (ww.touch && ww_ui_hit(s, p->x, p->y, true)) {
+			if (ww.touch && ww_ui_hit(s, p->x, p->y, 2)) {
+				ww.press = WWP_PAUSE, ww.pressY = p->y;
+				return true;
+			}
+			if (ww.touch && ww_ui_hit(s, p->x, p->y, 1)) {
 				ww.press = WWP_SLIDER;
 				ww.sens = ww_slider_value(s, p->x);
 				return true;
 			}
 		}
-		if (!ww.touch || p->screen != ts) return false; /* (Gyro mode: a tap opens the menu as ever) */
+		if (p->screen != ts) return false;
 		if (p->y >= screens[ts].rect.h - u * 36) return false; /* (the bottom edge: the quick bar's swipe) */
+		if (!ww.touch) return false; /* (Gyro mode: a tap opens the menu as ever) */
 		ww.press = WWP_DIAL, ww.down = true, ww.dragFrac = 0;
 		ww.pressY = p->x; /* (where the finger went down: across) */
 		fprintf(stderr, "frame %llu: dial: grabbed\n", (unsigned long long) frameCount);
@@ -665,7 +752,7 @@ static bool ww_pointer(const Pointer* p) {
 		} else if (ww.press == WWP_SLIDER) {
 			int s = ww_ui_screen();
 			if (s >= 0) ww.sens = ww_slider_value(s, p->x);
-		} else if (ww.press == WWP_BUTTON && p->y - ww.pressY <= -u * 10) {
+		} else if ((ww.press == WWP_BUTTON || ww.press == WWP_PAUSE) && p->y - ww.pressY <= -u * 10) {
 			/* a swipe up that began on it: the quick bar */
 			ww.press = WWP_NONE;
 			barOpen = true, barSince = SDL_GetTicks(), barGesture = G_DONE;
@@ -683,7 +770,14 @@ static bool ww_pointer(const Pointer* p) {
 			fprintf(stderr, "frame %llu: dial: sensitivity %d%%\n", (unsigned long long) frameCount, ww.sens);
 		} else if (press == WWP_BUTTON) {
 			int s = ww_ui_screen();
-			if (s >= 0 && ww_ui_hit(s, p->x, p->y, false)) ww_switch();
+			if (s >= 0 && ww_ui_hit(s, p->x, p->y, 0)) ww_switch();
+		} else if (press == WWP_PAUSE) {
+			int s = ww_ui_screen();
+			if (s >= 0 && ww_ui_hit(s, p->x, p->y, 2)) {
+				fprintf(stderr, "frame %llu: pause button\n", (unsigned long long) frameCount);
+				open_menu();
+				ignorePointerUp = true;
+			}
 		}
 		return true;
 	}

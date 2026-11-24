@@ -183,7 +183,7 @@
    "id": "wwt-us-dial",
    "rom": "RZWE",
    "state": "warioware-twisted/us-menu.ss",
-   "desc": "a drag left turns the wheel left, a drag right turns it right, letting go brings it back to 0",
+   "desc": "at 100%: a drag left turns the wheel left, a drag right turns it right, letting go brings it back to 0",
    "rules": [
     "WWT-5"
    ],
@@ -191,6 +191,10 @@
     [
      60,
      "TAP:0.145,0.919"
+    ],
+    [
+     100,
+     "TAP:0.557,0.919"
     ],
     [
      150,
@@ -330,7 +334,7 @@
    "id": "wwt-us-slider",
    "rom": "RZWE",
    "state": "warioware-twisted/us-menu.ss",
-   "desc": "the slider at its top: the same drag turns the wheel twice as far",
+   "desc": "the slider starts at 25%: a drag of half the screen turns the wheel a quarter of 90 degrees; at the top, all 90",
    "rules": [
     "WWT-7"
    ],
@@ -338,10 +342,6 @@
     [
      60,
      "TAP:0.145,0.919"
-    ],
-    [
-     100,
-     "TAP:0.74,0.919"
     ],
     [
      150,
@@ -352,12 +352,33 @@
      "MOVE:0.45,0.75"
     ],
     [
-     220,
+     200,
+     "MOVE:0.2,0.75"
+    ],
+    [
+     240,
+     "LIFT"
+    ],
+    [
+     300,
+     "TAP:0.557,0.919"
+    ],
+    [
+     350,
+     "DRAG:0.7,0.75"
+    ],
+    [
+     360,
+     "MOVE:0.2,0.75"
+    ],
+    [
+     420,
      "LIFT"
     ]
    ],
    "shots": {
-    "slider": 130
+    "slider": 130,
+    "max": 340
    },
    "golden": [
     "slider"
@@ -365,15 +386,102 @@
    "checks": [
     {
      "rule": "WWT-7",
-     "what": "200%",
+     "what": "25% by default",
      "type": "log",
-     "match": "sensitivity 200%"
+     "match": "dial on, sensitivity 25%"
     },
     {
      "rule": "WWT-7",
-     "what": "twice as far",
+     "what": "a quarter of the turn",
+     "type": "log",
+     "match": "let go at -22\\.5 degrees"
+    },
+    {
+     "rule": "WWT-7",
+     "what": "100% at the top",
+     "type": "log",
+     "match": "sensitivity 100%"
+    },
+    {
+     "rule": "WWT-7",
+     "what": "all of it at 100%",
      "type": "log",
      "match": "let go at -90\\.0 degrees"
+    }
+   ]
+  },
+  {
+   "id": "wwt-us-tilt",
+   "rom": "RZWE",
+   "state": "warioware-twisted/us-menu.ss",
+   "desc": "Gyro mode: the logo on white tilts with the sensor (a test rate of 30 degrees a second to the right)",
+   "rules": [
+    "WWT-2"
+   ],
+   "env": {
+    "GBADS_GYRO_RATE": "30"
+   },
+   "shots": {
+    "tilt": 150
+   },
+   "golden": [
+    "tilt"
+   ]
+  },
+  {
+   "id": "wwt-us-pause",
+   "rom": "RZWE",
+   "state": "warioware-twisted/us-menu.ss",
+   "desc": "Touch mode: the Pause button (bottom right) opens the pause menu",
+   "rules": [
+    "WWT-8"
+   ],
+   "input": [
+    [
+     40,
+     "TAP:0.145,0.919"
+    ],
+    [
+     100,
+     "TAP:0.86,0.919"
+    ]
+   ],
+   "shots": {
+    "touch": 90,
+    "paused": 160
+   },
+   "golden": [],
+   "checks": [
+    {
+     "rule": "WWT-8",
+     "what": "the Pause button",
+     "type": "log",
+     "match": "pause button"
+    },
+    {
+     "rule": "WWT-8",
+     "what": "the menu is up on the second screen",
+     "type": "differs",
+     "a": {
+      "shot": "touch",
+      "screen": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     },
+     "b": {
+      "shot": "paused",
+      "screen": "second",
+      "rect": [
+       0,
+       0,
+       1024,
+       768
+      ]
+     }
     }
    ]
   },

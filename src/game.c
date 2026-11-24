@@ -8152,6 +8152,11 @@ static void draw_game(void) {
 			ww_wheel_update();
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, ww.tex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
+		} else if (ww_gyro_shown()) {
+			/* Gyro mode: the logo on white, tilting with the sensor (WWT-2) */
+			ww_gyro_update();
+			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
+			ui_image_pixels(s, ww.tex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
 		} else if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, SHADER_ON);
