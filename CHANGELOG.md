@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.1.1 (not yet released)
+## v1.6.1.1 (2026-11-23)
 
 ### New: Game Boy and Game Boy Color games (issue #77)
 - **GBA DS plays Game Boy and Game Boy Color games**, on one screen with the other idle dark grey, as a GBA played them. Put `.gb` and `.gbc` files (or zips) in your GBA folder or in `gb` / `gbc` folders beside it, set **Games shown** to **All**, and start them from GBA DS's own game list. Saves, save states, rewind and cheats work as for GBA games. Details on the new wiki page, [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games).
