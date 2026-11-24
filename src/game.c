@@ -146,6 +146,7 @@ static uint16_t bugKeys[BUG_LOG];
 static uint8_t bugPoke[BUG_LOG]; /* the SNES layout's camera pan written that frame (run_frame), 0 none */
 static struct {
 	void* st;
+	size_t cap; /* what st holds room for: a Game Boy game's state is smaller than a GBA game's, and the buffers outlive the game */
 	uint64_t frame;
 	bool have;
 } bugSnap[BUG_SNAPS];
@@ -839,7 +840,13 @@ static void bug_tick(void) {
 	}
 	if (any && bugFrame < newest + BUG_EVERY) return;
 	if (any && bugFrame == newest) return;
-	if (!bugSnap[oldest].st) bugSnap[oldest].st = malloc(emu_state_size(&emu));
+	size_t need = emu_state_size(&emu);
+	if (!bugSnap[oldest].st || bugSnap[oldest].cap < need) {
+		free(bugSnap[oldest].st);
+		bugSnap[oldest].st = malloc(need);
+		bugSnap[oldest].cap = bugSnap[oldest].st ? need : 0;
+		bugSnap[oldest].have = false;
+	}
 	if (!bugSnap[oldest].st) return;
 	bugSnap[oldest].have = emu_state_save(&emu, bugSnap[oldest].st);
 	bugSnap[oldest].frame = bugFrame;
