@@ -160,6 +160,10 @@ static bool gbpLive;                       /* the halves are up (the table, not 
 static uint32_t gbpHalf[2][GBA_W * GBA_H]; /* top and bottom half, as the screens show them */
 static SDL_Texture* gbpTex[2];             /* the other screen's picture */
 static void gbp_publish(void);
+/* the picture the game's screen shows now: the table's half while the view is up (a menu or a setting uploads it again), else the game's frame */
+static const uint32_t* gbp_or_fb(const uint32_t* fb) {
+	return gbp && gbpLive ? (cfg->swap ? gbpHalf[1] : gbpHalf[0]) : fb;
+}
 /* profile tall.live: two more copies of the game drawing the table's rows
  * the game's camera doesn't (update_tall). twins[0] is held at the top of
  * the lower view (row tall.rows - 320), twins[1] 160 rows below the view's
@@ -7827,8 +7831,9 @@ static void swap_screens(void) {
 	/* the game moves to the other view, whose copy of the frame may be old
 	 * (frames go only where the game is shown; the menu uploads none) */
 	if (emu.fb) {
-		for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
+		for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(gbp_or_fb(emu.fb)), GBA_W * 4);
 	}
+	if (gbp && gbpLive) gbp_upload();
 	if (nScreens < 2) {
 		singleShowsMap = !singleShowsMap;
 		return;
@@ -8310,8 +8315,9 @@ static void setting_applied(const Setting* st) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
 		if (emu.fb) {
-			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
+			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(gbp_or_fb(emu.fb)), GBA_W * 4);
 		}
+		if (gbp && gbpLive) gbp_upload();
 	} else if (!strcmp(k, "screen_match") || !strcmp(k, "screen_placement")) {
 		ui_layout_pictures();
 		overlays_reload(); /* (overlays can be made for each: overlay files) */
@@ -8799,7 +8805,7 @@ static void rebuild_textures(void) {
 		}
 	}
 	ss_textures();
-	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), GBA_W * 4);
+	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(gbp_or_fb(emu.fb)), GBA_W * 4);
 	if (gbp && gbpLive) gbp_upload();
 	if (mapShownIdx >= 0) {
 		int idx = mapShownIdx;

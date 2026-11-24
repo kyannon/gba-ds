@@ -19,14 +19,16 @@ int main(int argc, char** argv) {
 	for (int f = 0; f < tot; ++f, ++frames) {
 		uint32_t k = (f / 20 % 3 == 0) ? K_LEFT : (f / 20 % 3 == 1 ? K_A : 0);
 		if (f % 300 < 6) k |= K_A;
+		if (getenv("FLIP")) { k = (f >= 640 && f < 665) || (f >= 690 && f < 700) ? K_LEFT : 0; if (f % 300 < 6) k |= K_A; }
 		gbpin_before(g, &game, k);
 		emu_frame(&game, k);
 		gbpin_after(g, &game);
 		const uint32_t *top, *bot;
 		bool t = gbpin_table(g, &top, &bot);
 		int s = gbpin_stage(g);
+		if (getenv("FLIP") && t && s == 0 && f >= 630 && f < 720) { unsigned h = 0; for (int y = 90; y < 135; ++y) for (int x = 60; x < 170; ++x) h = h * 31 + bot[y * GBA_W + x]; fprintf(stderr, "flip f%d k%d %08x\n", f, (int) !!(k & K_LEFT), h); }
 		if (t != prevT || s != prevS) { fprintf(stderr, "f%d table %d stage %d\n", f, t, s); prevT = t, prevS = s; }
-		if (t && f % 7 == 0 && shotsN < 400) {
+		if (t && getenv("EVERY") && s == 0 && shotsN < 60 && f > atoi(getenv("EVERY"))) {
 			static uint32_t both[GBA_W * GBA_H * 2];
 			memcpy(both, top, GBA_W * GBA_H * 4), memcpy(both + GBA_W * GBA_H, bot, GBA_W * GBA_H * 4);
 			char p[512]; snprintf(p, sizeof(p), "%s/h%04d.png", argv[2], f);

@@ -27,6 +27,8 @@ typedef struct {
 	uint8_t physOp[4];                /* the physics function's first instruction pair, which the call replaces */
 	int dpBank;                       /* DrawPinball (the ball's sprite), which the copies don't run */
 	uint16_t dp;
+	int scBank;                       /* ScrollScreenToShowPinball's two steps (0 when not found) */
+	uint16_t scStep[2];
 	bool ok;
 } Addrs;
 
@@ -51,6 +53,10 @@ static const uint8_t CST[36] = { 0xcd, 0x5e, 0x6d, 0xfa, 0xb6, 0xd4, 0xc6, 0x10,
 
 /* DrawPinball's start: ld a,[wPinballIsVisible]; and a; ret z; ld hl,wBallSpin; ld a,[wBallRotation]; add [hl]; ld [wBallRotation],a; ld a,[wBallXPos+1]; inc a */
 static const uint8_t DRAWBALL[19] = { 0xfa, 0x00, 0x00, 0xa7, 0xc8, 0x21, 0x00, 0x00, 0xfa, 0x00, 0x00, 0x86, 0xea, 0x00, 0x00, 0xfa, 0x00, 0x00, 0x3c };
+
+/* ScrollScreenToShowPinball: the screen's horizontal scroll steps 2 a frame towards the ball's side (ld a,2 / ld a,-2) */
+static const uint8_t SCROLL[26] = { 0x21, 0x00, 0x00, 0xfa, 0x00, 0x00, 0xa7, 0x20, 0x18, 0xfa, 0x00, 0x00, 0xfe, 0x9a, 0x3e, 0x02, 0x30, 0x02, 0x3e, 0xfe,
+	                                0xea, 0x00, 0x00, 0x86, 0xfe, 0x22 };
 
 /* every place in the ROM where `pat` matches, its 16-bit operands ignored; -1 unless exactly one */
 static long find_code(const uint8_t* rom, size_t n, const uint8_t* pat, size_t len) {
@@ -87,6 +93,12 @@ static bool find_addrs(const uint8_t* rom, size_t n, Addrs* a) {
 	if (dp < 0) return false;
 	a->dpBank = (int) (dp >> 14);
 	a->dp = (uint16_t) (dp < 0x4000 ? dp : 0x4000 + (dp & 0x3FFF));
+	long sc = find_code(rom, n, SCROLL, sizeof(SCROLL));
+	if (sc >= 0) {
+		a->scBank = (int) (sc >> 14);
+		uint16_t at = (uint16_t) (sc < 0x4000 ? sc : 0x4000 + (sc & 0x3FFF));
+		a->scStep[0] = (uint16_t) (at + 15), a->scStep[1] = (uint16_t) (at + 19);
+	}
 	if (rom[ph] != 0xAF || rom[ph + 1] != 0xEA) return false;
 	memcpy(a->physOp, rom + ph, 4);
 	/* the free end of the bank for the routine (it is 41 bytes) */
@@ -152,6 +164,8 @@ static void patch_copy(Emu* e, const Addrs* a) {
 	for (size_t i = 0; i < k; ++i) patch8(e, a->bank, (uint16_t) (a->hook + i), h[i]);
 	patch8(e, a->bank, a->phys, 0xCD), patch8(e, a->bank, a->phys + 1, a->hook & 0xFF);
 	patch8(e, a->bank, a->phys + 2, a->hook >> 8), patch8(e, a->bank, a->phys + 3, 0x00);
+	if (a->scStep[0]) /* (a copy keeps the game's own scroll: it would run ahead of it by a dozen steps) */
+		for (int i = 0; i < 2; ++i) patch8(e, a->scBank, a->scStep[i], 0);
 	patch8(e, a->dpBank, a->dp, 0xC9); /* the ball is drawn on its own half only: in the other its rows wrap round to the far end */
 	patch8(e, a->bank, a->cst + 3, 0xC9); /* CheckStageTransition: return after its scroll call */
 }
