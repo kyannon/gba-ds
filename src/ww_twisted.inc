@@ -73,6 +73,8 @@ static struct {
 	int logoW, logoH;
 	float logoK;
 	bool logoTried;
+	int rumOn, rumOff;         /* the motor's own pulse, in frames left on and off (WWT-11) */
+	float rumLevel;
 	float resid;               /* the counts not yet given to the game (they're whole counts) */
 	int sens, scale, invert;   /* the slider (25-200%), the sensor's scale (%), the sensor's direction */
 	char axis;                 /* the sensor's axis: z, through the screen */
@@ -301,9 +303,37 @@ static void ww_step(void) {
 	}
 }
 
+/* ---- the motor (WWT-11): the game rumbles the cartridge's motor all through the microgames, and a hand that can
+ * turn the device (or the dial) far faster than the original's could makes it ask for far more than a handheld's
+ * motor and battery were found to take (the RG DS Plus crashed in play, with rumble on and off with it off). So this
+ * game's motor is not the game's own: whenever it asks, a short fixed pulse, at a capped level, then a rest, and
+ * nothing the game does makes it longer, stronger or more often. Called once a frame with the game's level;
+ * the player's strength setting is applied after. */
+#define WW_RUMBLE_ON 6     /* frames of a pulse (100 ms) */
+#define WW_RUMBLE_OFF 9    /* frames of rest after it (150 ms) */
+#define WW_RUMBLE_CAP 0.6f
+static float ww_rumble(float level) {
+	if (!ww.dial) return level;
+	if (ww.rumOn > 0) {
+		if (--ww.rumOn == 0) ww.rumOff = WW_RUMBLE_OFF;
+		return ww.rumLevel;
+	}
+	if (ww.rumOff > 0) {
+		--ww.rumOff;
+		return 0;
+	}
+	if (level > 0.05f) {
+		ww.rumLevel = WW_RUMBLE_CAP * (0.5f + 0.5f * fminf(level, 1.0f));
+		ww.rumOn = WW_RUMBLE_ON - 1;
+		return ww.rumLevel;
+	}
+	return 0;
+}
+
 /* the dial and the game's gyro back to rest (a state loaded, a mode switched) */
 static void ww_rest(void) {
 	ww.down = false, ww.dragFrac = 0, ww.angle = 0, ww.tilt = 0, ww.resid = 0, ww.press = WWP_NONE, ww.dirty = true;
+	ww.rumOn = ww.rumOff = 0;
 	if (ww.dial) emu_set_gyro(&emu, 0);
 }
 
@@ -597,6 +627,7 @@ static void ww_setup(const MapProfile* lp, const char* rom) {
 	ww_cfg_load();
 	ww_sensor_open();
 	snprintf(ww.rom, sizeof(ww.rom), "%s", rom);
+	fprintf(stderr, "rumble: this game's motor is limited to short pulses (WWT-11)\n");
 	fprintf(stderr, "gyro: dial on, sensitivity %d%%, sensor scale %d%%%s\n", ww.sens, ww.scale, ww.invert ? ", inverted" : "");
 	if (ww_can_touch()) {
 		/* the wheel is taken in the background, or inline in the tests (and where there are no threads) so that

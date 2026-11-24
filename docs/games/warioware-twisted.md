@@ -50,6 +50,8 @@ WarioWare: Twisted! is played by turning the console: its cartridge has a gyro s
 - **Nothing on the second screen to act on (2), only the game's own graphics (4):** the Touch! and Gyro! buttons and the slider are GBA DS's own, drawn like the contextual toggle's button, and the wheel is the game's menu rearranged, drawn turned.
 - **A GBA with two non-touch screens (1):** the second screen is a dial in Touch mode.
 
+**WWT-11. The motor.** The game asks for its cartridge motor all through the microgames. Here that is not passed on as it comes: whenever the game asks (a level above a twentieth), the motor gets **one pulse of 100 ms at 30% to 60% of the motor's strength** (60% at the most, whatever the game asks), then rests **150 ms** before the game's next ask can start another. Nothing the game does, nor how fast the device is turned, makes it longer, stronger or more often (at most 4 pulses a second, 40% of the time); the Rumble strength setting scales it as in every game, and a game that doesn't ask doesn't rumble. Why: on the RG DS Plus the device crashed in play with rumble on, never with it off, the gyro (and the dial) making the game ask for far more than the original's slow gyro ever did.
+
 ## For the merge
 
 *(Kept here while the game is on its branch; the merge moves them: CLAUDE.md, "New games on their own branches".)*

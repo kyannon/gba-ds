@@ -747,6 +747,7 @@ static bool hideWhenOn;
 /* WarioWare: Twisted! (ww_twisted.inc, included below) */
 static void ww_step(void);
 static void ww_state_loaded(void);
+static float ww_rumble(float level);
 
 static void run_frame(uint32_t keys) {
 	frameKeys = keys;
@@ -10142,7 +10143,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		/* the game's motor, at the player's strength (issue #83); not while rewinding or fast-forwarding
 		 * (a frame in the loop isn't a frame of the game's time), and a paused game stops by itself:
 		 * each request to the motor runs out after 120 ms */
-		ui_rumble((rewinding || ran > 1 || ffMax) ? 0.0f : emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
+		ui_rumble((rewinding || ran > 1 || ffMax) ? 0.0f : ww_rumble(emu_rumble_level(&emu)) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
 		{ /* (the log says what the game did, for a device that doesn't buzz) */
 			static bool rumbleSaid;
 			if (!rumbleSaid && emu_rumble_level(&emu) > 0) rumbleSaid = true, fprintf(stderr, "rumble: the game asked for rumble (frame %llu, level %.2f, strength %d%%, motor %.2f)\n", (unsigned long long) frameCount, emu_rumble_level(&emu), cfg->rumbleStrength, emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
