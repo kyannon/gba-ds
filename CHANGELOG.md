@@ -2,6 +2,9 @@
 
 ## v1.6.2 (not yet released)
 
+### Fixes
+- **Pokémon: the Town Map shows on the second screen in FRLG+ 1.5.1**, the FireRed romhack (BPS patch or ROM). Its Bag wraps round from the last pocket to the first, so the map was never found and only the Party showed. GBA DS now finds the Key Items pocket by its tab, in any Bag that wraps. FRLG+ 1.5.1 is added to the tested romhacks.
+
 ## v1.6.1.1 (2026-11-23)
 
 ### New: Game Boy and Game Boy Color games (issue #77)

@@ -8405,8 +8405,8 @@ static struct {
 	uint32_t rom;
 	bool known;
 	int partyRow, navGood, first, goodBag, tick, wait;
-	bool noMapKnown, have, partySent;
-	uint32_t noMapHash;
+	bool noMapKnown, have, partySent, keyTabKnown;
+	uint32_t noMapHash, keyTab;
 	uint32_t keep[GBA_W * GBA_H];
 } pkMem;
 static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
@@ -8567,48 +8567,116 @@ static int pk_key_hint(Emu* s) {
 	}
 	return -1;
 }
+/* The Bag's tab (its pocket's name, top left): told apart from the next
+ * pocket's, it says which pocket is up */
+static uint32_t pk_tab_hash(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int y = 0; y < 16; ++y)
+		for (int x = 0; x < 76; ++x) h = (h ^ (s->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+	return h;
+}
+#define PK_POCKETS 8 /* the most pockets looked at when a Bag wraps round */
+/* A Bag whose pockets wrap round (FRLG+: RIGHT from the last pocket comes
+ * back to the first, so "all the way left, then once right" lands on
+ * whatever is next to the pocket the player left it on): RIGHT is pressed
+ * until a tab comes back. Returns how many pockets there are, with each one's
+ * tab in tabs[] (in the order RIGHT goes, the first being the pocket that's
+ * up) and the Bag left on the first again; 0 when the Bag stops at its ends
+ * (FireRed and LeafGreen's own: it is left on its last pocket). */
+static int pk_pocket_cycle(Emu* s, uint32_t* tabs) {
+	tabs[0] = pk_tab_hash(s);
+	for (int k = 1; k <= PK_POCKETS; ++k) {
+		pk_tap(s, K_RIGHT);
+		aw_run(s, 0, 12);
+		uint32_t h = pk_tab_hash(s);
+		if (h == tabs[0]) return k;
+		if (k < PK_POCKETS) tabs[k] = h;
+		else break;
+	}
+	return 0;
+}
 static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	uint32_t listHash = 0;
-	int rows = PK_KEY_ROWS;
+	uint32_t listHash = 0, tabs[PK_POCKETS];
 	int hint = pk_key_hint(s);
 	if (hint >= 0) pkMem.first = hint;
 	if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: Town Map row from memory: %d\n", hint);
-	for (int t = 0; t < rows; ++t) {
-		const char* err;
-		if (pk_open(s, f, state, &f->bag, &pkMem.goodBag, 60, &err) < 0) return err;
-		aw_run(s, 0, 90); /* (a romhack's Bag can take longer to take input) */
-		pk_tap(s, K_LEFT);
-		pk_tap(s, K_LEFT);
-		pk_tap(s, K_RIGHT);
-		aw_run(s, 0, 10);
-		for (int i = 0; i < (t == 0 ? PK_KEY_ROWS : rows) + 2; ++i) pk_tap(s, K_UP);
-		if (t == 0) {
-			/* the Key Items list as it is: the same as when no Town Map was
-			 * found last time means still none, without the row-by-row
-			 * search (seconds of frames, taken again and again until the
-			 * player has it) */
-			aw_run(s, 0, 20);
-			listHash = pk_list_hash(s);
-			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, pkMem.noMapKnown, pkMem.noMapHash);
-			if (pkMem.noMapKnown && listHash == pkMem.noMapHash) return "no Town Map in the Bag";
-			rows = pk_key_rows(s);
-			if (rows < 2) rows = 10; /* (no change seen: an empty pocket, or a Bag drawn another way: as before) */
-			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items: %d rows\n", rows);
-			for (int i = 0; i < rows + 1; ++i) pk_tap(s, K_UP);
+	/* the pockets to look in: for a Bag that stops at its ends, the Key Items
+	 * pocket (all the way left, once right: order[0] -1); for one that wraps,
+	 * the pocket whose tab the map was found under last time, else each in turn */
+	int order[PK_POCKETS], npock = 1, cycle = -1;
+	order[0] = -1;
+	for (int pi = 0; pi < npock; ++pi) {
+		int rows = PK_KEY_ROWS;
+		for (int t = 0; t < rows; ++t) {
+			const char* err;
+			if (pk_open(s, f, state, &f->bag, &pkMem.goodBag, 60, &err) < 0) return err;
+			aw_run(s, 0, 90); /* (a romhack's Bag can take longer to take input) */
+			bool scanned = false;
+			if (cycle < 0) {
+				scanned = true;
+				cycle = pk_pocket_cycle(s, tabs);
+				if (cycle > 1) {
+					npock = 0;
+					for (int q = 0; q < cycle; ++q)
+						if (pkMem.keyTabKnown && tabs[q] == pkMem.keyTab) order[npock++] = q;
+					if (!npock) { /* (not seen yet, or the tab's gone: each pocket) */
+						pkMem.keyTabKnown = false;
+						for (int q = 0; q < cycle; ++q) order[npock++] = q;
+					}
+					if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: the Bag wraps: %d pockets, trying %d\n", cycle, npock);
+				} else {
+					cycle = 0;
+				}
+			}
+			if (order[pi] < 0) {
+				/* (all the way left: from where the scan left it, the last pocket, that's further) */
+				for (int i = 0; i < (scanned ? PK_POCKETS : 5); ++i) pk_tap(s, K_LEFT);
+				pk_tap(s, K_RIGHT);
+			} else {
+				if (!cycle || cycle < 0) return "no Town Map in the Bag"; /* (not reached) */
+				for (int i = 0; i < order[pi]; ++i) pk_tap(s, K_RIGHT);
+			}
+			aw_run(s, 0, 10);
+			for (int i = 0; i < (t == 0 ? PK_KEY_ROWS : rows) + 2; ++i) pk_tap(s, K_UP);
+			if (t == 0) {
+				/* the Key Items list as it is: the same as when no Town Map was
+				 * found last time means still none, without the row-by-row
+				 * search (seconds of frames, taken again and again until the
+				 * player has it) */
+				aw_run(s, 0, 20);
+				listHash = (listHash ^ pk_list_hash(s)) * 16777619u; /* (every pocket's list, when there is more than one to look in) */
+				if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, pkMem.noMapKnown, pkMem.noMapHash);
+				if (cycle == 0 && pkMem.noMapKnown && listHash == pkMem.noMapHash) return "no Town Map in the Bag";
+				rows = pk_key_rows(s);
+				if (rows < 2) {
+					if (cycle > 0) break; /* (an empty pocket: only CANCEL) */
+					rows = 10; /* (no change seen: an empty pocket, or a Bag drawn another way: as before) */
+				}
+				if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items: %d rows\n", rows);
+				for (int i = 0; i < rows + 1; ++i) pk_tap(s, K_UP);
+			}
+			int row = (pkMem.first + t) % rows;
+			for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
+			pk_tap(s, K_A); /* its menu: USE first */
+			aw_run(s, 0, 10);
+			pk_tap(s, K_A);
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key row %d, io %04X %04X %04X %04X %04X\n", row, emu_io16(s, 0), emu_io16(s, 8), emu_io16(s, 10), emu_io16(s, 12), emu_io16(s, 14));
+			if (!pk_wait(s, &f->map, 150)) continue;
+			aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
+			if (!pk_is(s, &f->map)) continue;
+			pkMem.first = row;
+			pkMem.noMapKnown = false;
+			if (order[pi] >= 0) pkMem.keyTab = tabs[order[pi]], pkMem.keyTabKnown = true;
+			pk_map_copy(s, f, out, w, h);
+			return NULL;
 		}
-		int row = (pkMem.first + t) % rows;
-		for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
-		pk_tap(s, K_A); /* its menu: USE first */
-		aw_run(s, 0, 10);
-		pk_tap(s, K_A);
-		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key row %d, io %04X %04X %04X %04X %04X\n", row, emu_io16(s, 0), emu_io16(s, 8), emu_io16(s, 10), emu_io16(s, 12), emu_io16(s, 14));
-		if (!pk_wait(s, &f->map, 150)) continue;
-		aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
-		if (!pk_is(s, &f->map)) continue;
-		pkMem.first = row;
-		pkMem.noMapKnown = false;
-		pk_map_copy(s, f, out, w, h);
-		return NULL;
+		/* a pocket remembered from last time that didn't have it: every pocket */
+		if (pkMem.keyTabKnown && pi == npock - 1 && cycle > 1 && npock == 1) {
+			pkMem.keyTabKnown = false;
+			npock = 0;
+			for (int q = 0; q < cycle; ++q) order[npock++] = q;
+			pi = -1;
+		}
 	}
 	if (!emu_cancelled(s)) pkMem.noMapKnown = true, pkMem.noMapHash = listHash;
 	return "no Town Map in the Bag";

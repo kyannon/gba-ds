@@ -416,6 +416,7 @@ static const KnownDump knownDumps[] = {
 	{ "BPRE", 0x32b2929c, true, true, "Saiph" },
 	{ "BPRE", 0x4b3d4957, true, true, "Unbound 2.1.1.1" },
 	{ "BPRE", 0x8abbc1e1, true, true, "Fuligin" },
+	{ "BPRE", 0x964763c0, true, true, "FRLG+ 1.5.1" },
 	{ "BPRE", 0xb9465c5a, true, true, "Gaia" },
 	{ "BPRE", 0xfba55dd8, true, true, "Radical Red 4.1" },
 };
@@ -469,6 +470,7 @@ static const KnownPatch knownPatches[] = {
 	{ "", 0x6fa53b0e, 74, 0x00000000, 0x00000000, "colour", "Color restoration: original enemy colors (optional)", "", false },
 	{ "A5NP", 0x702bd4af, 19955, 0x41d277fe, 0x00000000, "colour", "Restoration v1.1 (marc_max)", "Donkey Kong Country (Europe) (En,Fr,De,Es,It)", false },
 	{ "A2CE", 0x8158a3bf, 211500, 0x35536183, 0x47a42f0e, "colour", "Recolor v1.02 (JonataGuitar)", "Castlevania - Aria of Sorrow (USA)", true },
+	{ "BPRE", 0x822a852b, 1549850, 0xdd88761c, 0x964763c0, "romhack", "FRLG+ 1.5.1", "Pokemon - FireRed Version (USA, Europe)", true },
 	{ "BZ6P", 0x82dfc347, 119, 0x00000000, 0x00000000, "colour", "Color restoration: animation (optional)", "", false },
 	{ "BZ6J", 0x82dfc347, 119, 0x00000000, 0x00000000, "colour", "Color restoration: animation (optional)", "", false },
 	{ "BZ6E", 0x82dfc347, 119, 0x00000000, 0x00000000, "colour", "Color restoration: animation (optional)", "", false },

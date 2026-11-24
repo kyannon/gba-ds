@@ -61,6 +61,7 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Final Fantasy VI Advance | `BZ6J` | Color restoration: monster (optional) | colour | ff6_gba_jue_color_restoration_monster.ips | 1150 | `452e75de` |  |  |  |
 | Final Fantasy VI Advance | `BZ6E` | Color restoration: monster (optional) | colour | ff6_gba_jue_color_restoration_monster.ips | 1150 | `452e75de` |  |  |  |
 | Final Fight One | `AFFJ` | Redux Edition | colour | Final Fight One - Redux Edition.ips | 213089 | `62445f39` | `c9e5e223` |  |  |
+| Pokémon FireRed | `BPRE` | FRLG+ 1.5.1 | romhack | frlgPlus.bps | 1549850 | `822a852b` | `dd88761c` | `964763c0` | yes (the Party and the Town Map; the Bag's pockets wrap round, found by their tab) |
 | The Lost Vikings | `ALVP` | Palette restoration v1.0 | colour | Lost Vikings, The (Europe) (En,Fr,De,Es) Palette Restoration v1_0.ips | 3485 | `c4356eb6` | `1c008d32` |  |  |
 | Mother 1+2 | `A2UJ` | English v1.01 | translation | mother12.ips | 165587 | `4e04ba9e` | `0a44569c` |  |  |
 | Mother 3 | `A3UJ` | English v1.3a (fan translation) | translation | mother3_1.3a.ups | 1547180 | `d849ce95` | `42ac9cb9` | `e73b0f7d` | yes |
