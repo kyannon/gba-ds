@@ -20,6 +20,7 @@
 - **Cheats with the same name are remembered separately.** When a cheat file had two cheats with the same name, switching one on brought both back on the next time the game started. Your existing choices still load as before.
 - **Choosing a RetroArch state folder with a very long path** (over 511 characters) now says the path is too long, instead of quietly saving a cut-off path that pointed somewhere else.
 - **A game started after Pokémon Pinball: Ruby & Sapphire no longer shows its status bar on both screens.** Going back to the game list from Pokémon Pinball and starting a game whose status bar moves to the second screen (Super Mario Advance 4, for one) left the status bar on the game's screen too, and on Super Mario Advance 4's world map a few of its rows. Closing GBA DS in between avoided it.
+- **Pokémon Pinball: Ruby & Sapphire's rumble patch rumbles again** (issue #83; it didn't in v1.6.1). GBA DS now listens to the cartridge's rumble for any game that uses it, including patches that switch the motor a byte at a time, as that one does. Two things the game itself needs: turn **Rumble** on in the game's own Options, and after switching the patch on, use **Restart Game** once, because a game resumed from a state saved before the patch was on hasn't set its rumble up.
 
 ## v1.6.1 (2026-11-22)
 
