@@ -3173,20 +3173,11 @@ static int item_at(int scr, int x, int y) {
 	return -1;
 }
 
-/* Display > Shader: the label and the note under the buttons, by SH_* */
+/* Display > Shader: the label, by SH_* */
 #define SHADER_ON (cfg->shader != SH_OFF)
 static const char* const shaderLabels[SH_COUNT] = {
 	N_("Shader: Off"), N_("Shader: LCD Grid"), N_("Shader: Scanlines"), N_("Shader: Soft Cells"),
 	N_("Shader: Subpixels (Light)"), N_("Shader: Subpixels"), N_("Shader: Subpixels (Strong)"),
-};
-static const char* const shaderNotes[SH_COUNT] = {
-	N_("The game's pixels as they are"),
-	N_("Lines between the pixels, like a GBA's screen"),
-	N_("A dark line under each row of pixels"),
-	N_("Each pixel a little darker toward its edges"),
-	N_("Red, green and blue stripes, gentle: for dim screens"),
-	N_("Red, green and blue stripes, like a GBA's screen"),
-	N_("Red, green and blue stripes, strong: for bright screens"),
 };
 static const char* shader_label(int sh) {
 	return shaderLabels[sh >= 0 && sh < SH_COUNT ? sh : 0];
@@ -8199,7 +8190,7 @@ static bool activate(int item, enum GameExit* exitTo) {
 		armedItem = item;
 		const char* lost = cfg->autoSave ? N_("your place is saved"): N_("unsaved progress is lost");
 		if (item == M_RESTART) snprintf(menuNote, sizeof(menuNote), tr("Choose it again to restart: unsaved progress is lost"));
-		else snprintf(menuNote, sizeof(menuNote), tr("Choose it again to close %s: %s"), item == M_EXIT ? "GBA DS" : tr("the game"), lost);
+		else snprintf(menuNote, sizeof(menuNote), tr("Choose it again to close %s: %s"), item == M_EXIT ? "GBA DS" : tr("the game"), tr(lost));
 		return false;
 	}
 	armedItem = -1;

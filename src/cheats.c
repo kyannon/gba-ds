@@ -265,14 +265,34 @@ static const char* file_name(const char* path) {
 }
 
 /* <state_dir>/<game>.cheats: a header line, then "<cht file name>\t<desc>"
- * for each cheat that is on. */
+ * for each cheat that is on. Cheats of one file with the same description are
+ * told apart by "\t#k" after the description (k counting from 0 among them);
+ * a line without it (older versions', or a cheat whose description is its
+ * file's only one) means every cheat with that description. */
+static int same_before(const Cheats* c, int i) {
+	int k = 0;
+	for (int j = 0; j < i; ++j) {
+		if (c->items[j].file == c->items[i].file && !strcmp(c->items[j].desc, c->items[i].desc)) ++k;
+	}
+	return k;
+}
+static bool has_same_after(const Cheats* c, int i) {
+	for (int j = 0; j < c->n; ++j) {
+		if (j != i && c->items[j].file == c->items[i].file && !strcmp(c->items[j].desc, c->items[i].desc)) return true;
+	}
+	return false;
+}
+
 void cheats_save(const Cheats* c) {
 	if (!c->prefs[0] || !c->n) return;
 	FILE* f = fopen(c->prefs, "w");
 	if (!f) return;
-	fprintf(f, "# gba-ds cheats that are on: cht file<TAB>description\n");
+	fprintf(f, "# gba-ds cheats that are on: cht file<TAB>description[<TAB>#n for one of several with that description]\n");
 	for (int i = 0; i < c->n; ++i) {
-		if (c->items[i].on) fprintf(f, "%s\t%s\n", file_name(c->files[c->items[i].file].path), c->items[i].desc);
+		if (!c->items[i].on) continue;
+		fprintf(f, "%s\t%s", file_name(c->files[c->items[i].file].path), c->items[i].desc);
+		if (has_same_after(c, i)) fprintf(f, "\t#%d", same_before(c, i));
+		fputc('\n', f);
 	}
 	fclose(f);
 }
@@ -288,8 +308,16 @@ static void load_prefs(Cheats* c) {
 		char* tab = strchr(line, '\t');
 		if (!tab) continue;
 		*tab = 0;
+		char* desc = tab + 1;
+		int which = -1; /* every cheat with this description */
+		char* mark = strrchr(desc, '\t');
+		if (mark && mark[1] == '#' && mark[2] >= '0' && mark[2] <= '9' && strspn(mark + 2, "0123456789") == strlen(mark + 2)) {
+			which = atoi(mark + 2);
+			*mark = 0;
+		}
 		for (int i = 0; i < c->n; ++i) {
-			if (!strcmp(c->items[i].desc, tab + 1) && !strcmp(file_name(c->files[c->items[i].file].path), line)) {
+			if (!strcmp(c->items[i].desc, desc) && !strcmp(file_name(c->files[c->items[i].file].path), line) &&
+			    (which < 0 || same_before(c, i) == which)) {
 				c->items[i].on = true;
 			}
 		}
