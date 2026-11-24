@@ -1,7 +1,8 @@
 /* GBA DS: a GBA emulator for dual-screen handhelds that keeps the game's own
  * map on the second screen.
  *
- *   library.c  game list (rescans the ROM folder every time it opens)
+ *   library.c  game list (the ROM folder is scanned, what it learns about each ROM is cached,
+ *              and the list is kept while no folder has changed)
  *   game.c     play session, pause menu, auto save/resume
  *   mapcap.c   map capture with a shadow emulator core; profiles.c per game
  *   ui.c       windows, screens, touch/buttons, drawing
@@ -117,7 +118,8 @@ int main(int argc, char** argv) {
 	}
 	/* GBADS_HOME: the app's folder when the executable runs from a copy
 	 * elsewhere (launch.sh, where the card won't run programs) */
-	if (getenv("GBADS_HOME") && getenv("GBADS_HOME")[0]) snprintf(exeDir, sizeof(exeDir), "%s", getenv("GBADS_HOME"));
+	const char* homeOverride = getenv("GBADS_HOME");
+	if (homeOverride && homeOverride[0]) snprintf(exeDir, sizeof(exeDir), "%s", homeOverride);
 #ifdef __ANDROID__
 	/* the executable is Android's app_process: use the app's own folder */
 	if (android_home()) snprintf(exeDir, sizeof(exeDir), "%s", android_home());
@@ -126,8 +128,9 @@ int main(int argc, char** argv) {
 	/* defaults < gba-ds.cfg < states/prefs.cfg (choices made in the menu),
 	 * library.cfg and hotkeys.cfg (the game list's Settings) < command line */
 	char path[1100];
-	if (getenv("GBADS_CONFIG")) {
-		config_load_file(&cfg, getenv("GBADS_CONFIG"));
+	const char* configOverride = getenv("GBADS_CONFIG"); /* (the web player and State Saver: this one file, no data-folder.cfg) */
+	if (configOverride) {
+		config_load_file(&cfg, configOverride);
 	} else {
 		snprintf(path, sizeof(path), "%s/gba-ds.cfg", exeDir);
 		config_load_file(&cfg, path);
@@ -152,7 +155,7 @@ int main(int argc, char** argv) {
 	snprintf(dataDir, sizeof(dataDir), "%s", exeDir);
 #if !defined(__ANDROID__) && !defined(__wasi__)
 	snprintf(path, sizeof(path), "%s/data-folder.cfg", exeDir);
-	data_dir_setup(exeDir, getenv("GBADS_CONFIG") ? NULL : path, cfg.dataDir, false, dataDir, sizeof(dataDir));
+	data_dir_setup(exeDir, configOverride ? NULL : path, cfg.dataDir, false, dataDir, sizeof(dataDir));
 #endif
 	if (strcmp(dataDir, exeDir) || data_dir_note()[0])
 		fprintf(stderr, "data folder: %s%s%s\n", dataDir, data_dir_note()[0] ? " - " : "", data_dir_note());
@@ -190,6 +193,8 @@ int main(int argc, char** argv) {
 #endif
 
 #if defined(__linux__) && !defined(__ANDROID__) && defined(__GLIBC__)
+	void* warm[1];
+	backtrace(warm, 1); /* (the first call loads libgcc and may allocate: not inside a crash) */
 	signal(SIGSEGV, on_crash);
 	signal(SIGBUS, on_crash);
 	signal(SIGILL, on_crash);
