@@ -257,13 +257,13 @@
      "rule": "WWT-5",
      "what": "left is negative",
      "type": "log",
-     "match": "let go at -90\\.0 degrees"
+     "match": "let go at -22\\.5 degrees"
     },
     {
      "rule": "WWT-5",
      "what": "right is positive",
      "type": "log",
-     "match": "let go at 90\\.0 degrees"
+     "match": "let go at 22\\.5 degrees"
     },
     {
      "rule": "WWT-5",
@@ -349,7 +349,7 @@
    "id": "wwt-us-slider",
    "rom": "RZWE",
    "state": "warioware-twisted/us-menu.ss",
-   "desc": "the slider starts at 25%: a drag of half the screen turns the wheel a quarter of 90 degrees; at the top, all 90; while the slider is held its percentage shows, outlined (and not otherwise)",
+   "desc": "the slider starts at 10%: a drag of half the screen's width turns the wheel 9 degrees; at the top (25%), 22.5; its percentage shows, outlined, only while it is changed",
    "rules": [
     "WWT-7"
    ],
@@ -415,27 +415,27 @@
    "checks": [
     {
      "rule": "WWT-7",
-     "what": "25% by default",
+     "what": "10% by default",
      "type": "log",
-     "match": "dial on, sensitivity 25%"
+     "match": "dial on, sensitivity 10%"
     },
     {
      "rule": "WWT-7",
-     "what": "a quarter of the turn",
+     "what": "9 degrees at 10%",
+     "type": "log",
+     "match": "let go at -9\\.0 degrees"
+    },
+    {
+     "rule": "WWT-7",
+     "what": "25% at the top",
+     "type": "log",
+     "match": "sensitivity 25%"
+    },
+    {
+     "rule": "WWT-7",
+     "what": "22.5 degrees at 25%",
      "type": "log",
      "match": "let go at -22\\.5 degrees"
-    },
-    {
-     "rule": "WWT-7",
-     "what": "100% at the top",
-     "type": "log",
-     "match": "sensitivity 100%"
-    },
-    {
-     "rule": "WWT-7",
-     "what": "all of it at 100%",
-     "type": "log",
-     "match": "let go at -90\\.0 degrees"
     }
    ],
    "config": {

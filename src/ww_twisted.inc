@@ -36,9 +36,9 @@
 #define WW_BACK_DEG_S 180.0f  /* how fast it turns back to 0 when the finger lifts (WWT-5) */
 #define WW_FULL_DEG 90.0f     /* the angle of a drag of half the screen's width at 100% (WWT-5) */
 #define WW_MAX_DEG 180.0f
-#define WW_SENS_MIN 1
-#define WW_SENS_MAX 100
-#define WW_SENS_DEFAULT 25
+#define WW_SENS_MIN 5
+#define WW_SENS_MAX 25
+#define WW_SENS_DEFAULT 10
 #define WW_TILT_KEEP 0.985f   /* Gyro mode's logo eases back to level, a frame's share */
 #define WW_RN 176             /* the wheel's rings: radii in pixels */
 #define WW_TILE 4             /* the checkered disc's squares */
@@ -275,7 +275,8 @@ static void ww_step(void) {
 	if (ww.touch) {
 		ww.tilt = 0;
 		if (ww.down) {
-			float target = ww_clampf(ww.dragFrac * WW_FULL_DEG * ww.sens / 100.0f, -WW_MAX_DEG, WW_MAX_DEG);
+			float lim = 2 * WW_FULL_DEG * ww.sens / 100.0f; /* (a drag of a whole screen's width is as far as it goes) */
+			float target = ww_clampf(ww.dragFrac * WW_FULL_DEG * ww.sens / 100.0f, -lim, lim);
 			float d = ww_clampf((target - ww.angle) * 0.35f, -WW_VMAX_DEG_S / WW_FPS, WW_VMAX_DEG_S / WW_FPS);
 			ww.angle += d;
 		} else if (ww.angle != 0) {
