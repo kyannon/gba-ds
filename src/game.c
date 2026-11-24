@@ -3260,20 +3260,53 @@ static const char* shader_label(int sh) {
 }
 /* Display > LCD Ghosting: the game's last frame (as the emulator drew it),
  * to show each frame half and half with it */
-static uint32_t ghostPrev[GBA_W * GBA_H], ghostOut[GBA_W * GBA_H];
+static uint32_t ghostPrev[GBA_W * GBA_H], ghostPrev2[GBA_W * GBA_H], ghostOut[GBA_W * GBA_H];
 static bool ghostHave;
 static uint64_t ghostFrame;
-static const uint32_t* ghost_frame(const uint32_t* fb) {
+/* how the picture is blended with the frames before (GB-9; 0 off): the GBA's own setting is Light */
+enum { GH_OFF, GH_LIGHT, GH_SMART, GH_STRONG };
+static int ghost_mode(void) {
+	if (emu_is_gb(&emu) && strcmp(cfg->gbGhosting, "same")) {
+		return !strcmp(cfg->gbGhosting, "light") ? GH_LIGHT : !strcmp(cfg->gbGhosting, "smart") ? GH_SMART : !strcmp(cfg->gbGhosting, "strong") ? GH_STRONG : GH_OFF;
+	}
+	return cfg->ghosting ? GH_LIGHT : GH_OFF;
+}
+/* a Game Boy game's colour correction (GB-8): 0 off, 1 the GBA's screen, 2 a Game Boy Color's */
+static int correction_mode(void) {
+	if (emu_is_gb(&emu) && strcmp(cfg->gbCorrection, "same")) return !strcmp(cfg->gbCorrection, "gbc") ? 2 : !strcmp(cfg->gbCorrection, "gba") ? 1 : 0;
+	return cfg->colorCorrection ? 1 : 0;
+}
+static const uint32_t* ghost_frame(const uint32_t* fb, int mode) {
 	if (ghostHave && frameCount == ghostFrame) return ghostOut; /* (the same frame drawn again) */
 	if (!ghostHave) {
 		memcpy(ghostPrev, fb, sizeof(ghostPrev));
+		memcpy(ghostPrev2, fb, sizeof(ghostPrev2));
+		memcpy(ghostOut, fb, sizeof(ghostOut));
 		ghostHave = true;
 	}
-	/* half this frame, half the one before: a sprite the game flickers
-	 * every other frame shows half see-through, as on the GBA's slow LCD */
 	for (int i = 0; i < GBA_W * GBA_H; ++i) {
 		uint32_t a = fb[i], b = ghostPrev[i];
-		ghostOut[i] = (a | b) - (((a ^ b) & 0xFEFEFEFEu) >> 1); /* the rounded-up average of each byte */
+		if (mode == GH_STRONG) {
+			/* each colour a third of the way from what was shown to the new one (rounded away from
+			 * what was shown, so it arrives): about three frames to follow a change */
+			uint32_t o = ghostOut[i], r = a & 0xFF000000u;
+			for (int s = 0; s < 24; s += 8) {
+				int cur = a >> s & 255, was = o >> s & 255, d = cur - was;
+				was += (d + (d > 0 ? 2 : d < 0 ? -2 : 0)) / 3;
+				r |= (uint32_t) was << s;
+			}
+			ghostOut[i] = r;
+		} else if (mode == GH_SMART) {
+			/* only a pixel that is back to what it was two frames ago, after a frame of something
+			 * else, is blended: a flicker. A scroll or a fade has no such pixels */
+			bool flicker = a == ghostPrev2[i] && a != b;
+			ghostOut[i] = flicker ? (a | b) - (((a ^ b) & 0xFEFEFEFEu) >> 1) : a;
+		} else {
+			/* half this frame, half the one before: a sprite the game flickers
+			 * every other frame shows half see-through, as on the GBA's slow LCD */
+			ghostOut[i] = (a | b) - (((a ^ b) & 0xFEFEFEFEu) >> 1); /* the rounded-up average of each byte */
+		}
+		ghostPrev2[i] = b;
 		ghostPrev[i] = a;
 	}
 	ghostFrame = frameCount;
@@ -8175,12 +8208,12 @@ static void setting_applied(const Setting* st) {
 		if (cfg->shader != SH_OFF) cfg->shaderLast = cfg->shader;
 		ui_shader(cfg->shader);
 		rebuild_textures();
-	} else if (!strcmp(k, "color_correction")) {
-		ui_color_correction(cfg->colorCorrection);
+	} else if (!strcmp(k, "color_correction") || !strcmp(k, "gb_correction")) {
+		ui_color_correction(correction_mode());
 		rebuild_textures(); /* (every picture given again, through it or not) */
 	} else if (!strcmp(k, "gb_size")) {
 		rebuild_textures(); /* (the game's texture is another size) */
-	} else if (!strcmp(k, "lcd_ghosting")) {
+	} else if (!strcmp(k, "lcd_ghosting") || !strcmp(k, "gb_ghosting")) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
 		if (emu.fb) {
@@ -8873,10 +8906,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	page_add(PG_GAME, M_BUG);
 	if (fromLibrary) page_add(PG_GAME, M_LIBRARY);
 	page_add(PG_GAME, M_EXIT);
-	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
+	ui_color_correction(correction_mode()); /* (Display > Color Correction, for this session's pictures) */
 	ui_shader(cfg->shader);
 #define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
-	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"), ROW(PG_DISPLAY, "gb_palette"), ROW(PG_DISPLAY, "gb_dual"); /* (GB-2) */
+	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"), ROW(PG_DISPLAY, "gb_palette"), ROW(PG_DISPLAY, "gb_dual"), ROW(PG_DISPLAY, "gb_correction"), ROW(PG_DISPLAY, "gb_ghosting"); /* (GB-2) */
 	ROW(PG_DISPLAY, "scale");
 	ROW(PG_DISPLAY, "map_scale");
 	ROW(PG_DISPLAY, "shader");
@@ -10165,7 +10198,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 		if (mirrorOn && mirrorHave) shownFb = mirrorHeld; /* (hud.mirror: the picture from before) */
 		if (tallLive) shownFb = cfg->swap ? tallBot : tallTop; /* (profile.tall: the table's upper half on the top screen) */
-		if (cfg->ghosting) shownFb = ghost_frame(shownFb);
+		if (ghost_mode() != GH_OFF) shownFb = ghost_frame(shownFb, ghost_mode());
 		/* only the view the game is on needs it (all of them right after a swap,
 		 * since the menu draws the game without uploading) */
 		for (int i = 0; i < nViews; ++i) {

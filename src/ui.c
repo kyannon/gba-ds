@@ -1366,16 +1366,27 @@ static uint32_t tex_version(SDL_Texture* t) {
  * 5-bit colour each 8-bit one came from (mGBA: c << 3 | c >> 2). */
 static uint32_t* ccLut;
 static bool ccOn;              /* pictures go through ccLut */
-static bool ccWant;            /* Display > Color Correction */
+static int ccWant;             /* Display > Color Correction: 0 off, 1 GBA, 2 Game Boy Color */
 static int ccGain = 100;       /* brightening, in percent (the subpixel shaders) */
-static bool lutCc = false;     /* what ccLut holds */
+static int lutCc = 0;           /* what ccLut holds */
 static int lutGain = -1;
-static void cc_build(bool cc, int gain) {
-	static const double m[3][3] = {
+static void cc_build(int mode, int gain) {
+	bool cc = mode != 0;
+	static const double gbaM[3][3] = {
 		{ 0.80, 0.275, -0.075 },
 		{ 0.135, 0.64, 0.225 },
 		{ 0.195, 0.155, 0.65 },
 	};
+	/* A Game Boy Color's screen (GB-8): our own first guess, not copied from anywhere: its colours
+	 * wash out and bleed into each other more than the GBA's (each row adds to 1.0, so white stays
+	 * white), through gamma 2.2 both ways, no darkening */
+	static const double gbcM[3][3] = {
+		{ 0.78, 0.18, 0.04 },
+		{ 0.10, 0.74, 0.16 },
+		{ 0.16, 0.16, 0.68 },
+	};
+	const double (*m)[3] = mode == 2 ? gbcM : gbaM;
+	double gam = mode == 2 ? 2.2 : 2.0, lum = mode == 2 ? 1.0 : 0.93, dark = mode == 2 ? 0.0 : 0.5;
 	if (!ccLut) ccLut = malloc(32768 * sizeof(uint32_t));
 	if (!ccLut) return;
 	for (int c = 0; c < 32768; ++c) {
@@ -1383,14 +1394,14 @@ static void cc_build(bool cc, int gain) {
 		for (int k = 0; k < 3; ++k) {
 			int v5 = c >> (k * 5) & 31;
 			double v = ((v5 << 3) | (v5 >> 2)) / 255.0;
-			if (cc) v = pow(v, 2.0 + 0.5) * 0.93;
+			if (cc) v = pow(v, gam + dark) * lum;
 			in[k] = v < 0 ? 0 : v > 1 ? 1 : v;
 		}
 		double o[3], top = 0;
 		for (int k = 0; k < 3; ++k) {
 			double v = cc ? m[k][0] * in[0] + m[k][1] * in[1] + m[k][2] * in[2] : in[k];
 			v = v < 0 ? 0 : v > 1 ? 1 : v;
-			o[k] = cc ? pow(v, 1.0 / 2.0) : v;
+			o[k] = cc ? pow(v, 1.0 / gam) : v;
 			if (o[k] > top) top = o[k];
 		}
 		/* brightened (the shader's stripes darken it again), all three
@@ -1405,15 +1416,15 @@ static void cc_build(bool cc, int gain) {
 		}
 		ccLut[c] = out;
 	}
-	lutCc = cc, lutGain = gain;
+	lutCc = mode, lutGain = gain;
 }
 static void cc_refresh(void) {
-	bool want = ccWant || ccGain != 100;
+	bool want = ccWant != 0 || ccGain != 100;
 	if (want && (lutCc != ccWant || lutGain != ccGain || !ccLut)) cc_build(ccWant, ccGain);
 	ccOn = want && ccLut;
 }
-void ui_color_correction(bool on) {
-	ccWant = on;
+void ui_color_correction(int mode) {
+	ccWant = mode;
 	cc_refresh();
 }
 
