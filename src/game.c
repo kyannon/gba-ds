@@ -1008,6 +1008,28 @@ static const MapProfile* snapProf; /* logo-only game with screens copied to the 
 static const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
 static uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
 static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
+static char gbPaletteAtStart[8], gbDualAtStart[8]; /* GB-6, GB-7 as this game started: a change counts from the next start */
+/* a Game Boy game's colours (GB-6, GB-7), from the settings, for emu_open */
+static void gb_colours_setup(void) {
+	static const struct { const char* key; int colors; uint32_t rgb[4]; } pal[] = {
+		{ "own", 1, { 0 } },
+		{ "sgb", 3, { 0 } },
+		{ "dmg", 0, { 0x9BBC0F, 0x8BAC0F, 0x306230, 0x0F380F } },
+		{ "pocket", 0, { 0xC4CFA1, 0x8B956D, 0x4D533C, 0x1F1F1F } },
+		{ "light", 0, { 0x00B581, 0x009A71, 0x00694A, 0x004F3B } },
+		{ "gray", 0, { 0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000 } },
+	};
+	snprintf(gbPaletteAtStart, sizeof(gbPaletteAtStart), "%s", cfg->gbPalette);
+	snprintf(gbDualAtStart, sizeof(gbDualAtStart), "%s", cfg->gbDual);
+	int pick = 0;
+	for (int i = 0; i < (int) (sizeof(pal) / sizeof(pal[0])); ++i) {
+		if (!strcmp(pal[i].key, cfg->gbPalette)) pick = i;
+	}
+	emu_gb_colours(pal[pick].colors, pal[pick].colors ? NULL : pal[pick].rgb, !strcmp(cfg->gbDual, "mono"));
+}
+static bool gb_colours_changed(void) {
+	return emu_is_gb(&emu) && (strcmp(cfg->gbPalette, gbPaletteAtStart) || strcmp(cfg->gbDual, gbDualAtStart));
+}
 static bool tallLiveAtStart; /* pinball_live as this game started with it: a change counts only after a new start */
 static bool tallLive;      /* the live view: the table over both screens (update_tall) */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
@@ -3877,7 +3899,8 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 			ui_font_text(scr, TF_BOLD, rowTag[i].x + tw / 2, cy, tc, "Game", (SDL_Color) { 20, 16, 36, 255 }, 0);
 			rowTagOn[i] = true;
 		}
-		if (!strcmp(key, "pinball_live") && cfg->tallLive != tallLiveAtStart) {
+		if ((!strcmp(key, "pinball_live") && cfg->tallLive != tallLiveAtStart) ||
+		    ((!strcmp(key, "gb_palette") || !strcmp(key, "gb_dual")) && gb_colours_changed())) {
 			/* changed since GBA DS started: it only counts once GBA DS is closed and started again */
 			int tc = SDL_max(6, cap * 5 / 8), gp2 = mg->pad / 2;
 			int px0 = r.x + mg->pad + lw + gp2 + (has ? ui_font_width(TF_BOLD, tc, "Game") + mg->pad + gp2 : 0);
@@ -8352,6 +8375,10 @@ static bool activate(int item, enum GameExit* exitTo) {
 		break;
 	}
 	case M_RESTART:
+		if (gb_colours_changed()) { /* (GB-6, GB-7: the game opens again with its new colours) */
+			*exitTo = GAME_RELOAD;
+			return true;
+		}
 		restart_game();
 		menuOpen = false;
 		ui_osd("Game restarted");
@@ -8658,6 +8685,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
 	game_keys_reload();
+	gb_colours_setup(); /* (GB-6, GB-7: for a Game Boy game) */
 	patches_setup(rom); /* GEN-9: the patches folder, what's on, and the plan every core opens the ROM with */
 	profile_set_rom(NULL, 0);
 	if (!emu_open(&emu, rom, gp.sav, true)) {
@@ -8746,7 +8774,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_color_correction(cfg->colorCorrection); /* (Display > Color Correction, for this session's pictures) */
 	ui_shader(cfg->shader);
 #define ROW(pg, key) rowKeys[pg][rowN[pg]++] = key
-	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"); /* (GB-2) */
+	if (emu_is_gb(&emu)) ROW(PG_DISPLAY, "gb_size"), ROW(PG_DISPLAY, "gb_scale"), ROW(PG_DISPLAY, "gb_palette"), ROW(PG_DISPLAY, "gb_dual"); /* (GB-2) */
 	ROW(PG_DISPLAY, "scale");
 	ROW(PG_DISPLAY, "map_scale");
 	ROW(PG_DISPLAY, "shader");

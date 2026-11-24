@@ -170,6 +170,11 @@ uint8_t* emu_rom_read_played(const char* path, size_t* size, int* patch, char* p
 /* The patches a game is played with (GEN-9), in order: whatever opens that
  * ROM from now on gets them; a NULL rom or no files: none planned (then the
  * patch file beside a ROM, if any). */
+/* A Game Boy game's colours (GB-6, GB-7), set before emu_open: colors is mGBA's gb.colors
+ * (0 none, 1 the Game Boy Color's palette for the game, 3 the Super Game Boy's else that);
+ * rgb: four 0xRRGGBB shades for the whole picture (NULL: not used); mono: a dual-mode game
+ * as on a plain Game Boy. The defaults are GB-1's. */
+void emu_gb_colours(int colors, const uint32_t* rgb, bool mono);
 void emu_patch_plan(const char* rom, char files[][1024], int n);
 /* The ROM with the patches given applied, in order (the game list's
  * checksum of each game as it would be played) */

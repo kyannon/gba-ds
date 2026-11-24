@@ -173,6 +173,14 @@ static struct {
 	size_t size;
 } patched;
 
+static struct { int colors; bool usePal; uint32_t rgb[4]; bool mono; } gbOpt = { 1, false, { 0 }, false };
+void emu_gb_colours(int colors, const uint32_t* rgb, bool mono) {
+	gbOpt.colors = colors;
+	gbOpt.usePal = rgb != NULL;
+	if (rgb) memcpy(gbOpt.rgb, rgb, sizeof(gbOpt.rgb));
+	gbOpt.mono = mono;
+}
+
 void emu_patch_plan(const char* rom, char files[][1024], int n) {
 	pthread_mutex_lock(&patchedLock);
 	snprintf(plan.rom, sizeof(plan.rom), "%s", rom ? rom : "");
@@ -431,9 +439,16 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		mCoreConfigSetDefaultValue(&e->core->config, "gb.model", "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "sgb.model", "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.model", "AGB");
-		mCoreConfigSetDefaultValue(&e->core->config, "cgb.hybridModel", "AGB");
+		mCoreConfigSetDefaultValue(&e->core->config, "cgb.hybridModel", gbOpt.mono ? "DMG" : "AGB"); /* (GB-7) */
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.sgbModel", "AGB");
-		mCoreConfigSetDefaultIntValue(&e->core->config, "gb.colors", 1); /* GB_COLORS_CGB */
+		mCoreConfigSetDefaultIntValue(&e->core->config, "gb.colors", gbOpt.colors); /* (GB-6: 1 is GB_COLORS_CGB) */
+		if (gbOpt.usePal) {
+			for (int i = 0; i < 12; ++i) {
+				char key[16];
+				snprintf(key, sizeof(key), "gb.pal[%d]", i);
+				mCoreConfigSetDefaultIntValue(&e->core->config, key, (int) gbOpt.rgb[i & 3]); /* background, then the two sprite palettes */
+			}
+		}
 		mCoreConfigSetDefaultIntValue(&e->core->config, "sgb.borders", 0);
 	}
 	mCoreLoadConfig(e->core);

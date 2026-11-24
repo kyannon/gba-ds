@@ -73,6 +73,8 @@ void config_defaults(Config* c) {
 	c->lcdStrength = 35;
 	strcpy(c->gbSize, "gba");
 	strcpy(c->gbScale, "integer");
+	strcpy(c->gbPalette, "own");
+	strcpy(c->gbDual, "colour");
 	strcpy(c->borderColor, "000000");
 	strcpy(c->language, "auto");
 }
@@ -103,6 +105,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("map_scale", mapScale)
 	STR("gb_size", gbSize)
 	STR("gb_scale", gbScale)
+	STR("gb_palette", gbPalette)
+	STR("gb_dual", gbDual)
 	BOOL("smooth", smooth)
 	if (!strcmp(key, "shader")) {
 		for (int i = 0; i < SH_COUNT; ++i) {
@@ -288,7 +292,7 @@ static int nCliKeys;
  * (folders, accounts, updates, how the screens are found, hotkeys, the
  * touch panel) is for all games. */
 static const char* const perGameKeys[] = {
-	"swap", "scale", "map_scale", "gb_size", "gb_scale", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
+	"swap", "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
 	"map_interval", "custom_logos", "pinball_live", "toggle", "auto_rotate", "toggle_button", "rewind", "rewind_seconds",
 	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
@@ -454,6 +458,10 @@ static const SettingChoice chLogos[] = { { "pixelated", "Pixelated", CL_PIXELATE
 static const SettingChoice chScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Full Width", 0 }, { "zoom", "Zoom", 0 }, { "stretch", "Stretch", 0 } };
 static const SettingChoice chGbSize[] = { { "gba", "GBA frame", 0 }, { "native", "Game Boy screen", 0 } };
 static const SettingChoice chGbScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Fit", 0 }, { "stretch", "Stretch", 0 } };
+static const SettingChoice chGbPalette[] = {
+	{ "own", "Game's own", 0 }, { "dmg", "DMG", 0 }, { "pocket", "Pocket", 0 }, { "light", "Light", 0 }, { "gray", "Grayscale", 0 }, { "sgb", "Super Game Boy", 0 },
+};
+static const SettingChoice chGbDual[] = { { "colour", "In colour", 0 }, { "mono", "In monochrome", 0 } };
 static const SettingChoice chShader[] = {
 	{ N_("off"), "Off", SH_OFF }, { "grid", "LCD Grid", SH_GRID }, { "scanlines", "Scanlines", SH_SCANLINES }, { "soft", "Soft Cells", SH_SOFT },
 	{ "subpixels-light", "Subpixels (Light)", SH_SUB_LIGHT }, { "subpixels", "Subpixels", SH_SUB }, { "subpixels-strong", "Subpixels (Strong)", SH_SUB_STRONG },
@@ -492,6 +500,8 @@ static const Setting settingsTable[] = {
 	{ "map_scale", "Second screen scale", SF_STR, OFFB(mapScale), ARR(chScale), 0, 0, 0, NULL, "How the map or logo fills its screen." },
 	{ "gb_size", "Game Boy size", SF_STR, OFFB(gbSize), ARR(chGbSize), 0, 0, 0, NULL, "Game Boy games: in a GBA's frame, or the Game Boy's own screen." },
 	{ "gb_scale", "Game Boy scale", SF_STR, OFFB(gbScale), ARR(chGbScale), 0, 0, 0, NULL, "For the Game Boy screen: how its picture fills the screen." },
+	{ "gb_palette", "Game Boy palette", SF_STR, OFFB(gbPalette), ARR(chGbPalette), 0, 0, 0, NULL, "The shades of a monochrome Game Boy game. Counts from the next start of the game." },
+	{ "gb_dual", "Dual-mode games", SF_STR, OFFB(gbDual), ARR(chGbDual), 0, 0, 0, NULL, "Games made for both a Game Boy and a Game Boy Color: in colour, or as on a Game Boy. Counts from the next start." },
 	{ "shader", "Shader", SF_INT, OFFB(shader), ARR(chShader), 0, 0, 0, NULL, "A pattern over every pixel, on both screens." },
 	{ "lcd_strength", "Pattern strength", SF_INT, OFFB(lcdStrength), NULL, 0, 0, 100, 5, "%", "How dark the grid, scanlines and soft cells are." },
 	{ "color_correction", "Color correction", SF_BOOL, OFFB(colorCorrection), ARR(chOnOff), 0, 0, 0, NULL, "Colors as a Game Boy Advance's screen showed them." },
