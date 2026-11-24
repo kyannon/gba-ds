@@ -171,6 +171,9 @@ int main(int argc, char** argv) {
 				printf(" %02X", emu_read8(&emu, addr + i));
 			}
 			printf("\n");
+		} else if (!strcmp(cmd, "rumble")) {
+			/* the motor's level now (GBADS_HARNESS_RUMBLE=1 gives the harness's game one; issue #83) */
+			printf("RUMBLE %.2f\n", emu_rumble_level(&emu));
 		} else if (!strcmp(cmd, "io")) {
 			/* I/O registers as the renderer sees them: io OFFSET COUNT (16-bit) */
 			uint32_t off = strtoul(a1, NULL, 0), n = strtoul(a2, NULL, 0);
