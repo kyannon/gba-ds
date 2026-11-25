@@ -10012,6 +10012,9 @@ static void tmc_jpn(MapProfile* p) {
 	p->logo.maxY = 122;
 }
 
+/* Pokemon Mystery Dungeon: Red Rescue Team (USA): gDungeon, the pointer to the floor being played (0 elsewhere) */
+#define PMD_DUNGEON 0x0203B418u
+
 static const MapProfile profiles[] = {
 	/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md. One entry per engine (the USA and Europe releases) */
 #define PK_PROFILE(ENGINE_LOGO, TITLE, ...) \
@@ -12957,6 +12960,37 @@ static const MapProfile profiles[] = {
 		.room = { { BOF2_V_SCREEN, 0xFF, 0, 4 } },
 		/* the title's lettering, the sprites, above the copyright lines (BOF2-1) */
 		.logo = { .steps = { { 0, 1500 } }, .layers = 0x10, .maxY = 120 },
+	},
+	{
+		/* Pokemon Mystery Dungeon: Red Rescue Team (docs/games/pokemon-mystery-dungeon-red-rescue-team.md) */
+		.codes = { "B24E" },
+		.title = "Pokemon Mystery Dungeon: Red Rescue Team",
+		.logoOnly = true,
+		/* the health screen takes a press; the title (lettering alone on BG2) is up by ~2000 frames after it */
+		.logo = { .steps = { { 0, 300 }, { K_A, 8 }, { 0, 2000 } }, .layer = 2 },
+		/* BG0 is the status line (row 0), the minimap's tile canvas (palette 14, rows 1-16) and the windows: the canvas
+		 * up at its top left means no menu or dialogue (PMD-2) */
+		.hud = {
+			.on = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x0100, 0x0100, 2 }, { 0x0202B07A, 0xF000, 0xE000, 2 } },
+			.keep = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 } },
+			/* the stairs menu's close puts the canvas back in the game's copy for a frame while a window tile is still
+			 * in VRAM: not a picture to keep */
+			.freeze = { { 0x06006042, 0xF000, 0xF000, 2 }, { 0x0202B07A, 0xF000, 0xE000, 2 } },
+			.bgMask = 1,
+			/* the player's dot on the map: a blinking 8x8 sprite, tile 533, palette 15 */
+			.objs = { { -16, -16, 255, 175, 533, 533, 0, 1u << 15 } },
+			.black = true,
+			/* the message box (rows 15-19) clears only the canvas's bottom rows: while its window is in VRAM it goes back onto the game screen, the map stays live (PMD-3) */
+			.layout = { { 0x06006404, 0xF000, 0xF000, 2 } },
+			.moves = { { 0, 120, 239, 159, 0, 0, 0, 0, true } },
+			/* menus, dialogue, the stairs prompt and the floor banner clear the canvas: the game draws BG0 below its
+			 * status line, which stays on the second screen, live, over the map as it was (PMD-3) */
+			.alt = { .on = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x0100, 0x0100, 2 } }, .bgMask = 1, .rows = 8,
+			         .heldWhen = { { 0x06006042, 0xF000, 0xE000, 2 } } },
+		},
+		/* SELECT hides the field to show the floor map, which the second screen has; with the field hidden it still turns it back (PMD-4) */
+		.swallow = { K_SELECT, { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x1F00, 0x1F00, 2 },
+		                         { 0x0202B07A, 0xF000, 0xE000, 2 }, { 0x0202B43C, 0xF000, 0xE000, 2 } } },
 	},
 };
 
