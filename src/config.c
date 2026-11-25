@@ -34,6 +34,7 @@ void config_defaults(Config* c) {
 	strcpy(c->cheatDir, "/config/retroarch/cheats:/storage/.config/retroarch/cheats");
 	strcpy(c->esConfigDir, "/storage/.config/emulationstation");
 	strcpy(c->libraryView, "list");
+	strcpy(c->librarySort, "alpha");
 	strcpy(c->touchScreen, "second");
 	strcpy(c->topScreen, "auto");
 	strcpy(c->screenMatch, "keep");
@@ -82,6 +83,7 @@ void config_defaults(Config* c) {
 	strcpy(c->gbGhosting, "same");
 	strcpy(c->gbShader, "same");
 	strcpy(c->gbDual, "colour");
+	strcpy(c->gbBorder, "none");
 	strcpy(c->borderColor, "000000");
 	strcpy(c->language, "auto");
 }
@@ -117,6 +119,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("gb_ghosting", gbGhosting)
 	STR("gb_shader", gbShader)
 	STR("gb_dual", gbDual)
+	STR("gb_border", gbBorder)
 	BOOL("smooth", smooth)
 	if (!strcmp(key, "shader")) {
 		for (int i = 0; i < SH_COUNT; ++i) {
@@ -292,6 +295,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	INT("quit_after", quitAfter)
 	STR("es_config_dir", esConfigDir)
 	STR("library_view", libraryView)
+	STR("library_sort", librarySort)
 	STR("input_script", inputScript)
 	return false;
 #undef STR
@@ -308,7 +312,7 @@ static int nCliKeys;
  * (folders, accounts, updates, how the screens are found, hotkeys, the
  * touch panel) is for all games. */
 static const char* const perGameKeys[] = {
-	"swap", "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_correction", "gb_ghosting", "gb_shader", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
+	"swap", "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_border", "gb_correction", "gb_ghosting", "gb_shader", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
 	"map_interval", "custom_logos", "pinball_live", "toggle", "auto_rotate", "toggle_button", "rewind", "rewind_seconds",
 	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
@@ -480,6 +484,7 @@ static const SettingChoice chGbScale[] = { { "integer", "Pixel Perfect", 0 }, { 
 static const SettingChoice chGbPalette[] = {
 	{ "own", "Game's own", 0 }, { "dmg", "DMG", 0 }, { "pocket", "Pocket", 0 }, { "light", "Light", 0 }, { "gray", "Grayscale", 0 }, { "sgb", "Super Game Boy", 0 },
 };
+static const SettingChoice chGbBorder[] = { { "none", "None", 0 }, { "sgb", "Super Game Boy", 0 } };
 static const SettingChoice chGbDual[] = { { "colour", "In colour", 0 }, { "mono", "In monochrome", 0 } };
 static const SettingChoice chGbCorrection[] = { { "same", "As GBA", 0 }, { "off", "Off", 0 }, { "gbc", "Game Boy Color", 0 }, { "gba", "Game Boy Advance", 0 } };
 static const SettingChoice chGbGhosting[] = { { "same", "As GBA", 0 }, { "off", "Off", 0 }, { "light", "Light", 0 }, { "smart", "Smart", 0 }, { "strong", "Strong", 0 } };
@@ -526,6 +531,7 @@ static const Setting settingsTable[] = {
 	{ "gb_correction", "Game Boy color correction", SF_STR, OFFB(gbCorrection), ARR(chGbCorrection), 0, 0, 0, NULL, "Colors of a Game Boy game: as set for GBA games, none, or as a Game Boy Color or a Game Boy Advance screen showed them." },
 	{ "gb_ghosting", "Game Boy ghosting", SF_STR, OFFB(gbGhosting), ARR(chGbGhosting), 0, 0, 0, NULL, "Moving things leave a trail on a Game Boy game: as set for GBA games, none, a light one, only for flicker, or a long one." },
 	{ "gb_shader", "Game Boy shader", SF_STR, OFFB(gbShader), ARR(chGbShader), 0, 0, 0, NULL, "The pattern over a Game Boy game: as set for GBA games, none, a grid, scanlines, soft cells, or a Game Boy's dot matrix with its shadows." },
+	{ "gb_border", "Game Boy border", SF_STR, OFFB(gbBorder), ARR(chGbBorder), 0, 0, 0, NULL, "The border a Super Game Boy showed around a game that supports it: none, or the game's own. Counts from the next start of the game." },
 	{ "gb_dual", "Dual-mode games", SF_STR, OFFB(gbDual), ARR(chGbDual), 0, 0, 0, NULL, "Games made for both a Game Boy and a Game Boy Color: in colour, or as on a Game Boy. Counts from the next start." },
 	{ "shader", "Shader", SF_INT, OFFB(shader), ARR(chShader), 0, 0, 0, NULL, "A pattern over every pixel, on both screens." },
 	{ "lcd_strength", "Pattern strength", SF_INT, OFFB(lcdStrength), NULL, 0, 0, 100, 5, "%", "How dark the grid, scanlines and soft cells are." },
