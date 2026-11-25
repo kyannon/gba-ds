@@ -8311,7 +8311,7 @@ static void setting_applied(const Setting* st) {
 		ui_color_correction(correction_mode());
 		rebuild_textures(); /* (every picture given again, through it or not) */
 	} else if (!strcmp(k, "gb_size")) {
-		rebuild_textures(); /* (the game's texture is another size) */
+		resize_game_textures(); /* (the game's texture is another size; the interface's own are left alone) */
 	} else if (!strcmp(k, "lcd_ghosting") || !strcmp(k, "gb_ghosting")) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
@@ -8794,6 +8794,23 @@ static void ss_textures(void) {
  * picture again (the game's comes with the next frame). */
 static const char* romPath;
 static Uint32 lastLoop; /* the last pass of the play loop (SDL_GetTicks) */
+/* the game's pictures only, in the size the game now has (Game Boy size): nothing of the interface's own is touched */
+static void resize_game_textures(void) {
+	for (int i = 0; i < nViews; ++i) {
+		if (gameTex[i]) SDL_DestroyTexture(gameTex[i]);
+		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
+		if (gameTex[i]) SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
+		if (gbp) {
+			if (gbpTex[i]) SDL_DestroyTexture(gbpTex[i]);
+			gbpTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
+			if (gbpTex[i]) SDL_SetTextureBlendMode(gbpTex[i], SDL_BLENDMODE_NONE);
+		}
+	}
+	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(gbp_or_fb(emu.fb)), GBA_W * 4);
+	if (gbp && gbpLive) gbp_upload();
+	fprintf(stderr, "Game Boy size: textures %dx%d, %d views, table %d, game on screen %d\n", game_tex_w(), game_tex_h(), nViews, gbp && gbpLive, game_screen());
+	gameTexAll = true;
+}
 static void rebuild_textures(void) {
 	for (int i = 0; i < nViews; ++i) {
 		if (gameTex[i]) SDL_DestroyTexture(gameTex[i]);
@@ -10086,6 +10103,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		const bool ffMax = ff && cfg->ffSpeed <= 0;
 		static int maxRan = 4;
 		int runs = ffMax ? FF_MAX_RUNS : ff ? cfg->ffSpeed : 1;
+		bool loadRun = false;
+		if (!ff && !rewinding && gbp && gbpin_holding(gbp)) runs = 6, loadRun = true; /* (PPG-2: the crossing's load, the game's own white screen, run through quickly) */
 		int thin = ffMax ? maxRan : runs; /* every thin-th sound sample kept */
 		/* Audio keeps flowing during fast-forward: every runs-th sample is kept,
 		 * so the device gets real-time worth of (sped-up) sound. Starving it
@@ -10127,6 +10146,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		int ran = 0;
 		for (int i = 0; i < (rewinding ? 0 : runs); ++i) {
 			if (ffMax && i > 0 && (SDL_GetPerformanceCounter() - emuT0) / freq > frameSec * 0.7) break;
+			if (loadRun && i > 0 && !gbpin_holding(gbp)) break;
 			++ran;
 			if (i == 0 && aheadReady) aheadReady = false; /* emulated by the worker while the last frame was shown */
 			else run_frame(keys);

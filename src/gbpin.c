@@ -312,6 +312,10 @@ void gbpin_close(GbPin* g) {
 
 void gbpin_before(GbPin* g, Emu* game, uint32_t keys) {
 	if (!g) return;
+	if (g->xfade && g->table) { /* (a crossing's load is being run through: no copies for these frames) */
+		g->started = -2;
+		return;
+	}
 	Copy* c = &g->c[g->turn];
 	size_t need = emu_state_size(game);
 	if (c->stCap < need) {
@@ -349,6 +353,19 @@ void gbpin_before(GbPin* g, Emu* game, uint32_t keys) {
  * gbpin_before, so the job before it is the other copy's) */
 void gbpin_after(GbPin* g, Emu* game) {
 	if (!g) return;
+	if (g->started == -2) { /* held: only watch for the end of the white screen (the copies' last job, if any, is stale) */
+		int s2 = rd8(game, g->a.stage);
+		g->stage = s2;
+		if (is_white(game->fb, game)) g->xseen = true;
+		else if (g->xseen) g->xfade = false;
+		if (++g->xn > 90) g->xfade = false;
+		if (!table_stage(s2)) g->xfade = false, g->table = false;
+		g->prevS = table_stage(s2) ? s2 : -1;
+		if (g->xfade) return;
+		g->started = -1; /* (resumes next frame: this one has no picture of its own to take, so the halves stay as they were) */
+		g->miss = 0;
+		return;
+	}
 	Copy* c = &g->c[g->started < 0 ? g->turn : g->started ^ 1];
 	if (g->started < 0) { /* (this frame's job wasn't started: the stage isn't a table's; collect nothing) */
 		g->table = false;
@@ -410,6 +427,10 @@ void gbpin_after(GbPin* g, Emu* game) {
 			g->lost = 0;
 		}
 	}
+}
+
+bool gbpin_holding(const GbPin* g) {
+	return g && g->table && g->xfade;
 }
 
 bool gbpin_table(const GbPin* g, const uint32_t** top, const uint32_t** bottom) {

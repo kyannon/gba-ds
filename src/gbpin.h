@@ -26,6 +26,8 @@ void gbpin_after(GbPin* g, Emu* game);
 /* The table's two halves as the screens show them (GBA_W x GBA_H frames as Emu.fb has them: the game's
  * picture where emu.c puts it). false: the table isn't up (menus, the bonus stages): the game plays on
  * its own screen. top and bottom are valid until the next gbpin_after. */
+/* true while a crossing's load is held (the game's white screen is being run through) */
+bool gbpin_holding(const GbPin* g);
 bool gbpin_table(const GbPin* g, const uint32_t** top, const uint32_t** bottom);
 /* The stage the game is in (0 top, 1 bottom of a table), or -1 (for the tests' log) */
 int gbpin_stage(const GbPin* g);
