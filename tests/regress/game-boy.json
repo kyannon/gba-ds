@@ -345,6 +345,56 @@
      "what": "the 768x672 picture is drawn, not black"
     }
    ]
+  },
+  {
+   "id": "gb-border-black-until-the-games-own",
+   "rom": "g6cn",
+   "desc": "Castlevania Legends with the border on, in the first second: the border area is black, not mGBA's own frame, until the game sends its border (GB-12)",
+   "rules": [
+    "GB-12"
+   ],
+   "config": {
+    "gb_border": "sgb"
+   },
+   "input": [],
+   "shots": {
+    "early": 60
+   },
+   "golden": [
+    "early"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "early",
+     "probes": [
+      [
+       150,
+       100,
+       "000000"
+      ],
+      [
+       880,
+       400,
+       "000000"
+      ],
+      [
+       512,
+       60,
+       "000000"
+      ],
+      [
+       512,
+       730,
+       "000000"
+      ]
+     ],
+     "rule": "GB-12",
+     "what": "the border area is black before the game's own border arrives (no mGBA frame)",
+     "tol": 4
+    }
+   ]
   }
  ]
 }

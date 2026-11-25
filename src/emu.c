@@ -2,6 +2,7 @@
  * screen height: include it first, then let emu.h take the name over. */
 #include <mgba/flags.h>
 #include <mgba/internal/gba/gba.h>
+#include <mgba/internal/gb/gb.h>
 #include <mgba/internal/gba/renderers/video-software.h>
 #include <mgba/internal/gba/cheats.h>
 #include <mgba/internal/gba/bios.h>
@@ -489,6 +490,8 @@ void emu_set_gyro(Emu* e, int32_t value) {
 	if (e->gyro) ((EmuGyro*) e->gyro)->value = value;
 }
 
+static void gb_border_snapshot(Emu* e);
+
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
 	mLogSetDefaultLogger(&quietLogger);
@@ -638,6 +641,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		}
 	}
 	e->core->reset(e->core);
+	if (e->gbBorder) gb_border_snapshot(e);
 
 	struct mGameInfo info;
 	memset(&info, 0, sizeof(info));
@@ -666,6 +670,8 @@ void emu_close(Emu* e) {
 	free(e->fb);
 	e->fb = NULL;
 	free(e->sgbFb);
+	free(e->gbBorderDefault);
+	e->gbBorderDefault = NULL;
 	e->sgbFb = NULL;
 	free(e->rumble);
 	e->rumble = NULL;
@@ -677,11 +683,49 @@ bool emu_cancelled(const Emu* e) {
 	return e->cancel && *e->cancel;
 }
 
+/* (GB-12) mGBA starts a Super Game Boy with a frame of its own (it says "mGBA"), until the game sends its own.
+ * The border's two memories are kept as they start; the border stays black while they still are. */
+static void gb_border_mem(Emu* e, uint8_t** ch, uint8_t** mp) {
+	struct GB* gb = e->core->board;
+	*ch = gb->video.renderer ? gb->video.renderer->sgbCharRam : NULL;
+	*mp = gb->video.renderer ? gb->video.renderer->sgbMapRam : NULL;
+}
+
+static void gb_border_snapshot(Emu* e) {
+	uint8_t *ch, *mp;
+	gb_border_mem(e, &ch, &mp);
+	if (!ch || !mp) { e->gbBorderOwn = true; return; } /* nothing to compare: show whatever the core draws */
+	free(e->gbBorderDefault);
+	e->gbBorderDefault = malloc(SGB_SIZE_CHAR_RAM + SGB_SIZE_MAP_RAM);
+	memcpy(e->gbBorderDefault, ch, SGB_SIZE_CHAR_RAM);
+	memcpy(e->gbBorderDefault + SGB_SIZE_CHAR_RAM, mp, SGB_SIZE_MAP_RAM);
+	e->gbBorderOwn = false;
+}
+
+static void gb_border_hide_default(Emu* e) {
+	if (e->gbBorderOwn) return;
+	uint8_t *ch, *mp;
+	gb_border_mem(e, &ch, &mp);
+	if (ch && mp && memcmp(ch, e->gbBorderDefault, SGB_SIZE_CHAR_RAM) == 0 && memcmp(mp, e->gbBorderDefault + SGB_SIZE_CHAR_RAM, SGB_SIZE_MAP_RAM) == 0) {
+		for (int y = 0; y < SGB_H; ++y) {
+			uint32_t* row = e->sgbFb + (size_t) y * SGB_W;
+			bool inY = y >= SGB_WIN_Y && y < SGB_WIN_Y + 144;
+			for (int x = 0; x < SGB_W; ++x) {
+				if (inY && x >= SGB_WIN_X && x < SGB_WIN_X + 160) { x = SGB_WIN_X + 159; continue; }
+				row[x] = 0xFF000000u;
+			}
+		}
+		return;
+	}
+	e->gbBorderOwn = true; /* the game's own: from now on as the core draws it */
+}
+
 void emu_frame(Emu* e, uint32_t keys) {
 	if (emu_cancelled(e)) return;
 	++e->frames;
 	e->core->setKeys(e->core, keys);
 	e->core->runFrame(e->core);
+	if (e->sgbFb) gb_border_hide_default(e);
 	if (e->sgbFb && e->fb) { /* (GB-12) the game's window into the frame, where it is without a border: everything else works on that */
 		for (int y = 0; y < e->picH; ++y) {
 			memcpy(e->fb + (size_t) (e->picY + y) * GBA_W + e->picX, e->sgbFb + (size_t) (SGB_WIN_Y + y) * SGB_W + SGB_WIN_X, (size_t) e->picW * sizeof(uint32_t));
@@ -712,6 +756,7 @@ void emu_frame_blind(Emu* e, uint32_t keys) {
 
 void emu_reset(Emu* e) {
 	e->core->reset(e->core);
+	if (e->gbBorder) gb_border_snapshot(e);
 	split_resync(e);
 }
 

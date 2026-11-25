@@ -58,6 +58,8 @@ typedef struct Emu {
 	 * (issue #77) draws its 160x144 picture centred in the same GBA_W x GBA_H frame, at (picX, picY),
 	 * so the rest of the app sees a GBA-sized picture; for a GBA game it is the whole frame. */
 	bool gbBorder;    /* running as a Super Game Boy with its border (GB-12): the core draws the 256x224 picture into sgbFb */
+	uint8_t* gbBorderDefault; /* mGBA's own frame's memory as the core starts it: the border is black while the game has not sent its own */
+	bool gbBorderOwn;         /* the game has sent its own border */
 	uint32_t* sgbFb;  /* SGB_W x SGB_H, the border with the game's window in it (fb has the window alone, as ever) */
 	bool gbSgbHeader; /* the cartridge supports the Super Game Boy (0x146 = 3, not Game Boy Color alone) */
 	bool gbSgb; /* a Game Boy game running as a Super Game Boy (GB-11): it supports one and its colours are the SGB's */
