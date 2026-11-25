@@ -165,6 +165,8 @@ static const KnownDump knownDumps[] = {
 	{ "ATHJ", 0x91f93500, true, false, "SK8 - Tony Hawk's Pro Skater 2 (Japan)" },
 	{ "ATOE", 0x6649d2ce, true, false, "Tactics Ogre - The Knight of Lodis (USA)" },
 	{ "ATOJ", 0x0167a878, true, false, "Tactics Ogre Gaiden - The Knight of Lodis (Japan)" },
+	{ "AVFJ", 0xbb1370f1, false, false, "Densetsu no Stafy 2 (Japan) (Virtual Console)" },
+	{ "AVFJ", 0xea73eb54, true, false, "Densetsu no Stafy 2 (Japan)" },
 	{ "AVRE", 0xd3ae3d37, true, false, "V-Rally 3 (USA) (En,Fr,Es)" },
 	{ "AVRJ", 0xa0aa46b9, true, false, "V-Rally 3 (Japan)" },
 	{ "AVRP", 0x02d20287, true, false, "V-Rally 3 (Europe) (En,Fr,De,Es,It)" },
@@ -401,6 +403,7 @@ static const KnownDump knownDumps[] = {
 	{ "ASTJ", 0xa047b091, true, true, "Densetsu no Starfy v1.1 (Starfy Translation Team; Japanese names kept)" },
 	{ "ASTJ", 0xe324050c, true, true, "The Legendary Starfy v1.1 (Starfy Translation Team)" },
 	{ "ASTJ", 0xf7cb8ee3, true, true, "Starfy Origins v1.1 (Starfy Translation Team)" },
+	{ "AVFJ", 0xec61d726, true, true, "The Legendary Starfy 2 English v0.9.9 (Starfy translation patches)" },
 	{ "AWAE", 0xc0ce2370, true, true, "Color palette enhancement 1.1 (Piggy Chan!)" },
 	{ "AX4E", 0xd4f7d398, true, true, "GBP palette v1.0 (djedditt)" },
 	{ "AX4E", 0xe6c145c2, true, true, "GBP palette v1.0 (djedditt)" },
@@ -528,4 +531,5 @@ static const KnownPatch knownPatches[] = {
 	{ "A3AE", 0xee1f43b9, 43358, 0x40a48276, 0x6cda3e7d, "voice removal", "Voice removal v0.1", "Super Mario Advance 3 - Yoshi's Island (USA)", true },
 	{ "A3UJ", 0xf02e4122, 2336, 0x42ac9cb9, 0xb7faa37d, "audio", "HQ audio mix alternative (MusicTheorist)", "Mother 3 (Japan)", true },
 	{ "A2CE", 0xf3235cb8, 141702, 0x35536183, 0x00d0fddf, "colour", "Symphony of the Colors v1.0 (JonataGuitar)", "Castlevania - Aria of Sorrow (USA)", true },
+	{ "AVFJ", 0xf9d74e31, 532448, 0xea73eb54, 0xec61d726, "translation", "The Legendary Starfy 2 English v0.9.9 (Starfy translation patches)", "Densetsu no Stafy 2 (Japan)", true },
 };

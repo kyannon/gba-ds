@@ -13022,6 +13022,26 @@ static const MapProfile profiles[] = {
 		 * lettering on BG0 above the PRESS START sprites and the copyright */
 		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
 	},
+	{
+		/* Densetsu no Stafy 2 (docs/games/densetsu-no-stafy-2.md), and the Starfy Translation
+		 * Team's English patch (Mods row): the same RAM and screens */
+		.codes = { "AVFJ" },
+		.title = "Densetsu no Stafy 2",
+		.logoOnly = true,
+		.hud = {
+			/* 0x0200002C: 00 in a stage and its pause screens (which have no HUD sprites of their own: ST2-7) */
+			.on = { { 0x0200002C, 0xFF, 0x00, 1 } },
+			/* the HUD's sprites (priority 1); a stage's other sprites are at priority 2 */
+			.objs = { { 0, 136, 239, 159, 0, 1023, 1 } },
+			.moves = { { 56, 136, 83, 159, 'L', 8, 'T', 4 }, { 84, 136, 167, 159, 'C', 120, 'T', 4 }, { 168, 136, 239, 159, 'R', 231, 'T', 5 } },
+			.logoBelow = true,
+		},
+		/* the game's own pause screen open: the logo, not the same screen twice (ST2-7) */
+		.logoIf = { { 0x04000000, 0xFFFF, 0x7F40, 2 } },
+		.logoIfLast = true,
+		/* the lettering and its (c) line (BG1) above the PRESS START sprites; START cuts the opening short */
+		.logo = { .steps = { { 0, 1600 }, { K_START, 4 }, { 0, 200 } }, .layer = 1, .maxY = 96 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions

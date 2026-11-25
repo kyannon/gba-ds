@@ -72,6 +72,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Breath of Fire](breath-of-fire.md) | BOF | `ABFE` + 3 |
 | [Breath of Fire II (Shimei no Ko in Japan)](breath-of-fire-ii.md) | BOF2 | `AB2E` + 2 |
 | [Densetsu no Stafy](densetsu-no-stafy.md) | STF | `ASTJ` |
+| [Densetsu no Stafy 2](densetsu-no-stafy-2.md) | ST2 | `AVFJ` |
 
 ## General rules
 
