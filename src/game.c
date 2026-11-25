@@ -10257,6 +10257,17 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			if (strncmp(pc, subCode, 4)) ss_switch(rom, pc);
 		}
 
+		{
+			/* (logoIf: the logo for now, SM4-11; a logo-only game's from its HUD's profile) */
+			const MapProfile* lp = mc ? mapcap_profile(mc) : hudProf;
+			bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
+			                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
+			if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
+			else if (logoHolding > 0) --logoHolding;
+			lf = lf || logoHolding > 0;
+			if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
+			logoForced = lf;
+		}
 		/* ---- map refresh */
 		if (mc) {
 			++sinceMapRequest;
@@ -10267,17 +10278,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				hideWhenOn = !hideWhenOn;
 				emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
 				if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
-			}
-			{
-				/* (logoIf: the logo for now, SM4-11) */
-				const MapProfile* lp = mapcap_profile(mc);
-				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
-				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
-				if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
-				else if (logoHolding > 0) --logoHolding;
-				lf = lf || logoHolding > 0;
-				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
-				logoForced = lf;
 			}
 			bool dark = frame_is_dark(emu.fb);
 			if (wasDark && !dark) refreshAt = (long) frameCount + 6;
