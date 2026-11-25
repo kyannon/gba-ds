@@ -13,6 +13,7 @@ void ui_stick_dpad(bool on) {
 #include "textfont.h"
 #include "fonts_data.h"
 #include "logo.h"
+#include "rgba.h"
 #include "paths.h"
 #include "profiles.h"
 #include "emu.h"
@@ -2706,29 +2707,7 @@ static SDL_Surface* trim_alpha(SDL_Surface* s, bool jpeg) {
 SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h) {
 	SDL_Surface* o = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_RGBA32);
 	if (!o) return NULL;
-	for (int y = 0; y < h; ++y) {
-		int sy0 = y * s->h / h, sy1 = SDL_max(sy0 + 1, (y + 1) * s->h / h);
-		uint8_t* out = (uint8_t*) o->pixels + (size_t) y * o->pitch;
-		for (int x = 0; x < w; ++x) {
-			int sx0 = x * s->w / w, sx1 = SDL_max(sx0 + 1, (x + 1) * s->w / w);
-			double r = 0, g = 0, b = 0, a = 0;
-			int cnt = 0;
-			for (int yy = sy0; yy < sy1; ++yy) {
-				const uint8_t* p = (const uint8_t*) s->pixels + (size_t) yy * s->pitch + (size_t) sx0 * 4;
-				for (int xx = sx0; xx < sx1; ++xx, p += 4) {
-					r += p[0] * p[3], g += p[1] * p[3], b += p[2] * p[3], a += p[3];
-					++cnt;
-				}
-			}
-			uint8_t* q = out + x * 4;
-			if (a > 0) {
-				q[0] = (uint8_t) lround(r / a), q[1] = (uint8_t) lround(g / a), q[2] = (uint8_t) lround(b / a);
-			} else {
-				q[0] = q[1] = q[2] = 0;
-			}
-			q[3] = (uint8_t) lround(a / cnt);
-		}
-	}
+	rgba_resample(s->pixels, s->w, s->h, s->pitch, o->pixels, w, h, o->pitch); /* (rgba.c) */
 	return o;
 }
 

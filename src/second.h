@@ -25,11 +25,24 @@ const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
  * it keeps of a new map picture; its pieces laid over the picture, returning
  * the picture to show, px itself if none); present puts the picture (sec.mapW
  * x sec.mapH) on the screen, presentGba one of the game's own size. */
+/* The game's logo as the app finds it (the player's own, a scraped or the
+ * extracted one): RGBA32 bytes (R, G, B, A), w x h, pitch bytes a row; own:
+ * the app's, for logoFree */
+typedef struct {
+	const uint8_t* px;
+	int w, h, pitch;
+	void* own;
+} LogoPic;
+
 typedef struct {
 	void (*hudNew)(bool fresh);
 	const uint32_t* (*overMap)(const uint32_t* px);
 	void (*present)(const uint32_t* px);
 	void (*presentGba)(const uint32_t* px); /* a picture GBA_W x GBA_H (the screen copy) */
+	/* the game's logo (sub: its pixels to a GBA pixel, a scraped logo's
+	 * more than 1); false: none. Released with logoFree. */
+	bool (*logoLoad)(LogoPic* p, int* sub);
+	void (*logoFree)(LogoPic* p);
 } SecondHooks;
 
 /* ---- The second screen's state (libretro core, discussion #75: the module's
@@ -119,6 +132,10 @@ void upload_map_frame(int idx);
 void map_show_new(bool fresh);
 /* a logo-only game's screen copy (sec.snapProf), once a frame */
 void update_snapshot(void);
+/* the game's logo onto a cw x ch canvas, k canvas pixels to a logo pixel,
+ * blended at alpha (LOGO_IDLE: idle), centred below `top` rows; false if
+ * there's no logo (or no room) */
+bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
 /* The second screen kept with save states (GBA DS's block inside the state:
  * EXTDATA_GBADS): made now (malloc'd, *n bytes; NULL if nothing), and put
  * back from a loaded state's block (b may be NULL: none; the title card and

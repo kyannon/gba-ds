@@ -422,7 +422,6 @@ static bool tallLiveAtStart; /* pinball_live as this game started with it: a cha
 /* logoIf just stopped matching: the logo still, until the second screen has
  * a new picture to show (a HUD picture drawn, a map picture taken), at
  * most a second; not the last picture from before for a frame (SM4-11) */
-static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
 static void logo_refresh(void);
 
 /* the contextual toggle (GEN-14, issue #37): where the pages' count starts
@@ -5201,50 +5200,21 @@ static void draw_osd(void) {
  * alone, with nothing live to show, at half: LOGO_IDLE); with `top` (a HUD
  * above it), centred in the rows below that. A user's own logo too big
  * for that is shrunk to fit. False if there's no logo. */
-static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
+/* (logo_draw: second.c. The logo's picture comes from here: second.h's
+ * logoLoad / logoFree hooks, the player's own, a scraped or the extracted
+ * logo as ui_logo_surface finds it, locked for reading) */
+static bool logo_load(LogoPic* p, int* sub) {
 	bool pixelArt = false;
-	int sub = 1;
-	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, sub);
 	if (!lg) return false;
-	int room = ch - top;
-	if (room <= 0) {
-		/* (no room below a HUD that fills the screen: Mega Man Battle
-		 * Network's custom screen, hud.rows GBA_H) */
-		SDL_FreeSurface(lg);
-		return false;
-	}
-	int w = SDL_max(1, lg->w * k / sub), h = SDL_max(1, lg->h * k / sub);
-	if (sub > k) {
-		/* a scraped logo at full resolution, onto a canvas with fewer
-		 * pixels per GBA pixel: averaged down to them (GEN-11) */
-		SDL_Surface* sm = ui_resample(lg, w, h);
-		if (sm) SDL_FreeSurface(lg), lg = sm;
-	}
-	if (w > cw || h > room) {
-		float sc = SDL_min((float) cw / lg->w, (float) room / lg->h);
-		w = SDL_max(1, (int) (lg->w * sc)), h = SDL_max(1, (int) (lg->h * sc));
-	}
-	/* centred on the canvas, or with a HUD above it in the room below */
-	int x0 = (cw - w) / 2, y0 = top ? top + (room - h) / 2 : (ch - h) / 2;
 	SDL_LockSurface(lg);
-	for (int y = 0; y < h; ++y) {
-		const uint8_t* row = (const uint8_t*) lg->pixels + (size_t) (y * lg->h / h) * lg->pitch;
-		for (int x = 0; x < w; ++x) {
-			const uint8_t* p = row + (size_t) (x * lg->w / w) * 4; /* RGBA32: bytes R, G, B, A */
-			int a = p[3] * alpha / 255;
-			if (!a) continue;
-			uint32_t* o = &px[(y0 + y) * cw + x0 + x];
-			uint32_t out = 0xFF000000;
-			for (int c = 0; c < 3; ++c) {
-				int bg = (*o >> (c * 8)) & 0xFF;
-				out |= (uint32_t) (bg + (p[c] - bg) * a / 255) << (c * 8); /* ABGR8888 */
-			}
-			*o = out;
-		}
-	}
+	p->px = lg->pixels, p->w = lg->w, p->h = lg->h, p->pitch = lg->pitch, p->own = lg;
+	return true;
+}
+static void logo_free(LogoPic* p) {
+	SDL_Surface* lg = p->own;
 	SDL_UnlockSurface(lg);
 	SDL_FreeSurface(lg);
-	return true;
 }
 
 /* The game's logo as a GBA screen would show it: centred on dark grey in a
@@ -6221,7 +6191,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	romPath = rom, lastLoop = 0;
 	/* what the second screen reads, and how it puts its pictures up (second.h) */
 	sec.emu = &emu, sec.cfg = cfg, sec.debug = debug, sec.romPath = romPath;
-	sec.hooks = (SecondHooks) { hud_new_map, hud_over_map, show_picture, tall_show };
+	sec.hooks = (SecondHooks) { hud_new_map, hud_over_map, show_picture, tall_show, logo_load, logo_free };
 	hud.hooks = (HudHooks) { show_hud, show_combat, has_combat, logo_draw, save_bmp };
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */

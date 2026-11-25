@@ -6,6 +6,7 @@
 #include "second.h"
 #include "toggle.h"
 #include "hud.h"
+#include "rgba.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -646,4 +647,59 @@ void second_map_setup(const char* code, bool logoOnly) {
 	} else if (!logoOnly) {
 		fprintf(stderr, "no map profile for %s\n", code);
 	}
+}
+
+/* The game's logo at its own size (GEN-1) onto a cw x ch canvas: k canvas
+ * pixels to a logo pixel (one GBA pixel each for an extracted logo),
+ * centred, blended over what's there at `alpha` (255: opaque; the logo
+ * alone, with nothing live to show, at half: LOGO_IDLE); with `top` (a HUD
+ * above it), centred in the rows below that. A user's own logo too big
+ * for that is shrunk to fit. False if there's no logo. (Was game.c's; the
+ * picture comes from the app: sec.hooks.logoLoad.) */
+bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
+	int sub = 1;
+	LogoPic lg;
+	if (!sec.hooks.logoLoad(&lg, &sub)) return false;
+	int room = ch - top;
+	if (room <= 0) {
+		/* (no room below a HUD that fills the screen: Mega Man Battle
+		 * Network's custom screen, hud.rows GBA_H) */
+		sec.hooks.logoFree(&lg);
+		return false;
+	}
+	/* what's drawn: the logo as loaded, or averaged down to the canvas */
+	const uint8_t* lpx = lg.px;
+	int lw = lg.w, lh = lg.h, lpitch = lg.pitch;
+	uint8_t* sm = NULL;
+	int w = S_MAX(1, lw * k / sub), h = S_MAX(1, lh * k / sub);
+	if (sub > k) {
+		/* a scraped logo at full resolution, onto a canvas with fewer
+		 * pixels per GBA pixel: averaged down to them (GEN-11) */
+		sm = malloc((size_t) w * h * 4);
+		if (sm) rgba_resample(lpx, lw, lh, lpitch, sm, w, h, w * 4), lpx = sm, lw = w, lh = h, lpitch = w * 4;
+	}
+	if (w > cw || h > room) {
+		float sc = S_MIN((float) cw / lw, (float) room / lh);
+		w = S_MAX(1, (int) (lw * sc)), h = S_MAX(1, (int) (lh * sc));
+	}
+	/* centred on the canvas, or with a HUD above it in the room below */
+	int x0 = (cw - w) / 2, y0 = top ? top + (room - h) / 2 : (ch - h) / 2;
+	for (int y = 0; y < h; ++y) {
+		const uint8_t* row = lpx + (size_t) (y * lh / h) * lpitch;
+		for (int x = 0; x < w; ++x) {
+			const uint8_t* p = row + (size_t) (x * lw / w) * 4; /* RGBA32: bytes R, G, B, A */
+			int a = p[3] * alpha / 255;
+			if (!a) continue;
+			uint32_t* o = &px[(y0 + y) * cw + x0 + x];
+			uint32_t out = 0xFF000000;
+			for (int c = 0; c < 3; ++c) {
+				int bg = (*o >> (c * 8)) & 0xFF;
+				out |= (uint32_t) (bg + (p[c] - bg) * a / 255) << (c * 8); /* ABGR8888 */
+			}
+			*o = out;
+		}
+	}
+	free(sm);
+	sec.hooks.logoFree(&lg);
+	return true;
 }
