@@ -482,6 +482,10 @@ typedef struct MapProfile {
 			bool mapBelow;
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
+		/* `on` turns it on only while a sprite like onWith shows; then `on` alone keeps it on, till
+		 * onLost frames without one (Mario Pinball Land: a room, by its star counter's icon) */
+		SpriteRule onWith;
+		int onLost;
 		/* While every `layout` probe matches (racing, not the results):
 		 * HUD pixels in `sign` stay on the game screen when the HUD has
 		 * nothing else on those rows within 40 pixels either side (Mario

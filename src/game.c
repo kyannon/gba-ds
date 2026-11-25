@@ -1071,6 +1071,7 @@ static bool tallLive;      /* the live view: the table over both screens (update
 static const MapProfile* hudProf;
 static uint32_t hudPx[GBA_W * GBA_H];
 static bool hudOn; /* the frame being emulated is split */
+static unsigned long long onWithAt; /* hud.onWith: when a sprite like it last showed */
 /* the second screen's picture: the HUD at 2x over the backdrop, its map
  * larger; the backdrop, made from the grabbed layers as each race starts */
 #define HUD_CW (GBA_W * 2)
@@ -4602,6 +4603,21 @@ static bool oam_has_tile_pal(int tile, int tileMax, int pal, int prio1) {
 	return false;
 }
 
+/* A shown sprite matching r's box, tiles, priority and palettes (not the sprite window) */
+static bool oam_rule_shown(const SpriteRule* r) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8), a1 = emu_read16(&emu, 0x07000002 + i * 8);
+		uint16_t a2 = emu_read16(&emu, 0x07000004 + i * 8);
+		if ((a0 & 0x300) == 0x200 || a0 >> 14 == 3 || ((a0 >> 10) & 3) == 2) continue;
+		int x = (int) ((uint32_t) a1 << 23) >> 23, y = a0 & 0xFF, tile = a2 & 0x3FF, prio = (a2 >> 10) & 3, pal = a2 >> 12;
+		if (y >= 160) y -= 256;
+		if (x < r->x0 || x > r->x1 || y < r->y0 || y > r->y1 || tile < r->tileMin || tile > r->tileMax ||
+		    (r->prio >= 0 && prio != r->prio) || (r->palMask && !(r->palMask >> pal & 1))) continue;
+		return true;
+	}
+	return false;
+}
+
 /* hud.card: this frame's card (hudPx) as a take: kept if its name (dark
  * pixels on rows y0..y1) is clear of both edges and nearer the centre
  * than the best so far. True once it's centred (within a pixel). */
@@ -5184,6 +5200,15 @@ static void update_hud(void) {
 		}
 	}
 	bool main = memprobes_match(h->on, 4, &emu);
+	if (rule_count(&h->onWith, 1)) {
+		bool with = main && oam_rule_shown(&h->onWith);
+		if (main && (!hudOn || hudAlt)) main = with;
+		else if (main && frameCount - onWithAt > (unsigned) h->onLost) {
+			main = false;
+			if (debug) fprintf(stderr, "frame %llu: HUD off: no onWith sprite\n", (unsigned long long) frameCount);
+		}
+		if (with) onWithAt = frameCount;
+	}
 	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
 	/* hud.offAfter: off from when it matches (a battle's results) until
@@ -8682,6 +8707,7 @@ static void ss_setup(const char* rom, const char* code) {
 	tallLive = false;
 	hudProf = NULL;
 	hudOn = false;
+	onWithAt = 0;
 	{
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
