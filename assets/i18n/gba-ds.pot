@@ -47,7 +47,7 @@ msgid_plural "%d games found"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/library.c:3236 src/library.c:3284
+#: src/library.c:3240 src/library.c:3288
 #, c-format
 msgid "%d game found."
 msgid_plural "%d games found."
@@ -380,7 +380,7 @@ msgstr ""
 msgid "Auto-rotate"
 msgstr ""
 
-#: src/config.c:516 src/library.c:2419 src/library.c:2952
+#: src/config.c:516 src/library.c:2419 src/library.c:2956
 msgid "Automatic"
 msgstr ""
 
@@ -392,7 +392,7 @@ msgstr ""
 msgid "Automatic checks: On"
 msgstr ""
 
-#: src/config.c:520 src/library.c:2057 src/library.c:2492 src/library.c:2969
+#: src/config.c:520 src/library.c:2057 src/library.c:2492 src/library.c:2973
 msgid "Automatic follows the system. Text that isn't translated yet stays in English."
 msgstr ""
 
@@ -528,7 +528,7 @@ msgstr ""
 msgid "Check the account in EmulationStation's RetroAchievements settings"
 msgstr ""
 
-#: src/library.c:2915 src/library.c:2916
+#: src/library.c:2919 src/library.c:2920
 msgid "Choose"
 msgstr ""
 
@@ -557,7 +557,7 @@ msgstr ""
 msgid "Choose save folder"
 msgstr ""
 
-#: src/library.c:2904
+#: src/library.c:2908
 msgid "Choose the language for GBA DS's menus."
 msgstr ""
 
@@ -640,7 +640,7 @@ msgstr ""
 msgid "Contextual toggle"
 msgstr ""
 
-#: src/library.c:2922 src/library.c:2923 src/library.c:2947
+#: src/library.c:2926 src/library.c:2927 src/library.c:2951
 msgid "Continue"
 msgstr ""
 
@@ -1403,7 +1403,7 @@ msgstr ""
 msgid "L button"
 msgstr ""
 
-#: src/config.c:520 src/library.c:1415 src/library.c:2866 src/library.c:2939
+#: src/config.c:520 src/library.c:1415 src/library.c:2866 src/library.c:2943
 msgid "Language"
 msgstr ""
 
@@ -2776,7 +2776,7 @@ msgstr ""
 msgid "System"
 msgstr ""
 
-#: src/library.c:2951
+#: src/library.c:2955
 #, c-format
 msgid "System: %s"
 msgstr ""
@@ -3247,7 +3247,7 @@ msgstr ""
 msgid "Y: favorite"
 msgstr ""
 
-#: src/library.c:2905
+#: src/library.c:2909
 msgid "You can change it later in Settings > System."
 msgstr ""
 
