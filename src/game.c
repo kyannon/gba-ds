@@ -5393,6 +5393,11 @@ static void update_hud(void) {
 		if (debug) fprintf(stderr, "frame %llu: effect layers %X\n", (unsigned long long) frameCount, keep);
 		hudKeep = keep;
 	}
+	if (h->retile) {
+		int idx[8];
+		uint16_t tile[8];
+		emu_hud_retile(idx, tile, hudOn ? h->retile(&emu, idx, tile) : 0);
+	}
 	/* the course's backdrop, as each race starts (not for the scene) */
 	if (hudOn && ++hudFrames == 2 && h->backdrop && !hudScene) emu_hud_grab(&emu, h->backdrop, hudGrab);
 	/* the backdrop, the game screen (map, units, no HUD): once per map (its tiles' checksum),

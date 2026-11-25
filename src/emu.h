@@ -285,6 +285,9 @@ void emu_hud_rows(int rows);
 /* The HUD split also draws the sprites with exactly these attributes 0-2
  * (the game's picture keeps them); n = 0: none. */
 void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n);
+/* The HUD split draws the sprites in OAM slots oamIndex[i] with tile tile[i] instead of their own
+ * (the game's picture and its memory are untouched); n = 0: none. */
+void emu_hud_retile(const int* oamIndex, const uint16_t* tile, int n);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */
