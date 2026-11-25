@@ -15,6 +15,19 @@ void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* m
 /* the picture faded to level (0 .. 256) */
 const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
 
+/* "Map Animations: Off" shows the composed still (sec.stillPx) as this index */
+#define STILL_IDX MAP_MAX_FRAMES
+
+/* How the second screen's pictures go up (set by the app; for now the app's
+ * own composition and upload, until they move here): upload picture idx
+ * (map_px), show a capture that just came in (fresh: a capture, not one kept
+ * with a state), put a profile's live picture up as it is. */
+typedef struct {
+	void (*upload)(int idx);
+	void (*showNew)(bool fresh);
+	void (*showLive)(const uint32_t* px);
+} SecondHooks;
+
 /* ---- The second screen's state (libretro core, discussion #75: the module's
  * interface is being gathered here). Everything the second screen keeps
  * between frames, in one place, so the app and a core hold it the same way.
@@ -64,11 +77,17 @@ typedef struct {
 	 * (mapcap), and the frame count the app advances once a frame */
 	MapCapture* mc;
 	uint64_t frame;
+	/* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
+	const MapProfile* hideWhenProf;
+	int hideWhenN;
+	bool hideWhenOn;
 	/* what it reads from the app, set once per game: the game's emulator,
 	 * the settings, GBADS_DEBUG's logging */
 	Emu* emu;
 	const Config* cfg;
 	bool debug;
+	const char* romPath; /* the game's ROM (a profile's liveView reads it) */
+	SecondHooks hooks;
 } SecondState;
 extern SecondState sec;
 
@@ -77,5 +96,13 @@ extern SecondState sec;
 void second_new_subject(void);
 /* the map's frames animate (Map Animations, not a still map) */
 bool map_anim(void);
+/* once a frame, after the game's frame: when to capture the map, picking up a
+ * finished capture, the pages, the profile's hideWhen / logoIf / liveView */
+void map_refresh_step(void);
+/* picture idx of the second screen (STILL_IDX: the still), NULL if none */
+const uint32_t* map_px(int idx);
+/* the frame is mostly dark / one colour nearly all over (a fade, a blank screen) */
+bool frame_is_dark(const uint32_t* fb);
+bool frame_is_flat(const uint32_t* fb);
 
 #endif

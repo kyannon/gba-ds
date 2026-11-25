@@ -157,9 +157,6 @@ static struct {
 /* (the Pinball copies: twins.c) */
 
 /* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
-static const MapProfile* hideWhenProf;
-static int hideWhenN;
-static bool hideWhenOn;
 
 /* WarioWare: Twisted! (ww_twisted.inc, included below) */
 static void ww_step(void);
@@ -390,7 +387,6 @@ static int logoSub = 1; /* logoTex's pixels per GBA pixel (LOGO_SUB: a scraped l
 static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-11) */
 static int mapW = GBA_W, mapH = GBA_H;
 /* "Map Animations: Off" shows this composed still instead of mapRes.frames[] */
-#define STILL_IDX MAP_MAX_FRAMES
 /* The map button did nothing at the last attempt (A Link to the Past indoors
  * without a map): keep showing the last map, dimmed. */
 static bool logoOnly; /* the game has a profile but no map: logo on the second screen */
@@ -483,7 +479,6 @@ typedef struct {
 } Piece;
 static Piece pieces[4];
 static void upload_map_frame(int idx);
-static const uint32_t* map_px(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
@@ -3704,20 +3699,7 @@ static void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const Sp
  * screen; back to the logo at the menus. */
 /* The grabbed sky and scenery (the rows above the horizon), scaled up to
  * cover the canvas (centred), and dimmed well back. */
-static bool frame_is_dark(const uint32_t* fb);
-/* One colour all over, nearly: a fade to black or to white, a blank screen. */
-static bool frame_is_flat(const uint32_t* fb) {
-	long sum = 0, n = 0;
-	static int l[GBA_W * GBA_H / 7 + 1];
-	for (int i = 0; i < GBA_W * GBA_H; i += 7) {
-		uint32_t c = fb[i];
-		l[n] = (int) ((c & 0xFF) + ((c >> 8) & 0xFF) + ((c >> 16) & 0xFF));
-		sum += l[n++];
-	}
-	long mean = sum / n, off = 0;
-	for (long i = 0; i < n; ++i) off += labs(l[i] - mean) > 36;
-	return off * 20 < n; /* 95% within 12 a channel of the average */
-}
+/* (frame_is_flat, frame_is_dark: second.c) */
 static int hudRegrab; /* hudFrames at which to grab the map layer again (0: kept) */
 static bool hudSettle; /* after a fade: wait for the brightness to settle */
 static uint32_t hudMapSum; /* the grabbed map's tiles (map_tiles_sum) */
@@ -6044,9 +6026,7 @@ static void on_foreground(void) {
 
 
 
-static const uint32_t* map_px(int idx) {
-	return idx == STILL_IDX ? (sec.stillValid ? sec.stillPx : NULL) : sec.mapRes.frames[idx];
-}
+/* (map_px: second.c) */
 
 /* hud.alt.shade: a pixel darkened (to a third) */
 static uint32_t shade_px(uint32_t c) {
@@ -6352,16 +6332,6 @@ static void draw_toggle_btn(void) {
 	ui_clip(s, NULL);
 }
 
-static bool frame_is_dark(const uint32_t* fb) {
-	int bright = 0, total = 0;
-	for (int i = 0; i < GBA_W * GBA_H; i += 7) {
-		uint32_t c = fb[i];
-		int lum = ((c & 0xFF) + ((c >> 8) & 0xFF) * 2 + ((c >> 16) & 0xFF)) >> 2;
-		bright += lum > 40;
-		++total;
-	}
-	return bright * 40 < total;
-}
 
 static int game_screen(void) {
 	if (nScreens < 2) return 0;
@@ -7502,7 +7472,7 @@ static void ss_setup(const char* rom, const char* code) {
 		snapShow = snapRevert = 0;
 		if (sec.mc) mapcap_set_still(sec.mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
-		hideWhenProf = NULL;
+		sec.hideWhenProf = NULL;
 		if (sec.mc) {
 			fprintf(stderr, "map profile: %s\n", mapcap_title(sec.mc));
 			mapcap_size(sec.mc, &mapW, &mapH);
@@ -7511,9 +7481,9 @@ static void ss_setup(const char* rom, const char* code) {
 			int nRules = 0;
 			while (prof && nRules < (int) (sizeof(prof->hideSprites) / sizeof(prof->hideSprites[0])) && prof->hideSprites[nRules].x1) ++nRules;
 			/* (with hideWhen: off until the frame loop finds it matching) */
-			hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
-			hideWhenN = nRules, hideWhenOn = false;
-			emu_hide_sprites(&emu, prof && !hideWhenProf ? prof->hideSprites : NULL, hideWhenProf ? 0 : nRules);
+			sec.hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
+			sec.hideWhenN = nRules, sec.hideWhenOn = false;
+			emu_hide_sprites(&emu, prof && !sec.hideWhenProf ? prof->hideSprites : NULL, sec.hideWhenProf ? 0 : nRules);
 			emu_hide_grouped(&emu, prof && prof->hideGrouped);
 		} else if (!logoOnly) {
 			fprintf(stderr, "no map profile for %s\n", code);
@@ -7570,7 +7540,7 @@ static void ss_switch(const char* rom, const char* code) {
 	snprintf(subCode, sizeof(subCode), "%.4s", code);
 	if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(&emu, NULL, 0);
-	hideWhenProf = NULL;
+	sec.hideWhenProf = NULL;
 	mapcap_destroy(sec.mc);
 	sec.mc = NULL;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
@@ -7804,125 +7774,11 @@ static SDL_AudioDeviceID open_game_audio(SDL_AudioSpec* want) {
  * state load or a rewind sets mr.forceMap. (Was inline in game_run_inner.) */
 /* (its state: sec.refresh, second.h) */
 
-static void map_refresh_step(void) {
-	if (sec.mc) {
-		++sec.refresh.sinceMapRequest;
-		/* the profile's sprite hiding, where it's only for some moments
-		 * (hideWhen: Lady Sia's HUD in play, not its credits or pause
-		 * screen); from the next frame drawn */
-		if (hideWhenProf && memprobes_match(hideWhenProf->hideWhen, 2, &emu) != hideWhenOn) {
-			hideWhenOn = !hideWhenOn;
-			emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
-			if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) sec.frame, hideWhenOn ? "on" : "off");
-		}
-		{
-			/* (logoIf: the logo for now, SM4-11) */
-			const MapProfile* lp = mapcap_profile(sec.mc);
-			bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
-			                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
-			if (lf) sec.logoHolding = lp->logoIfLast ? 0 : 60;
-			else if (sec.logoHolding > 0) --sec.logoHolding;
-			lf = lf || sec.logoHolding > 0;
-			if (debug && lf != sec.logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) sec.frame, lf ? "on" : "off");
-			sec.logoForced = lf;
-		}
-		bool dark = frame_is_dark(emu.fb);
-		if (sec.refresh.wasDark && !dark) sec.refresh.refreshAt = (long) sec.frame + 6;
-		sec.refresh.wasDark = dark;
-		if (sec.refresh.refreshAt >= 0 && (long) sec.frame >= sec.refresh.refreshAt) {
-			sec.refresh.forceMap = true;
-			sec.refresh.refreshAt = -1;
-			if (debug) fprintf(stderr, "frame %llu: room transition\n", (unsigned long long) sec.frame);
-		}
-		if (sec.mapShownIdx >= 0 && sec.frame % 30 == 0 && mapcap_in_menu(sec.mc, &emu)) {
-			/* quit to the title: the map belongs to the old session */
-			sec.mapShownIdx = -1;
-			sec.mapInactive = false;
-			sec.refresh.forceMap = true;
-			/* (always logged: what sends the second screen back to the logo) */
-			fprintf(stderr, "frame %llu: second screen back to the logo (the profile's menu probes matched)\n", (unsigned long long) sec.frame);
-		}
-		uint32_t rk = mapcap_room_key(sec.mc, &emu);
-		if (rk != sec.refresh.seenRoomKey) sec.refresh.seenRoomKey = rk, sec.refresh.seenRoomFor = 0;
-		else ++sec.refresh.seenRoomFor;
-		/* a change counts once it has held for 3 frames (a cursor
-		 * gliding to its place, Mario walking a path: not each step);
-		 * a capture still running for the old one is called off, so
-		 * the new one starts as soon as it has stopped */
-		bool roomChanged = rk && rk != sec.refresh.lastRoomKey && sec.refresh.seenRoomFor >= 2;
-		if (roomChanged && mapcap_busy(sec.mc)) mapcap_cancel(sec.mc);
-		/* Back off while captures keep failing (e.g. the game says "playing"
-		 * but the map can't open: intro cutscenes, briefings). Each failed
-		 * attempt emulates a few seconds in the background, which starves
-		 * the game and its audio on slower devices. */
-		const char* why = NULL;
-		int fails = mapcap_failures(sec.mc, &why);
-		if (fails != sec.refresh.lastFails) {
-			if (debug && fails) fprintf(stderr, "frame %llu: map capture failed (%d in a row): %s\n",
-			                            (unsigned long long) sec.frame, fails, why ? why : "?");
-			const MapProfile* dp = mapcap_profile(sec.mc);
-			if (fails && why && dp && dp->dimWhenUnavailable &&
-			    (!strcmp(why, "map screen did not appear") || !strcmp(why, "map button did nothing"))) {
-				sec.mapInactive = true;
-			}
-			sec.refresh.lastFails = fails;
-		}
-		/* quick "no map here" failures (A Link to the Past indoors) cost little
-		 * and are expected, so they don't back off */
-		bool cheapFail = why && !strncmp(why, "map button did nothing", 22); /* (Pokémon's menu failures say why in brackets) */
-		/* (a profile's own interval, when it's quicker: Swordcraft Story) */
-		const MapProfile* ip = mapcap_profile(sec.mc);
-		int every = ip && ip->interval > 0 && ip->interval < cfg->mapInterval ? ip->interval : cfg->mapInterval;
-		int interval = cheapFail ? every : every << SDL_min(fails, 3);
-		/* after failures, a room change still triggers a try, but no more
-		 * often than the normal interval */
-		bool due = sec.refresh.sinceMapRequest >= interval || sec.pressCap ||
-		           ((sec.refresh.forceMap || roomChanged) && (!fails || sec.refresh.sinceMapRequest >= every));
-		if (due && !mapcap_busy(sec.mc) && mapcap_live_ok(sec.mc, &emu) && !(sec.viewWait && sec.tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
-			/* a new subject (a room, a loaded state) shows the game's own view again */
-			if (roomChanged || sec.refresh.forceMap) sec.viewAlt = false;
-			mapcap_set_alt(sec.viewAlt && cfg->toggle);
-			if (mapcap_request(sec.mc, &emu)) {
-				sec.refresh.sinceMapRequest = 0;
-				sec.refresh.lastRoomKey = rk;
-				sec.capSubject = roomChanged || sec.refresh.forceMap; /* (not a refresh of the same subject) */
-				sec.refresh.forceMap = false;
-				if (sec.pressCap) sec.pressCap = false, sec.tgCapWant = sec.capDone + 1;
-			}
-		}
-		toggle_step();
-		bool fresh = mapcap_poll(sec.mc, sec.mapRes.serial, &sec.mapRes);
-		if (fresh && mapcap_in_menu(sec.mc, &emu)) {
-			/* a capture that finished after quitting to the title: drop it */
-		} else if (fresh) {
-			map_show_new(true);
-			++sec.capDone;
-		} else if (((map_anim() && sec.mapRes.nFrames > 1) || sec.fadeUpload) && sec.mapShownIdx >= 0) {
-			int idx = second_page();
-			sec.fadeUpload = false;
-			upload_map_frame(idx);
-		}
-		/* a profile's own live picture (Mega Man Battle Network's maps on
-		 * the net), drawn every frame over whatever was captured; when it
-		 * stops, the captured picture again */
-		const MapProfile* lvp = mapcap_profile(sec.mc);
-		const uint32_t* lv = lvp && lvp->liveView && romPath ? lvp->liveView(&emu, romPath) : NULL;
-		if (lv) {
-			for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
-			if (sec.mapShownIdx < 0) sec.mapShownIdx = 0;
-			if (!sec.liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) sec.frame);
-			sec.liveOn = true;
-		} else if (sec.liveOn) {
-			sec.liveOn = false;
-			if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) sec.frame);
-			if (sec.mapRes.ok && map_px(sec.mapShownIdx)) {
-				sec.overDirty = true;
-				upload_map_frame(sec.mapShownIdx);
-			} else {
-				sec.mapShownIdx = -1;
-			}
-		}
-	}
+/* (map_refresh_step: second.c) */
+
+/* (second.h hook) a profile's own live picture, put up as it is */
+static void show_live(const uint32_t* px) {
+	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, mapW * 4);
 }
 
 static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary);
@@ -7962,8 +7818,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	cfg = c;
 	tallLiveAtStart = cfg->tallLive;
 	debug = getenv("GBADS_DEBUG") != NULL;
-	sec.emu = &emu, sec.cfg = cfg, sec.debug = debug; /* (what the second screen reads: second.h) */
 	romPath = rom, lastLoop = 0;
+	/* what the second screen reads, and how it puts its pictures up (second.h) */
+	sec.emu = &emu, sec.cfg = cfg, sec.debug = debug, sec.romPath = romPath;
+	sec.hooks = (SecondHooks) { upload_map_frame, map_show_new, show_live };
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
 	game_keys_reload();
