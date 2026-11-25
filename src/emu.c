@@ -419,10 +419,13 @@ float emu_rumble_level(const Emu* e) {
  *   "CartRumble" patch keeps BPPE), and keeps that device list in states;
  * - drops 8-bit stores to the cartridge ("Unimplemented memory Store8"), where a real cartridge
  *   bus takes a byte as a 16-bit write of it twice; that patch writes the pins with strb.
+ * - keeps a pin's last output level after the game makes it an input, where the cartridge's motor
+ *   has nothing driving it and stops (Superstar Saga's rumble patch stops by writing 0 to the
+ *   direction register and leaves the data register at 8, Nov 24, 2026: "never stopped rumbling").
  * So the game being played (and only it) has its stores to the three GPIO registers looked at:
- * the first one switches the motor pin on (unless the cartridge has a sensor on that port), and
- * an 8-bit one is passed on as that 16-bit write. A game that never writes there is untouched:
- * no device added, the ROM not copied. */
+ * the first one switches the motor pin on (unless the cartridge has a sensor on that port), an
+ * 8-bit one is passed on as that 16-bit write, and after each the motor is off while pin 3 is not
+ * an output. A game that never writes there is untouched: no device added, the ROM not copied. */
 static void (*mgbaStore8)(struct ARMCore*, uint32_t, int8_t, int*);
 static void (*mgbaStore16)(struct ARMCore*, uint32_t, int16_t, int*);
 
@@ -433,20 +436,55 @@ static bool gpio_listen(struct ARMCore* cpu, uint32_t address) {
 	return (hw->devices & HW_GPIO) != 0;
 }
 
+/* The motor pin as hardware has it: a pin the game has made an input drives nothing, so the motor
+ * is off whatever the data register last held (mGBA keeps that bit as the output level). */
+static void gpio_settle(struct ARMCore* cpu) {
+	struct GBA* gba = (struct GBA*) cpu->master;
+	struct GBACartridgeHardware* hw = &gba->memory.hw;
+	if (!(hw->devices & HW_RUMBLE) || (hw->direction & 8) || !(hw->pinState & 8)) return;
+	hw->pinState &= ~8;
+	if (hw->gpioBase && hw->readWrite) ((uint16_t*) hw->gpioBase)[0] = hw->pinState; /* (the ROM's readable copy; little-endian hosts only, as mGBA's own) */
+	if (gba->rumble) {
+		int32_t now = mTimingCurrentTime(&gba->timing);
+		gba->rumble->setRumble(gba->rumble, false, now - gba->lastRumble);
+		gba->lastRumble = now;
+	}
+}
+
 static void gpio_store8(struct ARMCore* cpu, uint32_t address, int8_t value, int* cycleCounter) {
-	if (gpio_listen(cpu, address)) {
+	bool gpio = gpio_listen(cpu, address);
+	if (gpio) {
 		uint8_t b = (uint8_t) value;
 		GBAHardwareGPIOWrite(&((struct GBA*) cpu->master)->memory.hw, address & 0xFFFFFE, (uint16_t) (b | b << 8));
+		gpio_settle(cpu);
 	}
 	mgbaStore8(cpu, address, value, cycleCounter); /* (its wait states; it stores nothing there) */
 }
 
 static void gpio_store16(struct ARMCore* cpu, uint32_t address, int16_t value, int* cycleCounter) {
-	gpio_listen(cpu, address);
+	bool gpio = gpio_listen(cpu, address);
 	mgbaStore16(cpu, address, value, cycleCounter);
+	if (gpio) gpio_settle(cpu);
 }
 
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
+
+/* The cartridge's gyro (WarioWare: Twisted!; mGBA knows it by game code). Every GBA core has a
+ * source that reads what emu_set_gyro last gave it, 0 (the sensor's resting value) until then, so
+ * the hidden copies' games sit still. The value is mGBA's own: the cartridge reads its top
+ * bits (a 12-bit sample, 0x700 at rest, 2^21 to a count). Only the game being played is given
+ * anything (src/ww_twisted.inc). */
+typedef struct { struct mRotationSource d; int32_t value; } EmuGyro;
+static int32_t gyro_read_z(struct mRotationSource* s) {
+	return ((EmuGyro*) s)->value;
+}
+static int32_t gyro_read_tilt(struct mRotationSource* s) {
+	(void) s;
+	return 0;
+}
+void emu_set_gyro(Emu* e, int32_t value) {
+	if (e->gyro) ((EmuGyro*) e->gyro)->value = value;
+}
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
@@ -500,7 +538,16 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	}
 	e->core->setVideoBuffer(e->core, (mColor*) (e->fb + e->picY * GBA_W + e->picX), GBA_W);
 	if (e->platform == mPLATFORM_GBA) e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
-	if (audio) { /* only the game being played has a motor; the hidden copies stay quiet */
+	if (e->platform == mPLATFORM_GBA) {
+		EmuGyro* g = calloc(1, sizeof(*g));
+		if (g) {
+			g->d.readGyroZ = gyro_read_z;
+			g->d.readTiltX = g->d.readTiltY = gyro_read_tilt;
+			e->gyro = g;
+			e->core->setPeripheral(e->core, mPERIPH_ROTATION, &g->d);
+		}
+	}
+	if (audio || getenv("GBADS_HARNESS_RUMBLE")) { /* only the game being played has a motor; the hidden copies stay quiet (the harness asks for one with GBADS_HARNESS_RUMBLE: its `rumble` command) */
 		EmuRumble* r = calloc(1, sizeof(*r));
 		if (r) {
 			mRumbleIntegratorInit(&r->integrator);
@@ -596,6 +643,8 @@ void emu_close(Emu* e) {
 	e->fb = NULL;
 	free(e->rumble);
 	e->rumble = NULL;
+	free(e->gyro);
+	e->gyro = NULL;
 }
 
 bool emu_cancelled(const Emu* e) {

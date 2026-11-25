@@ -8405,8 +8405,8 @@ static struct {
 	uint32_t rom;
 	bool known;
 	int partyRow, navGood, first, goodBag, tick, wait;
-	bool noMapKnown, have, partySent;
-	uint32_t noMapHash;
+	bool noMapKnown, have, partySent, keyTabKnown;
+	uint32_t noMapHash, keyTab;
 	uint32_t keep[GBA_W * GBA_H];
 } pkMem;
 static const char* pk_party(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
@@ -8567,48 +8567,116 @@ static int pk_key_hint(Emu* s) {
 	}
 	return -1;
 }
+/* The Bag's tab (its pocket's name, top left): told apart from the next
+ * pocket's, it says which pocket is up */
+static uint32_t pk_tab_hash(Emu* s) {
+	uint32_t h = 2166136261u;
+	for (int y = 0; y < 16; ++y)
+		for (int x = 0; x < 76; ++x) h = (h ^ (s->fb[y * GBA_W + x] & 0xFFFFFF)) * 16777619u;
+	return h;
+}
+#define PK_POCKETS 8 /* the most pockets looked at when a Bag wraps round */
+/* A Bag whose pockets wrap round (FRLG+: RIGHT from the last pocket comes
+ * back to the first, so "all the way left, then once right" lands on
+ * whatever is next to the pocket the player left it on): RIGHT is pressed
+ * until a tab comes back. Returns how many pockets there are, with each one's
+ * tab in tabs[] (in the order RIGHT goes, the first being the pocket that's
+ * up) and the Bag left on the first again; 0 when the Bag stops at its ends
+ * (FireRed and LeafGreen's own: it is left on its last pocket). */
+static int pk_pocket_cycle(Emu* s, uint32_t* tabs) {
+	tabs[0] = pk_tab_hash(s);
+	for (int k = 1; k <= PK_POCKETS; ++k) {
+		pk_tap(s, K_RIGHT);
+		aw_run(s, 0, 12);
+		uint32_t h = pk_tab_hash(s);
+		if (h == tabs[0]) return k;
+		if (k < PK_POCKETS) tabs[k] = h;
+		else break;
+	}
+	return 0;
+}
 static const char* pk_town_map(Emu* s, const PkFam* f, const void* state, uint32_t* out, int w, int h) {
-	uint32_t listHash = 0;
-	int rows = PK_KEY_ROWS;
+	uint32_t listHash = 0, tabs[PK_POCKETS];
 	int hint = pk_key_hint(s);
 	if (hint >= 0) pkMem.first = hint;
 	if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: Town Map row from memory: %d\n", hint);
-	for (int t = 0; t < rows; ++t) {
-		const char* err;
-		if (pk_open(s, f, state, &f->bag, &pkMem.goodBag, 60, &err) < 0) return err;
-		aw_run(s, 0, 90); /* (a romhack's Bag can take longer to take input) */
-		pk_tap(s, K_LEFT);
-		pk_tap(s, K_LEFT);
-		pk_tap(s, K_RIGHT);
-		aw_run(s, 0, 10);
-		for (int i = 0; i < (t == 0 ? PK_KEY_ROWS : rows) + 2; ++i) pk_tap(s, K_UP);
-		if (t == 0) {
-			/* the Key Items list as it is: the same as when no Town Map was
-			 * found last time means still none, without the row-by-row
-			 * search (seconds of frames, taken again and again until the
-			 * player has it) */
-			aw_run(s, 0, 20);
-			listHash = pk_list_hash(s);
-			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, pkMem.noMapKnown, pkMem.noMapHash);
-			if (pkMem.noMapKnown && listHash == pkMem.noMapHash) return "no Town Map in the Bag";
-			rows = pk_key_rows(s);
-			if (rows < 2) rows = 10; /* (no change seen: an empty pocket, or a Bag drawn another way: as before) */
-			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items: %d rows\n", rows);
-			for (int i = 0; i < rows + 1; ++i) pk_tap(s, K_UP);
+	/* the pockets to look in: for a Bag that stops at its ends, the Key Items
+	 * pocket (all the way left, once right: order[0] -1); for one that wraps,
+	 * the pocket whose tab the map was found under last time, else each in turn */
+	int order[PK_POCKETS], npock = 1, cycle = -1;
+	order[0] = -1;
+	for (int pi = 0; pi < npock; ++pi) {
+		int rows = PK_KEY_ROWS;
+		for (int t = 0; t < rows; ++t) {
+			const char* err;
+			if (pk_open(s, f, state, &f->bag, &pkMem.goodBag, 60, &err) < 0) return err;
+			aw_run(s, 0, 90); /* (a romhack's Bag can take longer to take input) */
+			bool scanned = false;
+			if (cycle < 0) {
+				scanned = true;
+				cycle = pk_pocket_cycle(s, tabs);
+				if (cycle > 1) {
+					npock = 0;
+					for (int q = 0; q < cycle; ++q)
+						if (pkMem.keyTabKnown && tabs[q] == pkMem.keyTab) order[npock++] = q;
+					if (!npock) { /* (not seen yet, or the tab's gone: each pocket) */
+						pkMem.keyTabKnown = false;
+						for (int q = 0; q < cycle; ++q) order[npock++] = q;
+					}
+					if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: the Bag wraps: %d pockets, trying %d\n", cycle, npock);
+				} else {
+					cycle = 0;
+				}
+			}
+			if (order[pi] < 0) {
+				/* (all the way left: from where the scan left it, the last pocket, that's further) */
+				for (int i = 0; i < (scanned ? PK_POCKETS : 5); ++i) pk_tap(s, K_LEFT);
+				pk_tap(s, K_RIGHT);
+			} else {
+				if (!cycle || cycle < 0) return "no Town Map in the Bag"; /* (not reached) */
+				for (int i = 0; i < order[pi]; ++i) pk_tap(s, K_RIGHT);
+			}
+			aw_run(s, 0, 10);
+			for (int i = 0; i < (t == 0 ? PK_KEY_ROWS : rows) + 2; ++i) pk_tap(s, K_UP);
+			if (t == 0) {
+				/* the Key Items list as it is: the same as when no Town Map was
+				 * found last time means still none, without the row-by-row
+				 * search (seconds of frames, taken again and again until the
+				 * player has it) */
+				aw_run(s, 0, 20);
+				listHash = (listHash ^ pk_list_hash(s)) * 16777619u; /* (every pocket's list, when there is more than one to look in) */
+				if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items list %08X (last none: %d %08X)\n", listHash, pkMem.noMapKnown, pkMem.noMapHash);
+				if (cycle == 0 && pkMem.noMapKnown && listHash == pkMem.noMapHash) return "no Town Map in the Bag";
+				rows = pk_key_rows(s);
+				if (rows < 2) {
+					if (cycle > 0) break; /* (an empty pocket: only CANCEL) */
+					rows = 10; /* (no change seen: an empty pocket, or a Bag drawn another way: as before) */
+				}
+				if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key items: %d rows\n", rows);
+				for (int i = 0; i < rows + 1; ++i) pk_tap(s, K_UP);
+			}
+			int row = (pkMem.first + t) % rows;
+			for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
+			pk_tap(s, K_A); /* its menu: USE first */
+			aw_run(s, 0, 10);
+			pk_tap(s, K_A);
+			if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key row %d, io %04X %04X %04X %04X %04X\n", row, emu_io16(s, 0), emu_io16(s, 8), emu_io16(s, 10), emu_io16(s, 12), emu_io16(s, 14));
+			if (!pk_wait(s, &f->map, 150)) continue;
+			aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
+			if (!pk_is(s, &f->map)) continue;
+			pkMem.first = row;
+			pkMem.noMapKnown = false;
+			if (order[pi] >= 0) pkMem.keyTab = tabs[order[pi]], pkMem.keyTabKnown = true;
+			pk_map_copy(s, f, out, w, h);
+			return NULL;
 		}
-		int row = (pkMem.first + t) % rows;
-		for (int i = 0; i < row; ++i) pk_tap(s, K_DOWN);
-		pk_tap(s, K_A); /* its menu: USE first */
-		aw_run(s, 0, 10);
-		pk_tap(s, K_A);
-		if (getenv("GBADS_PKDBG")) fprintf(stderr, "pk: key row %d, io %04X %04X %04X %04X %04X\n", row, emu_io16(s, 0), emu_io16(s, 8), emu_io16(s, 10), emu_io16(s, 12), emu_io16(s, 14));
-		if (!pk_wait(s, &f->map, 150)) continue;
-		aw_run(s, 0, 110); /* (the registers are right while it's still fading in from white) */
-		if (!pk_is(s, &f->map)) continue;
-		pkMem.first = row;
-		pkMem.noMapKnown = false;
-		pk_map_copy(s, f, out, w, h);
-		return NULL;
+		/* a pocket remembered from last time that didn't have it: every pocket */
+		if (pkMem.keyTabKnown && pi == npock - 1 && cycle > 1 && npock == 1) {
+			pkMem.keyTabKnown = false;
+			npock = 0;
+			for (int q = 0; q < cycle; ++q) order[npock++] = q;
+			pi = -1;
+		}
 	}
 	if (!emu_cancelled(s)) pkMem.noMapKnown = true, pkMem.noMapHash = listHash;
 	return "no Town Map in the Bag";
@@ -11671,6 +11739,22 @@ static const MapProfile profiles[] = {
 		},
 	},
 	{
+		/* WarioWare: Twisted! (USA; Japan, Mawaru Made in Wario: the RZWJ variant: no health
+		 * and safety screen first). A button press at power-on gets past the health and safety
+		 * screen (USA) and the intro, and the title is up some 500 frames in; its lettering is
+		 * BG0 (WarioWare and the vortex, with the copyright line from row 151) and BG2
+		 * (TWISTED!), the rings behind it BG1, PRESS START! sprites (WWT-1). The cartridge's gyro
+		 * is the game's controls: see src/ww_twisted.inc (WWT-2 to WWT-9). */
+		.codes = { "RZWE" },
+		.title = "WarioWare: Twisted!",
+		.logo = { .steps = { { 0, 200 },
+		                     { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 },
+		                     { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { 0, 20 } },
+		          .layers = 0x5, .maxY = 151, .rev = 1 },
+		.logoOnly = true,
+		.gyroDial = true,
+	},
+	{
 		/* Wario Land 4 (USA and Europe; Japan: the AWAJ variant, same
 		 * addresses and screens). The pause screen (START) slides down
 		 * from the top over some 40 frames: its menu in rows 0-23 (BG0
@@ -12933,6 +13017,17 @@ static void bof2_jp(MapProfile* p) {
 	memcpy(p->logo.steps, steps, sizeof(steps));
 	p->logo.layers = 0x18;
 }
+/* WarioWare: Twisted! in Japan: no health and safety screen, so the title is up some 250 frames
+ * in; its lettering is メイドインワリオ (BG0, above the copyright box from row 139) and まわる (BG2) */
+static void ww_jpn(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 100 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { K_A, 4 }, { 0, 36 }, { 0, 100 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->logo.maxY = 139;
+	/* the lettering's soft edge, black blended into the title's yellow-green: left out, as Mario & Luigi's sky */
+	p->logo.edgeClear[0] = 0xC6D600, p->logo.edgeClear[1] = 0xADC600, p->logo.edgeClear[2] = 0x8C9C08, p->logo.edgeClear[3] = 0x526300;
+	p->logo.rev = 1;
+}
 static void lang_menu(MapProfile* p) {
 	insert_steps(p->logo.steps, 24, 0, LANGUAGE_A, 2);
 }
@@ -13451,6 +13546,7 @@ static const Variant variants[] = {
 	{ "BKZS", "BKZE", 0, bk_eu },
 	{ "ANXP", "ANXE", 0, nfo_eur },
 	{ "AWAJ", "AWAE", 0, NULL },
+	{ "RZWJ", "RZWE", 0, ww_jpn }, /* (its title is up ~250 frames in, its lettering BG0 and BG2 above the copyright box: WWT-1) */
 	{ "BM5P", "BM5E", 0, mvdk_eur }, /* (its state moved: mvdk_eur, mvdk_state) */
 	{ "BM5J", "BM5E", 0, mvdk_jpn },
 	/* Super Mario Advance 3 in Europe: its language menu first */

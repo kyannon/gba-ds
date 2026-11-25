@@ -428,6 +428,138 @@
    ]
   },
   {
+   "id": "pk-fr-frlgplus",
+   "rom": "BPRE+frlgplus",
+   "state": "pokemon/mods/BPRE+frlgplus.ss",
+   "desc": "FRLG+ 1.5.1, a romhack of FireRed on a ROM of its own, whose Bag wraps round its pockets (Key Items is found by its tab, not by counting from the left): the Party, then the map, with the Town Map in the Bag",
+   "rules": [
+    "PK-2",
+    "PK-3",
+    "PK-6",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map is a page of its own (two pages: Party and map)",
+     "type": "log",
+     "match": "map updated \\(2 frame"
+    }
+   ],
+   "golden": [
+    "map"
+   ]
+  },
+  {
+   "id": "pk-fr-frlgplus-patch",
+   "rom": "BPRE",
+   "state": "pokemon/mods/BPRE+frlgplus.ss",
+   "desc": "FRLG+ 1.5.1 as a BPS patch file beside the USA ROM: applied as the game starts, the same Party and map as the patched ROM",
+   "rules": [
+    "GEN-9",
+    "PK-3",
+    "PK-7"
+   ],
+   "shots": {
+    "party": 100,
+    "map": 450
+   },
+   "checks": [
+    {
+     "rule": "PK-2",
+     "what": "the Party on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "party",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map on the second screen (not the logo's grey)",
+     "type": "not_uniform",
+     "shot": "map",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "PK-2",
+     "what": "a page is taken",
+     "type": "log",
+     "match": "map updated"
+    },
+    {
+     "rule": "PK-3",
+     "what": "the map is a page of its own (two pages: Party and map)",
+     "type": "log",
+     "match": "map updated \\(2 frame"
+    },
+    {
+     "rule": "GEN-9",
+     "what": "patched as it started",
+     "type": "log",
+     "match": "ROM: CRC32 964763c0, a mod GBA DS is tested on"
+    }
+   ],
+   "golden": [
+    "map"
+   ],
+   "patch": "frlgPlus.bps"
+  },
+  {
    "id": "pk-fr-us-nopokemon",
    "rom": "BPRE",
    "state": "pokemon/fr-us-nopokemon.ss",

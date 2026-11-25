@@ -104,6 +104,8 @@ int main(int argc, char** argv) {
 		sscanf(p, "%31s %255s %1399s %63s", cmd, a1, a2, a3);
 		if (!strcmp(cmd, "hold")) {
 			run(parse_keys(a1), atoi(a2));
+		} else if (!strcmp(cmd, "gyro")) { /* gyro COUNTS: the cartridge's gyro reads this many counts from rest (WarioWare: Twisted!) */
+			emu_set_gyro(&emu, (int32_t) ((int64_t) atoi(a1) * (1 << 21)));
 		} else if (!strcmp(cmd, "wait")) {
 			run(0, atoi(a1));
 		} else if (!strcmp(cmd, "tap")) {
@@ -169,6 +171,9 @@ int main(int argc, char** argv) {
 				printf(" %02X", emu_read8(&emu, addr + i));
 			}
 			printf("\n");
+		} else if (!strcmp(cmd, "rumble")) {
+			/* the motor's level now (GBADS_HARNESS_RUMBLE=1 gives the harness's game one; issue #83) */
+			printf("RUMBLE %.2f\n", emu_rumble_level(&emu));
 		} else if (!strcmp(cmd, "io")) {
 			/* I/O registers as the renderer sees them: io OFFSET COUNT (16-bit) */
 			uint32_t off = strtoul(a1, NULL, 0), n = strtoul(a2, NULL, 0);
