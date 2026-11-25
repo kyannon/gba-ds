@@ -13739,6 +13739,22 @@ typedef struct {
 	const char* name;
 } KnownDump;
 #include "dumps_data.h"
+#include "dumps_gb_data.h"
+
+/* (a GBA game's code is capitals and digits: a Game Boy game's is g or c and lower case) */
+bool profile_code_is_gb(const char* gameCode) {
+	return gameCode && (gameCode[0] == 'g' || gameCode[0] == 'c');
+}
+bool profile_gb_dump_known(uint32_t crc) {
+	size_t lo = 0, hi = sizeof(knownGbDumps) / sizeof(knownGbDumps[0]);
+	while (lo < hi) {
+		size_t mid = (lo + hi) / 2;
+		if (knownGbDumps[mid] == crc) return true;
+		if (knownGbDumps[mid] < crc) lo = mid + 1;
+		else hi = mid;
+	}
+	return false;
+}
 
 const LogoSpec* profile_logo_spec(const MapProfile* p, uint32_t fileCrc) {
 	for (int i = 0; p && i < p->nLogoFor; ++i)

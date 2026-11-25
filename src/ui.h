@@ -150,6 +150,7 @@ void ui_color_correction(int mode); /* 0 off, 1 the GBA's screen, 2 a Game Boy C
  * picture given to ui_update_texture (their stripes darken it again); the
  * pattern itself is drawn by ui_image_pixels from cfg->shader. */
 void ui_shader(int sh);
+void ui_shader_setting(void); /* a game session is over: Display > Shader is the pattern again */
 /* One colour through it (for tests and the second screen's own grey) */
 uint32_t ui_color_correct(uint32_t abgr);
 /* Filled box with rounded corners (radius in pixels). */
