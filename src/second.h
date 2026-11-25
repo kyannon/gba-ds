@@ -17,6 +17,8 @@ const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
 
 /* "Map Animations: Off" shows the composed still (sec.stillPx) as this index */
 #define STILL_IDX MAP_MAX_FRAMES
+/* the logo drawn idle on the second screen: at half strength */
+#define LOGO_IDLE 128
 
 /* What the app does for the second screen (set by the app, once per game):
  * hudNew and overMap are the HUD split's part, still the app's for now (what
@@ -110,5 +112,12 @@ void map_show_new(bool fresh);
 /* the frame is mostly dark / one colour nearly all over (a fade, a blank screen) */
 bool frame_is_dark(const uint32_t* fb);
 bool frame_is_flat(const uint32_t* fb);
+/* how many of the probes (up to 8) the frame matches, each colour within tol */
+int probes_hit(const uint32_t* fb, const Probe* p, int tol);
+/* the frame drawn again without these sprites (kept: ones already hidden),
+ * into out; the game put back exactly as it was. _poke: a halfword written
+ * into the game's memory first, for that one frame (pokeAt 0: none) */
+void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out, uint32_t pokeAt, uint16_t pokeV);
+void snapshot_hiding_sprites(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out);
 
 #endif

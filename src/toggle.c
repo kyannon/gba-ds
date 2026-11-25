@@ -6,9 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "clamp.h"
 
-static inline int imax(int a, int b) { return a > b ? a : b; }
-static inline int imin(int a, int b) { return a < b ? a : b; }
 
 /* which of the second screen's pictures shows now: the map's frames turn
  * every frameStep frames from mapAnimStart (a marker's blinking, or pages:
@@ -26,7 +25,7 @@ int second_page(void) {
 	if (hp && hp->views) return sec.cfg->toggle ? sec.pageOffset % sec.mapRes.nFrames : 0; /* (views: the first until the toggle turns to another; no timer) */
 	bool by_hand = sec.cfg->toggle && sec.mapRes.pages;
 	if (by_hand && !sec.cfg->autoRotate) return sec.pageOffset % sec.mapRes.nFrames; /* (auto-rotate off: a page stays until you press) */
-	return (int) ((((sec.frame - sec.mapAnimStart) / (uint64_t) imax(1, sec.mapRes.frameStep)) + (uint64_t) (by_hand ? sec.pageOffset : 0)) % (uint64_t) sec.mapRes.nFrames);
+	return (int) ((((sec.frame - sec.mapAnimStart) / (uint64_t) S_MAX(1, sec.mapRes.frameStep)) + (uint64_t) (by_hand ? sec.pageOffset : 0)) % (uint64_t) sec.mapRes.nFrames);
 }
 
 /* ---- the contextual toggle (GEN-14, issue #37). Turning the second screen
@@ -81,7 +80,7 @@ void toggle_press(void) {
 	}
 	if (sec.tgWait < 0) {
 		const char* e = getenv("GBADS_TOGGLE_WAIT");
-		sec.tgWait = e ? imax(0, atoi(e)) : 0;
+		sec.tgWait = e ? S_MAX(0, atoi(e)) : 0;
 	}
 	const MapProfile* pp = sec.mc ? mapcap_profile(sec.mc) : NULL;
 	if (tg_view_mode(pp)) {

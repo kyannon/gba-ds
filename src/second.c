@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "clamp.h"
 
 SecondState sec = { .mapW = GBA_W, .mapH = GBA_H, .mapShownIdx = -1, .fadeLevel = 256, .tgWait = -1 };
 
@@ -21,8 +22,6 @@ bool map_anim(void) {
 	return !(p && p->mapStill);
 }
 
-static inline int imax(int a, int b) { return a > b ? a : b; }
-static inline int imin(int a, int b) { return a < b ? a : b; }
 
 static int cmp_u32(const void* a, const void* b) {
 	uint32_t x = *(const uint32_t*) a, y = *(const uint32_t*) b;
@@ -65,7 +64,7 @@ void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* m
 		queue[len++] = seed;
 		while (head < len) {
 			int p = queue[head++], px = p % w, py = p / w;
-			x0 = imin(x0, px), x1 = imax(x1, px), y0 = imin(y0, py), y1 = imax(y1, py);
+			x0 = S_MIN(x0, px), x1 = S_MAX(x1, px), y0 = S_MIN(y0, py), y1 = S_MAX(y1, py);
 			for (int dy = -R; dy <= R; ++dy) {
 				for (int dx = -R; dx <= R; ++dx) {
 					int nx = px + dx, ny = py + dy;
@@ -75,7 +74,7 @@ void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* m
 				}
 			}
 		}
-		x0 = imax(x0 - 2, 0), y0 = imax(y0 - 2, 0), x1 = imin(x1 + 2, w - 1), y1 = imin(y1 + 2, h - 1);
+		x0 = S_MAX(x0 - 2, 0), y0 = S_MAX(y0 - 2, 0), x1 = S_MIN(x1 + 2, w - 1), y1 = S_MIN(y1 + 2, h - 1);
 		/* the surroundings' colour: most common still pixel around the spot */
 		uint32_t bg = 0;
 		if (pick == STILL_COVER) {
@@ -109,7 +108,7 @@ void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* m
 			for (int i = 0; i < len; ++i) {
 				uint32_t p = fr[queue[i]];
 				if (pick == STILL_COVER) a += (p & 0xFFFFFF) != bg;
-				else if (red) a += imax(0, (int) (p & 0xFF) - (int) (((p >> 8) & 0xFF) + ((p >> 16) & 0xFF)) / 2);
+				else if (red) a += S_MAX(0, (int) (p & 0xFF) - (int) (((p >> 8) & 0xFF) + ((p >> 16) & 0xFF)) / 2);
 				else a += (p & 0xFF) + ((p >> 8) & 0xFF) + ((p >> 16) & 0xFF);
 			}
 			if (pick == STILL_COVER) {
@@ -317,7 +316,7 @@ void map_refresh_step(void) {
 		/* (a profile's own interval, when it's quicker: Swordcraft Story) */
 		const MapProfile* ip = mapcap_profile(sec.mc);
 		int every = ip && ip->interval > 0 && ip->interval < sec.cfg->mapInterval ? ip->interval : sec.cfg->mapInterval;
-		int interval = cheapFail ? every : every << imin(fails, 3);
+		int interval = cheapFail ? every : every << S_MIN(fails, 3);
 		/* after failures, a room change still triggers a try, but no more
 		 * often than the normal interval */
 		bool due = sec.refresh.sinceMapRequest >= interval || sec.pressCap ||
@@ -368,3 +367,57 @@ void map_refresh_step(void) {
 		}
 	}
 }
+
+/* how many of the probes (up to 8) the frame matches, each colour within tol */
+int probes_hit(const uint32_t* fb, const Probe* p, int tol) {
+	int n = 0;
+	for (int i = 0; i < 8 && (p[i].x || p[i].y || p[i].rgb); ++i) {
+		uint32_t c = fb[p[i].y * GBA_W + p[i].x];
+		int dr = (int) (c & 0xFF) - (int) ((p[i].rgb >> 16) & 0xFF);
+		int dg = (int) ((c >> 8) & 0xFF) - (int) ((p[i].rgb >> 8) & 0xFF);
+		int db = (int) ((c >> 16) & 0xFF) - (int) (p[i].rgb & 0xFF);
+		n += abs(dr) <= tol && abs(dg) <= tol && abs(db) <= tol;
+	}
+	return n;
+}
+
+/* Renders the current frame again without these sprites (on top of the
+ * ones already hidden: `kept`, put back afterwards) into out, then puts the
+ * game back exactly as it was (state, picture, sound). */
+void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out, uint32_t pokeAt, uint16_t pokeV);
+void snapshot_hiding_sprites(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out) {
+	snapshot_hiding_sprites_poke(hide, n, kept, nKept, out, 0, 0);
+}
+/* The same with a halfword written into the game's memory first (pokeAt 0:
+ * none), for that one frame */
+void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out, uint32_t pokeAt, uint16_t pokeV) {
+	static void* st;
+	static size_t stSize;
+	static uint32_t raw[GBA_W * GBA_H];
+	size_t sz = emu_state_size(&(*sec.emu));
+	if (sz > stSize) {
+		free(st);
+		st = malloc(sz);
+		stSize = st ? sz : 0;
+	}
+	if (!st || !emu_state_save(&(*sec.emu), st)) {
+		memcpy(out, (*sec.emu).fb, sizeof(raw));
+		return;
+	}
+	memcpy(raw, (*sec.emu).fb, sizeof(raw));
+	SpriteRule all[12];
+	int na = 0;
+	for (int i = 0; i < nKept && na < 12; ++i) all[na++] = kept[i];
+	for (int i = 0; i < n && na < 12; ++i) all[na++] = hide[i];
+	emu_hide_sprites(&(*sec.emu), all, na);
+	emu_state_load(&(*sec.emu), st);
+	if (pokeAt) emu_write16(&(*sec.emu), pokeAt, pokeV);
+	emu_frame(&(*sec.emu), 0);
+	memcpy(out, (*sec.emu).fb, sizeof(raw));
+	emu_hide_sprites(&(*sec.emu), nKept ? kept : NULL, nKept);
+	emu_state_load(&(*sec.emu), st);
+	int16_t drop[2048];
+	while (emu_audio_read(&(*sec.emu), drop, 1024) > 0) {}
+	memcpy((*sec.emu).fb, raw, sizeof(raw));
+}
+

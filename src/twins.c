@@ -4,9 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "clamp.h"
 
-static inline int imax(int a, int b) { return a > b ? a : b; }
-static inline int imin(int a, int b) { return a < b ? a : b; }
 
 
 /* profile tall.live: two more copies of the game drawing the table's rows
@@ -80,7 +79,7 @@ static void twin_jump(Emu* e, uint32_t T, int row) {
 	int nt = row >> 3;
 	size_t ewSize;
 	const uint8_t* ew = emu_memory(e, 2, &ewSize); /* (EWRAM, 0x02000000) */
-	for (int R = imax(nt, 0); R < nt + J->slots && R < J->tileRows; ++R) {
+	for (int R = S_MAX(nt, 0); R < nt + J->slots && R < J->tileRows; ++R) {
 		uint32_t src = R < J->split ? J->src[0] + R * 0x400 : J->src[1] + (R - J->split) * 0x400;
 		uint32_t dst = J->ring + ((R + J->slotOff) % J->slots) * 0x400;
 		if (ew && src - 0x02000000 + 0x400 <= ewSize) emu_vram_write(e, dst - 0x06000000, ew + (src - 0x02000000), 0x400);
@@ -322,7 +321,7 @@ static void twin_first_carry(Twin* tw) {
 	 * jumping further leaves its tiles behind for good) */
 	int at = tall_view(twinProf, &tw->e) - tall_shake(twinProf, &tw->e) + C->camOff;
 	int want = tw->row + C->camOff;
-	tw->cam = want > at ? imin(at + 16, want) : imax(at - 16, want);
+	tw->cam = want > at ? S_MIN(at + 16, want) : S_MAX(at - 16, want);
 
 	emu_write16(&tw->e, C->cam, (uint16_t) tw->cam);
 	bool fresh = !tw->carried;
@@ -410,7 +409,7 @@ void twin_step(void) {
 		twinShakeNow = twinShakeNext, twinShakeNext = k;
 		int top = tall_top_of(twinProf), vmax = tall_rows_of(twinProf, &(*sec.emu)) - 2 * GBA_H;
 		int u = tall_view(twinProf, &(*sec.emu)) - k;
-		twins[0].row = vmax, twins[1].row = imax(imin(u, vmax), top) + GBA_H;
+		twins[0].row = vmax, twins[1].row = S_MAX(S_MIN(u, vmax), top) + GBA_H;
 		/* (both always: a copy walking to its row from the game's isn't
 		 * shown for a few frames, so the top screen's copy is kept at its
 		 * row while the game itself is there too) */
@@ -441,7 +440,7 @@ void twin_step(void) {
 	int k = (int8_t) emu_read8(&(*sec.emu), S + L->shake);
 	twinShakeNow = twinShakeNext, twinShakeNext = k;
 	int u = (int16_t) emu_read16(&(*sec.emu), L->view) - k, vmax = twinProf->tall.rows - 2 * GBA_H;
-	int want[TWINS] = { vmax, imax(imin(u, vmax), 0) + GBA_H };
+	int want[TWINS] = { vmax, S_MAX(S_MIN(u, vmax), 0) + GBA_H };
 	/* (PP-11: the game's whole screen is on the bottom one; the top screen
 	 * shows the rows just above it, from twins[0] held there, when the
 	 * table has them) */
@@ -546,7 +545,7 @@ static bool tall_line(uint32_t* dst, int row, const TallSrc* src, int n) {
 	for (int pass = 0; pass < 2; ++pass)
 		for (int i = 0; i < n; ++i) {
 			int y = row - src[i].row;
-			int lo = pass ? src[i].from : imax(src[i].from, src[i].safe);
+			int lo = pass ? src[i].from : S_MAX(src[i].from, src[i].safe);
 			if (src[i].px && y >= lo && y < GBA_H) {
 				memcpy(dst, &src[i].px[y * GBA_W], sizeof(uint32_t) * GBA_W);
 				return true;
@@ -631,7 +630,7 @@ void update_tall(const TallEnv* env) {
 	/* (the screen shake moves the whole view, as it does the game's screen;
 	 * the copies shake alike, by themselves) */
 	int k = twinShakeNow;
-	int v = imax(imin(s - k, vmax), top) + k;
+	int v = S_MAX(S_MIN(s - k, vmax), top) + k;
 	int safe = carry && L->carry.gameFrom ? L->carry.gameFrom - 1 : 0;
 	TallSrc game = { (*sec.emu).fb, s, carry ? L->carry.gameFrom : 0, 0 };
 	TallSrc a = { twins[0].up && twins[0].havePic ? twins[0].pic : NULL, twins[0].picRow, 0, safe }; /* (this frame's only) */
@@ -732,8 +731,8 @@ void update_tall(const TallEnv* env) {
 				int y0 = a0 & 0xFF, x0 = a1 & 0x1FF, h = obj_height(a0, a1), w = obj_width(a0, a1);
 				if (y0 >= GBA_H) y0 -= 256;
 				if (x0 >= GBA_W) x0 -= 512;
-				for (int y = imax(y0, 0); y < imin(y0 + h, t->hudRow); ++y)
-					for (int x = imax(x0, 0); x < imin(x0 + w, GBA_W); ++x) {
+				for (int y = S_MAX(y0, 0); y < S_MIN(y0 + h, t->hudRow); ++y)
+					for (int x = S_MAX(x0, 0); x < S_MIN(x0 + w, GBA_W); ++x) {
 						if ((env->hudPx[y * GBA_W + x] & 0xFFFFFF) == clear) continue;
 						if (L->msg.map && tall_bg0_pixel(L->msg.map, L->msg.row0, x, y)) continue; /* (BG0's: the timer) */
 						box[y * GBA_W + x] = 1, anyFixed = true;
@@ -783,7 +782,7 @@ void update_tall(const TallEnv* env) {
 	if (carry && !firstLive && !msg && t->hudRow >= 2) {
 		for (int x = 0; x < GBA_W; ++x) {
 			if ((env->hudPx[(t->hudRow - 1) * GBA_W + x] & 0xFFFFFF) == clear && (env->hudPx[(t->hudRow - 2) * GBA_W + x] & 0xFFFFFF) == clear) continue;
-			for (int d = imax(0, x - 8); d <= imin(GBA_W - 1, x + 8); ++d) down[d] = true;
+			for (int d = S_MAX(0, x - 8); d <= S_MIN(GBA_W - 1, x + 8); ++d) down[d] = true;
 			anyDown = true;
 		}
 	}

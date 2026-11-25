@@ -29,6 +29,20 @@ typedef struct {
 	bool atBottom; /* it reached the game screen's bottom edge */
 } Piece;
 
+/* What the app does for the HUD split (set once per game): put the HUD's
+ * canvas (HUD_CW x HUD_CH) or the fights' picture (sec.mapW x sec.mapH) on the
+ * second screen, whether it has somewhere to put the fights' picture, draw
+ * the game's logo into a picture (cw x ch, k pixels per GBA pixel, from row
+ * top, at alpha; false if there's no logo yet), and the debug dump of the
+ * backdrop taken (GBADS_DEBUG) */
+typedef struct {
+	void (*presentHud)(const uint32_t* canvas);
+	void (*presentCombat)(const uint32_t* px);
+	bool (*hasCombat)(void);
+	bool (*logo)(uint32_t* px, int cw, int ch, int k, int top, int alpha);
+	void (*saveBmp)(const uint32_t* px, int w, int hgt, const char* path);
+} HudHooks;
+
 typedef struct {
 	/* profile.combat: in a fight, the second screen is the map's background
 	 * with the logo small and dimmed (combatTex, mapW x mapH, made once) */
@@ -96,7 +110,20 @@ typedef struct {
 	/* hud.mirror: the game screen's last picture from before */
 	uint32_t mirrorHeld[GBA_W * GBA_H];
 	bool mirrorHave, mirrorOn;
+	HudHooks hooks;
 } HudState;
 extern HudState hud;
+
+/* once a frame for a game with a HUD split (hud.hudProf): this frame's HUD
+ * picture, put up through hud.hooks */
+void update_hud(void);
+/* (sec.hooks.overMap) the map picture with the HUD's pieces in it */
+const uint32_t* hud_over_map(const uint32_t* px);
+/* (sec.hooks.hudNew) a new map picture is in: what the HUD keeps of it */
+void hud_new_map(bool fresh);
+/* profile.combat's picture: the logo as on any other second screen */
+void make_combat_canvas(void);
+/* hud.card: the best take as the backdrop */
+void card_backdrop(void);
 
 #endif
