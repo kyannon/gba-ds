@@ -160,6 +160,7 @@ static bool gbpLive;                       /* the halves are up (the table, not 
 static uint32_t gbpHalf[2][GBA_W * GBA_H]; /* top and bottom half, as the screens show them */
 static SDL_Texture* gbpTex[2];             /* the other screen's picture */
 static void gbp_publish(void);
+static void resize_game_textures(void);
 /* the picture the game's screen shows now: the table's half while the view is up (a menu or a setting uploads it again), else the game's frame */
 static const uint32_t* gbp_or_fb(const uint32_t* fb) {
 	return gbp && gbpLive ? (cfg->swap ? gbpHalf[1] : gbpHalf[0]) : fb;
