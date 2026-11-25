@@ -1852,6 +1852,9 @@ msgstr "上面的主按鍵"
 msgid "This folder can't be opened"
 msgstr "無法開啟這個資料夾"
 
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS 無法儲存到這個資料夾：請選擇其他資料夾"
+
 msgid "This game"
 msgstr "本遊戲"
 

@@ -69,7 +69,7 @@ msgstr ""
 msgid "%d on"
 msgstr ""
 
-#: src/folderpick.c:191
+#: src/folderpick.c:192
 #, c-format
 msgid "%d RetroArch state here"
 msgid_plural "%d RetroArch states here"
@@ -477,7 +477,7 @@ msgstr ""
 msgid "Can't find the GBA DS folder."
 msgstr ""
 
-#: src/paths.c:673
+#: src/paths.c:683
 #, c-format
 msgid "Can't reach GBA DS's folder, using %s for now: %s"
 msgstr ""
@@ -490,12 +490,12 @@ msgstr ""
 msgid "Can't save files here: no states, logos or screenshots"
 msgstr ""
 
-#: src/paths.c:703
+#: src/paths.c:713
 #, c-format
 msgid "Can't save in the chosen folder, files not moved: %s"
 msgstr ""
 
-#: src/folderpick.c:203 src/game.c:3737 src/mapper.c:270
+#: src/folderpick.c:204 src/game.c:3737 src/mapper.c:270
 msgid "Cancel"
 msgstr ""
 
@@ -553,12 +553,12 @@ msgstr ""
 msgid "Choose save folder"
 msgstr ""
 
-#: src/paths.c:700
+#: src/paths.c:710
 #, c-format
 msgid "Chosen folder is inside GBA DS's own, files not moved: %s"
 msgstr ""
 
-#: src/paths.c:697
+#: src/paths.c:707
 #, c-format
 msgid "Chosen folder not found, files not moved: %s"
 msgstr ""
@@ -666,7 +666,7 @@ msgstr ""
 msgid "Couldn't load the game"
 msgstr ""
 
-#: src/paths.c:716
+#: src/paths.c:726
 #, c-format
 msgid "Couldn't move GBA DS's files, they stay in %s"
 msgstr ""
@@ -1070,7 +1070,7 @@ msgstr ""
 msgid "Games without second-screen support play on one screen."
 msgstr ""
 
-#: src/paths.c:369
+#: src/paths.c:393
 msgid "GBA"
 msgstr ""
 
@@ -1100,6 +1100,10 @@ msgstr ""
 
 #: src/library.c:2196 src/library.c:2235
 msgid "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."
+msgstr ""
+
+#: src/folderpick.c:319
+msgid "GBA DS can't save in this folder: choose another"
 msgstr ""
 
 #: src/library.c:2480
@@ -1622,7 +1626,7 @@ msgstr ""
 msgid "No folder chosen."
 msgstr ""
 
-#: src/folderpick.c:176
+#: src/folderpick.c:177
 msgid "No folders in this one"
 msgstr ""
 
@@ -1642,7 +1646,7 @@ msgstr ""
 msgid "No quick state saved yet."
 msgstr ""
 
-#: src/folderpick.c:192
+#: src/folderpick.c:193
 msgid "No RetroArch states here"
 msgstr ""
 
@@ -2625,7 +2629,7 @@ msgstr ""
 msgid "Soft Cells"
 msgstr ""
 
-#: src/paths.c:748
+#: src/paths.c:759
 #, c-format
 msgid "Some files couldn't be moved, they're still in %s"
 msgstr ""
@@ -3053,7 +3057,7 @@ msgstr ""
 msgid "Up to %d patches can be on at once"
 msgstr ""
 
-#: src/folderpick.c:169
+#: src/folderpick.c:170
 #, c-format
 msgid "Up to %s"
 msgstr ""
@@ -3070,7 +3074,7 @@ msgstr ""
 msgid "Updates, integrations"
 msgstr ""
 
-#: src/folderpick.c:203
+#: src/folderpick.c:204
 msgid "Use This Folder"
 msgstr ""
 

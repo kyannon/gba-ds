@@ -88,6 +88,11 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	uint32_t* back = malloc(GBA_W * GBA_H * 4);
 	uint32_t* fg = malloc(GBA_W * GBA_H * 4);
 	uint8_t* opaque = calloc(GBA_W * GBA_H, 1);
+	if (!st || !back || !fg || !opaque) {
+		emu_close(&e);
+		free(st), free(back), free(fg), free(opaque);
+		return false;
+	}
 	emu_state_save(&e, st);
 	/* Layer switches only take effect when the display registers are
 	 * written; loading the state after setting them rewrites the registers
@@ -170,7 +175,7 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		int* stack = malloc(sizeof(int) * GBA_W * GBA_H);
 		uint8_t* seen = calloc(GBA_W * GBA_H, 1);
 		int n = 0;
-		for (int y = 0; y < maxY; ++y) {
+		for (int y = 0; stack && seen && y < maxY; ++y) {
 			for (int x = 0; x < GBA_W; ++x) {
 				if (x == 0 || y == 0 || x == GBA_W - 1 || y == maxY - 1) stack[n++] = y * GBA_W + x, seen[y * GBA_W + x] = 1;
 			}
@@ -314,7 +319,7 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	if (count >= 400) {
 		int w = x1 - x0 + 1, h = y1 - y0 + 1;
 		uint8_t* rgba = malloc((size_t) w * h * 4);
-		for (int y = 0; y < h; ++y) {
+		for (int y = 0; rgba && y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
 				int i = (y0 + y) * GBA_W + x0 + x;
 				uint32_t c = fg[i];
@@ -327,7 +332,7 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		}
 		char tmp[1100];
 		snprintf(tmp, sizeof(tmp), "%s.tmp", outPng);
-		ok = stbi_write_png(tmp, w, h, 4, rgba, w * 4) && rename(tmp, outPng) == 0;
+		ok = rgba && stbi_write_png(tmp, w, h, 4, rgba, w * 4) && rename(tmp, outPng) == 0;
 		free(rgba);
 		fprintf(stderr, "logo: %s %dx%d -> %s\n", gameCode, w, h, ok ? outPng : "write failed");
 	} else {
@@ -371,6 +376,26 @@ static void do_job(Job* j) {
 	__atomic_add_fetch(&generation, 1, __ATOMIC_SEQ_CST);
 }
 
+/* (qlock held) the first job, or while paused the first urgent one; NULL if none */
+static Job* take_job(void) {
+	Job** at = &queue;
+	while (*at && paused && !(*at)->urgent) at = &(*at)->next;
+	Job* j = *at;
+	if (j) *at = j->next;
+	return j;
+}
+
+/* (qlock held) a job taken from the queue, done with the lock let go meanwhile */
+static void run_job(Job* j) {
+	snprintf(current, sizeof(current), "%s", j->code);
+	pthread_mutex_unlock(&qlock);
+	do_job(j);
+	pthread_mutex_lock(&qlock);
+	current[0] = 0;
+	--pending;
+	++finished;
+}
+
 static void* worker(void* arg) {
 	(void) arg;
 	/* background work: let the game (and its audio) have the CPU first */
@@ -382,22 +407,12 @@ static void* worker(void* arg) {
 #endif
 	pthread_mutex_lock(&qlock);
 	while (!stopping) {
-		/* the first job, or while paused the first urgent one */
-		Job** at = &queue;
-		while (*at && paused && !(*at)->urgent) at = &(*at)->next;
-		Job* j = *at;
+		Job* j = take_job();
 		if (!j) {
 			pthread_cond_wait(&qcond, &qlock);
 			continue;
 		}
-		*at = j->next;
-		snprintf(current, sizeof(current), "%s", j->code);
-		pthread_mutex_unlock(&qlock);
-		do_job(j);
-		pthread_mutex_lock(&qlock);
-		current[0] = 0;
-		--pending;
-		++finished;
+		run_job(j);
 		pthread_cond_broadcast(&qcond);
 	}
 	pthread_mutex_unlock(&qlock);
@@ -440,6 +455,10 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 		return;
 	}
 	Job* j = calloc(1, sizeof(*j));
+	if (!j) {
+		pthread_mutex_unlock(&qlock);
+		return;
+	}
 	snprintf(j->rom, sizeof(j->rom), "%s", romPath);
 	snprintf(j->code, sizeof(j->code), "%.4s", gameCode);
 	snprintf(j->out, sizeof(j->out), "%s", outPng);
@@ -499,19 +518,8 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 #ifdef __wasi__
 void logo_step(void) {
 	pthread_mutex_lock(&qlock);
-	Job** at = &queue;
-	while (*at && paused && !(*at)->urgent) at = &(*at)->next;
-	Job* j = *at;
-	if (j) {
-		*at = j->next;
-		snprintf(current, sizeof(current), "%s", j->code);
-		pthread_mutex_unlock(&qlock);
-		do_job(j);
-		pthread_mutex_lock(&qlock);
-		current[0] = 0;
-		--pending;
-		++finished;
-	}
+	Job* j = take_job();
+	if (j) run_job(j);
 	pthread_mutex_unlock(&qlock);
 }
 #endif

@@ -1855,6 +1855,9 @@ msgstr "die obere Taste"
 msgid "This folder can't be opened"
 msgstr "Dieser Ordner kann nicht geöffnet werden"
 
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS kann in diesem Ordner nicht speichern: wähle einen anderen"
+
 msgid "This game"
 msgstr "Dieses Spiel"
 

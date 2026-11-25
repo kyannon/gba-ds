@@ -1859,6 +1859,9 @@ msgstr "le bouton du haut"
 msgid "This folder can't be opened"
 msgstr "Ce dossier ne peut pas être ouvert"
 
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS ne peut pas enregistrer dans ce dossier : choisissez-en un autre"
+
 msgid "This game"
 msgstr "Ce jeu"
 

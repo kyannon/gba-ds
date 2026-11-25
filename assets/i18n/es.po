@@ -1855,6 +1855,9 @@ msgstr "el botón superior"
 msgid "This folder can't be opened"
 msgstr "No se puede abrir esta carpeta"
 
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS no puede guardar en esta carpeta: elige otra"
+
 msgid "This game"
 msgstr "Este juego"
 
