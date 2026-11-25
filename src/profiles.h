@@ -433,6 +433,9 @@ typedef struct MapProfile {
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
 	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
 	bool logoIfLast;
+	/* Keys the game doesn't get while every `when` probe matches, with two screens only: a button whose
+	 * only job there is what the second screen already shows (Pokemon Mystery Dungeon's SELECT, the floor map) */
+	struct { uint16_t keys; MemProbe when[4]; } swallow;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */

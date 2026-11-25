@@ -741,6 +741,7 @@ static void twin_open(const char* rom, const MapProfile* p) {
 
 /* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
 static const MapProfile* hideWhenProf;
+static const MapProfile* swallowProf; /* profile swallow */
 static int hideWhenN;
 static bool hideWhenOn;
 
@@ -750,6 +751,7 @@ static void ww_state_loaded(void);
 static float ww_rumble(float level);
 
 static void run_frame(uint32_t keys) {
+	if (swallowProf && (keys & swallowProf->swallow.keys) && memprobes_match(swallowProf->swallow.when, 4, &emu)) keys &= ~(uint32_t) swallowProf->swallow.keys;
 	frameKeys = keys;
 	unsigned bugAt = bugFrame & (BUG_LOG - 1);
 	bugKeys[bugAt] = keys & 0x3FF;
@@ -8743,6 +8745,7 @@ static void ss_setup(const char* rom, const char* code) {
 		if (mc) mapcap_set_still(mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
 		hideWhenProf = NULL;
+		swallowProf = lp && lp->swallow.keys && nScreens > 1 ? lp : NULL;
 		if (mc) {
 			fprintf(stderr, "map profile: %s\n", mapcap_title(mc));
 			mapcap_size(mc, &mapW, &mapH);
@@ -8810,7 +8813,7 @@ static void ss_switch(const char* rom, const char* code) {
 	snprintf(subCode, sizeof(subCode), "%.4s", code);
 	if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(&emu, NULL, 0);
-	hideWhenProf = NULL;
+	hideWhenProf = NULL, swallowProf = NULL;
 	mapcap_destroy(mc);
 	mc = NULL;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
