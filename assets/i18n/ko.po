@@ -64,9 +64,6 @@ msgstr "%s %s. RetroArch가 상태를 다른 곳에 보관한다면 다른 폴�
 msgid "%s (beside the ROM)"
 msgstr "%s (ROM 옆)"
 
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "%s을(를) 핫키 버튼으로 사용 (Start, R1, L1, X, Y, B와 함께)"
-
 msgid "%s has no button now"
 msgstr "%s에 할당된 버튼이 없습니다"
 
@@ -144,9 +141,6 @@ msgstr "A 버튼 (오른쪽)"
 
 msgid "A and B buttons"
 msgstr "A 및 B 버튼"
-
-msgid "A dark line under each row of pixels"
-msgstr "각 픽셀 줄 아래에 어두운 선"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "옆에 이미 있거나 다른 형식인 게임 저장 데이터는 처음 플레이할 때 복사됩니다. .srm은 RetroArch가 쓰는 형식입니다. RetroArch의 저장 폴더도 선택하면 각 게임의 저장 데이터를 공유할 수 있습니다."
@@ -246,9 +240,6 @@ msgstr "게임을 시작했을 때 그대로"
 
 msgid "Aug"
 msgstr "8월"
-
-msgid "Auto"
-msgstr "자동"
 
 msgid "Auto-load"
 msgstr "자동 불러오기"
@@ -543,9 +534,6 @@ msgstr "아래"
 
 msgid "Downloading"
 msgstr "다운로드 중"
-
-msgid "Each pixel a little darker toward its edges"
-msgstr "가장자리로 갈수록 각 픽셀이 약간 어두워짐"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "retroachievements.org 계정으로 캐주얼 모드에서 업적을 달성하세요. GBA DS는 비밀번호가 아닌 로그인 토큰을 보관합니다."
@@ -916,14 +904,8 @@ msgstr "밝은/어두운 모드"
 msgid "Like a GBA"
 msgstr "GBA처럼"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "GBA 화면처럼 픽셀 사이에 선"
-
 msgid "Load failed"
 msgstr "불러오기 실패"
-
-msgid "Load failed."
-msgstr "불러오기에 실패했습니다."
 
 msgid "Load State"
 msgstr "상태 불러오기"
@@ -1315,15 +1297,6 @@ msgstr "소리가 갈라지면 올리세요."
 msgid "Red"
 msgstr "빨강"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "빨강, 초록, 파랑 줄무늬, 부드럽게: 어두운 화면용"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "GBA 화면처럼 빨강, 초록, 파랑 줄무늬"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "빨강, 초록, 파랑 줄무늬, 강하게: 밝은 화면용"
-
 msgid "Reset"
 msgstr "초기화"
 
@@ -1669,9 +1642,6 @@ msgstr "부드러운 배율"
 msgid "Smoother, one frame more input delay."
 msgstr "더 부드럽지만 입력 지연이 한 프레임 늘어납니다."
 
-msgid "SNES"
-msgstr "SNES"
-
 msgid "Soft Cells"
 msgstr "부드러운 셀"
 
@@ -1800,9 +1770,6 @@ msgstr "GBA DS 메뉴를 여는 버튼 (Home, Menu 또는 Function)"
 
 msgid "the game"
 msgstr "게임"
-
-msgid "The game's pixels as they are"
-msgstr "게임의 픽셀을 있는 그대로"
 
 msgid "The GBA DS logo in the generated bezel."
 msgstr "생성된 베젤의 GBA DS 로고."

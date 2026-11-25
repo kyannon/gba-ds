@@ -64,9 +64,6 @@ msgstr "%s%s。如果 RetroArch 把状态存在别处，请另选。"
 msgid "%s (beside the ROM)"
 msgstr "%s（在 ROM 旁边）"
 
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "用 %s 当热键键，配合 Start、R1、L1、X、Y 和 B"
-
 msgid "%s has no button now"
 msgstr "%s 现在没有按键"
 
@@ -144,9 +141,6 @@ msgstr "A（右）键"
 
 msgid "A and B buttons"
 msgstr "A 和 B 键"
-
-msgid "A dark line under each row of pixels"
-msgstr "每行像素下面有一条暗线"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "游戏旁边已有的存档，或是另一种格式的存档，会在第一次玩时复制过来。.srm 是 RetroArch 用的格式：把它的存档文件夹也选上，就能和它共享每个游戏的存档。"
@@ -246,9 +240,6 @@ msgstr "与游戏开始时相同"
 
 msgid "Aug"
 msgstr "8月"
-
-msgid "Auto"
-msgstr "自动"
 
 msgid "Auto-load"
 msgstr "自动读取"
@@ -543,9 +534,6 @@ msgstr "下"
 
 msgid "Downloading"
 msgstr "正在下载"
-
-msgid "Each pixel a little darker toward its edges"
-msgstr "每个像素越靠边越暗一点"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "用你的 retroachievements.org 账号在休闲模式下获得成就。GBA DS 只保存登录令牌，不保存密码。"
@@ -916,14 +904,8 @@ msgstr "浅色/深色模式"
 msgid "Like a GBA"
 msgstr "像 GBA"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "像素之间有线条，像 GBA 的屏幕"
-
 msgid "Load failed"
 msgstr "读取失败"
-
-msgid "Load failed."
-msgstr "读取失败。"
 
 msgid "Load State"
 msgstr "读取状态"
@@ -1312,15 +1294,6 @@ msgstr "声音有杂音就调高。"
 msgid "Red"
 msgstr "红"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "红绿蓝条纹，轻微：适合暗的屏幕"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "红绿蓝条纹，像 GBA 的屏幕"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "红绿蓝条纹，明显：适合亮的屏幕"
-
 msgid "Reset"
 msgstr "重置"
 
@@ -1666,9 +1639,6 @@ msgstr "平滑缩放"
 msgid "Smoother, one frame more input delay."
 msgstr "更平滑，但多一帧输入延迟。"
 
-msgid "SNES"
-msgstr "SNES"
-
 msgid "Soft Cells"
 msgstr "柔化格子"
 
@@ -1797,9 +1767,6 @@ msgstr "打开 GBA DS 菜单的键（Home、Menu 或 Function）"
 
 msgid "the game"
 msgstr "游戏"
-
-msgid "The game's pixels as they are"
-msgstr "游戏画面原样显示"
 
 msgid "The GBA DS logo in the generated bezel."
 msgstr "生成的边框里的 GBA DS 徽标。"

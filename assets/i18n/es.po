@@ -67,9 +67,6 @@ msgstr "%s %s. Elige otra si RetroArch guarda sus estados en otro sitio."
 msgid "%s (beside the ROM)"
 msgstr "%s (junto a la ROM)"
 
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "%s como botón de atajos, con Start, R1, L1, X, Y y B"
-
 msgid "%s has no button now"
 msgstr "%s ya no tiene botón"
 
@@ -147,9 +144,6 @@ msgstr "Botón A (derecha)"
 
 msgid "A and B buttons"
 msgstr "Botones A y B"
-
-msgid "A dark line under each row of pixels"
-msgstr "Una línea oscura bajo cada fila de píxeles"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "Si ya hay una partida guardada junto al juego, o del otro tipo, se copia la primera vez que lo juegas. .srm es el tipo que usa RetroArch: elige también su carpeta de partidas guardadas para compartir cada una con él."
@@ -249,9 +243,6 @@ msgstr "Como al iniciar el juego"
 
 msgid "Aug"
 msgstr "Ago"
-
-msgid "Auto"
-msgstr "Auto"
 
 msgid "Auto-load"
 msgstr "Carga automática"
@@ -546,9 +537,6 @@ msgstr "Abajo"
 
 msgid "Downloading"
 msgstr "Descargando"
-
-msgid "Each pixel a little darker toward its edges"
-msgstr "Cada píxel un poco más oscuro hacia los bordes"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "Consigue logros en modo casual con tu cuenta de retroachievements.org. GBA DS guarda un token de sesión, no tu contraseña."
@@ -919,14 +907,8 @@ msgstr "Modo claro/oscuro"
 msgid "Like a GBA"
 msgstr "Como una GBA"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "Líneas entre los píxeles, como en la pantalla de una GBA"
-
 msgid "Load failed"
 msgstr "Error al cargar"
-
-msgid "Load failed."
-msgstr "Error al cargar."
 
 msgid "Load State"
 msgstr "Cargar estado"
@@ -1315,15 +1297,6 @@ msgstr "Súbelo si el sonido cruje."
 msgid "Red"
 msgstr "Rojo"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "Franjas rojas, verdes y azules, suaves: para pantallas tenues"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "Franjas rojas, verdes y azules, como la pantalla de una GBA"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "Franjas rojas, verdes y azules, fuertes: para pantallas brillantes"
-
 msgid "Reset"
 msgstr "Restablecer"
 
@@ -1669,9 +1642,6 @@ msgstr "Escalado suave"
 msgid "Smoother, one frame more input delay."
 msgstr "Más suave, un fotograma más de retardo de entrada."
 
-msgid "SNES"
-msgstr "SNES"
-
 msgid "Soft Cells"
 msgstr "Celdas suaves"
 
@@ -1800,9 +1770,6 @@ msgstr "el botón que abre el menú de GBA DS (Home, Menu o Function)"
 
 msgid "the game"
 msgstr "el juego"
-
-msgid "The game's pixels as they are"
-msgstr "Los píxeles del juego tal cual"
 
 msgid "The GBA DS logo in the generated bezel."
 msgstr "El logo de GBA DS en el marco generado."
