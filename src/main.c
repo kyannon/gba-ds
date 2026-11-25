@@ -162,6 +162,15 @@ int main(int argc, char** argv) {
 	if (!cfg.assetDir[0]) snprintf(cfg.assetDir, sizeof(cfg.assetDir), "%s", dataDir);
 	if (!cfg.patchDir[0]) snprintf(cfg.patchDir, sizeof(cfg.patchDir), "%s/patches", cfg.assetDir); /* GEN-9 */
 	if (!cfg.stateDir[0]) snprintf(cfg.stateDir, sizeof(cfg.stateDir), "%s/states", dataDir);
+	/* a first install: no states folder yet, or an empty one (every run of GBA DS leaves its caches and
+	 * settings there); the language question is asked, once (issue #92) */
+	bool firstInstall = true;
+	{
+		DIR* d = opendir(cfg.stateDir);
+		struct dirent* e;
+		while (d && firstInstall && (e = readdir(d)) != NULL) firstInstall = e->d_name[0] == '.';
+		if (d) closedir(d);
+	}
 	mkdirs(cfg.stateDir);
 	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
 	/* (map_interval and show_fps were left to gba-ds.cfg until v1.5.4; the game list's Settings can change them now) */
@@ -173,6 +182,16 @@ int main(int argc, char** argv) {
 	snprintf(path, sizeof(path), "%s/hotkeys.cfg", cfg.stateDir);
 	config_load_file(&cfg, path);
 	config_parse_args(&cfg, argc, argv);
+	if (firstInstall && library_language_ask_built()) {
+		/* kept as pending in prefs.cfg, so a first run that never reaches the game list or the pause menu asks next time */
+		cfg.languageAsked = false;
+		snprintf(path, sizeof(path), "%s/prefs.cfg", cfg.stateDir);
+		const char* kv[1][2] = { { "language_asked", "0" } };
+		config_kv_update(path, "# written by gba-ds's menus; overrides gba-ds.cfg", 1, kv);
+		fprintf(stderr, "first install: the language will be asked\n");
+	} else if (!cfg.languageAsked && !library_language_ask_built()) {
+		cfg.languageAsked = true; /* (pending from a build that asks, now run by one that doesn't) */
+	}
 	library_bios_apply(&cfg);
 	emu_solar_level = cfg.solarLevel; /* (the sun sensor's reading, Boktai) */
 	if (cfg.overlayMode == OVM_LEGACY) {

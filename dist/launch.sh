@@ -200,9 +200,29 @@ if ! grep -qi rocknix /etc/os-release 2>/dev/null && [ ! -d /storage/.config/sys
 	export GBADS_VOLUME="$DATA/states/volume.txt"
 	# the RG DS Plus's volume keys: raw buttons 16 (up) and 15 (down)
 	grep -q 'ANBERNIC-rk3568-keys' /proc/bus/input/devices 2>/dev/null && export GBADS_VOLUME_BUTTONS=16,15
+	# Armada (github.com/armada-os/armada) on a dual-screen device, the AYN
+	# Thor: its device profile names the bottom panel's connector and
+	# touchscreen. In Game Mode gamescope shows only the top panel and leases
+	# the bottom one to a program that asks for it (the bottom panel's own
+	# gamescope steps aside meanwhile): GBADS_DRM_LEASE has GBA DS ask the
+	# main gamescope (gamescope-primary). On the desktop both panels are
+	# KDE's, a window each. Touches come from the bottom touchscreen's
+	# device either way.
+	ARMADA_TS=
+	if [ -x /usr/libexec/armada/device-env ]; then
+		eval "$(/usr/libexec/armada/device-env 2>/dev/null | grep -E '^ARMADA_SECONDARY_(CONNECTOR|TOUCHSCREEN)=')"
+		for e in /sys/class/input/event*; do
+			[ -n "$ARMADA_SECONDARY_TOUCHSCREEN" ] && [ "$(cat "$e/device/name" 2>/dev/null)" = "$ARMADA_SECONDARY_TOUCHSCREEN" ] && ARMADA_TS=${e##*/} && break
+		done
+		if [ -n "$ARMADA_SECONDARY_CONNECTOR" ] && [ -n "$GAMESCOPE_WAYLAND_DISPLAY" ] && [ -e "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/gamescope-primary" ]; then
+			export GBADS_DRM_LEASE="${GBADS_DRM_LEASE-$ARMADA_SECONDARY_CONNECTOR}" GAMESCOPE_WAYLAND_DISPLAY=gamescope-primary
+		fi
+		echo "Armada: bottom panel ${ARMADA_SECONDARY_CONNECTOR:-none}, touchscreen ${ARMADA_SECONDARY_TOUCHSCREEN:-none} (${ARMADA_TS:-not found}), lease ${GBADS_DRM_LEASE:-no (not Game Mode)}" >> "$LOG"
+	fi
 	# the touchscreen read straight from its device (weston gives GBA DS no
 	# touches there)
-	TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
+	TS=$ARMADA_TS
+	[ -z "$TS" ] && TS=$(awk '/^N: Name=/{n=tolower($0)} /^H: Handlers=/{ if (n ~ /gt9|goodix|touch|ts[0-9_-]|-ts"/) { if (match($0, /event[0-9]+/)) { print substr($0, RSTART, RLENGTH); exit } } }' /proc/bus/input/devices 2>/dev/null)
 	[ -n "$TS" ] && [ -z "$(cfgval touch_device)" ] && O+=("--touch-device=/dev/input/$TS")
 	# The RG DS Plus's Stock Linux OS keeps its touchscreen off outside its DS
 	# emulator (anbernic_misc/tpctrl 1; the emulator's launch.sh writes 0):

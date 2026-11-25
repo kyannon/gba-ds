@@ -2080,3 +2080,24 @@ msgstr "traducción automática"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "Retardo del sonido subido a %d ms: el sonido se cortaba"
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "Elige el idioma de los menús de GBA DS."
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "Puedes cambiarlo más tarde en Ajustes > Sistema."
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "Elegir"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "Continuar"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "Sistema: %s"
