@@ -925,7 +925,10 @@ static char subCode[5];          /* the profile in use: the game's code, or what
 /* what the ROM is, by its CRC32 (the log, bug reports) */
 static const char* dump_text(char* buf, size_t n) {
 	const char* name;
-	switch (profile_dump(emu.gameCode, emu.romCrc, &name)) {
+	if (profile_code_is_gb(emu.gameCode)) { /* (GB-14: No-Intro's Game Boy lists) */
+		if (profile_gb_dump_known(emu.romCrc)) snprintf(buf, n, "CRC32 %08x, a known Game Boy dump", emu.romCrc);
+		else snprintf(buf, n, "CRC32 %08x, not a known Game Boy dump: modified (a hack, translation or patch), trimmed or a bad dump", emu.romCrc);
+	} else switch (profile_dump(emu.gameCode, emu.romCrc, &name)) {
 	case DUMP_TESTED: snprintf(buf, n, "CRC32 %08x, the dump GBA DS is tested on (%s)", emu.romCrc, name); break;
 	case DUMP_OFFICIAL: snprintf(buf, n, "CRC32 %08x, an official dump GBA DS isn't tested on (%s)", emu.romCrc, name); break;
 	case DUMP_MOD_TESTED: snprintf(buf, n, "CRC32 %08x, a mod GBA DS is tested on (%s)", emu.romCrc, name); break;

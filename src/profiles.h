@@ -889,6 +889,10 @@ typedef enum {
 } DumpKind;
 /* name: No-Intro's name of the dump, or the mod's (NULL when not known) */
 DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
+/* A Game Boy / Game Boy Color game (its code is the app's own, lower case: emu_rom_code), and whether
+ * its ROM's CRC32 is in No-Intro's Game Boy / Game Boy Color lists (src/dumps_gb_data.h, GB-14) */
+bool profile_code_is_gb(const char* gameCode);
+bool profile_gb_dump_known(uint32_t crc);
 /* The release's No-Intro name, without a revision's or reissue's mark
  * ("Mario & Luigi - Superstar Saga (USA)"); false if it has no list of dumps */
 bool profile_release_name(const char* gameCode, char* out, size_t size);

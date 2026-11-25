@@ -1818,6 +1818,52 @@
    "state_files": {
     "g14u.auto.state": "game-boy/g14u-dmg.state"
    }
+  },
+  {
+   "id": "gb-library-known-dump",
+   "kind": "library",
+   "rom": "g6cn",
+   "desc": "The game list with Castlevania Legends (USA, Europe) (SGB Enhanced), a dump in No-Intro's Game Boy list: nothing said about the ROM (GB-14)",
+   "rules": [
+    "GB-14"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "config": {
+    "show_all": 1
+   }
+  },
+  {
+   "id": "gb-library-modified-rom",
+   "kind": "library",
+   "rom": "g14u",
+   "desc": "The game list with a ROM that is not in No-Intro's lists (the generated test ROM): Modified ROM: not a known dump (GB-14)",
+   "rules": [
+    "GB-14"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "config": {
+    "show_all": 1
+   }
   }
  ]
 }

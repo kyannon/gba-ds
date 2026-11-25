@@ -627,9 +627,10 @@ static void rom_crc_save(const Config* cfg) {
 }
 
 /* The game's ROM checksum if it's known; if not, asks for it (only supported
- * games: the others have no list of dumps to check it against). */
+ * games and Game Boy / Game Boy Color games, GB-14: the others have no list of
+ * dumps to check it against). */
 static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
-	if (!g->supported) return false;
+	if (!g->supported && !profile_code_is_gb(g->code)) return false;
 	pthread_mutex_lock(&crcLock);
 	RomCrc* c = rom_crc_find(g->path, g->size, g->mtime);
 	bool have = c != NULL;
@@ -912,6 +913,9 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 			snprintf(line, sizeof(line), tr("Patch not applied: %s is for another ROM"), g->patch);
 		} else if (patch == PATCH_UNREADABLE) {
 			snprintf(line, sizeof(line), tr("Patch not applied: %s can't be read"), g->patch);
+		} else if (profile_code_is_gb(g->code)) {
+			/* (a Game Boy game: no second screen to lose, GB-14) */
+			if (!profile_gb_dump_known(crc)) snprintf(line, sizeof(line), "%s", patch == PATCH_APPLIED ? tr("Patched ROM: not a known dump") : tr("Modified ROM: not a known dump"));
 		} else {
 			switch (profile_dump(g->code, crc, &name)) {
 			case DUMP_MOD_TESTED: snprintf(line, sizeof(line), tr("Romhack: %s%s"), name, from); break;
