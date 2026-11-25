@@ -390,17 +390,11 @@ static int logoW, logoH;
 static bool logoPixel;
 static int logoSub = 1; /* logoTex's pixels per GBA pixel (LOGO_SUB: a scraped logo at full resolution) */
 static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-11) */
-MapResult mapRes;
 static int mapW = GBA_W, mapH = GBA_H;
-int mapShownIdx = -1;
 /* "Map Animations: Off" shows this composed still instead of mapRes.frames[] */
 #define STILL_IDX MAP_MAX_FRAMES
-static uint32_t* stillPx;        /* mapW * mapH */
-static int stillW, stillH;
-static bool stillValid;
 /* The map button did nothing at the last attempt (A Link to the Past indoors
  * without a map): keep showing the last map, dimmed. */
-bool mapInactive;
 static bool logoOnly; /* the game has a profile but no map: logo on the second screen */
 static const MapProfile* snapProf; /* logo-only game with screens copied to the second screen */
 static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
@@ -468,14 +462,11 @@ static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
 /* the profile's logoIf probes match: the logo, the map picture and HUD kept */
-bool logoForced;
 /* logoIf just stopped matching: the logo still, until the second screen has
  * a new picture to show (a HUD picture drawn, a map picture taken), at
  * most a second; not the last picture from before for a frame (SM4-11) */
-static int logoHolding;
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
-bool overOn, overDirty;
 static bool overAlone; /* a piece that goes alone is in the map picture (shown even in a fight) */
 /* the HUD's pieces as last seen (hud.overMap): the pixels inside each
  * move's box, cut to what's there (0: nothing); latched pieces wait for
@@ -509,19 +500,12 @@ static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
 static uint32_t snapShown[GBA_W * GBA_H]; /* the copy on the second screen (kept with save states) */
 
-uint64_t mapAnimStart;
 /* the contextual toggle (GEN-14, issue #37): where the pages' count starts
  * (0 with the toggle off: then nothing here is used), the picture's
  * brightness while a turn that waits fades (256: as it is), and whether
  * the capture under way is for a new subject (a room, a unit, a loaded
  * state: the pages start again at the first) */
-int pageOffset;
-int fadeLevel = 256;
-bool fadeUpload; /* the picture is uploaded again this frame for the fade, one picture or not */
-bool capSubject;
 /* ONPRESS views (GEN-14): the other view is up (viewAlt), a capture of the view wanted is to be asked for now (pressCap), how many captures have come in (capDone), and which one the press waits for (tgCapWant; 0: not asked for yet) */
-bool viewAlt, pressCap, viewWait;
-unsigned capDone, tgCapWant;
 /* (second_page: toggle.c) */
 static bool singleShowsMap;
 static double fps, speedPct;
@@ -956,7 +940,7 @@ static void restart_game(void) {
 	aheadReady = false;
 	bug_reset();
 	ra_reset();
-	mapShownIdx = -1; /* back to the logo until the next map */
+	sec.mapShownIdx = -1; /* back to the logo until the next map */
 }
 
 static void toggle_cheat(int row) {
@@ -4184,9 +4168,9 @@ static void hud_compose(void) {
 	if (hudScene) {
 		if (!hudLogoDone) hud_make_logo_back();
 		memcpy(hudCanvas, hudLogoBack, sizeof(hudCanvas));
-	} else if ((hudAlt ? h->alt.mapBelow : h->mapBelow) && mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(mapShownIdx)) {
+	} else if ((hudAlt ? h->alt.mapBelow : h->mapBelow) && sec.mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(sec.mapShownIdx)) {
 		/* (hud.mapBelow, hud.alt.mapBelow: the map picture behind, at the game's size) */
-		const uint32_t* mp = map_px(mapShownIdx);
+		const uint32_t* mp = map_px(sec.mapShownIdx);
 		for (int y = 0; y < GBA_H; ++y) {
 			for (int x = 0; x < GBA_W; ++x) {
 				uint32_t* o = &hudCanvas[y * 2 * HUD_CW + x * 2];
@@ -4486,7 +4470,7 @@ static void update_hud(void) {
 	}
 	/* a conversation leaves the game screen only once there's a picture
 	 * on the second screen to put it on */
-	if (h->band) emu_hud_band(true, mapShownIdx < 0, h->band == BAND_WATCH);
+	if (h->band) emu_hud_band(true, sec.mapShownIdx < 0, h->band == BAND_WATCH);
 	if (h->mirror[0].addr || h->mirrorOr[0].addr) {
 		bool mirMain = h->mirror[0].addr && memprobes_match(h->mirror, 2, &emu);
 		bool mir = mirMain || (h->mirrorOr[0].addr && memprobes_match(h->mirrorOr, 2, &emu));
@@ -4579,11 +4563,11 @@ static void update_hud(void) {
 			}
 		}
 		bool any = pieces[0].valid || pieces[1].valid || pieces[2].valid || pieces[3].valid;
-		if (changed || any != overOn) {
-			overOn = any;
-			overDirty = true;
-			if (mapShownIdx >= 0) {
-				upload_map_frame(mapShownIdx);
+		if (changed || any != sec.overOn) {
+			sec.overOn = any;
+			sec.overDirty = true;
+			if (sec.mapShownIdx >= 0) {
+				upload_map_frame(sec.mapShownIdx);
 			} else if (h->logoUnder && combatPx && (combatTex[0] || combatTex[1])) {
 				/* no map picture yet (the other armies' turn, after loading
 				 * a state): a piece that goes alone (a conversation) on the
@@ -4649,10 +4633,10 @@ static void update_hud(void) {
 			if (emu_hud_grabbed()) hud_make_backdrop(); /* (that frame drew no HUD: the last one is reused) */
 			hud_compose();
 			for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
-			if (logoForced && !(hudProf->logoIf[0].addr && memprobes_match(hudProf->logoIf, 2, &emu)) &&
+			if (sec.logoForced && !(hudProf->logoIf[0].addr && memprobes_match(hudProf->logoIf, 2, &emu)) &&
 			    !(hudProf->logoIfOr[0].addr && memprobes_match(hudProf->logoIfOr, 2, &emu))) {
 				/* (a new HUD picture: the logo's hold is over) */
-				logoForced = false, logoHolding = 0;
+				sec.logoForced = false, sec.logoHolding = 0;
 				if (debug) fprintf(stderr, "frame %llu: logo only off: a new HUD picture\n", (unsigned long long) frameCount);
 			}
 			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
@@ -4819,7 +4803,7 @@ static void update_snapshot(void) {
 			if (sn->hide[0].x1) {
 				/* only when the picture changes (the sheets are still) */
 				static uint32_t last[GBA_W * GBA_H], clean[GBA_W * GBA_H];
-				if (mapShownIdx < 0 || memcmp(last, emu.fb, sizeof(last))) {
+				if (sec.mapShownIdx < 0 || memcmp(last, emu.fb, sizeof(last))) {
 					memcpy(last, emu.fb, sizeof(last));
 					int n = 0;
 					while (n < 4 && sn->hide[n].x1) ++n;
@@ -4833,13 +4817,13 @@ static void update_snapshot(void) {
 				memcpy(snapShown, px, sizeof(snapShown));
 				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, GBA_W * 4);
 			}
-			if (mapShownIdx < 0 && debug) fprintf(stderr, "frame %llu: screen copied to the second screen\n", (unsigned long long) frameCount);
-			mapShownIdx = 0;
+			if (sec.mapShownIdx < 0 && debug) fprintf(stderr, "frame %llu: screen copied to the second screen\n", (unsigned long long) frameCount);
+			sec.mapShownIdx = 0;
 		}
 		return;
 	}
 	snapShow = 0;
-	if (mapShownIdx < 0) return;
+	if (sec.mapShownIdx < 0) return;
 	bool menu = false;
 	for (int k = 0; k < 2; ++k) {
 		if (sn->revertMin[k] && probes_hit(emu.fb, sn->revert[k], tol) >= sn->revertMin[k]) menu = true;
@@ -4847,7 +4831,7 @@ static void update_snapshot(void) {
 	if (!menu) {
 		snapRevert = 0;
 	} else if (++snapRevert >= SDL_max(1, sn->stable)) {
-		mapShownIdx = -1;
+		sec.mapShownIdx = -1;
 		snapRevert = 0;
 		if (debug) fprintf(stderr, "frame %llu: back at the menus, logo\n", (unsigned long long) frameCount);
 	}
@@ -5108,8 +5092,8 @@ static void save_thumbs(void) {
 		SDL_SaveBMP(s, gp.thumb);
 		SDL_FreeSurface(s);
 	}
-	const uint32_t* still = stillValid ? stillPx : mapRes.frames[0];
-	if (mapShownIdx >= 0 && still) {
+	const uint32_t* still = sec.stillValid ? sec.stillPx : sec.mapRes.frames[0];
+	if (sec.mapShownIdx >= 0 && still) {
 		s = SDL_CreateRGBSurfaceWithFormatFrom((void*) still, mapW, mapH, 32, mapW * 4, SDL_PIXELFORMAT_XBGR8888);
 		if (s) {
 			SDL_SaveBMP(s, gp.mapThumb);
@@ -5148,15 +5132,15 @@ static void blob_section(Blob* b, const char* tag, const void* d, size_t n) {
 static void* screen_blob(size_t* n) {
 	Blob b = { 0 };
 	blob_add(&b, "GDS2", 4), blob_u32(&b, 1), blob_add(&b, subCode, 4);
-	if (mapShownIdx >= 0 && !snapProf && mapRes.ok && mapRes.frames[0] && mapRes.nFrames > 0 && mapRes.w > 0 && mapRes.h > 0) {
+	if (sec.mapShownIdx >= 0 && !snapProf && sec.mapRes.ok && sec.mapRes.frames[0] && sec.mapRes.nFrames > 0 && sec.mapRes.w > 0 && sec.mapRes.h > 0) {
 		Blob m = { 0 };
-		size_t px = (size_t) mapRes.w * mapRes.h * 4;
-		blob_u32(&m, (uint32_t) mapRes.w), blob_u32(&m, (uint32_t) mapRes.h), blob_u32(&m, (uint32_t) mapRes.nFrames), blob_u32(&m, (uint32_t) mapRes.frameStep);
-		for (int i = 0; i < mapRes.nFrames; ++i) blob_add(&m, mapRes.frames[i], px);
+		size_t px = (size_t) sec.mapRes.w * sec.mapRes.h * 4;
+		blob_u32(&m, (uint32_t) sec.mapRes.w), blob_u32(&m, (uint32_t) sec.mapRes.h), blob_u32(&m, (uint32_t) sec.mapRes.nFrames), blob_u32(&m, (uint32_t) sec.mapRes.frameStep);
+		for (int i = 0; i < sec.mapRes.nFrames; ++i) blob_add(&m, sec.mapRes.frames[i], px);
 		if (m.p) blob_section(&b, "MAP ", m.p, m.n);
 		free(m.p);
 	}
-	if (snapProf && mapShownIdx >= 0) blob_section(&b, "SNAP", snapShown, sizeof(snapShown));
+	if (snapProf && sec.mapShownIdx >= 0) blob_section(&b, "SNAP", snapShown, sizeof(snapShown));
 	if (mapTitleN > 0) {
 		Blob t = { 0 };
 		blob_u32(&t, (uint32_t) mapTitleN), blob_add(&t, mapTitle, (size_t) GBA_W * mapTitleN * 4);
@@ -5248,7 +5232,7 @@ static void screen_restore_apply(void) {
 	if (hudProf && hudProf->hud.card.tile) hudBackValid = false, cardScore = -1, sideScore = -1;
 	mapTitleN = 0, hudLogoBelowDone = false;
 	heldN = 0, heldNumW = 0, heldArmed = true;
-	logoForced = false, logoHolding = 0;
+	sec.logoForced = false, sec.logoHolding = 0;
 	if (!ours) {
 		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
 		return;
@@ -5259,18 +5243,18 @@ static void screen_restore_apply(void) {
 		int w = (int) rd32(d), h = (int) rd32(d + 4), nf = (int) rd32(d + 8), step = (int) rd32(d + 12);
 		size_t px = (size_t) w * h * 4;
 		/* (only at the size this game's captures are: frames are that big) */
-		if (mapRes.frames[0] && w == mapRes.w && h == mapRes.h && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
-			for (int i = 0; i < nf; ++i) memcpy(mapRes.frames[i], d + 16 + px * i, px);
-			mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.pages = state_pages(nf), mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
+		if (sec.mapRes.frames[0] && w == sec.mapRes.w && h == sec.mapRes.h && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
+			for (int i = 0; i < nf; ++i) memcpy(sec.mapRes.frames[i], d + 16 + px * i, px);
+			sec.mapRes.nFrames = nf, sec.mapRes.frameStep = step, sec.mapRes.pages = state_pages(nf), sec.mapRes.ok = true, sec.mapRes.pixels = sec.mapRes.frames[0];
 			map_show_new(false);
-		} else if (!mapRes.frames[0] && w > 0 && h > 0 && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
+		} else if (!sec.mapRes.frames[0] && w > 0 && h > 0 && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
 			/* (no capture yet this session: the frames made here, as mapcap_poll does) */
-			for (int i = 0; i < MAP_MAX_FRAMES; ++i) mapRes.frames[i] = malloc(px);
+			for (int i = 0; i < MAP_MAX_FRAMES; ++i) sec.mapRes.frames[i] = malloc(px);
 			bool ok = true;
-			for (int i = 0; i < MAP_MAX_FRAMES; ++i) ok = ok && mapRes.frames[i];
+			for (int i = 0; i < MAP_MAX_FRAMES; ++i) ok = ok && sec.mapRes.frames[i];
 			if (ok) {
-				for (int i = 0; i < nf; ++i) memcpy(mapRes.frames[i], d + 16 + px * i, px);
-				mapRes.w = w, mapRes.h = h, mapRes.nFrames = nf, mapRes.frameStep = step, mapRes.pages = state_pages(nf), mapRes.ok = true, mapRes.pixels = mapRes.frames[0];
+				for (int i = 0; i < nf; ++i) memcpy(sec.mapRes.frames[i], d + 16 + px * i, px);
+				sec.mapRes.w = w, sec.mapRes.h = h, sec.mapRes.nFrames = nf, sec.mapRes.frameStep = step, sec.mapRes.pages = state_pages(nf), sec.mapRes.ok = true, sec.mapRes.pixels = sec.mapRes.frames[0];
 				map_show_new(false);
 			}
 		}
@@ -5278,7 +5262,7 @@ static void screen_restore_apply(void) {
 	if (snapProf && (d = blob_find(b, n, "SNAP", &sz)) && sz == sizeof(snapShown)) {
 		memcpy(snapShown, d, sz);
 		for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], snapShown, GBA_W * 4);
-		mapShownIdx = 0;
+		sec.mapShownIdx = 0;
 	}
 	if ((d = blob_find(b, n, "TITL", &sz)) && sz >= 4) {
 		int rows = (int) rd32(d);
@@ -5677,7 +5661,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	}
 	text_add(t, "Running %.1f minutes (%llu frames), %.1f FPS (%.0f%%) when the report was made\n", SDL_GetTicks() / 60000.0,
 	         (unsigned long long) frameCount, fps, speedPct);
-	text_add(t, "Second screen: %s\n", combatOn ? "logo (a fight)" : hudShown ? "HUD" : mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
+	text_add(t, "Second screen: %s\n", combatOn ? "logo (a fight)" : hudShown ? "HUD" : sec.mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
 	if (mc) {
 		const char* why = NULL;
 		int fails = mapcap_failures(mc, &why);
@@ -6063,7 +6047,7 @@ static void on_foreground(void) {
 
 
 static const uint32_t* map_px(int idx) {
-	return idx == STILL_IDX ? (stillValid ? stillPx : NULL) : mapRes.frames[idx];
+	return idx == STILL_IDX ? (sec.stillValid ? sec.stillPx : NULL) : sec.mapRes.frames[idx];
 }
 
 /* hud.alt.shade: a pixel darkened (to a third) */
@@ -6077,7 +6061,7 @@ static uint32_t shade_px(uint32_t c) {
 static const uint32_t* hud_over_map(const uint32_t* px) {
 	static uint32_t* over;
 	static int overSize;
-	if (!hudProf || (!overOn && !hudProf->hud.logoUnder)) return px;
+	if (!hudProf || (!sec.overOn && !hudProf->hud.logoUnder)) return px;
 	const typeof(hudProf->hud)* h = &hudProf->hud;
 	if (h->logoUnder && combatProf && !combatMade) make_combat_canvas();
 	if (overSize != mapW * mapH) {
@@ -6192,16 +6176,16 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 
 static void upload_map_frame(int idx) {
 	const uint32_t* px = map_px(idx);
-	if ((idx == mapShownIdx && !overDirty) || !px) return;
-	overDirty = false;
+	if ((idx == sec.mapShownIdx && !sec.overDirty) || !px) return;
+	sec.overDirty = false;
 	px = hud_over_map(px);
-	if (fadeLevel < 256) {
+	if (sec.fadeLevel < 256) {
 		/* (a turn that waits, GEN-14: only the picture fades, so the
 		 * shader and the bezel stay as they are) */
-		px = second_fade(px, (size_t) mapW * mapH, fadeLevel);
+		px = second_fade(px, (size_t) mapW * mapH, sec.fadeLevel);
 	}
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, mapW * 4);
-	mapShownIdx = idx;
+	sec.mapShownIdx = idx;
 }
 
 /* (compose_still: second.c) */
@@ -6218,7 +6202,7 @@ bool map_anim(void) {
 }
 
 static bool update_still(void) {
-	int w = mapRes.w, h = mapRes.h, wh = w * h;
+	int w = sec.mapRes.w, h = sec.mapRes.h, wh = w * h;
 	uint32_t* px = malloc((size_t) wh * 4);
 	unsigned char* mask = malloc((size_t) wh);
 	if (!px || !mask) {
@@ -6227,19 +6211,19 @@ static bool update_still(void) {
 		return false;
 	}
 	const MapProfile* prof = mc ? mapcap_profile(mc) : NULL;
-	compose_still(&mapRes, prof ? (int) prof->stillPick : STILL_BRIGHT, px, mask);
-	if (stillValid && stillW == w && stillH == h) {
+	compose_still(&sec.mapRes, prof ? (int) prof->stillPick : STILL_BRIGHT, px, mask);
+	if (sec.stillValid && sec.stillW == w && sec.stillH == h) {
 		bool same = true;
-		for (int i = 0; i < wh && same; ++i) same = px[i] == stillPx[i] || mask[i];
+		for (int i = 0; i < wh && same; ++i) same = px[i] == sec.stillPx[i] || mask[i];
 		if (same) {
 			free(px);
 			free(mask);
 			return false;
 		}
 	}
-	free(stillPx);
+	free(sec.stillPx);
 	free(mask);
-	stillPx = px, stillW = w, stillH = h, stillValid = true;
+	sec.stillPx = px, sec.stillW = w, sec.stillH = h, sec.stillValid = true;
 	return true;
 }
 
@@ -6247,25 +6231,25 @@ static bool update_still(void) {
  * `fresh` false: the level name above the HUD isn't taken from it, it's
  * kept on its own) */
 static void map_show_new(bool fresh) {
-	mapInactive = false;
-	if (!fresh || capSubject) capSubject = false, toggle_new_subject();
-	if (fresh && hudProf && hudProf->hud.held.over.x1 && mapRes.frames[0] && mapRes.w * mapRes.h <= GBA_W * GBA_H) {
+	sec.mapInactive = false;
+	if (!fresh || sec.capSubject) sec.capSubject = false, toggle_new_subject();
+	if (fresh && hudProf && hudProf->hud.held.over.x1 && sec.mapRes.frames[0] && sec.mapRes.w * sec.mapRes.h <= GBA_W * GBA_H) {
 		/* hud.held.over: the number, laid over the held picture */
-		heldNumW = mapRes.w, heldNumH = mapRes.h;
-		memcpy(heldNum, mapRes.frames[0], (size_t) mapRes.w * mapRes.h * 4);
+		heldNumW = sec.mapRes.w, heldNumH = sec.mapRes.h;
+		memcpy(heldNum, sec.mapRes.frames[0], (size_t) sec.mapRes.w * sec.mapRes.h * 4);
 		hudLogoBelowDone = false;
 	}
-	if (fresh && hudProf && hudProf->hud.mapTitleRows && mapRes.w == GBA_W && mapRes.frames[0]) {
+	if (fresh && hudProf && hudProf->hud.mapTitleRows && sec.mapRes.w == GBA_W && sec.mapRes.frames[0]) {
 		/* the level list's title row (SMA-7), held for the level */
 		if (!mapTitleN) hudLogoBelowDone = false; /* (the logo moves down under it) */
 		mapTitleN = SDL_min(hudProf->hud.mapTitleRows, 32);
-		for (int i = 0; i < GBA_W * mapTitleN; ++i) mapTitle[i] = mapRes.frames[0][i] | 0xFF000000;
+		for (int i = 0; i < GBA_W * mapTitleN; ++i) mapTitle[i] = sec.mapRes.frames[0][i] | 0xFF000000;
 	}
-	mapShownIdx = -1;
+	sec.mapShownIdx = -1;
 	/* (pages, a few seconds each: Fire Emblem's unit status; they
 	 * keep turning at their pace through new captures) */
-	bool pages = mapRes.pages;
-	if (!pages) mapAnimStart = frameCount;
+	bool pages = sec.mapRes.pages;
+	if (!pages) sec.mapAnimStart = frameCount;
 	/* the still (each marker frozen) is only shown with map animations
 	 * off, and building it is real work: only then */
 	bool stillChanged = false;
@@ -6274,12 +6258,11 @@ static void map_show_new(bool fresh) {
 	int first = pages ? second_page() : 0;
 	upload_map_frame(map_anim() ? first : STILL_IDX);
 	if (debug) fprintf(stderr, "frame %llu: map %s (%d frame(s) %d apart%s)\n", (unsigned long long) frameCount, fresh ? "updated" : "from the save state",
-	                   mapRes.nFrames, mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
+	                   sec.mapRes.nFrames, sec.mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
 }
 
 
 /* a profile's own live picture is up (liveView): drawn as it is */
-bool liveOn;
 
 /* (the contextual toggle's state machine: toggle.c) */
 
@@ -6961,8 +6944,8 @@ static void draw_game(void) {
 		}
 		/* the map screen */
 		/* (and with hud.logoUnder, on the map before there's a map picture) */
-		bool logoBack = combatProf && combatProf->hud.logoUnder && mapShownIdx < 0 && (combatInGame || combatProf->hud.logoAlways);
-		if (overAlone && mapShownIdx >= 0) logoBack = false; /* (the phase banner, on the other armies' turn too) */
+		bool logoBack = combatProf && combatProf->hud.logoUnder && sec.mapShownIdx < 0 && (combatInGame || combatProf->hud.logoAlways);
+		if (overAlone && sec.mapShownIdx >= 0) logoBack = false; /* (the phase banner, on the other armies' turn too) */
 		if (ww_wheel_shown()) {
 			/* WarioWare: Twisted!'s Touch mode: the menu's wheel, turned with the dial (WWT-4) */
 			ww_wheel_update();
@@ -6973,14 +6956,14 @@ static void draw_game(void) {
 			ww_gyro_update();
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, ww.tex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
-		} else if (((combatOn && !(overAlone && mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
+		} else if (((combatOn && !(overAlone && sec.mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, SHADER_ON);
-		} else if (hudShown && !logoForced) {
+		} else if (hudShown && !sec.logoForced) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, SHADER_ON ? 2 : 0);
-		} else if (mapShownIdx >= 0 && !logoForced) {
+		} else if (sec.mapShownIdx >= 0 && !sec.logoForced) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, SHADER_ON);
 		} else if ((logoCanvasTex[0] || logoCanvasTex[1]) && logoSub > 1) {
@@ -7006,7 +6989,7 @@ static void draw_game(void) {
 		}
 		/* whatever this screen shows: map, HUD, logo or nothing */
 		if (overlay_on(s)) draw_overlay(s, 1);
-		if (!hudShown && mapShownIdx >= 0 && mapInactive && !logoForced) {
+		if (!hudShown && sec.mapShownIdx >= 0 && sec.mapInactive && !sec.logoForced) {
 			ui_dim(s, 120);
 		}
 	}
@@ -7451,10 +7434,10 @@ static void take_screenshot(void) {
 static void ss_setup(const char* rom, const char* code) {
 	mapW = GBA_W;
 	mapH = GBA_H;
-	memset(&mapRes, 0, sizeof(mapRes));
-	mapShownIdx = -1;
-	stillValid = false;
-	mapInactive = false;
+	memset(&sec.mapRes, 0, sizeof(sec.mapRes));
+	sec.mapShownIdx = -1;
+	sec.stillValid = false;
+	sec.mapInactive = false;
 	singleShowsMap = false;
 	logoOnly = false;
 	ww_setup(NULL, rom);
@@ -7496,7 +7479,7 @@ static void ss_setup(const char* rom, const char* code) {
 		emu_hud_band(hudProf && hudProf->hud.band, true, hudProf && hudProf->hud.band == BAND_WATCH);
 		combatProf = mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
 		combatOn = combatMade = false;
-		overOn = false;
+		sec.overOn = false;
 		for (int m = 0; m < 4; ++m) pieces[m].valid = false, pieces[m].still = 0;
 		if (hudProf) {
 			/* the sprites that move; tagged ones only if the tags go in */
@@ -7572,9 +7555,9 @@ static void rebuild_textures(void) {
 	}
 	ss_textures();
 	if (emu.fb) for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), game_tex_pitch());
-	if (mapShownIdx >= 0) {
-		int idx = mapShownIdx;
-		overDirty = true;
+	if (sec.mapShownIdx >= 0) {
+		int idx = sec.mapShownIdx;
+		sec.overDirty = true;
 		upload_map_frame(idx);
 	}
 	if (combatMade) make_combat_canvas();
@@ -7597,8 +7580,8 @@ static void ss_switch(const char* rom, const char* code) {
 	mapcap_destroy(mc);
 	mc = NULL;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
-		free(mapRes.frames[i]);
-		mapRes.frames[i] = NULL;
+		free(sec.mapRes.frames[i]);
+		sec.mapRes.frames[i] = NULL;
 	}
 	ss_setup(rom, subCode);
 	ss_textures();
@@ -7653,8 +7636,8 @@ static void logo_refresh(void) {
 	if (combatMade) {
 		/* and the fight picture (and the map picture's logo behind) */
 		make_combat_canvas();
-		overDirty = true;
-		if (mapShownIdx >= 0) upload_map_frame(mapShownIdx);
+		sec.overDirty = true;
+		if (sec.mapShownIdx >= 0) upload_map_frame(sec.mapShownIdx);
 	}
 }
 
@@ -7825,19 +7808,11 @@ static SDL_AudioDeviceID open_game_audio(SDL_AudioSpec* want) {
  * hideWhen and logoIf, picking up a finished capture, the pages and a
  * profile's live picture. Its state is mr's, set up again for each game; a
  * state load or a rewind sets mr.forceMap. (Was inline in game_run_inner.) */
-static struct {
-	uint32_t lastRoomKey;
-	uint32_t seenRoomKey; /* the room key as it is now, and for how many frames it's held */
-	int seenRoomFor;
-	int sinceMapRequest;
-	int lastFails;
-	bool forceMap, wasDark;
-	long refreshAt;
-} mr;
+/* (its state: sec.refresh, second.h) */
 
 static void map_refresh_step(void) {
 	if (mc) {
-		++mr.sinceMapRequest;
+		++sec.refresh.sinceMapRequest;
 		/* the profile's sprite hiding, where it's only for some moments
 		 * (hideWhen: Lady Sia's HUD in play, not its credits or pause
 		 * screen); from the next frame drawn */
@@ -7851,36 +7826,36 @@ static void map_refresh_step(void) {
 			const MapProfile* lp = mapcap_profile(mc);
 			bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
 			                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
-			if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
-			else if (logoHolding > 0) --logoHolding;
-			lf = lf || logoHolding > 0;
-			if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
-			logoForced = lf;
+			if (lf) sec.logoHolding = lp->logoIfLast ? 0 : 60;
+			else if (sec.logoHolding > 0) --sec.logoHolding;
+			lf = lf || sec.logoHolding > 0;
+			if (debug && lf != sec.logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
+			sec.logoForced = lf;
 		}
 		bool dark = frame_is_dark(emu.fb);
-		if (mr.wasDark && !dark) mr.refreshAt = (long) frameCount + 6;
-		mr.wasDark = dark;
-		if (mr.refreshAt >= 0 && (long) frameCount >= mr.refreshAt) {
-			mr.forceMap = true;
-			mr.refreshAt = -1;
+		if (sec.refresh.wasDark && !dark) sec.refresh.refreshAt = (long) frameCount + 6;
+		sec.refresh.wasDark = dark;
+		if (sec.refresh.refreshAt >= 0 && (long) frameCount >= sec.refresh.refreshAt) {
+			sec.refresh.forceMap = true;
+			sec.refresh.refreshAt = -1;
 			if (debug) fprintf(stderr, "frame %llu: room transition\n", (unsigned long long) frameCount);
 		}
-		if (mapShownIdx >= 0 && frameCount % 30 == 0 && mapcap_in_menu(mc, &emu)) {
+		if (sec.mapShownIdx >= 0 && frameCount % 30 == 0 && mapcap_in_menu(mc, &emu)) {
 			/* quit to the title: the map belongs to the old session */
-			mapShownIdx = -1;
-			mapInactive = false;
-			mr.forceMap = true;
+			sec.mapShownIdx = -1;
+			sec.mapInactive = false;
+			sec.refresh.forceMap = true;
 			/* (always logged: what sends the second screen back to the logo) */
 			fprintf(stderr, "frame %llu: second screen back to the logo (the profile's menu probes matched)\n", (unsigned long long) frameCount);
 		}
 		uint32_t rk = mapcap_room_key(mc, &emu);
-		if (rk != mr.seenRoomKey) mr.seenRoomKey = rk, mr.seenRoomFor = 0;
-		else ++mr.seenRoomFor;
+		if (rk != sec.refresh.seenRoomKey) sec.refresh.seenRoomKey = rk, sec.refresh.seenRoomFor = 0;
+		else ++sec.refresh.seenRoomFor;
 		/* a change counts once it has held for 3 frames (a cursor
 		 * gliding to its place, Mario walking a path: not each step);
 		 * a capture still running for the old one is called off, so
 		 * the new one starts as soon as it has stopped */
-		bool roomChanged = rk && rk != mr.lastRoomKey && mr.seenRoomFor >= 2;
+		bool roomChanged = rk && rk != sec.refresh.lastRoomKey && sec.refresh.seenRoomFor >= 2;
 		if (roomChanged && mapcap_busy(mc)) mapcap_cancel(mc);
 		/* Back off while captures keep failing (e.g. the game says "playing"
 		 * but the map can't open: intro cutscenes, briefings). Each failed
@@ -7888,15 +7863,15 @@ static void map_refresh_step(void) {
 		 * the game and its audio on slower devices. */
 		const char* why = NULL;
 		int fails = mapcap_failures(mc, &why);
-		if (fails != mr.lastFails) {
+		if (fails != sec.refresh.lastFails) {
 			if (debug && fails) fprintf(stderr, "frame %llu: map capture failed (%d in a row): %s\n",
 			                            (unsigned long long) frameCount, fails, why ? why : "?");
 			const MapProfile* dp = mapcap_profile(mc);
 			if (fails && why && dp && dp->dimWhenUnavailable &&
 			    (!strcmp(why, "map screen did not appear") || !strcmp(why, "map button did nothing"))) {
-				mapInactive = true;
+				sec.mapInactive = true;
 			}
-			mr.lastFails = fails;
+			sec.refresh.lastFails = fails;
 		}
 		/* quick "no map here" failures (A Link to the Past indoors) cost little
 		 * and are expected, so they don't back off */
@@ -7907,30 +7882,30 @@ static void map_refresh_step(void) {
 		int interval = cheapFail ? every : every << SDL_min(fails, 3);
 		/* after failures, a room change still triggers a try, but no more
 		 * often than the normal interval */
-		bool due = mr.sinceMapRequest >= interval || pressCap ||
-		           ((mr.forceMap || roomChanged) && (!fails || mr.sinceMapRequest >= every));
-		if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu) && !(viewWait && tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
+		bool due = sec.refresh.sinceMapRequest >= interval || sec.pressCap ||
+		           ((sec.refresh.forceMap || roomChanged) && (!fails || sec.refresh.sinceMapRequest >= every));
+		if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu) && !(sec.viewWait && sec.tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
 			/* a new subject (a room, a loaded state) shows the game's own view again */
-			if (roomChanged || mr.forceMap) viewAlt = false;
-			mapcap_set_alt(viewAlt && cfg->toggle);
+			if (roomChanged || sec.refresh.forceMap) sec.viewAlt = false;
+			mapcap_set_alt(sec.viewAlt && cfg->toggle);
 			if (mapcap_request(mc, &emu)) {
-				mr.sinceMapRequest = 0;
-				mr.lastRoomKey = rk;
-				capSubject = roomChanged || mr.forceMap; /* (not a refresh of the same subject) */
-				mr.forceMap = false;
-				if (pressCap) pressCap = false, tgCapWant = capDone + 1;
+				sec.refresh.sinceMapRequest = 0;
+				sec.refresh.lastRoomKey = rk;
+				sec.capSubject = roomChanged || sec.refresh.forceMap; /* (not a refresh of the same subject) */
+				sec.refresh.forceMap = false;
+				if (sec.pressCap) sec.pressCap = false, sec.tgCapWant = sec.capDone + 1;
 			}
 		}
 		toggle_step();
-		bool fresh = mapcap_poll(mc, mapRes.serial, &mapRes);
+		bool fresh = mapcap_poll(mc, sec.mapRes.serial, &sec.mapRes);
 		if (fresh && mapcap_in_menu(mc, &emu)) {
 			/* a capture that finished after quitting to the title: drop it */
 		} else if (fresh) {
 			map_show_new(true);
-			++capDone;
-		} else if (((map_anim() && mapRes.nFrames > 1) || fadeUpload) && mapShownIdx >= 0) {
+			++sec.capDone;
+		} else if (((map_anim() && sec.mapRes.nFrames > 1) || sec.fadeUpload) && sec.mapShownIdx >= 0) {
 			int idx = second_page();
-			fadeUpload = false;
+			sec.fadeUpload = false;
 			upload_map_frame(idx);
 		}
 		/* a profile's own live picture (Mega Man Battle Network's maps on
@@ -7940,17 +7915,17 @@ static void map_refresh_step(void) {
 		const uint32_t* lv = lvp && lvp->liveView && romPath ? lvp->liveView(&emu, romPath) : NULL;
 		if (lv) {
 			for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
-			if (mapShownIdx < 0) mapShownIdx = 0;
-			if (!liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) frameCount);
-			liveOn = true;
-		} else if (liveOn) {
-			liveOn = false;
+			if (sec.mapShownIdx < 0) sec.mapShownIdx = 0;
+			if (!sec.liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) frameCount);
+			sec.liveOn = true;
+		} else if (sec.liveOn) {
+			sec.liveOn = false;
 			if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
-			if (mapRes.ok && map_px(mapShownIdx)) {
-				overDirty = true;
-				upload_map_frame(mapShownIdx);
+			if (sec.mapRes.ok && map_px(sec.mapShownIdx)) {
+				sec.overDirty = true;
+				upload_map_frame(sec.mapShownIdx);
 			} else {
-				mapShownIdx = -1;
+				sec.mapShownIdx = -1;
 			}
 		}
 	}
@@ -8047,7 +8022,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	mc = NULL;
 	gameTexAll = true;
 	frameCount = 0;
-	mapAnimStart = 0; /* (the last game's count was further on) */
+	sec.mapAnimStart = 0; /* (the last game's count was further on) */
 	menuOpen = false;
 	{
 		/* a compilation: the profile of the game running in it (none yet) */
@@ -8181,7 +8156,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	const bool testStarve = getenv("GBADS_TEST_STARVE") && atoi(getenv("GBADS_TEST_STARVE"));
 
 	static int16_t samples[4096 * 2];
-	mr = (typeof(mr)) { .sinceMapRequest = 1 << 20, .forceMap = true, .refreshAt = -1 }; /* (the map refresh starts again for this game) */
+	sec.refresh = (typeof(sec.refresh)) { .sinceMapRequest = 1 << 20, .forceMap = true, .refreshAt = -1 }; /* (the map refresh starts again for this game) */
 	hotkeys_setup();
 	const int modBtn = hkMod;
 	/* SELECT or START as the hotkey: a GBA button, held back from the game
@@ -8355,7 +8330,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						} else if (bb == BB_LOAD) {
 							if (ra_hardcore()) ui_osd("Not in hardcore mode (Achievements)"); /* (as the pause menu's Load State says, before anything else) */
 							else if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
-							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); mr.forceMap = true, barLit = bb, barLitAt = barSince; }
+							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); second_new_subject(), barLit = bb, barLitAt = barSince; }
 							else ui_osd(load_failed_osd());
 						} else if (bb == BB_SETTINGS) {
 							open_menu();
@@ -8686,7 +8661,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				case HK_LOAD:
 					if (ra_hardcore()) ui_osd("Not in hardcore mode (Achievements)");
 					else if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
-					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); mr.forceMap = true; }
+					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); second_new_subject(); }
 					else ui_osd(load_failed_osd());
 					break;
 				case HK_BAR: bar_toggle(); break;
@@ -8881,7 +8856,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			fpsT0 = next;
 			fpsFrames = 0;
 			pacedMisses = pacedMissSecs = 0; /* (the menu's time isn't the game's) */
-			mr.forceMap = true;
+			second_new_subject();
 			hl.quietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
 		}
 		wasMenu = menuOpen;
@@ -9017,7 +8992,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		} else if (wasRewinding) {
 			wasRewinding = false;
 			rewindBox = 0;
-			mr.forceMap = true; /* the map, as of where the rewind stopped */
+			second_new_subject(); /* the map, as of where the rewind stopped */
 		}
 		int ran = 0;
 		for (int i = 0; i < (rewinding ? 0 : runs); ++i) {
@@ -9115,7 +9090,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 
 		if (snapProf) update_snapshot();
 		if (tallProf) {
-			TallEnv env = { nScreens, frameCount, cfg->swap, hudPx, &mapShownIdx, tall_show, logo_draw };
+			TallEnv env = { nScreens, frameCount, cfg->swap, hudPx, &sec.mapShownIdx, tall_show, logo_draw };
 			update_tall(&env);
 		}
 		if (hudProf) update_hud();
@@ -9334,12 +9309,12 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_rumble(0);
 	emu_close(&emu); /* flushes the battery save */
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
-		free(mapRes.frames[i]);
-		mapRes.frames[i] = NULL;
+		free(sec.mapRes.frames[i]);
+		sec.mapRes.frames[i] = NULL;
 	}
-	free(stillPx);
-	stillPx = NULL;
-	stillValid = false;
+	free(sec.stillPx);
+	sec.stillPx = NULL;
+	sec.stillValid = false;
 	for (int i = 0; i < nViews; ++i) {
 		SDL_DestroyTexture(gameTex[i]);
 		SDL_DestroyTexture(mapTex[i]);

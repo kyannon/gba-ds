@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+SecondState sec = { .mapShownIdx = -1, .fadeLevel = 256, .tgWait = -1 };
+
+void second_new_subject(void) {
+	sec.refresh.forceMap = true;
+}
+
 static inline int imax(int a, int b) { return a > b ? a : b; }
 static inline int imin(int a, int b) { return a < b ? a : b; }
 
