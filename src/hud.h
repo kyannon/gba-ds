@@ -124,5 +124,7 @@ void make_combat_canvas(void);
 void card_backdrop(void);
 /* the HUD split's and the fights' picture's set-up for a game (second.h) */
 void hud_setup(const MapProfile* lp, int screens);
+/* fights on or off, once a frame (hud.combatProf) */
+void hud_combat_step(void);
 
 #endif

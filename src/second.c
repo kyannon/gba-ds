@@ -6,6 +6,7 @@
 #include "second.h"
 #include "toggle.h"
 #include "hud.h"
+#include "twins.h"
 #include "rgba.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -702,4 +703,20 @@ bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	free(sm);
 	sec.hooks.logoFree(&lg);
 	return true;
+}
+
+/* The second screen's part of a frame, once the game's frame has run, in
+ * this order: the map refresh, a logo-only game's screen copy, the Pinball
+ * games' tall view (screens: how many there are now), the HUD split, the
+ * fights' picture. (Was inline in game.c's frame loop.) */
+void second_step(int screens) {
+	map_refresh_step();
+
+	if (sec.snapProf) update_snapshot();
+	if (tallProf) {
+		TallEnv env = { screens, sec.frame, sec.cfg->swap, hud.hudPx, &sec.mapShownIdx, sec.hooks.presentGba };
+		update_tall(&env);
+	}
+	if (hud.hudProf) update_hud();
+	if (hud.combatProf) hud_combat_step();
 }

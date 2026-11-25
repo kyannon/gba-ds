@@ -1249,3 +1249,24 @@ void hud_setup(const MapProfile* lp, int screens) {
 	hud.hudBackValid = false;
 	hud.hudRegrab = 0;
 }
+
+/* A game with fights shown as their own picture (profile .combat), once a
+ * frame: the fights' picture made when the game starts a fight (or always,
+ * logoAlways), and fights on or off after a few frames of it, not on one odd
+ * frame. (Was inline in game.c's frame loop.) */
+void hud_combat_step(void) {
+		/* a fight: after a few frames of it, not on one odd frame */
+		static int streak;
+		hud.combatInGame = hud.combatProf->hud.on[0].addr && memprobes_match(hud.combatProf->hud.on, 1, sec.emu);
+		if ((hud.combatInGame || hud.combatProf->hud.logoAlways) && hud.combatProf->hud.logoUnder && !hud.combatMade) make_combat_canvas();
+		bool c = memprobes_match(hud.combatProf->combat, 2, sec.emu) ||
+		         (hud.combatProf->combatOr[0].addr && memprobes_match(hud.combatProf->combatOr, 2, sec.emu));
+		streak = c != hud.combatOn ? streak + 1 : 0;
+		if (streak >= 3) {
+			hud.combatOn = c;
+			streak = 0;
+			if (hud.combatOn && !hud.combatMade) make_combat_canvas();
+			fprintf(stderr, "frame %llu: fight %s (the second screen's logo %s)\n", (unsigned long long) sec.frame, hud.combatOn ? "on" : "off",
+			        hud.combatOn ? "up" : "gone");
+		}
+}

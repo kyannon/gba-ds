@@ -7313,31 +7313,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			if (strncmp(pc, sec.subCode, 4)) ss_switch(rom, pc);
 		}
 
-		/* ---- map refresh */
-		map_refresh_step();
-
-		if (sec.snapProf) update_snapshot();
-		if (tallProf) {
-			TallEnv env = { nScreens, sec.frame, cfg->swap, hud.hudPx, &sec.mapShownIdx, tall_show };
-			update_tall(&env);
-		}
-		if (hud.hudProf) update_hud();
-		if (hud.combatProf) {
-			/* a fight: after a few frames of it, not on one odd frame */
-			static int streak;
-			hud.combatInGame = hud.combatProf->hud.on[0].addr && memprobes_match(hud.combatProf->hud.on, 1, &emu);
-			if ((hud.combatInGame || hud.combatProf->hud.logoAlways) && hud.combatProf->hud.logoUnder && !hud.combatMade) make_combat_canvas();
-			bool c = memprobes_match(hud.combatProf->combat, 2, &emu) ||
-			         (hud.combatProf->combatOr[0].addr && memprobes_match(hud.combatProf->combatOr, 2, &emu));
-			streak = c != hud.combatOn ? streak + 1 : 0;
-			if (streak >= 3) {
-				hud.combatOn = c;
-				streak = 0;
-				if (hud.combatOn && !hud.combatMade) make_combat_canvas();
-				fprintf(stderr, "frame %llu: fight %s (the second screen's logo %s)\n", (unsigned long long) sec.frame, hud.combatOn ? "on" : "off",
-				        hud.combatOn ? "up" : "gone");
-			}
-		}
+		/* ---- the second screen: map refresh, screen copy, tall view, HUD, fights (second.c) */
+		second_step(nScreens);
 		if (ctl_snes()) snesHere = memprobes_match(ctlProf->controls.snes.when, 3, &emu);
 		if (ctlProf) {
 			/* switch after a few frames in the new state, not on one odd frame */

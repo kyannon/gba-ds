@@ -121,6 +121,10 @@ bool map_anim(void);
 /* once a frame, after the game's frame: when to capture the map, picking up a
  * finished capture, the pages, the profile's hideWhen / logoIf / liveView */
 void map_refresh_step(void);
+/* the second screen's whole part of a frame, after the game's frame: the map
+ * refresh, the screen copy, the tall view, the HUD, the fights (screens: how
+ * many the app has now) */
+void second_step(int screens);
 /* picture idx of the second screen (STILL_IDX: the still), NULL if none */
 const uint32_t* map_px(int idx);
 /* put picture idx up (unless it is up already and nothing changed: overDirty) */
