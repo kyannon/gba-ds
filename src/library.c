@@ -2954,7 +2954,7 @@ static void la_draw_list(int scr, const LangAsk* a, bool oneScreen) {
 			char sys[120];
 			snprintf(sys, sizeof(sys), tr("System: %s"), s >= 0 ? i18nLangs[s].autonym : "English");
 			ui_font_text(scr, TF_BOLD, b.x + px * 6, cy, px * 5, "Automatic", C_TEXT, -1);
-			ui_font_text_as_is(scr, TF_BODY, b.x + b.w - px * 6, cy, px * 4, sys, sel ? C_TEXT : C_DIM, 1);
+			ui_font_text_as_is(scr, TF_BODY, b.x + b.w - px * 6, cy, px * 4, sys, sel || lit ? C_TEXT : C_DIM, 1);
 		} else {
 			const I18nLang* L = a->lang[i] >= 0 ? &i18nLangs[a->lang[i]] : NULL;
 			const char* name = L ? L->autonym : "English";
@@ -2964,7 +2964,7 @@ static void la_draw_list(int scr, const LangAsk* a, bool oneScreen) {
 				ui_font_text_as_is(scr, TF_BOLD, b.x + px * 6, b.y + b.h * 35 / 100, cap, name, C_TEXT, -1);
 				int nc = px * 7 / 2, nw = ui_font_width_as_is(TF_BOLD, nc, note);
 				if (nw > room) nc = nc * room / nw;
-				ui_font_text_as_is(scr, TF_BOLD, b.x + px * 6, b.y + b.h * 72 / 100, nc, note, sel ? C_TEXT : C_DIM, -1);
+				ui_font_text_as_is(scr, TF_BOLD, b.x + px * 6, b.y + b.h * 72 / 100, nc, note, sel || lit ? C_TEXT : C_DIM, -1);
 			} else {
 				ui_font_text_as_is(scr, TF_BOLD, b.x + px * 6, cy, cap, name, C_TEXT, -1);
 			}
