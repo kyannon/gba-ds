@@ -685,7 +685,7 @@ void update_tall(const TallEnv* env) {
 		 * screen showed last) */
 		if (s - k - GBA_H < top) {
 			for (int i = 0; i < GBA_W * GBA_H; ++i) tallTop[i] = SCREEN_GREY;
-			env->logo(tallTop, GBA_W, GBA_H, 1, 0, 128 /* LOGO_IDLE */);
+			logo_draw(tallTop, GBA_W, GBA_H, 1, 0, LOGO_IDLE);
 			tallTopLogo = true;
 		} else {
 			int off = 0;

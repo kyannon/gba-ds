@@ -183,7 +183,7 @@ static void hud_make_logo_below(void) {
 	if (hud.hudProf->hud.rows) top = hud.hudProf->hud.rows * 2;
 	if (hud.hudProf->hud.logoTop) top = hud.hudProf->hud.logoTop * 2;
 	if (hud.hudProf->hud.mapTitleRows && hud.mapTitleN) top += (hud.mapTitleN + 2) * 2; /* (and the level's name above it) */
-	hud.hooks.logo(hud.hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top, 255);
+	logo_draw(hud.hudLogoBelow, HUD_CW, HUD_CH, HUD_CW / GBA_W, top, 255);
 }
 
 static int rule_count(const SpriteRule* r, int max) {
@@ -300,7 +300,7 @@ static const uint32_t* card_logo(void) {
 	static uint32_t cardLogo[HUD_CW * HUD_CH];
 	if (!hud.cardLogoMade) {
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) cardLogo[i] = SCREEN_LIVE; /* (under the HUD: GEN-1) */
-		hud.cardLogoMade = hud.hooks.logo(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hud.hudProf->hud.card.whole ? 0 : 48 * 2, 255);
+		hud.cardLogoMade = logo_draw(cardLogo, HUD_CW, HUD_CH, HUD_CW / GBA_W, hud.hudProf->hud.card.whole ? 0 : 48 * 2, 255);
 	}
 	return cardLogo;
 }
@@ -1205,7 +1205,7 @@ void make_combat_canvas(void) {
 	uint32_t* px = malloc((size_t) sec.mapW * sec.mapH * 4);
 	if (!px) return;
 	for (int i = 0; i < sec.mapW * sec.mapH; ++i) px[i] = SCREEN_GREY;
-	hud.hooks.logo(px, sec.mapW, sec.mapH, S_MAX(1, sec.mapW / GBA_W), 0, LOGO_IDLE);
+	logo_draw(px, sec.mapW, sec.mapH, S_MAX(1, sec.mapW / GBA_W), 0, LOGO_IDLE);
 	hud.hooks.presentCombat(px);
 	free(hud.combatPx);
 	hud.combatPx = px; /* (hud.logoUnder) */

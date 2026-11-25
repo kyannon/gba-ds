@@ -183,7 +183,7 @@ void upload_map_frame(int idx) {
 	const uint32_t* px = map_px(idx);
 	if ((idx == sec.mapShownIdx && !sec.overDirty) || !px) return;
 	sec.overDirty = false;
-	px = sec.hooks.overMap(px); /* (the HUD's pieces over it: the app's, for now) */
+	px = hud_over_map(px); /* (the HUD's pieces over it: hud.c) */
 	if (sec.fadeLevel < 256) {
 		/* (a turn that waits, GEN-14: only the picture fades, so the
 		 * shader and the bezel stay as they are) */
@@ -227,7 +227,7 @@ static bool update_still(void) {
 void map_show_new(bool fresh) {
 	sec.mapInactive = false;
 	if (!fresh || sec.capSubject) sec.capSubject = false, toggle_new_subject();
-	sec.hooks.hudNew(fresh); /* (what the HUD split keeps of it: the app's, for now) */
+	hud_new_map(fresh); /* (what the HUD split keeps of it: hud.c) */
 	sec.mapShownIdx = -1;
 	/* (pages, a few seconds each: Fire Emblem's unit status; they
 	 * keep turning at their pace through new captures) */

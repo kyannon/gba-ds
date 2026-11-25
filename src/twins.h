@@ -85,7 +85,6 @@ typedef struct {
 	uint32_t* hudPx;              /* the HUD split's picture (emu_hud_split) */
 	int* mapShownIdx;             /* game.c's: set to -1 / 0 to have the second screen shown again */
 	void (*show)(const uint32_t* second);
-	bool (*logo)(uint32_t* px, int cw, int ch, int k, int top, int alpha); /* game.c logo_draw */
 } TallEnv;
 
 extern bool tallOn, tallLive;

@@ -6191,8 +6191,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	romPath = rom, lastLoop = 0;
 	/* what the second screen reads, and how it puts its pictures up (second.h) */
 	sec.emu = &emu, sec.cfg = cfg, sec.debug = debug, sec.romPath = romPath;
-	sec.hooks = (SecondHooks) { hud_new_map, hud_over_map, show_picture, tall_show, logo_load, logo_free };
-	hud.hooks = (HudHooks) { show_hud, show_combat, has_combat, logo_draw, save_bmp };
+	sec.hooks = (SecondHooks) { show_picture, tall_show, logo_load, logo_free };
+	hud.hooks = (HudHooks) { show_hud, show_combat, has_combat, save_bmp };
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
 	game_keys_reload();
@@ -7318,7 +7318,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 
 		if (sec.snapProf) update_snapshot();
 		if (tallProf) {
-			TallEnv env = { nScreens, sec.frame, cfg->swap, hud.hudPx, &sec.mapShownIdx, tall_show, logo_draw };
+			TallEnv env = { nScreens, sec.frame, cfg->swap, hud.hudPx, &sec.mapShownIdx, tall_show };
 			update_tall(&env);
 		}
 		if (hud.hudProf) update_hud();

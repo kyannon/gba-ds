@@ -21,10 +21,9 @@ const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
 #define LOGO_IDLE 128
 
 /* What the app does for the second screen (set by the app, once per game):
- * hudNew and overMap are the HUD split's part, still the app's for now (what
- * it keeps of a new map picture; its pieces laid over the picture, returning
- * the picture to show, px itself if none); present puts the picture (sec.mapW
- * x sec.mapH) on the screen, presentGba one of the game's own size. */
+ * present puts the picture (sec.mapW x sec.mapH) on the screen, presentGba
+ * one of the game's own size (GBA_W x GBA_H); logoLoad / logoFree find and
+ * load the game's logo, which logo_draw puts on a picture. */
 /* The game's logo as the app finds it (the player's own, a scraped or the
  * extracted one): RGBA32 bytes (R, G, B, A), w x h, pitch bytes a row; own:
  * the app's, for logoFree */
@@ -35,8 +34,6 @@ typedef struct {
 } LogoPic;
 
 typedef struct {
-	void (*hudNew)(bool fresh);
-	const uint32_t* (*overMap)(const uint32_t* px);
 	void (*present)(const uint32_t* px);
 	void (*presentGba)(const uint32_t* px); /* a picture GBA_W x GBA_H (the screen copy) */
 	/* the game's logo (sub: its pixels to a GBA pixel, a scraped logo's
