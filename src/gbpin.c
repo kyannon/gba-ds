@@ -193,6 +193,9 @@ struct GbPin {
 	bool table;             /* the two halves are up */
 	int stage;
 	int lost;               /* frames since a picture was taken */
+	int prevS;              /* the table stage seen last (-1: none) */
+	bool xfade, xseen;      /* a crossing's load: held until the game's white screen has come and gone */
+	int xn;                 /* frames it has been held */
 	int miss;               /* frames in a row the game's physics didn't run, with the table held */
 	uint32_t top[GBA_W * GBA_H], bot[GBA_W * GBA_H];
 };
@@ -201,9 +204,12 @@ static bool table_stage(int s) {
 	return s == 0 || s == 1 || s == 4 || s == 5;
 }
 
-static bool is_white(const uint32_t* fb) {
-	for (int i = 0; i < GBA_W * GBA_H; ++i)
-		if (fb[i] != fb[0]) return false;
+/* the picture is one flat colour (the game's loading screen is white); the frame's border round it doesn't count */
+static bool is_white(const uint32_t* fb, const Emu* e) {
+	const uint32_t first = fb[e->picY * GBA_W + e->picX];
+	for (int y = e->picY; y < e->picY + e->picH; ++y)
+		for (int x = e->picX; x < e->picX + e->picW; ++x)
+			if (fb[y * GBA_W + x] != first) return false;
 	return true;
 }
 
@@ -229,7 +235,7 @@ static void run_job(GbPin* g, Copy* c) {
 	if (rd8(e, g->a.stage) != (c->stage ^ 1)) return;
 	c->wy = rd8(e, 0xFF4A);
 	memcpy(c->pic, e->fb, sizeof(c->pic));
-	c->ok = !is_white(c->pic);
+	c->ok = !is_white(c->pic, e);
 }
 
 static void* copy_thread(void* arg) {
@@ -356,7 +362,22 @@ void gbpin_after(GbPin* g, Emu* game) {
 	}
 	int s = rd8(game, g->a.stage);
 	g->stage = s;
-	bool flash = is_white(game->fb);
+	bool flash = is_white(game->fb, game);
+	/* a crossing (the game loads the other half: a frame of the old picture on the wrong side, then about a
+	 * quarter of a second of white): both halves hold as they were from the stage change until the white has
+	 * come and gone (PPG-2) */
+	if (g->table && table_stage(s)) {
+		if (g->prevS >= 0 && g->prevS != s) g->xfade = true, g->xseen = false, g->xn = 0;
+		if (g->xfade) {
+			if (flash) g->xseen = true;
+			else if (g->xseen) g->xfade = false;
+			if (g->xfade && ++g->xn > 90) g->xfade = false;
+			if (g->xfade) { g->prevS = s; g->lost = 0; return; }
+		}
+	} else {
+		g->xfade = false;
+	}
+	g->prevS = table_stage(s) ? s : -1;
 	if (c->ok && c->stage == s && table_stage(s) && !flash) {
 		/* the halves; the score and message bar stays on the bottom one only (PPG-3): the top half's own is
 		 * left black, from the window's row (the copy's, taken when it ran) */

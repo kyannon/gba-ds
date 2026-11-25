@@ -415,6 +415,116 @@
      70
     ]
    ]
+  },
+  {
+   "id": "ppg-eu-crossing",
+   "rom": "cjl9",
+   "state": "pokemon-pinball-gbc/eu-crossing.ss",
+   "desc": "Europe: the ball crosses from the bottom half to the top (a player's bug report): neither screen goes white or shows the wrong half",
+   "rules": [
+    "PPG-2"
+   ],
+   "input": [
+    [
+     0,
+     "A"
+    ],
+    [
+     90,
+     "-"
+    ]
+   ],
+   "shots": {
+    "x1": 26,
+    "x2": 30,
+    "x3": 34
+   },
+   "checks": [
+    {
+     "rule": "PPG-2",
+     "what": "no white on the game screen while the ball crosses (x1)",
+     "type": "not_uniform",
+     "screen": "game",
+     "shot": "x1",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "FFFFFF"
+    },
+    {
+     "rule": "PPG-2",
+     "what": "no white on the second screen while the ball crosses (x1)",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "x1",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "FFFFFF"
+    },
+    {
+     "rule": "PPG-2",
+     "what": "no white on the game screen while the ball crosses (x2)",
+     "type": "not_uniform",
+     "screen": "game",
+     "shot": "x2",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "FFFFFF"
+    },
+    {
+     "rule": "PPG-2",
+     "what": "no white on the second screen while the ball crosses (x2)",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "x2",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "FFFFFF"
+    },
+    {
+     "rule": "PPG-2",
+     "what": "no white on the game screen while the ball crosses (x3)",
+     "type": "not_uniform",
+     "screen": "game",
+     "shot": "x3",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "FFFFFF"
+    },
+    {
+     "rule": "PPG-2",
+     "what": "no white on the second screen while the ball crosses (x3)",
+     "type": "not_uniform",
+     "screen": "second",
+     "shot": "x3",
+     "rect": [
+      100,
+      150,
+      900,
+      650
+     ],
+     "color": "FFFFFF"
+    }
+   ]
   }
  ]
 }

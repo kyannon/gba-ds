@@ -20,7 +20,7 @@ The Game Boy Color cartridge's tables are two Game Boy screens tall, and the gam
 
 **PPG-1a. The ball.** The ball is drawn on the half it is in, never on the other one: the other half is drawn without it (the game's rows would wrap round and draw it at the far end), so it passes to the other screen with the crossing.
 
-**PPG-2. The crossing.** When the ball passes to the other half, the game fades both screens through white for about a fifth of a second. Both screens stay as they were until it's over (nothing half-drawn, GEN-3) and then show the new halves; the ball goes on through the other screen.
+**PPG-2. The crossing.** When the ball passes to the other half, the game fades both screens through white for about a fifth of a second. Neither screen ever shows the white, nor a frame of the old picture on the wrong screen: both stay exactly as they were, from the moment the ball crosses until the white has come and gone (nothing half-drawn, GEN-3; the picture is checked inside the Game Boy's own 160x144, not the frame's border) and then show the new halves; the ball goes on through the other screen.
 
 **PPG-3. Score bar.** The score and message bar is the game's, at the bottom of the bottom half only; the top half has none.
 
