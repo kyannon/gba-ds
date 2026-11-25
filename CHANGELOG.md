@@ -1,6 +1,8 @@
 # Changelog
 
-## v1.6.2 (not yet released)
+## v1.6.3 (not yet released)
+
+## v1.6.2 (2026-11-24)
 
 ### New games
 - **WarioWare: Twisted!** (USA, and Mawaru Made in Wario in Japan): the game's gyro is played by turning the device. In Gyro mode, which every start begins in, the second screen is the game's logo on white that tilts with the device, with a **Touch!** button (or HOME + A). In **Touch mode** the touchscreen is a dial: touch anywhere and drag left or right to tilt the game that way, and let go to ease back to level; the second screen shows the game's menu wheel turning with it, with **Gyro!** and **Pause** buttons along the top. The dial's sensitivity (5% to 25%, 15% at first) is in the quick bar. The cartridge's motor is limited to short pulses here, since the gyro and the dial can make the game ask for far more rumble than the original's could. Known: no gyro sensor was found on the RG DS Plus under BananaOS yet, so there Touch mode is the way to play; the Europe release hasn't been tried; bug reports don't record the gyro.
@@ -17,7 +19,7 @@
 - **Hardcore mode (still hidden until RetroAchievements approves it) now turns fast forward off**, as it does rewind, cheats and loading states, since GBA DS reads RetroAchievements' ban on frame advance as covering any speed-up. Fast forward still works in casual mode.
 
 ### Fixes
-- **Game Boy: the Scanlines and Soft Cells shaders work.** With Display > Game Boy shader set to Scanlines or Soft Cells, a Game Boy game showed the LCD Grid instead. GBA games were not affected.
+- **Game Boy: the Scanlines and Soft Cells shaders work.** With Display > Game Boy shader set to Scanlines or Soft Cells, a Game Boy game showed Display > Shader's pattern instead: the LCD grid, unless that was itself Scanlines or Soft Cells. GBA games were not affected.
 - **Game Boy games' saved pictures show the real picture.** The picture under a game's name in the list (after a resume point is made) and the one beside a state in RetroArch's folder are now the Game Boy screen's own size, or the Super Game Boy border with its picture, instead of always the GBA frame. Take Screenshot already saved both screens as shown.
 - **Game Boy: games that support the Super Game Boy show the colours they were made with** (issue #91). Castlevania Legends and the other "SGB Enhanced" games were grey; they now play as on a Super Game Boy (without its border) and show their own colours, with the default palette or with *Super Game Boy*. Choose DMG, Pocket, Light or Grayscale for those shades instead. A game started under the old setup starts over once instead of resuming.
 - **Android: a second screen plugged in or taken out while a game runs is picked up** (issue #90). GBA DS looked at the displays only when the game started, so a USB-C screen connected or woken afterwards stayed unused until the game was started again. Now, about a second after a screen appears or goes, the game restarts once with the new layout and picks up where you were, even with Save on quit or Auto-load off. (Started from the game list, you come back to the list, with the game saved.) Not yet tried on a device.
@@ -31,7 +33,7 @@
 ### New: Game Boy and Game Boy Color games (issue #77)
 - **GBA DS plays Game Boy and Game Boy Color games**, on one screen with the other idle dark grey, as a GBA played them. Put `.gb` and `.gbc` files (or zips) in your GBA folder or in `gb` / `gbc` folders beside it, set **Games shown** to **All**, and start them from GBA DS's own game list. Saves, save states, rewind and cheats work as for GBA games. Details on the new wiki page, [Game Boy games](https://github.com/kyannon/gba-ds/wiki/Game-Boy-games).
 - **New Game Boy rows** in the pause menu's Display page (and Settings > Display), for these games only: **Game Boy size** (the GBA frame, or the Game Boy's 160×144 picture as the whole screen) and **scale** (Pixel Perfect, Fit, Stretch); **palette** for monochrome games (Game's own, DMG, Pocket, Light, Grayscale, Super Game Boy); **Dual-mode games** in colour or in monochrome; **color correction** (as GBA, off, Game Boy Color, Game Boy Advance); **ghosting** (as GBA, off, light, smart, strong); and a **shader**, with a **Dot matrix** look. The ones that don't apply to the game are greyed out. Palette and dual-mode changes count from the next start: closing the menu asks to **restart now** or **discard changes**, and a resume point made with other colours isn't resumed.
-- Known: the shades, the Game Boy Color's colour matrix and the dot matrix are first guesses; no Super Game Boy borders, rumble, camera or link cable; no RetroAchievements; EmulationStation, BananaOS and Android frontends don't start these games yet; no list of known dumps yet (no "Modified ROM" note).
+- Known: the shades, the Game Boy Color's colour matrix and the dot matrix are first guesses; screenshots and the quick bar's pictures use the GBA frame; no Super Game Boy borders, rumble, camera or link cable; no RetroAchievements; EmulationStation, BananaOS and Android frontends don't start these games yet; no list of known dumps yet (no "Modified ROM" note).
 
 ### RetroAchievements
 - **Unlocks earned while the connection is down are no longer lost if you close GBA DS first.** They wait in `states/ra/pending.txt` and are sent the next time you sign in, before the game's achievements load. (Before, they were only retried while GBA DS stayed open.)
