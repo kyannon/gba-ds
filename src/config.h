@@ -144,6 +144,8 @@ typedef struct Config {
 	char updateUrl[256];  /* testing: the release API to ask instead of GitHub's */
 	char rom[512];        /* launch straight into this game (skips the library) */
 	char language[16];    /* the interface's language (i18n.h): auto (the system's), en or a catalogue's code */
+	bool languageAsked;   /* language_asked (prefs.cfg): 0 on a first install until the player has confirmed the
+	                       * language (library_language_ask, issue #92); absent (every older install) is 1 */
 
 	/* testing / automation */
 	char loadState[512];

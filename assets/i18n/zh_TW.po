@@ -2077,3 +2077,24 @@ msgstr "機器翻譯"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "聲音延遲已提高到 %d 毫秒：聲音一直斷斷續續"
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "選擇 GBA DS 選單的語言。"
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "之後可以在 設定 > 系統 中變更。"
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "選擇"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "繼續"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "系統：%s"

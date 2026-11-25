@@ -18,7 +18,7 @@ In the game list's Settings > System, **Reset settings to defaults** puts every 
 |---|---|---|
 | `rom_dir` | `/storage/roms/gba` (Android: `ROMs/gba`) | Folders to list, subfolders included. Several: separate with `:`. |
 | `show_all` | `0` | `1` lists every GBA ROM, not just games with second-screen support. The others play on one screen. The **Supported** / **All** button in the game list switches it. |
-| `language` | `auto` | The interface's language: `auto` (the system's), or `en`, `es`, `de`, `fr`, `it`, `pt`, `ja`, `ko`, `zh_CN`, `zh_TW`. In Settings > System > Language (its top row), for all games. Text that isn't translated stays in English. See [[Languages]]. |
+| `language` | `auto` | The interface's language: `auto` (the system's), or `en`, `es`, `de`, `fr`, `it`, `pt`, `ja`, `ko`, `zh_CN`, `zh_TW`. In Settings > System > Language (its top row), for all games. Text that isn't translated stays in English. Asked the first time GBA DS starts after it's installed (`language_asked = 1` in `states/prefs.cfg` once answered). See [[Languages]]. |
 | `name_tags` | `0` | `1` keeps tags like `(USA)` and `(En,Fr,De)` in game names. |
 | `theme` | `dark` | **Light/dark mode**: the look of the menus' buttons: `dark` (dark grey keys with a heavy edge) or `light` (light grey, like the web player's). The sun / moon button in the game list switches it too. In Settings > Display. For all games (not a game's own file). |
 | `accent` | `purple` | **Color**: the menus' color for what's selected, the edges and glows, the panels' tint and the highlight on chosen values and pills: `purple`, `blue`, `teal`, `green`, `red`, `orange` or `pink`. Each has a dark and a light version, made to read in either mode. In Settings > Display. For all games. |
