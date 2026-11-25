@@ -3965,6 +3965,7 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "gb_dual") && emu_gb_kind(&emu) != 1) return N_("Not available in this game: it is made for a Game Boy or for a Game Boy Color, not both");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 2) return N_("Not available in this game: it is made for the Game Boy Color, with colors of its own");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
+	if ((!strcmp(key, "scale") || !strcmp(key, "map_scale")) && gb_native()) return N_("Only with Game Boy size at GBA frame: Game Boy scale sets the size of both screens");
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
@@ -7893,7 +7894,7 @@ static void overlays_reload(void) {
 
 /* s: the physical screen (0 top, 1 bottom); which: what's on it (0 the game, 1 the second screen) */
 static void load_overlay(int s, int which) {
-	const char* scale = which ? cfg->mapScale : cfg->scale;
+	const char* scale = gb_native() ? cfg->gbScale : which ? cfg->mapScale : cfg->scale;
 	const char* match = strcmp(cfg->screenMatch, "keep") && ui_screens_differ() ? cfg->screenMatch : NULL;
 	/* Screen Placement: Closest to Gap moves the picture where it doesn't
 	 * fill the screen's height (Pixel Perfect, Full Width): an overlay made
@@ -8153,9 +8154,9 @@ static void draw_game(void) {
 				/* no map: the other screen black, in its bezel if it has one (a Game Boy game's:
 				 * idle grey, the same as a logo's, with no logo: GB-3) */
 				if (gbpLive && gbpTex[0])
-					ui_image_pixels(s, gbpTex, game_tex_w(), game_tex_h(), game_scale(), SHADER_ON); /* the table's other half, as the game's */
+					ui_image_pixels(s, gbpTex, game_tex_w(), game_tex_h(), gb_native() ? cfg->gbScale : cfg->mapScale, SHADER_ON); /* the table's other half, as the game's */
 				else if (emu_is_gb(&emu) && (logoCanvasTex[0] || logoCanvasTex[1]))
-					ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
+					ui_image_pixels(s, logoCanvasTex, GBA_W, GBA_H, gb_native() ? cfg->gbScale : cfg->mapScale, SHADER_ON);
 				if (overlay_on(s)) draw_overlay(s, 1);
 				continue;
 			}
@@ -10373,7 +10374,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		const uint32_t* shownFb = emu.fb;
 		/* (Pokemon Pinball's tall view always: two copies of the game beside
 		 * it only keep full speed with the frame emulated alongside the drawing) */
-		if ((cfg->frameBuffer || tallProf) && !ff && !rewinding) {
+		if ((cfg->frameBuffer || tallProf) && !gbp && !ff && !rewinding) { /* (not the Game Boy table: its halves are published and uploaded from the frame itself, which the worker would do beside the drawing and the settings: textures made and destroyed under it) */
 			memcpy(aheadFb, emu.fb, sizeof(aheadFb));
 			if (ahead_start(keys)) aheadInFlight = true, shownFb = aheadFb;
 		}

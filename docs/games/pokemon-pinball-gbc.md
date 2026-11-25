@@ -30,6 +30,8 @@ The Game Boy Color cartridge's tables are two Game Boy screens tall, and the gam
 
 **PPG-6. Off.** With `pinball_live = 0` (the same switch as Ruby & Sapphire's), or one screen, the game plays as it is on one screen (GB-3). *By hand: on the device.*
 
+**PPG-8. One size for both screens.** With Game Boy size at "Game Boy screen", both halves of the table (and the logo, when it is up) are drawn at the same size, set by Game Boy scale, so the two screens always match. Game screen scale and Second screen scale only apply with Game Boy size at "GBA frame" (and are greyed out, with a note, otherwise); in a GBA frame the second screen follows Second screen scale as for any game. *Shared change: the same greying and the logo's scale apply to every Game Boy game.*
+
 **PPG-7. Known issues.** The view costs about 14 emulated Game Boy frames per displayed frame; on a slow device it may not keep up (set `pinball_live = 0`). The bonus stages stay on one screen.
 
 ## For the merge

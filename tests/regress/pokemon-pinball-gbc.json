@@ -369,9 +369,10 @@
    "id": "ppg-us-gb-size",
    "rom": "cjng",
    "state": "pokemon-pinball-gbc/us-launch.ss",
-   "desc": "Game Boy size changed in the menu while the table is up: the game's screen keeps its half, not the game's own frame",
+   "desc": "Game Boy size changed in the menu while the table is up: the game's screen keeps its half, not the game's own frame (Game screen scale greyed out: PPG-8; the pause clock masked)",
    "rules": [
-    "PPG-1"
+    "PPG-1",
+    "PPG-8"
    ],
    "input": [
     [
@@ -405,6 +406,14 @@
      ],
      "color": "000000"
     }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     140,
+     70
+    ]
    ]
   }
  ]
