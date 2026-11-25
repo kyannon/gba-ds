@@ -7819,6 +7819,143 @@ static SDL_AudioDeviceID open_game_audio(SDL_AudioSpec* want) {
 	return audio;
 }
 
+/* ---- the map refresh: once a frame, after the game's frame. When to
+ * capture the map (a room change held 3 frames, a transition out of black, a
+ * new subject, the interval, backing off while captures fail), the profile's
+ * hideWhen and logoIf, picking up a finished capture, the pages and a
+ * profile's live picture. Its state is mr's, set up again for each game; a
+ * state load or a rewind sets mr.forceMap. (Was inline in game_run_inner.) */
+static struct {
+	uint32_t lastRoomKey;
+	uint32_t seenRoomKey; /* the room key as it is now, and for how many frames it's held */
+	int seenRoomFor;
+	int sinceMapRequest;
+	int lastFails;
+	bool forceMap, wasDark;
+	long refreshAt;
+} mr;
+
+static void map_refresh_step(void) {
+	if (mc) {
+		++mr.sinceMapRequest;
+		/* the profile's sprite hiding, where it's only for some moments
+		 * (hideWhen: Lady Sia's HUD in play, not its credits or pause
+		 * screen); from the next frame drawn */
+		if (hideWhenProf && memprobes_match(hideWhenProf->hideWhen, 2, &emu) != hideWhenOn) {
+			hideWhenOn = !hideWhenOn;
+			emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
+			if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
+		}
+		{
+			/* (logoIf: the logo for now, SM4-11) */
+			const MapProfile* lp = mapcap_profile(mc);
+			bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
+			                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
+			if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
+			else if (logoHolding > 0) --logoHolding;
+			lf = lf || logoHolding > 0;
+			if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
+			logoForced = lf;
+		}
+		bool dark = frame_is_dark(emu.fb);
+		if (mr.wasDark && !dark) mr.refreshAt = (long) frameCount + 6;
+		mr.wasDark = dark;
+		if (mr.refreshAt >= 0 && (long) frameCount >= mr.refreshAt) {
+			mr.forceMap = true;
+			mr.refreshAt = -1;
+			if (debug) fprintf(stderr, "frame %llu: room transition\n", (unsigned long long) frameCount);
+		}
+		if (mapShownIdx >= 0 && frameCount % 30 == 0 && mapcap_in_menu(mc, &emu)) {
+			/* quit to the title: the map belongs to the old session */
+			mapShownIdx = -1;
+			mapInactive = false;
+			mr.forceMap = true;
+			/* (always logged: what sends the second screen back to the logo) */
+			fprintf(stderr, "frame %llu: second screen back to the logo (the profile's menu probes matched)\n", (unsigned long long) frameCount);
+		}
+		uint32_t rk = mapcap_room_key(mc, &emu);
+		if (rk != mr.seenRoomKey) mr.seenRoomKey = rk, mr.seenRoomFor = 0;
+		else ++mr.seenRoomFor;
+		/* a change counts once it has held for 3 frames (a cursor
+		 * gliding to its place, Mario walking a path: not each step);
+		 * a capture still running for the old one is called off, so
+		 * the new one starts as soon as it has stopped */
+		bool roomChanged = rk && rk != mr.lastRoomKey && mr.seenRoomFor >= 2;
+		if (roomChanged && mapcap_busy(mc)) mapcap_cancel(mc);
+		/* Back off while captures keep failing (e.g. the game says "playing"
+		 * but the map can't open: intro cutscenes, briefings). Each failed
+		 * attempt emulates a few seconds in the background, which starves
+		 * the game and its audio on slower devices. */
+		const char* why = NULL;
+		int fails = mapcap_failures(mc, &why);
+		if (fails != mr.lastFails) {
+			if (debug && fails) fprintf(stderr, "frame %llu: map capture failed (%d in a row): %s\n",
+			                            (unsigned long long) frameCount, fails, why ? why : "?");
+			const MapProfile* dp = mapcap_profile(mc);
+			if (fails && why && dp && dp->dimWhenUnavailable &&
+			    (!strcmp(why, "map screen did not appear") || !strcmp(why, "map button did nothing"))) {
+				mapInactive = true;
+			}
+			mr.lastFails = fails;
+		}
+		/* quick "no map here" failures (A Link to the Past indoors) cost little
+		 * and are expected, so they don't back off */
+		bool cheapFail = why && !strncmp(why, "map button did nothing", 22); /* (Pokémon's menu failures say why in brackets) */
+		/* (a profile's own interval, when it's quicker: Swordcraft Story) */
+		const MapProfile* ip = mapcap_profile(mc);
+		int every = ip && ip->interval > 0 && ip->interval < cfg->mapInterval ? ip->interval : cfg->mapInterval;
+		int interval = cheapFail ? every : every << SDL_min(fails, 3);
+		/* after failures, a room change still triggers a try, but no more
+		 * often than the normal interval */
+		bool due = mr.sinceMapRequest >= interval || pressCap ||
+		           ((mr.forceMap || roomChanged) && (!fails || mr.sinceMapRequest >= every));
+		if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu) && !(viewWait && tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
+			/* a new subject (a room, a loaded state) shows the game's own view again */
+			if (roomChanged || mr.forceMap) viewAlt = false;
+			mapcap_set_alt(viewAlt && cfg->toggle);
+			if (mapcap_request(mc, &emu)) {
+				mr.sinceMapRequest = 0;
+				mr.lastRoomKey = rk;
+				capSubject = roomChanged || mr.forceMap; /* (not a refresh of the same subject) */
+				mr.forceMap = false;
+				if (pressCap) pressCap = false, tgCapWant = capDone + 1;
+			}
+		}
+		toggle_step();
+		bool fresh = mapcap_poll(mc, mapRes.serial, &mapRes);
+		if (fresh && mapcap_in_menu(mc, &emu)) {
+			/* a capture that finished after quitting to the title: drop it */
+		} else if (fresh) {
+			map_show_new(true);
+			++capDone;
+		} else if (((map_anim() && mapRes.nFrames > 1) || fadeUpload) && mapShownIdx >= 0) {
+			int idx = second_page();
+			fadeUpload = false;
+			upload_map_frame(idx);
+		}
+		/* a profile's own live picture (Mega Man Battle Network's maps on
+		 * the net), drawn every frame over whatever was captured; when it
+		 * stops, the captured picture again */
+		const MapProfile* lvp = mapcap_profile(mc);
+		const uint32_t* lv = lvp && lvp->liveView && romPath ? lvp->liveView(&emu, romPath) : NULL;
+		if (lv) {
+			for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
+			if (mapShownIdx < 0) mapShownIdx = 0;
+			if (!liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) frameCount);
+			liveOn = true;
+		} else if (liveOn) {
+			liveOn = false;
+			if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
+			if (mapRes.ok && map_px(mapShownIdx)) {
+				overDirty = true;
+				upload_map_frame(mapShownIdx);
+			} else {
+				mapShownIdx = -1;
+			}
+		}
+	}
+}
+
 static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary);
 
 /* A game's own settings (issue #53, states/<game>.cfg) are put over the
@@ -8044,14 +8181,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	const bool testStarve = getenv("GBADS_TEST_STARVE") && atoi(getenv("GBADS_TEST_STARVE"));
 
 	static int16_t samples[4096 * 2];
-	uint32_t lastRoomKey = 0;
-	/* the room key as it is now, and for how many frames it's held */
-	uint32_t seenRoomKey = 0;
-	int seenRoomFor = 0;
-	int sinceMapRequest = 1 << 20;
-	int lastFails = 0;
-	bool forceMap = true, wasDark = false;
-	long refreshAt = -1;
+	mr = (typeof(mr)) { .sinceMapRequest = 1 << 20, .forceMap = true, .refreshAt = -1 }; /* (the map refresh starts again for this game) */
 	hotkeys_setup();
 	const int modBtn = hkMod;
 	/* SELECT or START as the hotkey: a GBA button, held back from the game
@@ -8225,7 +8355,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						} else if (bb == BB_LOAD) {
 							if (ra_hardcore()) ui_osd("Not in hardcore mode (Achievements)"); /* (as the pause menu's Load State says, before anything else) */
 							else if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
-							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true, barLit = bb, barLitAt = barSince; }
+							else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); mr.forceMap = true, barLit = bb, barLitAt = barSince; }
 							else ui_osd(load_failed_osd());
 						} else if (bb == BB_SETTINGS) {
 							open_menu();
@@ -8556,7 +8686,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				case HK_LOAD:
 					if (ra_hardcore()) ui_osd("Not in hardcore mode (Achievements)");
 					else if (!file_exists(gp.quick)) ui_osd("No quick state saved yet.");
-					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); forceMap = true; }
+					else if (state_load(gp.quick)) { if (!stateWarned) ui_osd("State loaded."); mr.forceMap = true; }
 					else ui_osd(load_failed_osd());
 					break;
 				case HK_BAR: bar_toggle(); break;
@@ -8751,7 +8881,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			fpsT0 = next;
 			fpsFrames = 0;
 			pacedMisses = pacedMissSecs = 0; /* (the menu's time isn't the game's) */
-			forceMap = true;
+			mr.forceMap = true;
 			hl.quietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
 		}
 		wasMenu = menuOpen;
@@ -8887,7 +9017,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		} else if (wasRewinding) {
 			wasRewinding = false;
 			rewindBox = 0;
-			forceMap = true; /* the map, as of where the rewind stopped */
+			mr.forceMap = true; /* the map, as of where the rewind stopped */
 		}
 		int ran = 0;
 		for (int i = 0; i < (rewinding ? 0 : runs); ++i) {
@@ -8981,124 +9111,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 
 		/* ---- map refresh */
-		if (mc) {
-			++sinceMapRequest;
-			/* the profile's sprite hiding, where it's only for some moments
-			 * (hideWhen: Lady Sia's HUD in play, not its credits or pause
-			 * screen); from the next frame drawn */
-			if (hideWhenProf && memprobes_match(hideWhenProf->hideWhen, 2, &emu) != hideWhenOn) {
-				hideWhenOn = !hideWhenOn;
-				emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
-				if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
-			}
-			{
-				/* (logoIf: the logo for now, SM4-11) */
-				const MapProfile* lp = mapcap_profile(mc);
-				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
-				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
-				if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
-				else if (logoHolding > 0) --logoHolding;
-				lf = lf || logoHolding > 0;
-				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
-				logoForced = lf;
-			}
-			bool dark = frame_is_dark(emu.fb);
-			if (wasDark && !dark) refreshAt = (long) frameCount + 6;
-			wasDark = dark;
-			if (refreshAt >= 0 && (long) frameCount >= refreshAt) {
-				forceMap = true;
-				refreshAt = -1;
-				if (debug) fprintf(stderr, "frame %llu: room transition\n", (unsigned long long) frameCount);
-			}
-			if (mapShownIdx >= 0 && frameCount % 30 == 0 && mapcap_in_menu(mc, &emu)) {
-				/* quit to the title: the map belongs to the old session */
-				mapShownIdx = -1;
-				mapInactive = false;
-				forceMap = true;
-				/* (always logged: what sends the second screen back to the logo) */
-				fprintf(stderr, "frame %llu: second screen back to the logo (the profile's menu probes matched)\n", (unsigned long long) frameCount);
-			}
-			uint32_t rk = mapcap_room_key(mc, &emu);
-			if (rk != seenRoomKey) seenRoomKey = rk, seenRoomFor = 0;
-			else ++seenRoomFor;
-			/* a change counts once it has held for 3 frames (a cursor
-			 * gliding to its place, Mario walking a path: not each step);
-			 * a capture still running for the old one is called off, so
-			 * the new one starts as soon as it has stopped */
-			bool roomChanged = rk && rk != lastRoomKey && seenRoomFor >= 2;
-			if (roomChanged && mapcap_busy(mc)) mapcap_cancel(mc);
-			/* Back off while captures keep failing (e.g. the game says "playing"
-			 * but the map can't open: intro cutscenes, briefings). Each failed
-			 * attempt emulates a few seconds in the background, which starves
-			 * the game and its audio on slower devices. */
-			const char* why = NULL;
-			int fails = mapcap_failures(mc, &why);
-			if (fails != lastFails) {
-				if (debug && fails) fprintf(stderr, "frame %llu: map capture failed (%d in a row): %s\n",
-				                            (unsigned long long) frameCount, fails, why ? why : "?");
-				const MapProfile* dp = mapcap_profile(mc);
-				if (fails && why && dp && dp->dimWhenUnavailable &&
-				    (!strcmp(why, "map screen did not appear") || !strcmp(why, "map button did nothing"))) {
-					mapInactive = true;
-				}
-				lastFails = fails;
-			}
-			/* quick "no map here" failures (A Link to the Past indoors) cost little
-			 * and are expected, so they don't back off */
-			bool cheapFail = why && !strncmp(why, "map button did nothing", 22); /* (Pokémon's menu failures say why in brackets) */
-			/* (a profile's own interval, when it's quicker: Swordcraft Story) */
-			const MapProfile* ip = mapcap_profile(mc);
-			int every = ip && ip->interval > 0 && ip->interval < cfg->mapInterval ? ip->interval : cfg->mapInterval;
-			int interval = cheapFail ? every : every << SDL_min(fails, 3);
-			/* after failures, a room change still triggers a try, but no more
-			 * often than the normal interval */
-			bool due = sinceMapRequest >= interval || pressCap ||
-			           ((forceMap || roomChanged) && (!fails || sinceMapRequest >= every));
-			if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu) && !(viewWait && tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
-				/* a new subject (a room, a loaded state) shows the game's own view again */
-				if (roomChanged || forceMap) viewAlt = false;
-				mapcap_set_alt(viewAlt && cfg->toggle);
-				if (mapcap_request(mc, &emu)) {
-					sinceMapRequest = 0;
-					lastRoomKey = rk;
-					capSubject = roomChanged || forceMap; /* (not a refresh of the same subject) */
-					forceMap = false;
-					if (pressCap) pressCap = false, tgCapWant = capDone + 1;
-				}
-			}
-			toggle_step();
-			bool fresh = mapcap_poll(mc, mapRes.serial, &mapRes);
-			if (fresh && mapcap_in_menu(mc, &emu)) {
-				/* a capture that finished after quitting to the title: drop it */
-			} else if (fresh) {
-				map_show_new(true);
-				++capDone;
-			} else if (((map_anim() && mapRes.nFrames > 1) || fadeUpload) && mapShownIdx >= 0) {
-				int idx = second_page();
-				fadeUpload = false;
-				upload_map_frame(idx);
-			}
-			/* a profile's own live picture (Mega Man Battle Network's maps on
-			 * the net), drawn every frame over whatever was captured; when it
-			 * stops, the captured picture again */
-			const MapProfile* lvp = mapcap_profile(mc);
-			const uint32_t* lv = lvp && lvp->liveView && romPath ? lvp->liveView(&emu, romPath) : NULL;
-			if (lv) {
-				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
-				if (mapShownIdx < 0) mapShownIdx = 0;
-				if (!liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) frameCount);
-				liveOn = true;
-			} else if (liveOn) {
-				liveOn = false;
-				if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
-				if (mapRes.ok && map_px(mapShownIdx)) {
-					overDirty = true;
-					upload_map_frame(mapShownIdx);
-				} else {
-					mapShownIdx = -1;
-				}
-			}
-		}
+		map_refresh_step();
 
 		if (snapProf) update_snapshot();
 		if (tallProf) {
