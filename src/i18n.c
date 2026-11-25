@@ -104,6 +104,10 @@ static int system_language(void) {
 	return -1;
 }
 
+int i18n_system_index(void) {
+	return system_language();
+}
+
 void i18n_set(const char* s) {
 	snprintf(setting, sizeof(setting), "%s", s && s[0] ? s : "auto");
 	int i = !strcmp(setting, "auto") ? system_language() : find_code(setting);
@@ -158,6 +162,13 @@ const char* tr(const char* en) {
 const char* trc(const char* ctx, const char* en) {
 	if (!en || !cur) return en;
 	const I18nEntry* e = find_ctx(ctx, en);
+	return e ? e->forms[0] : en;
+}
+
+const char* i18n_tr_in(const char* code, const char* en) {
+	int i = code ? find_code(code) : -1;
+	if (!en || i < 0 || !i18nLangs[i].count) return en;
+	const I18nEntry* e = bsearch(en, i18nLangs[i].entries, (size_t) i18nLangs[i].count, sizeof(i18nLangs[i].entries[0]), key_cmp);
 	return e ? e->forms[0] : en;
 }
 

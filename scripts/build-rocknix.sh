@@ -63,6 +63,9 @@ make -C "$DEPS/SDL2/build-aarch64" -j"$(nproc)" install
 # a game's) has no rules file: GBADS_SIDE=<branch name, slashes made dashes>
 # builds it the same way, with every game in the list (no codes), the Ports
 # entry "GBA DS <slug> testing" (GBADS_SIDE_NAME overrides).
+# GBADS_LANG_ASK=1: the build asks the language on a first install (issue #92): the main session's
+# final dev build, and issue-92's own side build. Releases (no -dev in VERSION) ask without it;
+# other test builds don't. The output directory carries it, so the binary is built again.
 SIDE="${GBADS_SIDE:-}"
 SIDE_NAME="" SIDE_CODES=""
 if [ -n "$SIDE" ]; then
@@ -89,8 +92,9 @@ if [ -n "$SIDE" ]; then
 fi
 
 # --- gba-ds ---------------------------------------------------------------
+BUILD_OUT=build/aarch64${SIDE:+-$SIDE}${GBADS_LANG_ASK:+-ask$GBADS_LANG_ASK}
 make CROSS="$CROSS" MGBA_SRC="$DEPS/mgba" MGBA_BUILD="$DEPS/mgba/build-aarch64" \
-	SDL_PREFIX="$DEPS/sdl-aarch64" OUT=build/aarch64${SIDE:+-$SIDE} OPTFLAGS="-O2 -mcpu=cortex-a55" SIDE="$SIDE" SIDE_CODES="$SIDE_CODES"
+	SDL_PREFIX="$DEPS/sdl-aarch64" OUT="$BUILD_OUT" OPTFLAGS="-O2 -mcpu=cortex-a55" SIDE="$SIDE" SIDE_CODES="$SIDE_CODES" LANG_ASK="${GBADS_LANG_ASK:-}"
 
 # --- package ---------------------------------------------------------------
 VERSION=$(cat VERSION)
@@ -100,7 +104,7 @@ ZIP="gba-ds-v$VERSION${SIDE:+-$SIDE}-linux-aarch64.zip"
 PKG="$ROOT/build/pkg/$APP"
 rm -rf "$ROOT/build/pkg"
 mkdir -p "$PKG"
-"${CROSS}strip" -o "$PKG/gba-ds" build/aarch64${SIDE:+-$SIDE}/gba-ds
+"${CROSS}strip" -o "$PKG/gba-ds" "$BUILD_OUT/gba-ds"
 cp dist/launch.sh dist/es-play.sh dist/screens.sh dist/gba-ds.cfg dist/gamecontrollerdb.txt dist/banana-play.sh "$PKG/"
 mkdir -p "$PKG/logos"
 printf "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" > "$PKG/logos/README.txt"

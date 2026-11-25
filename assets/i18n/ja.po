@@ -2077,3 +2077,24 @@ msgstr "›"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "音の遅延を %d ms に上げました：音が途切れ続けたためです"
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "GBA DS のメニューの言語を選んでください。"
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "あとで 設定 > システム で変更できます。"
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "選ぶ"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "続ける"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "システム: %s"
