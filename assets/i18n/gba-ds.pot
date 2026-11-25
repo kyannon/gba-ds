@@ -1843,7 +1843,7 @@ msgstr ""
 msgid "Only patches that are on have an order, and this is the only one"
 msgstr ""
 
-#: src/ui.c:2847
+#: src/ui.c:2910
 msgid "Only the first time for each game"
 msgstr ""
 
@@ -3099,7 +3099,7 @@ msgstr ""
 msgid "Used from the next time the game starts"
 msgstr ""
 
-#: src/ui.c:1068
+#: src/ui.c:1112
 #, c-format
 msgid "Volume %d%%"
 msgstr ""

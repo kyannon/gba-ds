@@ -1,0 +1,6 @@
+wayland 1.26.0 client headers (wayland-util.h, wayland-client-core.h, wayland-client-protocol.h,
+wayland-client.h, wayland-version.h), unchanged, as the Arch Linux ARM package wayland 1.26.0-1 installs them.
+MIT (COPYING-wayland). drm-lease-v1.xml from wayland-protocols 1.50 (staging/drm-lease), MIT
+(COPYING-wayland-protocols). drm-lease-v1-client-protocol.h and drm-lease-v1-protocol.c are generated from it
+with wayland-scanner 1.26.0 (client-header, private-code). Only headers: libwayland-client itself is opened at
+run time (src/drmlease.c), so the binary needs nothing new.

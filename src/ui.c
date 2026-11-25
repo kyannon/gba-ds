@@ -9,6 +9,7 @@ void ui_stick_dpad(bool on) {
 }
 #include "android.h"
 #include "brand.h"
+#include "drmlease.h"
 #include "font.h"
 #include "textfont.h"
 #include "fonts_data.h"
@@ -31,6 +32,13 @@ void ui_stick_dpad(bool on) {
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <time.h>
+
+/* Retained views (below): Android's, and a leased panel's on Linux */
+#if defined(__ANDROID__) || defined(GBADS_DRM_LEASE)
+#define UI_RETAINED 1
+#else
+#define UI_RETAINED 0
+#endif
 
 View views[2];
 int nViews;
@@ -286,6 +294,20 @@ static bool create_view(View* v, int display, const char* title, bool fullscreen
 	SDL_SetRenderDrawColor(v->ren, 0, 0, 0, 255);
 	SDL_RenderClear(v->ren);
 	SDL_RenderPresent(v->ren);
+	return true;
+}
+
+/* A view with no window, drawn by a software renderer into its own
+ * surface (Android's software second screen, a leased panel's picture). */
+static bool create_software_view(View* v, int w, int h, Uint32 format) {
+	v->offwin = v->retained = true;
+	v->surf = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, format);
+	v->ren = v->surf ? SDL_CreateSoftwareRenderer(v->surf) : NULL;
+	if (!v->ren) {
+		fprintf(stderr, "second screen renderer: %s\n", SDL_GetError());
+		return false;
+	}
+	SDL_SetRenderDrawBlendMode(v->ren, SDL_BLENDMODE_BLEND);
 	return true;
 }
 
@@ -550,15 +572,7 @@ bool ui_init(Config* c, bool wantDual) {
 		fprintf(stderr, "second screen: GPU, %dx%d (game screen %dx%d)\n", sw, sh, w0, h0);
 	} else if (strcmp(cfg->layout, "single") && android_second_size(&sw, &sh)) {
 		fprintf(stderr, "second screen: software\n");
-		views[1].offwin = views[1].retained = true;
-		views[1].surf = SDL_CreateRGBSurfaceWithFormat(0, sw, sh, 32, SDL_PIXELFORMAT_ABGR8888);
-		views[1].ren = views[1].surf ? SDL_CreateSoftwareRenderer(views[1].surf) : NULL;
-		if (views[1].ren) {
-			SDL_SetRenderDrawBlendMode(views[1].ren, SDL_BLENDMODE_BLEND);
-			nViews = 2;
-		} else {
-			fprintf(stderr, "second screen renderer: %s\n", SDL_GetError());
-		}
+		if (create_software_view(&views[1], sw, sh, SDL_PIXELFORMAT_ABGR8888)) nViews = 2;
 	}
 	views[0].retained = true; /* drawn only when it changes, like the second screen */
 	fprintf(stderr, "android: %s\n", nViews == 2 ? "two screens" : "one screen (no second display)");
@@ -581,6 +595,28 @@ bool ui_init(Config* c, bool wantDual) {
 		fprintf(stderr, "  display %d: %s, %dx%d at %d,%d\n", i, name ? name : "?", b.w, b.h, b.x, b.y);
 	}
 	fprintf(stderr, "touch devices: %d\n", SDL_GetNumTouchDevices());
+#ifdef GBADS_DRM_LEASE
+	/* one display, the other panel leased from the compositor (Armada's
+	 * Game Mode: launch.sh sets GBADS_DRM_LEASE): the game's window on the
+	 * display, the second screen drawn in software and put on the panel */
+	int lw, lh;
+	if (displays < 2 && strcmp(cfg->layout, "single") && drmlease_open(&lw, &lh)) {
+		if (!create_view(&views[0], 0, "GBA DS", fullscreen, 720, 480)) return false;
+		/* (ARGB8888 is the panel's XRGB8888: copied as it is) */
+		if (create_software_view(&views[1], lw, lh, SDL_PIXELFORMAT_ARGB8888)) {
+			nViews = 2;
+			/* the touchscreen lies as the panel scans out, so it turns back
+			 * as the picture does (Right Side Up, 270: touch_rotate 90) */
+			if (cfg->touchRotate < 0) cfg->touchRotate = (360 - drmlease_rotation()) % 360;
+			fprintf(stderr, "second screen: the leased panel, %dx%d (software), touch turned %d degrees\n", lw, lh, cfg->touchRotate);
+		} else {
+			drmlease_close();
+			nViews = 1;
+		}
+		ui_layout();
+		return true;
+	}
+#endif
 	if (dual && displays >= 2) {
 		nViews = 2;
 		if (!create_view(&views[0], 0, "GBA DS", true, 720, 480) ||
@@ -632,6 +668,9 @@ void ui_shutdown(void) {
 			if (pipeGrids[v][i].tex) SDL_DestroyTexture(pipeGrids[v][i].tex);
 		}
 	}
+#ifdef GBADS_DRM_LEASE
+	drmlease_close();
+#endif
 	for (int i = 0; i < nViews; ++i) {
 		if (i == 0 || views[i].ren != views[0].ren) SDL_DestroyRenderer(views[i].ren);
 		if (views[i].win) SDL_DestroyWindow(views[i].win);
@@ -877,7 +916,7 @@ static int view_of_window(Uint32 id) {
 	if (id == GBADS_SECOND_WINDOW_ID) return nViews == 2 ? 1 : -1;
 #endif
 	for (int i = 0; i < nViews; ++i) {
-		if (SDL_GetWindowID(views[i].win) == id) return i;
+		if (views[i].win && SDL_GetWindowID(views[i].win) == id) return i;
 	}
 	return -1;
 }
@@ -961,6 +1000,7 @@ void ui_on_foreground(void (*fn)(void)) {
 #include <fcntl.h>
 #include <linux/input.h>
 #include <sys/ioctl.h>
+#include <sys/syscall.h>
 /* touch_device: the touchscreen read straight from its input device. One
  * finger: its position and whether it's down, sent on as SDL's would be. */
 static int evTouchFd = -2; /* -2: not opened yet; -1: none */
@@ -973,7 +1013,11 @@ static void evdev_touch_poll(void) {
 	if (evTouchFd == -2) {
 		evTouchFd = -1;
 		if (!cfg->touchDevice[0]) return;
-		evTouchFd = open(cfg->touchDevice, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
+		/* the system call itself, not libc's open: on the AYN Thor, started
+		 * from Steam (Armada's Game Mode), open answered ENODEV for the
+		 * touchscreens in MHGU Recomp's DRM lease build while the system call
+		 * worked (Steam's preloaded overlay library is the likely cause) */
+		evTouchFd = (int) syscall(SYS_openat, AT_FDCWD, cfg->touchDevice, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 		if (evTouchFd < 0) {
 			fprintf(stderr, "touch device %s: can't open it\n", cfg->touchDevice);
 			return;
@@ -1542,7 +1586,7 @@ typedef struct {
 	char mode[16];
 	char text[256];
 } DrawOp;
-#ifdef __ANDROID__
+#if UI_RETAINED
 typedef struct {
 	DrawOp* ops;
 	int nOps, capOps;
@@ -1554,15 +1598,16 @@ typedef struct {
 } Retained;
 static Retained ret[2];
 static bool replaying;
-
+#endif
+#ifdef __ANDROID__
 static void retained_invalidate(void) {
 	for (int i = 0; i < 2; ++i) ret[i].lastSig = 0;
 }
 #endif
 
 static DrawOp* rec(int screen, int kind) {
-#ifndef __ANDROID__
-	return NULL; /* only Android has retained views */
+#if !UI_RETAINED
+	return NULL; /* only Android and a leased panel have retained views */
 #else
 	if (replaying || screen < 0 || screen >= nScreens || !views[screens[screen].view].retained) return NULL;
 	Retained* rv = &ret[screens[screen].view];
@@ -1584,7 +1629,7 @@ static void rec_tex(DrawOp* o, SDL_Texture* const* tex) {
 	o->texVer = tex_version(o->texv);
 }
 
-#ifdef __ANDROID__
+#if UI_RETAINED
 static uint64_t ops_sig(const Retained* rv) {
 	uint64_t h = 1469598103934665603ull;
 	const unsigned char* p = (const unsigned char*) rv->ops;
@@ -1614,8 +1659,9 @@ static bool sw_render(int v) {
 	}
 	Uint64 t0 = SDL_GetPerformanceCounter();
 	SDL_Renderer* ren = views[v].ren;
-	bool second = views[v].offwin && !views[v].surf; /* the GPU second screen */
 	int vpY = 0; /* the second screen's viewport's top, in the game window's coordinates */
+#ifdef __ANDROID__
+	bool second = views[v].offwin && !views[v].surf; /* the GPU second screen */
 	if (second) {
 		if (!android_second_begin()) {
 			rv->state = 2; /* no window yet: try again next frame (lastSig unchanged) */
@@ -1632,6 +1678,7 @@ static bool sw_render(int v) {
 	} else if (!views[v].surf) {
 		android_second_restore(); /* SDL's own window surface current again */
 	}
+#endif
 	SDL_RenderSetClipRect(ren, NULL);
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
 	SDL_RenderClear(ren);
@@ -1658,13 +1705,14 @@ static bool sw_render(int v) {
 		rr.y += vpY;
 		swReadOk = SDL_RenderReadPixels(ren, &rr, SDL_PIXELFORMAT_ABGR8888, swReadDst, swReadPitch) == 0;
 	}
+#ifdef __ANDROID__
 	if (second) {
 		SDL_RenderFlush(ren);
 		android_second_end(); /* stays the current surface until the other view draws */
 		SDL_RenderSetViewport(ren, NULL); /* (queued: applies on the next draw, the game screen's) */
-	} else {
+	} else
+#endif
 		SDL_RenderPresent(ren);
-	}
 	rv->lastSig = sig;
 	rv->sinceDraw = 0;
 	rv->state = 1;
@@ -1698,7 +1746,7 @@ void ui_clear(void) {
 		SDL_SetRenderDrawColor(views[i].ren, 0, 0, 0, 255);
 		SDL_RenderClear(views[i].ren);
 	}
-#ifdef __ANDROID__
+#if UI_RETAINED
 	for (int i = 0; i < 2; ++i) ret[i].nOps = 0, ret[i].state = 0;
 #endif
 }
@@ -1892,12 +1940,27 @@ void ui_present(void) {
 		frames = 0;
 	}
 #else
+	lastRedraws = 0;
 	for (int i = 0; i < nViews; ++i) {
 		Uint64 vt0 = SDL_GetPerformanceCounter();
-		SDL_RenderPresent(views[i].ren);
+		if (!views[i].retained) {
+			SDL_RenderPresent(views[i].ren);
+			lastRedraws |= 1 << i;
+		}
+#if UI_RETAINED
+		else {
+			/* a leased panel's picture: drawn only when it changed, and
+			 * put on the panel when the panel can take it */
+			bool drawn = sw_render(i);
+			if (drawn) lastRedraws |= 1 << i;
+			drmlease_present(views[i].surf, drawn);
+		}
+#endif
 		lastPresentMs[i] = (double) (SDL_GetPerformanceCounter() - vt0) * 1000.0 / (double) SDL_GetPerformanceFrequency();
 	}
-	lastRedraws = (1 << nViews) - 1;
+#if UI_RETAINED
+	for (int i = 0; i < 2; ++i) ret[i].nOps = 0, ret[i].state = 0;
+#endif
 #endif
 }
 
@@ -2988,7 +3051,7 @@ bool ui_screenshot_stacked(const char* pngPath) {
 		SDL_Rect r = screens[i].rect;
 		/* ABGR8888 is R, G, B, A in memory: what the PNG writer wants */
 		unsigned char* dst = img + (size_t) y * W * 4 + (size_t) (W - r.w) / 2 * 4;
-#ifdef __ANDROID__
+#if UI_RETAINED
 		if (views[screens[i].view].retained) {
 			/* drawn now (otherwise at ui_present), read back while it's drawn */
 			swReadDst = dst, swReadRect = r, swReadPitch = W * 4, swReadOk = false;

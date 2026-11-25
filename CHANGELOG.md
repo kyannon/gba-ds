@@ -2,6 +2,9 @@
 
 ## v1.6.3 (not yet released)
 
+### AYN Thor on Armada
+- **The second screen goes on the Thor's bottom panel in Armada's Game Mode, with its touchscreen** (issue #86, pull request #96 by cerroverb). Game Mode shows only the top panel and lends the bottom one to a program that asks for it; until now GBA DS put both screens on the top panel there. Now it asks for the bottom panel, draws the second screen on it, turned the way the panel is mounted, and reads its touchscreen directly, so the quick bar and the menus work there. Started from a Steam shortcut, `launch.sh` finds the panel and the touchscreen from Armada's own device profile. In the desktop, and on any other system, nothing changes. Experimental: tried on a Thor in Game Mode. New wiki page, [Install on Armada OS](https://github.com/kyannon/gba-ds/wiki/Install-on-Armada-OS). The request for the panel is a port of the DRM lease code in the Azahar-Enhanced fork (virtudude/azahar), see Licenses.
+
 ### Menus
 - **GBA DS asks which language to use the first time it starts after it's installed** (issue #92). Every language is listed by its own name, and the top screen says "Language" in all of them, so you can find yours even when the system reports a language you don't read (the RG DS Plus's stock Linux OS reports Chinese, which put every menu in Chinese). Pick one with A and both screens change to it straight away; press A again, START or Continue to keep it, or B to go back to the one it started in. Started straight into a game from your frontend, the game starts as usual and the question comes up the first time you open the pause menu. Updating GBA DS doesn't ask; you can still change the language in Settings > System > Language.
 
