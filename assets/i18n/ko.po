@@ -2047,3 +2047,42 @@ msgstr "›"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "소리 지연을 %d ms로 올렸습니다: 소리가 계속 끊겼습니다"
+
+msgid "Android couldn't install the update."
+msgstr "Android가 업데이트를 설치하지 못했습니다."
+
+msgid "Android couldn't install the update: %s."
+msgstr "Android가 업데이트를 설치하지 못했습니다: %s."
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Android는 이 GBA DS 위에 v%s를 설치하지 않습니다: 다른 키로 서명되었습니다(테스트 빌드?). GBA DS를 제거한 다음 github.com/kyannon/gba-ds/releases에서 새 버전을 설치하세요. GBA DS 폴더의 파일은 유지됩니다."
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Android는 이 GBA DS 위에 v%s를 설치하지 않습니다: 이 사본은 그 이후의 테스트 빌드이고, Android는 이전 빌드로 되돌리지 않습니다. 이대로 쓰거나, GBA DS를 제거하고 github.com/kyannon/gba-ds/releases에서 v%s를 설치하세요(GBA DS 폴더의 파일은 유지됩니다)."
+
+msgid "Couldn't check for updates."
+msgstr "업데이트를 확인하지 못했습니다."
+
+msgid "Couldn't check for updates: %s."
+msgstr "업데이트를 확인하지 못했습니다: %s."
+
+msgid "Couldn't download the update: %s."
+msgstr "업데이트를 다운로드하지 못했습니다: %s."
+
+msgid "Couldn't install the update: %s."
+msgstr "업데이트를 설치하지 못했습니다: %s."
+
+msgid "Couldn't start installing the update: %s."
+msgstr "업데이트 설치를 시작하지 못했습니다: %s."
+
+msgid "Couldn't start the download."
+msgstr "다운로드를 시작하지 못했습니다."
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "다운로드가 체크섬과 일치하지 않습니다. 다시 시도하세요."
+
+msgid "The download was incomplete. Try again."
+msgstr "다운로드가 완료되지 않았습니다. 다시 시도하세요."
+
+msgid "There isn't enough storage free to install the update."
+msgstr "업데이트를 설치할 저장 공간이 부족합니다."

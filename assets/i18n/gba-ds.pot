@@ -298,6 +298,25 @@ msgstr ""
 msgid "An xdelta made with compression, which GBA DS can't read: patch the ROM with it beforehand, or make it again without (xdelta3 -S none)"
 msgstr ""
 
+#: src/update.c:607
+msgid "Android couldn't install the update."
+msgstr ""
+
+#: src/update.c:606
+#, c-format
+msgid "Android couldn't install the update: %s."
+msgstr ""
+
+#: src/update.c:594
+#, c-format
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr ""
+
+#: src/update.c:599
+#, c-format
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr ""
+
 #: src/android.c:438
 msgid "Android's installer couldn't be reached"
 msgstr ""
@@ -646,12 +665,31 @@ msgstr ""
 msgid "Couldn't change the files in %s/custom_systems: allow GBA DS All files access in Android's settings."
 msgstr ""
 
+#: src/update.c:365
+msgid "Couldn't check for updates."
+msgstr ""
+
+#: src/update.c:284 src/update.c:323
+#, c-format
+msgid "Couldn't check for updates: %s."
+msgstr ""
+
 #: src/ra.c:1069
 msgid "Couldn't connect"
 msgstr ""
 
+#: src/update.c:530
+#, c-format
+msgid "Couldn't download the update: %s."
+msgstr ""
+
 #: src/esinteg.c:331
 msgid "Couldn't find GBA DS's folder."
+msgstr ""
+
+#: src/update.c:564
+#, c-format
+msgid "Couldn't install the update: %s."
 msgstr ""
 
 #: src/library.c:2187 src/library.c:2198
@@ -694,6 +732,15 @@ msgstr ""
 #: src/library.c:2086
 #, c-format
 msgid "Couldn't sign in as %s%s%s. Sign in to try again."
+msgstr ""
+
+#: src/update.c:556
+#, c-format
+msgid "Couldn't start installing the update: %s."
+msgstr ""
+
+#: src/update.c:680
+msgid "Couldn't start the download."
 msgstr ""
 
 #: src/esinteg.c:377
@@ -2842,6 +2889,14 @@ msgstr ""
 msgid "the button that opens GBA DS's menu (Home, Menu or Function)"
 msgstr ""
 
+#: src/update.c:543
+msgid "The download didn't match its checksum. Try again."
+msgstr ""
+
+#: src/update.c:536
+msgid "The download was incomplete. Try again."
+msgstr ""
+
 #: src/game.c:8534
 msgid "the game"
 msgstr ""
@@ -2921,6 +2976,10 @@ msgstr ""
 
 #: src/mapper.c:35
 msgid "the top face button"
+msgstr ""
+
+#: src/update.c:604
+msgid "There isn't enough storage free to install the update."
 msgstr ""
 
 #: src/folderpick.c:73

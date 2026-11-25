@@ -2047,3 +2047,42 @@ msgstr "机器翻译"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "声音延迟已提高到 %d 毫秒：声音一直断断续续"
+
+msgid "Android couldn't install the update."
+msgstr "Android 无法安装更新。"
+
+msgid "Android couldn't install the update: %s."
+msgstr "Android 无法安装更新：%s。"
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Android 不会在这份 GBA DS 上安装 v%s：它是用另一个密钥签名的（测试版？）。请卸载 GBA DS，然后从 github.com/kyannon/gba-ds/releases 安装新版本。GBA DS 文件夹中的文件会保留。"
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Android 不会在这份 GBA DS 上安装 v%s：这份是之后的测试版，而 Android 不会退回到更早的版本。请继续使用这份，或卸载 GBA DS 并从 github.com/kyannon/gba-ds/releases 安装 v%s（GBA DS 文件夹中的文件会保留）。"
+
+msgid "Couldn't check for updates."
+msgstr "无法检查更新。"
+
+msgid "Couldn't check for updates: %s."
+msgstr "无法检查更新：%s。"
+
+msgid "Couldn't download the update: %s."
+msgstr "无法下载更新：%s。"
+
+msgid "Couldn't install the update: %s."
+msgstr "无法安装更新：%s。"
+
+msgid "Couldn't start installing the update: %s."
+msgstr "无法开始安装更新：%s。"
+
+msgid "Couldn't start the download."
+msgstr "无法开始下载。"
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "下载的文件与校验和不符。请重试。"
+
+msgid "The download was incomplete. Try again."
+msgstr "下载不完整。请重试。"
+
+msgid "There isn't enough storage free to install the update."
+msgstr "可用存储空间不足，无法安装更新。"

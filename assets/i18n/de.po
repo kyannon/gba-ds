@@ -2050,3 +2050,42 @@ msgstr "maschinell übersetzt"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "Tonverzögerung auf %d ms erhöht: der Ton setzte immer wieder aus"
+
+msgid "Android couldn't install the update."
+msgstr "Android konnte das Update nicht installieren."
+
+msgid "Android couldn't install the update: %s."
+msgstr "Android konnte das Update nicht installieren: %s."
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Android installiert v%s nicht über diese Kopie von GBA DS: Sie wurde mit einem anderen Schlüssel signiert (ein Test-Build?). Deinstalliere GBA DS und installiere dann die neue Version von github.com/kyannon/gba-ds/releases. Deine Dateien im GBA-DS-Ordner bleiben erhalten."
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Android installiert v%s nicht über diese Kopie von GBA DS: Diese Kopie ist ein späterer Test-Build, und Android geht nicht auf einen früheren Build zurück. Behalte diese oder deinstalliere GBA DS und installiere v%s von github.com/kyannon/gba-ds/releases (deine Dateien im GBA-DS-Ordner bleiben erhalten)."
+
+msgid "Couldn't check for updates."
+msgstr "Suche nach Updates fehlgeschlagen."
+
+msgid "Couldn't check for updates: %s."
+msgstr "Suche nach Updates fehlgeschlagen: %s."
+
+msgid "Couldn't download the update: %s."
+msgstr "Das Update konnte nicht heruntergeladen werden: %s."
+
+msgid "Couldn't install the update: %s."
+msgstr "Das Update konnte nicht installiert werden: %s."
+
+msgid "Couldn't start installing the update: %s."
+msgstr "Die Installation des Updates konnte nicht gestartet werden: %s."
+
+msgid "Couldn't start the download."
+msgstr "Der Download konnte nicht gestartet werden."
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "Der Download stimmt nicht mit seiner Prüfsumme überein. Versuche es erneut."
+
+msgid "The download was incomplete. Try again."
+msgstr "Der Download war unvollständig. Versuche es erneut."
+
+msgid "There isn't enough storage free to install the update."
+msgstr "Es ist nicht genug Speicher frei, um das Update zu installieren."
