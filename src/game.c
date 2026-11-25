@@ -5832,21 +5832,13 @@ static void take_screenshot(void) {
  * or for a compilation the game running in it: subCode): the map capture,
  * the HUD split, the fights' picture. */
 static void ss_setup(const char* rom, const char* code) {
-	sec.mapW = GBA_W;
-	sec.mapH = GBA_H;
-	memset(&sec.mapRes, 0, sizeof(sec.mapRes));
-	sec.mapShownIdx = -1;
-	sec.stillValid = false;
-	sec.mapInactive = false;
+	second_reset(); /* (the module's: second.c) */
 	singleShowsMap = false;
 	logoOnly = false;
 	ww_setup(NULL, rom);
-	sec.snapProf = NULL;
 	tallProf = NULL;
 	tallOn = false;
 	tallLive = false;
-	hud.hudProf = NULL;
-	hud.hudOn = false;
 	{
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
@@ -5871,58 +5863,12 @@ static void ss_setup(const char* rom, const char* code) {
 		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
 		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
 		else twin_close();
-		/* the HUD moves only when there's another screen to put it on */
-		hud.hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
-		emu_hud_game_reg(hud.hudProf ? hud.hudProf->hud.gameReg.addr : 0, hud.hudProf ? hud.hudProf->hud.gameReg.bits : 0);
-		emu_hud_rows(hud.hudProf ? hud.hudProf->hud.rows : 0);
-		emu_hud_band(hud.hudProf && hud.hudProf->hud.band, true, hud.hudProf && hud.hudProf->hud.band == BAND_WATCH);
-		hud.combatProf = sec.mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
-		hud.combatOn = hud.combatMade = false;
 		sec.overOn = false;
-		for (int m = 0; m < 4; ++m) hud.pieces[m].valid = false, hud.pieces[m].still = 0;
-		if (hud.hudProf) {
-			/* the sprites that move; tagged ones only if the tags go in */
-			memcpy(hud.hudObjs, hud.hudProf->hud.objs, sizeof(hud.hudObjs));
-			bool patched = profile_patch_rom(hud.hudProf, &emu);
-			if (patched) fprintf(stderr, "HUD split: ROM patched\n");
-			for (int i = 0; !patched && i < 12; ++i) hud.hudObjs[i].tagged = 0;
-			memcpy(hud.hudWorldObjs, hud.hudProf->hud.world.objs, sizeof(hud.hudWorldObjs));
-			for (int i = 0; !patched && i < 4; ++i) hud.hudWorldObjs[i].tagged = 0;
-		}
-		hud.hudOn = false;
-		hud.hudShown = false;
-		hud.mirrorHave = hud.mirrorOn = false;
-		hud.hudScene = false;
-		hud.hudCard = false, hud.cardScore = -1, hud.sideScore = -1;
-		hud.hudFadeEff = hud.hudFadeIn = 0;
-		memset(hud.hudPalRef, 0, sizeof(hud.hudPalRef));
-		hud.hudWorld = false;
-		hud.hudAlt = false;
-		hud.hudOffLatch = false;
-		hud.hudLogoDone = false;
-		hud.hudLogoBelowDone = false;
-		hud.mapTitleN = 0;
-		hud.hudBackValid = false;
-		hud.hudRegrab = 0;
+		hud_setup(lp, nScreens); /* (hud.c) */
 		sec.snapShow = sec.snapRevert = 0;
 		if (sec.mc) mapcap_set_still(sec.mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
-		sec.hideWhenProf = NULL;
-		if (sec.mc) {
-			fprintf(stderr, "map profile: %s\n", mapcap_title(sec.mc));
-			mapcap_size(sec.mc, &sec.mapW, &sec.mapH);
-			/* the full map is always up, so hide the game's own corner mini-map */
-			const MapProfile* prof = profile_find(code);
-			int nRules = 0;
-			while (prof && nRules < (int) (sizeof(prof->hideSprites) / sizeof(prof->hideSprites[0])) && prof->hideSprites[nRules].x1) ++nRules;
-			/* (with hideWhen: off until the frame loop finds it matching) */
-			sec.hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
-			sec.hideWhenN = nRules, sec.hideWhenOn = false;
-			emu_hide_sprites(&emu, prof && !sec.hideWhenProf ? prof->hideSprites : NULL, sec.hideWhenProf ? 0 : nRules);
-			emu_hide_grouped(&emu, prof && prof->hideGrouped);
-		} else if (!logoOnly) {
-			fprintf(stderr, "no map profile for %s\n", code);
-		}
+		second_map_setup(code, logoOnly); /* (second.c) */
 	}
 }
 

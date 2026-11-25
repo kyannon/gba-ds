@@ -124,6 +124,11 @@ void update_snapshot(void);
  * back from a loaded state's block (b may be NULL: none; the title card and
  * the level name kept from before go either way) */
 void* second_state_save(size_t* n);
+/* A game's set-up (game.c ss_setup calls these, in this order, with its own
+ * set-up between): second_reset first; once the capture exists (sec.mc),
+ * hud_setup (hud.h), then second_map_setup */
+void second_reset(void);
+void second_map_setup(const char* code, bool logoOnly);
 void second_state_load(const uint8_t* b, size_t n);
 /* the frame is mostly dark / one colour nearly all over (a fade, a blank screen) */
 bool frame_is_dark(const uint32_t* fb);

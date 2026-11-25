@@ -125,5 +125,7 @@ void hud_new_map(bool fresh);
 void make_combat_canvas(void);
 /* hud.card: the best take as the backdrop */
 void card_backdrop(void);
+/* the HUD split's and the fights' picture's set-up for a game (second.h) */
+void hud_setup(const MapProfile* lp, int screens);
 
 #endif

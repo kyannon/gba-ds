@@ -609,3 +609,41 @@ void update_snapshot(void) {
 		if (sec.debug) fprintf(stderr, "frame %llu: back at the menus, logo\n", (unsigned long long) sec.frame);
 	}
 }
+
+/* The second screen as it is before a game's set-up: no picture, no map,
+ * no screen copy, no HUD. (Was at the top of game.c's ss_setup.) */
+void second_reset(void) {
+	sec.mapW = GBA_W;
+	sec.mapH = GBA_H;
+	memset(&sec.mapRes, 0, sizeof(sec.mapRes));
+	sec.mapShownIdx = -1;
+	sec.stillValid = false;
+	sec.mapInactive = false;
+	sec.snapProf = NULL;
+	hud.hudProf = NULL;
+	hud.hudOn = false;
+}
+
+/* The map's set-up for a game once its capture exists (code: the profile in
+ * use; logoOnly: a game that shows only its logo, or a screen copy): which of
+ * the game's sprites to hide (its corner mini-map: the full map is always up),
+ * switched by hideWhen or not, and the picture's size. (Was inline in game.c's
+ * ss_setup.) */
+void second_map_setup(const char* code, bool logoOnly) {
+	sec.hideWhenProf = NULL;
+	if (sec.mc) {
+		fprintf(stderr, "map profile: %s\n", mapcap_title(sec.mc));
+		mapcap_size(sec.mc, &sec.mapW, &sec.mapH);
+		/* the full map is always up, so hide the game's own corner mini-map */
+		const MapProfile* prof = profile_find(code);
+		int nRules = 0;
+		while (prof && nRules < (int) (sizeof(prof->hideSprites) / sizeof(prof->hideSprites[0])) && prof->hideSprites[nRules].x1) ++nRules;
+		/* (with hideWhen: off until the frame loop finds it matching) */
+		sec.hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
+		sec.hideWhenN = nRules, sec.hideWhenOn = false;
+		emu_hide_sprites(&(*sec.emu), prof && !sec.hideWhenProf ? prof->hideSprites : NULL, sec.hideWhenProf ? 0 : nRules);
+		emu_hide_grouped(&(*sec.emu), prof && prof->hideGrouped);
+	} else if (!logoOnly) {
+		fprintf(stderr, "no map profile for %s\n", code);
+	}
+}

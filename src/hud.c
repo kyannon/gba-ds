@@ -1210,3 +1210,42 @@ void make_combat_canvas(void) {
 	free(hud.combatPx);
 	hud.combatPx = px; /* (hud.logoUnder) */
 }
+
+/* The HUD split's and the fights' picture's set-up for a game (lp: its
+ * profile, or NULL), from ss_setup once the capture exists: the HUD moves
+ * only when there's another screen to put it on (screens > 1). (Was inline
+ * in game.c's ss_setup.) */
+void hud_setup(const MapProfile* lp, int screens) {
+	/* the HUD moves only when there's another screen to put it on */
+	hud.hudProf = lp && lp->hud.on[0].addr && screens > 1 ? lp : NULL;
+	emu_hud_game_reg(hud.hudProf ? hud.hudProf->hud.gameReg.addr : 0, hud.hudProf ? hud.hudProf->hud.gameReg.bits : 0);
+	emu_hud_rows(hud.hudProf ? hud.hudProf->hud.rows : 0);
+	emu_hud_band(hud.hudProf && hud.hudProf->hud.band, true, hud.hudProf && hud.hudProf->hud.band == BAND_WATCH);
+	hud.combatProf = sec.mc && lp && lp->combat[0].addr && screens > 1 ? lp : NULL;
+	hud.combatOn = hud.combatMade = false;
+	for (int m = 0; m < 4; ++m) hud.pieces[m].valid = false, hud.pieces[m].still = 0;
+	if (hud.hudProf) {
+		/* the sprites that move; tagged ones only if the tags go in */
+		memcpy(hud.hudObjs, hud.hudProf->hud.objs, sizeof(hud.hudObjs));
+		bool patched = profile_patch_rom(hud.hudProf, &(*sec.emu));
+		if (patched) fprintf(stderr, "HUD split: ROM patched\n");
+		for (int i = 0; !patched && i < 12; ++i) hud.hudObjs[i].tagged = 0;
+		memcpy(hud.hudWorldObjs, hud.hudProf->hud.world.objs, sizeof(hud.hudWorldObjs));
+		for (int i = 0; !patched && i < 4; ++i) hud.hudWorldObjs[i].tagged = 0;
+	}
+	hud.hudOn = false;
+	hud.hudShown = false;
+	hud.mirrorHave = hud.mirrorOn = false;
+	hud.hudScene = false;
+	hud.hudCard = false, hud.cardScore = -1, hud.sideScore = -1;
+	hud.hudFadeEff = hud.hudFadeIn = 0;
+	memset(hud.hudPalRef, 0, sizeof(hud.hudPalRef));
+	hud.hudWorld = false;
+	hud.hudAlt = false;
+	hud.hudOffLatch = false;
+	hud.hudLogoDone = false;
+	hud.hudLogoBelowDone = false;
+	hud.mapTitleN = 0;
+	hud.hudBackValid = false;
+	hud.hudRegrab = 0;
+}
