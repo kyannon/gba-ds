@@ -57,6 +57,12 @@ typedef struct Emu {
 	/* The core's platform (mPlatform: mPLATFORM_GBA, mPLATFORM_GB). A Game Boy / Game Boy Color game
 	 * (issue #77) draws its 160x144 picture centred in the same GBA_W x GBA_H frame, at (picX, picY),
 	 * so the rest of the app sees a GBA-sized picture; for a GBA game it is the whole frame. */
+	bool gbBorder;    /* running as a Super Game Boy with its border (GB-12): the core draws the 256x224 picture into sgbFb */
+	uint8_t* gbBorderDefault; /* mGBA's own frame's memory as the core starts it: the border is black while the game has not sent its own */
+	bool gbBorderOwn;         /* the game has sent its own border */
+	uint32_t* sgbFb;  /* SGB_W x SGB_H, the border with the game's window in it (fb has the window alone, as ever) */
+	bool gbSgbHeader; /* the cartridge supports the Super Game Boy (0x146 = 3, not Game Boy Color alone) */
+	bool gbSgb; /* a Game Boy game running as a Super Game Boy (GB-11): it supports one and its colours are the SGB's */
 	int gbKind; /* a Game Boy game: 0 made for the plain Game Boy, 1 for either (dual-mode), 2 for the Game Boy Color alone */
 	int platform;
 	int picX, picY, picW, picH;
@@ -91,6 +97,16 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n);
 /* Is the game a Game Boy / Game Boy Color one (issue #77)? */
 bool emu_is_gb(const Emu* e);
 int emu_gb_kind(const Emu* e); /* Emu.gbKind */
+bool emu_gb_sgb(const Emu* e);  /* Emu.gbSgb */
+bool emu_gb_sgb_header(const Emu* e); /* Emu.gbSgbHeader */
+/* the Super Game Boy's picture (GB-12): 256x224, the game's 160x144 window at (48, 40) */
+#define SGB_W 256
+#define SGB_H 224
+#define SGB_WIN_X 48
+#define SGB_WIN_Y 40
+void emu_gb_border_wanted(bool on); /* before emu_open: Display > Game Boy border = Super Game Boy */
+bool emu_gb_border(const Emu* e);   /* the game runs with its border (Emu.gbBorder) */
+const uint32_t* emu_gb_border_px(const Emu* e); /* SGB_W x SGB_H, or NULL */
 bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
 void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
