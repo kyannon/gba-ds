@@ -1915,6 +1915,162 @@
      70
     ]
    ]
+  },
+  {
+   "id": "aw-lang-first-run",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "a first install on a system that reports Chinese (issue #92): before the game list, the language screen in Chinese, Automatic picked; English picked, both screens redraw in English; A again keeps it and the game list opens in English",
+   "rules": [
+    "GEN-18"
+   ],
+   "env": {
+    "GBADS_LANG_ASK": "1",
+    "LANG": "zh_CN.UTF-8",
+    "LC_ALL": "",
+    "LC_MESSAGES": "",
+    "LANGUAGE": ""
+   },
+   "input": [
+    [
+     40,
+     "DOWN"
+    ],
+    [
+     44,
+     "-"
+    ],
+    [
+     50,
+     "A"
+    ],
+    [
+     54,
+     "-"
+    ],
+    [
+     80,
+     "A"
+    ],
+    [
+     84,
+     "-"
+    ]
+   ],
+   "shots": {
+    "lang-ask": 30,
+    "lang-ask-english": 70,
+    "lang-kept": 110
+   },
+   "checks": [
+    {
+     "type": "log",
+     "rule": "GEN-18",
+     "what": "asked on a first install",
+     "match": "^language: asking \\(first run\\), now auto \\(zh_CN\\)"
+    },
+    {
+     "type": "log",
+     "rule": "GEN-18",
+     "what": "English kept",
+     "match": "^language: kept en \\(en\\)"
+    }
+   ],
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ]
+   ]
+  },
+  {
+   "id": "aw-lang-first-pause",
+   "rom": "AWRE",
+   "desc": "a first install launched straight into a game (issue #92): the game starts at once; the first pause asks the language before the menu, and A on the language picked (Automatic, Chinese) keeps it and opens the pause menu",
+   "rules": [
+    "GEN-18"
+   ],
+   "env": {
+    "GBADS_LANG_ASK": "1",
+    "LANG": "zh_CN.UTF-8",
+    "LC_ALL": "",
+    "LC_MESSAGES": "",
+    "LANGUAGE": ""
+   },
+   "input": [
+    [
+     200,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     220,
+     "TAP:0.5,0.864"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     264,
+     "-"
+    ]
+   ],
+   "shots": {
+    "lang-game": 190,
+    "lang-pause-ask": 250,
+    "lang-pause-menu": 290
+   },
+   "checks": [
+    {
+     "type": "log",
+     "rule": "GEN-18",
+     "what": "asked at the first pause",
+     "match": "^language: asking \\(first run\\)"
+    },
+    {
+     "type": "log",
+     "rule": "GEN-18",
+     "what": "Automatic kept",
+     "match": "^language: kept auto \\(zh_CN\\)"
+    }
+   ],
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ]
+   ]
+  },
+  {
+   "id": "aw-lang-not-asked",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "a test build (no GBADS_LANG_ASK) on a fresh install: no language question, the game list straight away (issue #92: only releases and the final dev build ask)",
+   "rules": [
+    "GEN-18"
+   ],
+   "env": {
+    "LANG": "zh_CN.UTF-8",
+    "LC_ALL": "",
+    "LC_MESSAGES": "",
+    "LANGUAGE": ""
+   },
+   "shots": {
+    "end": 40
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "rule": "GEN-18",
+     "what": "not asked",
+     "match": "^language: asking"
+    }
+   ],
+   "golden": []
   }
  ]
 }

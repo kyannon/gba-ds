@@ -3441,6 +3441,14 @@ void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* te
 	font_text_raw(screen, font, x, cy, capPx, tr(text), c, align);
 }
 
+/* the same for text not to be translated (a language's own name, a line kept in English) */
+void ui_font_text_as_is(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
+	font_text_raw(screen, font, x, cy, capPx, text, c, align);
+}
+int ui_font_width_as_is(int font, int capPx, const char* text) {
+	return text_width(font, capPx, text);
+}
+
 /* The language changed (i18n_set): the pictures and widths of the old text are
  * dropped, and the fonts the new language's script needs are the fallbacks. */
 void ui_language_changed(void) {

@@ -31,6 +31,12 @@ ifneq ($(SIDE_CODES),)
 SIDE_DEF   += -DGBADS_SIDE_CODES='"$(SIDE_CODES)"'
 endif
 endif
+# LANG_ASK=1: this build asks the language on a first install (issue #92; library.c
+# library_language_ask_built). Without it, only a release version (no -dev) asks; 0 never.
+LANG_ASK   ?=
+ifneq ($(LANG_ASK),)
+SIDE_DEF   += -DGBADS_LANG_ASK=$(LANG_ASK)
+endif
 OPTFLAGS   ?= -O2 -g
 # RZIP version 2 save states (zstd): libretro-common's rzstd decoder (MIT), vendored in third_party/rzstd
 RZSTD_DIR  := third_party/rzstd

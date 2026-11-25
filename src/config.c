@@ -86,6 +86,7 @@ void config_defaults(Config* c) {
 	strcpy(c->gbBorder, "none");
 	strcpy(c->borderColor, "000000");
 	strcpy(c->language, "auto");
+	c->languageAsked = true;
 }
 
 static bool parse_bool(const char* v) {
@@ -168,6 +169,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	}
 	STR("border_color", borderColor)
 	STR("language", language)
+	BOOL("language_asked", languageAsked)
 	INT("lcd_strength", lcdStrength)
 	BOOL("vsync", vsync)
 	BOOL("pin_cores", pinCores)
