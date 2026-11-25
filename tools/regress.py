@@ -733,6 +733,9 @@ def main():
                 need.add("bios/" + c["bios"])
             for f in c.get("cheat_files", {}).values():  # (GEN-17's cheat files)
                 need.add("cheats/" + f)
+            for f in c.get("state_files", {}).values():  # (an earlier play's auto state: GB-6's resume note)
+                if not f.startswith("text:"):
+                    need.add("states/" + f)
         print("\n".join(sorted(need)))
         return
     if args.list:
