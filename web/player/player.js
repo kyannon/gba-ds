@@ -79,7 +79,8 @@ const RESOLUTIONS = (() => {
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
 const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "stack",
   gap: 0, smooth: true, scale: 2 / 3, volume: 80, muted: false, pauseHidden: true,
-  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark", accent: "purple" };
+  touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark", accent: "purple",
+  win2Screen: 1 };
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const S = Object.assign({}, DEFAULTS, readJSON(SET_KEY) || {});
@@ -397,6 +398,11 @@ const P = {
   win: null,         // the app's window: { w, h, screens: [{ x, y, w, h, inch }] }
   rects: null,       // the screens on the page (CSS px): [{ x, y, w, h }]
 };
+// the second window (issue #93; "the second window" below)
+const W2 = { win: null, canvas: null, rect: null, poll: 0 };
+// the keyboard's listeners, kept so the second window gets the same ones
+const KEY_LISTENERS = { keydown: [], keyup: [] };
+const onKey = (ev, l) => { KEY_LISTENERS[ev].push(l); window.addEventListener(ev, l, true); };
 
 // what a build's web version can do, from what it exports
 function buildCaps(module) {
@@ -591,31 +597,210 @@ function safeArea() {
   }
   return { top: 0, left: 0, right: 0, bottom: parseFloat(getComputedStyle(safeProbe).paddingBottom) || 0 };
 }
+// one screen, as large as fits (the other is in the second window)
+function placeOne(s, W, H, pad) {
+  const k = Math.min((W - pad * 2) / s.w, (H - pad * 2) / s.h);
+  return { x: (W - s.w * k) / 2, y: (H - s.h * k) / 2, w: s.w * k, h: s.h * k };
+}
 function relayout() {
   const stage = $("stage"), W = stage.clientWidth, H = stage.clientHeight;
   if (!W || !H) return;
   const win = P.win || appWindow();
   const box = GBATouch.place(W, H, { show: touchShown(), placement: touchPlacement(), size: S.touchSize / 100, vibrate: !!S.touchVibrate, safe: safeArea() });
-  const rects = placeScreens(win, box.w, box.h).map((r) => ({ x: r.x + box.x, y: r.y + box.y, w: r.w, h: r.h }));
+  const out = w2Open() ? w2Screen() : -1;  // the screen in the second window, if it's open
+  let rects;
+  if (out < 0) rects = placeScreens(win, box.w, box.h);
+  else { rects = [null, null]; rects[1 - out] = placeOne(win.screens[1 - out], box.w, box.h, Math.min(box.w, box.h) < 500 ? 8 : 24); }
+  rects = rects.map((r) => r && { x: r.x + box.x, y: r.y + box.y, w: r.w, h: r.h });
   P.rects = rects;
   const dpr = window.devicePixelRatio || 1;
   const bz = $("bezels");
   bz.textContent = "";
   if (P.running || P.booting) for (const r of rects) {
+    if (!r) continue;
     const d = document.createElement("div");
     d.className = "bezel";
     Object.assign(d.style, { left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px" });
     bz.appendChild(d);
   }
+  const layout2 = out < 0 ? null : w2Layout(win, out);
+  showWin2Btn();
   if (!P.worker) return;
+  P.worker.postMessage({ t: "layout", layout: glLayout(win, rects, W, H, dpr), layout2 });
+}
+// a layout for the worker: the canvas's size and where each screen of the app's window goes on it (device pixels)
+function glLayout(win, rects, W, H, dpr) {
   const R = (v) => Math.round(v * dpr);
-  P.worker.postMessage({ t: "layout", layout: {
-    cw: R(W), ch: R(H), smooth: !!S.smooth,
-    rects: win.screens.map((s, i) => ({ src: [s.x, s.y, s.w, s.h], dst: [R(rects[i].x), R(rects[i].y), R(rects[i].x + rects[i].w) - R(rects[i].x), R(rects[i].y + rects[i].h) - R(rects[i].y)] })),
-  } });
+  const out = [];
+  win.screens.forEach((s, i) => {
+    const r = rects[i];
+    if (r) out.push({ src: [s.x, s.y, s.w, s.h], dst: [R(r.x), R(r.y), R(r.x + r.w) - R(r.x), R(r.y + r.h) - R(r.y)] });
+  });
+  return { cw: R(W), ch: R(H), smooth: !!S.smooth, rects: out };
 }
 new ResizeObserver(() => relayout()).observe($("stage"));
 matchMedia("(resolution: 1dppx)").addEventListener?.("change", relayout);
+
+/* ================================================================ the second window (issue #93)
+   One of the two screens in a window of its own, to put on another monitor:
+   the bottom one (the touchscreen) by default, or the top one (Settings >
+   Screens). The page then shows only the other screen, as large as it fits.
+   The worker draws into the window's canvas with a second WebGL2 context, so
+   opening or closing it doesn't restart the game. Keys, controllers and
+   touches work from either window; double-clicking either makes it full
+   screen. Where the browser can place windows (Window Management: Chrome and
+   Edge on computers) and there's more than one monitor, the window opens on
+   another one. The window is an about:blank page this one writes into, so it
+   needs no file of its own (the one-file player has none to give). */
+const w2Open = () => !!W2.win && !W2.win.closed;
+const w2Screen = () => (S.win2Screen === 0 ? 0 : 1);
+// computers only: a phone or tablet has one screen and no windows to move
+const w2Possible = () => typeof window.open === "function" && !coarse.matches && typeof OffscreenCanvas !== "undefined";
+function showWin2Btn() {
+  const b = $("win2Btn");
+  if (!b) return;
+  b.hidden = !w2Possible();
+  const on = w2Open();
+  b.classList.toggle("on", on);
+  b.setAttribute("aria-pressed", on ? "true" : "false");
+  b.title = on ? "Bring the " + (w2Screen() ? "bottom" : "top") + " screen back to this window"
+    : "Open the " + (w2Screen() ? "bottom" : "top") + " screen in a second window (for another monitor)";
+}
+function w2Title() {
+  if (w2Open()) W2.win.document.title = "GBA DS: " + (w2Screen() ? "bottom" : "top") + " screen";
+}
+// the other monitor's free area, when the browser may tell us (asks once, if there is one)
+async function otherMonitor(ask) {
+  if (!window.getScreenDetails || !(screen.isExtended === true)) return null;
+  try {
+    if (!ask) {
+      const st = await navigator.permissions.query({ name: "window-management" });
+      if (st.state !== "granted") return null;
+    }
+    const d = await window.getScreenDetails();
+    const cur = d.currentScreen;
+    const other = d.screens.find((x) => x !== cur && !(x.left === cur.left && x.top === cur.top));
+    return other ? { left: other.availLeft, top: other.availTop, width: other.availWidth, height: other.availHeight } : null;
+  } catch (e) { return null; }
+}
+// the window's size for a screen: its shape, about 60 % of the monitor's height
+function w2Size(s, mon) {
+  const H = Math.round((mon ? mon.height : screen.availHeight) * 0.6), Wmax = Math.round((mon ? mon.width : screen.availWidth) * 0.8);
+  let h = H, w = Math.round(H * s.w / s.h);
+  if (w > Wmax) { w = Wmax; h = Math.round(w * s.h / s.w); }
+  return { w, h };
+}
+async function openWin2() {
+  if (w2Open()) { w2Close(); return; }
+  const win = P.win || appWindow(), s = win.screens[w2Screen()];
+  // (asked before the window opens only when the browser already may: a prompt would use up the click)
+  const mon = await otherMonitor(false);
+  const { w, h } = w2Size(s, mon);
+  let feat = "popup,width=" + w + ",height=" + h;
+  if (mon) feat += ",left=" + Math.round(mon.left + (mon.width - w) / 2) + ",top=" + Math.round(mon.top + (mon.height - h) / 2);
+  const nw = window.open("", "gbadsSecondScreen", feat);
+  if (!nw) { toast("The browser blocked the second window: allow pop-ups for this page, then try again.", true); return; }
+  w2Setup(nw);
+  if (!mon && window.getScreenDetails && screen.isExtended === true) {
+    // more than one monitor, and the browser can place windows: ask, then move it over
+    const m = await otherMonitor(true);
+    if (m && w2Open()) {
+      const z = w2Size(s, m);
+      try { nw.moveTo(Math.round(m.left + (m.width - z.w) / 2), Math.round(m.top + (m.height - z.h) / 2)); nw.resizeTo(z.w, z.h); } catch (e) {}
+    }
+  }
+}
+function w2Setup(nw) {
+  W2.win = nw;
+  const d = nw.document;
+  // (built with the DOM: about:blank has its head and body already; a window kept from before is emptied)
+  d.head.textContent = ""; d.body.textContent = "";
+  const meta = d.createElement("meta");
+  meta.name = "viewport"; meta.content = "width=device-width,initial-scale=1";
+  d.head.appendChild(meta);
+  const st = d.createElement("style");
+  st.textContent = "[hidden]{display:none!important}html,body{margin:0;height:100%;background:#000;overflow:hidden;font:14px/1.4 system-ui,sans-serif;color:#cfc8e6}" +
+    "canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}canvas.touch{cursor:crosshair}" +
+    "#hint{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);padding:8px 14px;border-radius:10px;background:rgba(20,16,40,.88);transition:opacity .6s;pointer-events:none;text-align:center}" +
+    "#idle{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;opacity:.6}";
+  d.head.appendChild(st);
+  const hint = d.createElement("div");
+  hint.id = "hint";
+  hint.textContent = "Double-click for full screen. Close this window to bring the screen back.";
+  d.body.appendChild(hint);
+  nw.setTimeout(() => { hint.style.opacity = "0"; }, 5000);
+  const idle = d.createElement("div");
+  idle.id = "idle";
+  idle.textContent = "The " + (w2Screen() ? "bottom" : "top") + " screen shows here while a game is playing.";
+  d.body.appendChild(idle);
+  w2Title();
+  // keys and the window's own goings-on, as on the page
+  for (const ev of ["keydown", "keyup"]) for (const l of KEY_LISTENERS[ev]) nw.addEventListener(ev, l, true);
+  nw.addEventListener("blur", () => keysDown.clear());
+  nw.addEventListener("resize", () => relayout());
+  d.addEventListener("visibilitychange", visibility);
+  d.addEventListener("dblclick", (e) => {
+    e.preventDefault();
+    if (d.fullscreenElement) d.exitFullscreen().catch(() => {});
+    else d.documentElement.requestFullscreen().catch(() => {});
+  });
+  nw.addEventListener("wheel", (e) => { if (e.ctrlKey || e.metaKey) noZoom(e); }, { passive: false });
+  nw.addEventListener("contextmenu", (e) => e.preventDefault());
+  nw.addEventListener("gamepadconnected", () => {});  // (some browsers give a window controllers only once it listens)
+  nw.addEventListener("pagehide", () => { if (W2.win === nw) w2Gone(); });
+  const loop = () => { if (W2.win !== nw || nw.closed) return; tickOnce(); nw.requestAnimationFrame(loop); };
+  nw.requestAnimationFrame(loop);
+  clearInterval(W2.poll);
+  W2.poll = setInterval(() => { if (W2.win && W2.win.closed) w2Gone(); }, 500);
+  // its canvas: handed to the worker now when a game is playing, else at the next start
+  const c = w2Canvas();
+  if (P.worker && P.running) {
+    const oc = c.transferControlToOffscreen();
+    const win = P.win || appWindow();
+    P.worker.postMessage({ t: "view2", canvas: oc, layout: w2Layout(win, w2Screen()) }, [oc]);
+  }
+  relayout();
+  visibility();
+}
+// a new canvas in the second window (a canvas hands its drawing to one worker only)
+function w2Canvas() {
+  const d = W2.win.document, c = d.createElement("canvas");
+  if (W2.canvas && W2.canvas.parentNode) W2.canvas.replaceWith(c); else d.body.prepend(c);
+  W2.canvas = c;
+  bindTouch(c, () => w2Screen() === 1 ? W2.rect : null);
+  const idle = d.getElementById("idle");
+  if (idle) idle.hidden = !!(P.running || P.booting);
+  return c;
+}
+// the screen in the second window: as large as fits, centred, the rest black
+function w2Layout(win, i) {
+  const nw = W2.win, W = nw.innerWidth, H = nw.innerHeight;
+  if (!W || !H) return null;
+  const r = placeOne(win.screens[i], W, H, 0);
+  W2.rect = r;
+  const idle = nw.document.getElementById("idle");
+  if (idle) idle.hidden = !!(P.running || P.booting);
+  const rects = [null, null];
+  rects[i] = r;
+  return glLayout(win, rects, W, H, nw.devicePixelRatio || 1);
+}
+function w2Close() {
+  const nw = W2.win;
+  if (!nw) return;
+  w2Gone();
+  try { if (!nw.closed) nw.close(); } catch (e) {}
+}
+// the second window closed: its screen comes back to the page
+function w2Gone() {
+  if (!W2.win) return;
+  W2.win = null; W2.canvas = null; W2.rect = null;
+  clearInterval(W2.poll);
+  keysDown.clear();
+  if (P.worker) P.worker.postMessage({ t: "view2" });
+  relayout();
+  visibility();
+}
+coarse.addEventListener?.("change", showWin2Btn);
 
 /* ================================================================ sound */
 const A = { ctx: null, node: null, gain: null, ready: null };
@@ -697,7 +882,7 @@ function freshCanvas() {
   const old = $("screen"), c = document.createElement("canvas");
   c.id = "screen";
   old.replaceWith(c);
-  bindTouch(c);
+  bindTouch(c, () => P.rects && P.rects[1]);
   return c;
 }
 async function boot(opts) {
@@ -759,6 +944,7 @@ async function boot(opts) {
   worker.onmessage = (e) => onWorker(worker, e.data);
   worker.onerror = (e) => { if (P.worker === worker) { const why = workerError(e); addLog("worker error: " + why + " (" + navigator.userAgent + ")"); toast("GBA DS stopped: " + why, true); endRun(worker); } };
   const canvas = freshCanvas().transferControlToOffscreen();
+  const c2 = w2Open() ? w2Canvas() : null, canvas2 = c2 ? c2.transferControlToOffscreen() : null;
   document.body.classList.add("playing");
   $("start").hidden = true;
   P.running = true; P.paused = false; P.autoPaused = false; P.library = !!opts.library;
@@ -766,8 +952,8 @@ async function boot(opts) {
   showNow(opts.library);
   relayout();
   const stage = $("stage"), dpr = window.devicePixelRatio || 1;
-  worker.postMessage({ t: "boot", wasm: P.build.module, files, args, env, canvas, captureWorker: capWorker, debug,
-    layout: { cw: Math.round(stage.clientWidth * dpr), ch: Math.round(stage.clientHeight * dpr), smooth: !!S.smooth, rects: [] } }, [canvas]);
+  worker.postMessage({ t: "boot", wasm: P.build.module, files, args, env, canvas, captureWorker: capWorker, debug, canvas2,
+    layout: { cw: Math.round(stage.clientWidth * dpr), ch: Math.round(stage.clientHeight * dpr), smooth: !!S.smooth, rects: [] } }, canvas2 ? [canvas, canvas2] : [canvas]);
   relayout();
   if (A.node) linkSound();
   P.booting = false;
@@ -859,6 +1045,7 @@ function showStopped() {
   document.body.classList.remove("playing");
   // the canvas keeps the game's last picture (the worker owns it): swap in a blank one
   freshCanvas();
+  if (w2Open()) w2Canvas();
   $("start").hidden = false;
   showPaused(); showNow(); showSlots(); relayout();
 }
@@ -886,15 +1073,21 @@ function showNow(library) {
   $("nowTitle").textContent = library || !P.rom ? "Game list" : P.rom.title;
   $("nowSub").textContent = (P.rom && !library ? P.rom.code + "  ·  " : "") + "GBA DS " + P.build.version + "  ·  " + device().name;
 }
-document.addEventListener("visibilitychange", () => {
+// hidden: this page, and the second window too when it's open (a game on one monitor and its
+// other screen on another keeps going while either can be seen)
+function allHidden() { return document.hidden && (!w2Open() || W2.win.document.hidden); }
+function visibility() {
   if (!P.running) return;
-  if (document.hidden && S.pauseHidden && !P.paused) setPaused(true, true);
-  else if (!document.hidden && P.autoPaused) setPaused(false);
-});
+  if (allHidden() && S.pauseHidden && !P.paused) setPaused(true, true);
+  else if (!allHidden() && P.autoPaused) setPaused(false);
+}
+document.addEventListener("visibilitychange", visibility);
 // (a page being closed or reloaded may not live to get the files back from the worker: they are asked
 // for as soon as the page is hidden, which comes first, and the worker also sends a setting at once)
 const syncNow = () => { if (P.worker) P.worker.postMessage({ t: "sync" }); };
 window.addEventListener("pagehide", syncNow);
+// (the second window goes with the page)
+window.addEventListener("pagehide", () => w2Close());
 document.addEventListener("visibilitychange", () => { if (document.hidden) syncNow(); });
 
 /* ================================================================ the start screen */
@@ -978,6 +1171,7 @@ $("soundBtn").onclick = async () => {
   else S.muted = !S.muted;
   saveSettings(); showSound();
 };
+$("win2Btn").onclick = () => openWin2();
 $("fullBtn").onclick = () => {
   const el = $("stage");
   if (document.fullscreenElement) document.exitFullscreen();
@@ -985,20 +1179,22 @@ $("fullBtn").onclick = () => {
 };
 
 /* ================================================================ touch: the bottom screen, as on the device */
-let touching = false;
-function touchAt(e) {
-  if (!P.rects || !P.win) return null;
-  const c = $("screen").getBoundingClientRect();
-  const px = e.clientX - c.left, py = e.clientY - c.top, r = P.rects[1], s = P.win.screens[1];
+// (a canvas, and where the bottom screen is on it in CSS px, or nothing when it isn't on that canvas)
+function touchAt(e, canvas, r) {
+  if (!r || !P.win) return null;
+  const c = canvas.getBoundingClientRect();
+  const px = e.clientX - c.left, py = e.clientY - c.top, s = P.win.screens[1];
   const fx = (px - r.x) / r.w, fy = (py - r.y) / r.h;
   const inside = fx >= 0 && fx <= 1 && fy >= 0 && fy <= 1;
   const cx = Math.min(1, Math.max(0, fx)), cy = Math.min(1, Math.max(0, fy));
   return { inside, x: (s.x + cx * s.w) / P.win.w, y: (s.y + cy * s.h) / P.win.h };
 }
-function bindTouch(c) {
+function bindTouch(c, rect) {
+  let touching = false;
+  const touchAt_ = (e) => touchAt(e, c, rect());
   c.addEventListener("pointerdown", (e) => {
     if (!P.worker || P.paused) return;
-    const t = touchAt(e);
+    const t = touchAt_(e);
     if (!t || !t.inside) return;
     touching = true;
     P.worker.postMessage({ t: "touch", type: 1, x: t.x, y: t.y });
@@ -1006,19 +1202,19 @@ function bindTouch(c) {
     e.preventDefault();
   });
   c.addEventListener("pointermove", (e) => {
-    const t = touchAt(e);
+    const t = touchAt_(e);
     c.classList.toggle("touch", !!(t && t.inside));
     if (touching && P.worker && t) P.worker.postMessage({ t: "touch", type: 3, x: t.x, y: t.y });
   });
   for (const ev of ["pointerup", "pointercancel"]) c.addEventListener(ev, (e) => {
     if (!touching) return;
     touching = false;
-    const t = touchAt(e);
+    const t = touchAt_(e);
     if (P.worker && t) P.worker.postMessage({ t: "touch", type: 2, x: t.x, y: t.y });
   });
   c.addEventListener("contextmenu", (e) => e.preventDefault());
 }
-bindTouch($("screen"));
+bindTouch($("screen"), () => P.rects && P.rects[1]);
 
 /* ================================================================ no zooming the page
    A quick double tap on the controls, or two fingers on the screens, would
@@ -1032,16 +1228,16 @@ for (const ev of ["gesturestart", "gesturechange", "gestureend"]) document.addEv
 document.addEventListener("touchmove", (e) => { if (e.touches.length > 1 || (e.scale !== undefined && e.scale !== 1)) noZoom(e); }, { passive: false });
 document.addEventListener("dblclick", noZoom, { passive: false });
 window.addEventListener("wheel", (e) => { if (e.ctrlKey || e.metaKey) noZoom(e); }, { passive: false });
-window.addEventListener("keydown", (e) => {
+onKey("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && !e.altKey && ["+", "=", "-", "_"].includes(e.key)) noZoom(e);
-}, true);
+});
 
 /* ================================================================ input: keyboard and controllers */
 const keysDown = new Set();
 const typing = (e) => { const t = e.target; return t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA"); };
 const anyDialog = () => [...document.querySelectorAll("dialog")].some((d) => d.open);
 let capture = null; // asking for one key or button: { kind: "key" | "pad", done(binding|null) }
-window.addEventListener("keydown", (e) => {
+onKey("keydown", (e) => {
   if (capture && capture.kind === "key") {
     e.preventDefault(); e.stopPropagation();
     if (e.code === "Escape") capture.done(null); else capture.done(e.code, e.key);
@@ -1054,8 +1250,8 @@ window.addEventListener("keydown", (e) => {
     // (in a panel the keys only light up their rows; Escape still closes it)
     if (P.running && !anyDialog()) e.preventDefault();
   }
-}, true);
-window.addEventListener("keyup", (e) => { keysDown.delete(e.code); });
+});
+onKey("keyup", (e) => { keysDown.delete(e.code); });
 window.addEventListener("blur", () => keysDown.clear());
 
 // a pad's bindings: what's saved for it, else the standard layout (or a guess)
@@ -1068,7 +1264,17 @@ function held(p, bd) {
   if ("a" in bd) { const v = p.axes[bd.a]; return v !== undefined && v * bd.d > 0.5 && Math.abs(v) <= 1.05; }
   return false;
 }
-const pads = () => [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(Boolean);
+// (with the second window open, its view of the controllers too: some browsers give a
+// controller's buttons only to the window that has the focus)
+function pads() {
+  const a = [...(navigator.getGamepads ? navigator.getGamepads() : [])];
+  if (w2Open()) {
+    try {
+      [...W2.win.navigator.getGamepads()].forEach((p, i) => { if (p && (!a[i] || p.timestamp > a[i].timestamp)) a[i] = p; });
+    } catch (e) {}
+  }
+  return a.filter(Boolean);
+}
 function currentMask() {
   let mask = 0;
   const km = keyMap();
@@ -1083,7 +1289,7 @@ function currentMask() {
   return mask;
 }
 let lastMask = -1;
-function tick() {
+function tickOnce() {
   const mask = currentMask();
   if (P.worker && P.running) {
     const send = anyDialog() || P.paused ? 0 : mask;
@@ -1091,8 +1297,9 @@ function tick() {
   }
   if ($("controls").open) showHeld(mask);
   if (capture && capture.kind === "pad") capture.poll();
-  requestAnimationFrame(tick);
 }
+// (the second window's frames run it too: a page that can't be seen gets none)
+function tick() { tickOnce(); requestAnimationFrame(tick); }
 requestAnimationFrame(tick);
 window.addEventListener("gamepadconnected", (e) => {
   const p = e.gamepad;
@@ -1272,7 +1479,7 @@ function showSettings() {
   $("device").value = S.device;
   $("customDevice").hidden = S.device !== "custom";
   for (const [id, k, i] of CUSTOM) $(id).value = S.custom[k][i];
-  $("arrange").value = S.arrange; $("gap").value = S.gap;
+  $("arrange").value = S.arrange; $("gap").value = S.gap; $("win2Screen").value = String(w2Screen());
   $("smooth").value = S.smooth ? "1" : "0"; $("scale").value = String(S.scale);
   $("theme").value = S.theme === "light" ? "light" : "dark";
   $("volume").value = S.volume; $("pauseHidden").checked = !!S.pauseHidden;
@@ -1291,6 +1498,7 @@ for (const [id, k, i] of CUSTOM) $(id).onchange = () => {
 };
 $("arrange").onchange = () => { S.arrange = $("arrange").value; saveSettings(); relayout(); };
 $("gap").oninput = () => { S.gap = Number($("gap").value); saveSettings(); relayout(); };
+$("win2Screen").onchange = () => { S.win2Screen = Number($("win2Screen").value); saveSettings(); w2Title(); relayout(); };
 $("smooth").onchange = () => { S.smooth = $("smooth").value === "1"; saveSettings(); relayout(); };
 $("scale").onchange = () => { S.scale = Number($("scale").value); saveSettings(); restartSoon("Restarted at the new resolution."); };
 const setTheme = (t) => { S.theme = t === "light" ? "light" : "dark"; saveSettings(); applyTheme(); };
