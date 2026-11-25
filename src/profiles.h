@@ -483,6 +483,11 @@ typedef struct MapProfile {
 			 * picture (a full GBA screen) instead of the logo (Super
 			 * Mario Advance 4: its status bar over the inventory) */
 			bool mapBelow;
+			/* On this layer the HUD is only its top `rows` (0: the whole screen): the game draws the rest, and the
+			 * second screen keeps the main layer's last picture below them, from a frame where every `heldWhen`
+			 * probe matches (Pokemon Mystery Dungeon: its status line live over the kept map) */
+			int rows;
+			MemProbe heldWhen[2];
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
 		/* While every `layout` probe matches (racing, not the results):
