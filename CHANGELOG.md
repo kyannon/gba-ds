@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.2 (not yet released)
+## v1.6.2 (2026-11-24)
 
 ### New games
 - **WarioWare: Twisted!** (USA, and Mawaru Made in Wario in Japan): the game's gyro is played by turning the device. In Gyro mode, which every start begins in, the second screen is the game's logo on white that tilts with the device, with a **Touch!** button (or HOME + A). In **Touch mode** the touchscreen is a dial: touch anywhere and drag left or right to tilt the game that way, and let go to ease back to level; the second screen shows the game's menu wheel turning with it, with **Gyro!** and **Pause** buttons along the top. The dial's sensitivity (5% to 25%, 15% at first) is in the quick bar. The cartridge's motor is limited to short pulses here, since the gyro and the dial can make the game ask for far more rumble than the original's could. Known: no gyro sensor was found on the RG DS Plus under BananaOS yet, so there Touch mode is the way to play; the Europe release hasn't been tried; bug reports don't record the gyro.
