@@ -3,7 +3,7 @@
 ## v1.6.3 (not yet released)
 
 ### Web player
-- **A screen in a second window, for another monitor** (issue #93). On a computer, the new two-windows button in the web player's toolbar opens the bottom screen (the touchscreen) in a window of its own, to drag to another monitor; the player's window then shows the top screen alone, as large as it fits. Settings > Screens > Second window puts the top screen there instead. Keys, controllers and clicks on the touchscreen work in either window, double-clicking a window makes it full screen, and pressing the button again or closing the window brings the screen back. In Chrome and Edge with more than one monitor, the window opens on the other monitor once you allow the player to place windows. The game keeps running when either window is hidden, so long as the other can be seen.
+- **A screen in a second window, for another monitor** (issue #93). On a computer, the new two-windows button in the web player's toolbar opens the bottom screen (the touchscreen) in a window of its own, to drag to another monitor; the player's window then shows the top screen alone, as large as it fits. Settings > Screens > Second window puts the top screen there instead. Keys, controllers and clicks on the touchscreen work in either window. The second window has its own Full screen button, at its top right when you move the mouse (with the top screen in it, a double-click works too). Pressing the two-windows button again, or closing the window, brings the screen back. In Chrome and Edge with more than one monitor, the window opens on the other monitor once you allow the player to place windows. The game keeps running when either window is hidden, so long as the other can be seen.
 
 ## v1.6.2 (2026-11-24)
 

@@ -133,8 +133,16 @@ screen comes back. The page closes it when it goes (`pagehide`).
   to the focused window), and the window's frames run the input loop too
   (`tickOnce`), as a page that can't be seen gets none. Touches: the bottom
   screen in whichever window has it (`bindTouch(canvas, rect)`).
-- **Full screen**: double-click the window (a hint says so for 5 s); the
-  page's own Full screen button as before.
+- **Full screen**: a Full screen button at the window's top right, shown
+  while the mouse moves (a hint says so for 5 s), and a double-click when
+  the window has the top screen (on the bottom one the clicks are touches:
+  `gbadsDblclick`); the page's own Full screen button as before. Both are a
+  script of the window's own (`W2_FULL_SCREEN`, put in as a `<script>`
+  element): Firefox on macOS refused full screen from a double-click
+  listener of the page's attached to the window (the owner's test, Nov 25,
+  2026). Headless Chromium refuses full screen in every pop-up, so this is
+  tested with Chromium under `xvfb-run` (`headless=False`): the button and
+  the top screen's double-click both work there. Firefox isn't in sessions.
 - **Pause when hidden** pauses only when both the page and the window are
   hidden (`allHidden`).
 

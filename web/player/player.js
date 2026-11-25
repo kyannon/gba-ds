@@ -667,7 +667,40 @@ function showWin2Btn() {
     : "Open the " + (w2Screen() ? "bottom" : "top") + " screen in a second window (for another monitor)";
 }
 function w2Title() {
-  if (w2Open()) W2.win.document.title = "GBA DS: " + (w2Screen() ? "bottom" : "top") + " screen";
+  if (!w2Open()) return;
+  W2.win.document.title = "GBA DS: " + (w2Screen() ? "bottom" : "top") + " screen";
+  // (double-click for full screen only on the top screen: on the bottom one, the clicks are touches)
+  W2.win.gbadsDblclick = w2Screen() === 0;
+}
+// Full screen in the second window: a button (shown while the mouse moves) and, on the top
+// screen, a double-click. This is a script of the window's own: Firefox lets a page go full
+// screen only from its own code answering its own click, and refused it from a listener of
+// this page's attached to that window (the owner's test, Firefox on macOS, Nov 25, 2026).
+const W2_FULL_SCREEN = `(() => {
+  const d = document, el = d.documentElement;
+  const fsEl = () => d.fullscreenElement || d.webkitFullscreenElement;
+  const toggle = () => {
+    if (fsEl()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+    else { const r = (el.requestFullscreen || el.webkitRequestFullscreen).call(el); if (r && r.catch) r.catch(() => {}); }
+  };
+  const b = d.createElement("button");
+  b.id = "fs"; b.type = "button"; b.className = "away";
+  const label = () => { b.textContent = fsEl() ? "Exit full screen" : "Full screen"; };
+  label();
+  b.addEventListener("click", (e) => { e.stopPropagation(); toggle(); });
+  d.body.appendChild(b);
+  let t = 0;
+  const show = () => { b.classList.remove("away"); clearTimeout(t); t = setTimeout(() => b.classList.add("away"), 2500); };
+  d.addEventListener("mousemove", show);
+  d.addEventListener("fullscreenchange", label);
+  d.addEventListener("webkitfullscreenchange", label);
+  d.addEventListener("dblclick", (e) => { e.preventDefault(); if (window.gbadsDblclick) toggle(); });
+  show();
+})();`;
+function w2FullScreen(nw) {
+  const sc = nw.document.createElement("script");
+  sc.textContent = W2_FULL_SCREEN;
+  nw.document.body.appendChild(sc);
 }
 // the other monitor's free area, when the browser may tell us (asks once, if there is one)
 async function otherMonitor(ask) {
@@ -722,11 +755,13 @@ function w2Setup(nw) {
   st.textContent = "[hidden]{display:none!important}html,body{margin:0;height:100%;background:#000;overflow:hidden;font:14px/1.4 system-ui,sans-serif;color:#cfc8e6}" +
     "canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}canvas.touch{cursor:crosshair}" +
     "#hint{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);padding:8px 14px;border-radius:10px;background:rgba(20,16,40,.88);transition:opacity .6s;pointer-events:none;text-align:center}" +
-    "#idle{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;opacity:.6}";
+    "#idle{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;opacity:.6}" +
+    "#fs{position:fixed;top:12px;right:12px;z-index:2;padding:7px 14px;border:1px solid rgba(255,255,255,.25);border-radius:10px;background:rgba(20,16,40,.88);color:#cfc8e6;font:inherit;cursor:pointer;transition:opacity .4s}" +
+    "#fs.away{opacity:0;pointer-events:none}";
   d.head.appendChild(st);
   const hint = d.createElement("div");
   hint.id = "hint";
-  hint.textContent = "Double-click for full screen. Close this window to bring the screen back.";
+  hint.textContent = "Move the mouse for the Full screen button. Close this window to bring the screen back.";
   d.body.appendChild(hint);
   nw.setTimeout(() => { hint.style.opacity = "0"; }, 5000);
   const idle = d.createElement("div");
@@ -739,11 +774,7 @@ function w2Setup(nw) {
   nw.addEventListener("blur", () => keysDown.clear());
   nw.addEventListener("resize", () => relayout());
   d.addEventListener("visibilitychange", visibility);
-  d.addEventListener("dblclick", (e) => {
-    e.preventDefault();
-    if (d.fullscreenElement) d.exitFullscreen().catch(() => {});
-    else d.documentElement.requestFullscreen().catch(() => {});
-  });
+  w2FullScreen(nw);
   nw.addEventListener("wheel", (e) => { if (e.ctrlKey || e.metaKey) noZoom(e); }, { passive: false });
   nw.addEventListener("contextmenu", (e) => e.preventDefault());
   nw.addEventListener("gamepadconnected", () => {});  // (some browsers give a window controllers only once it listens)
