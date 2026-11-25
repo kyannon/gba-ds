@@ -1,7 +1,10 @@
 # Stand-in RetroAchievements server for testing GBA DS offline (see CLAUDE.md):
 #   python3 tools/ra_mock.py   (needs Pillow; account tester / secret)
+# Switch the "server is down" mode on with `touch /tmp/ra_mock_down` (unlocks and
+# leaderboard entries then get HTTP 503, as when the connection is lost), off by
+# removing the file. Game 777 has a Rich Presence script and one leaderboard.
 # Minimal stand-in for the RetroAchievements server, for testing GBA DS offline.
-import json, sys, io, urllib.parse, time
+import json, sys, io, os, urllib.parse, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from PIL import Image, ImageDraw
 HOST = "http://127.0.0.1:8099"
@@ -14,6 +17,10 @@ ACH = [
   # what the real server adds for clients it doesn't know (GBA DS hides it)
   dict(ID=101000001, Title="Warning: Unknown Emulator", Description="Hardcore unlocks cannot be earned using this emulator.", Points=0, MemAddr="1=1", BadgeName="00000"),
 ] + [dict(ID=110 + i, Title=f"Filler {i}", Description=f"Locked achievement number {i}, to fill the list and test scrolling", Points=i, MemAddr="0=1", BadgeName=f"0011{i}") for i in range(1, 9)]
+DOWN = os.environ.get("RA_MOCK_DOWN", "/tmp/ra_mock_down")
+RICH = "Format:Pts\nFormatType=VALUE\n\nDisplay:\nSkating in the hangar, byte 0 is @Pts(0xH0000)\n"
+LBOARDS = [dict(ID=501, Title="Hangar high score", Description="The most points in a run", Mem="STA:1=1.30.::CAN:0=1::SUB:1=1.100.::VAL:0xH0000",
+                Format="VALUE", LowerIsBetter=False, Hidden=False)]
 log = open("requests.log", "a")
 class H(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
@@ -42,10 +49,16 @@ class H(BaseHTTPRequestHandler):
         if r == "achievementsets":
             achs = [dict(a, Flags=3, Author="me", BadgeURL=f"{HOST}/Badge/{a['BadgeName']}.png", BadgeLockedURL=f"{HOST}/Badge/{a['BadgeName']}_lock.png", Created=1, Modified=1) for a in ACH]
             return self.reply(200, json.dumps({"Success": True, "GameId": 777, "Title": "Tony Hawk's Pro Skater 2", "ConsoleId": 5,
-                "ImageIconUrl": HOST + "/Images/054321.png", "RichPresenceGameId": 777, "RichPresencePatch": "",
-                "Sets": [{"AchievementSetId": 900, "GameId": 777, "Title": None, "Type": "core", "ImageIconUrl": HOST + "/Images/054321.png", "Achievements": achs, "Leaderboards": []}]}))
+                "ImageIconUrl": HOST + "/Images/054321.png", "RichPresenceGameId": 777, "RichPresencePatch": RICH,
+                "Sets": [{"AchievementSetId": 900, "GameId": 777, "Title": None, "Type": "core", "ImageIconUrl": HOST + "/Images/054321.png", "Achievements": achs, "Leaderboards": LBOARDS}]}))
         if r == "startsession":
             return self.reply(200, json.dumps({"Success": True, "Unlocks": [{"ID": i, "When": 1} for i in sorted(unlocked)], "HardcoreUnlocks": [], "ServerNow": int(time.time())}))
+        if r in ("awardachievement", "submitlbentry") and os.path.exists(DOWN):
+            return self.reply(503, "down")
+        if r == "submitlbentry":
+            sc = int(q["s"][0])
+            return self.reply(200, json.dumps({"Success": True, "Response": {"Score": sc, "BestScore": sc, "RankInfo": {"Rank": 3, "NumEntries": 41},
+                "TopEntries": [{"User": "tester", "Rank": 3, "Score": sc}]}}))
         if r == "awardachievement":
             unlocked.add(int(q["a"][0]))
             return self.reply(200, json.dumps({"Success": True, "Score": 0, "SoftcoreScore": 50, "AchievementID": int(q["a"][0]), "AchievementsRemaining": len(ACH) - len(unlocked)}))

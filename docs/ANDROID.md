@@ -290,7 +290,7 @@ After the first milestone:
   the game thread through JNI on the activity), the tree URI turned into a
   plain path (All files access), saved as `rom_dir` in
   `<state_dir>/library.cfg` (loaded after prefs.cfg on every platform).
-  library.cfg also holds `library_view` (list/grid) on every platform;
+  library.cfg also holds `library_view` (list/grid/grid3) on every platform;
   both are written by `save_library_cfg()` in library.c, so neither is lost.
   "ROM Folder" is a Futura label (MENU_TEXTS; brand_data.c regenerated).
 - Every game was listed twice on the device: the default rom_dir had
@@ -653,6 +653,19 @@ line as on Linux (left/right between them). hotkeys.c calls B_HOME "Back"
 on Android (HOME_TITLE): BACK is HOME there (ui.c), so the default hotkey
 is BACK.
 
+### Back vs Select on a pad with both keys (AYN Thor report, Nov 24, 2026)
+
+SDL's Android joystick code maps a gamepad's KEYCODE_BACK and
+KEYCODE_BUTTON_SELECT to the same controller button (SDL_sysjoystick.c
+`keycode_to_SDL`), and SDLActivity consumes the Back key for such a device,
+so the keyboard Back key ui.c turns into HOME never arrives. On the Thor,
+which has both keys, Back therefore counted as Select (a hotkey remap took
+it for Select). `GbaDsActivity.dispatchKeyEvent` now sends a gamepad's Back
+on as the keyboard Back key (`SDLActivity.onNativeKeyDown`) when the device
+also has a Select key (`InputDevice.hasKeys`); a pad with only one of the
+two, and the system's own Back, are left as they were. Not tried on a
+Thor: whether `hasKeys` says yes for its Back and Select.
+
 ## GBA DS's folder, chosen (issue #34, Nov 11, 2026)
 
 Settings > Folders > Choose GBA DS folder (FB_DATA, PICK_DATA in
@@ -790,13 +803,11 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
+(Empty: Rotation and Performance went into v1.5.5's changelog.)
 
-- **Rotation setting for phones and the Surface Duo (issue #60).** With one
-  display, Settings > System > Rotation holds the window upright (the two
-  screens one above the other), on its side (side by side), or leaves it to
-  the phone (Auto, the default: follows Android's rotation lock as before).
-  Portrait and landscape still turn either way up. Not shown on devices with
-  two displays.
+Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays are read once at start; a display added later (hot-plug) isn't picked up: it needs a DisplayListener and a native re-layout (ui.c, shared code), tracked in a separate issue.
+
+## Rotation, and Performance (issue #60, Nov 2026; in v1.5.5)
 
 ### Notes for sessions: Rotation (issue #60, `android`)
 

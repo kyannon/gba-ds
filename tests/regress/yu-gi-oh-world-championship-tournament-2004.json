@@ -1,0 +1,806 @@
+{
+ "game": "Yu-Gi-Oh! World Championship Tournament 2004",
+ "rules": "docs/games/yu-gi-oh-world-championship-tournament-2004.md",
+ "cases": [
+  {
+   "id": "wct-logo-bywe",
+   "kind": "logo",
+   "rom": "BYWE",
+   "desc": "BYWE logo extraction",
+   "rules": [
+    "GEN-1",
+    "WCT-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "wct-logo-bywp",
+   "kind": "logo",
+   "rom": "BYWP",
+   "desc": "BYWP logo extraction",
+   "rules": [
+    "GEN-1",
+    "WCT-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "wct-logo-by3j",
+   "kind": "logo",
+   "rom": "BY3J",
+   "desc": "BY3J logo extraction",
+   "rules": [
+    "GEN-1",
+    "WCT-7"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "wct-us-hand",
+   "rom": "BYWE",
+   "state": "yu-gi-oh-world-championship-tournament-2004/us-hand.ss",
+   "desc": "USA: main phase, cursor on a hand card: Card View; LEFT: the next card; UP to an empty zone: it stays",
+   "rules": [
+    "WCT-1",
+    "WCT-5",
+    "WCT-8"
+   ],
+   "input": [
+    [
+     150,
+     "LEFT"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "left": 250,
+    "empty": 420
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-1",
+     "shot": "start",
+     "what": "the hand card's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-1",
+     "shot": "left",
+     "what": "the next card's Card View"
+    },
+    {
+     "rule": "WCT-1",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    },
+    {
+     "rule": "WCT-5",
+     "type": "same",
+     "a": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the last card stays on an empty zone"
+    },
+    {
+     "type": "no_log",
+     "rule": "WCT-1",
+     "what": "no capture tried on the empty zone",
+     "match": "frame (3[0-9][0-9]|4[01][0-9]): map capture failed.*Card View"
+    }
+   ]
+  },
+  {
+   "id": "wct-eu-hand",
+   "rom": "BYWP",
+   "state": "yu-gi-oh-world-championship-tournament-2004/eu-hand.ss",
+   "desc": "Europe: the same",
+   "rules": [
+    "WCT-1",
+    "WCT-5",
+    "WCT-8"
+   ],
+   "input": [
+    [
+     150,
+     "LEFT"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "left": 250,
+    "empty": 420
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-1",
+     "shot": "start",
+     "what": "the hand card's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-1",
+     "shot": "left",
+     "what": "the next card's Card View"
+    },
+    {
+     "rule": "WCT-1",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    },
+    {
+     "rule": "WCT-5",
+     "type": "same",
+     "a": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the last card stays on an empty zone"
+    },
+    {
+     "type": "no_log",
+     "rule": "WCT-1",
+     "what": "no capture tried on the empty zone",
+     "match": "frame (3[0-9][0-9]|4[01][0-9]): map capture failed.*Card View"
+    }
+   ]
+  },
+  {
+   "id": "wct-jp-hand",
+   "rom": "BY3J",
+   "state": "yu-gi-oh-world-championship-tournament-2004/jp-hand.ss",
+   "desc": "Japan: the same",
+   "rules": [
+    "WCT-1",
+    "WCT-5",
+    "WCT-8"
+   ],
+   "input": [
+    [
+     150,
+     "LEFT"
+    ],
+    [
+     154,
+     "-"
+    ],
+    [
+     300,
+     "UP"
+    ],
+    [
+     304,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 90,
+    "left": 250,
+    "empty": 420
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-1",
+     "shot": "start",
+     "what": "the hand card's Card View"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-1",
+     "shot": "left",
+     "what": "the next card's Card View"
+    },
+    {
+     "rule": "WCT-1",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    },
+    {
+     "rule": "WCT-5",
+     "type": "same",
+     "a": {
+      "shot": "left",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "empty",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "the last card stays on an empty zone"
+    },
+    {
+     "type": "no_log",
+     "rule": "WCT-1",
+     "what": "no capture tried on the empty zone",
+     "match": "frame (3[0-9][0-9]|4[01][0-9]): map capture failed.*Card View"
+    }
+   ]
+  },
+  {
+   "id": "wct-us-graveyard",
+   "rom": "BYWE",
+   "state": "yu-gi-oh-world-championship-tournament-2004/us-graveyard.ss",
+   "desc": "the Graveyard list open: its card's Card View",
+   "rules": [
+    "WCT-2"
+   ],
+   "shots": {
+    "a": 150
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-2",
+     "shot": "a",
+     "what": "Card View"
+    }
+   ]
+  },
+  {
+   "id": "wct-us-deck-edit",
+   "rom": "BYWE",
+   "state": "yu-gi-oh-world-championship-tournament-2004/us-deck-edit.ss",
+   "desc": "Deck Edit: a card's Card View, DOWN: another",
+   "rules": [
+    "WCT-3"
+   ],
+   "input": [
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "a": 140,
+    "b": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-3",
+     "shot": "a",
+     "what": "first card"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-3",
+     "shot": "b",
+     "what": "next card"
+    },
+    {
+     "rule": "WCT-3",
+     "type": "differs",
+     "a": {
+      "shot": "a",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "wct-us-cards-won",
+   "rom": "BYWE",
+   "state": "yu-gi-oh-world-championship-tournament-2004/us-cards-won.ss",
+   "desc": "the cards won: Card View, DOWN: another",
+   "rules": [
+    "WCT-4"
+   ],
+   "input": [
+    [
+     150,
+     "DOWN"
+    ],
+    [
+     154,
+     "-"
+    ]
+   ],
+   "shots": {
+    "a": 140,
+    "b": 300
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-4",
+     "shot": "a",
+     "what": "first card"
+    },
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-4",
+     "shot": "b",
+     "what": "next card"
+    },
+    {
+     "rule": "WCT-4",
+     "type": "differs",
+     "a": {
+      "shot": "a",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "b",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ],
+      "screen": "second"
+     },
+     "what": "another card"
+    }
+   ]
+  },
+  {
+   "id": "wct-us-booster-packs",
+   "rom": "BYWE",
+   "state": "yu-gi-oh-world-championship-tournament-2004/us-booster-packs.ss",
+   "desc": "the booster pack choice: the logo",
+   "rules": [
+    "WCT-6"
+   ],
+   "shots": {
+    "a": 150
+   },
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rule": "WCT-6",
+     "shot": "a",
+     "what": "the logo",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "type": "no_log",
+     "rule": "WCT-6",
+     "what": "nothing tried",
+     "match": "map (updated|capture failed)"
+    }
+   ]
+  },
+  {
+   "id": "wct-us-end-turn",
+   "rom": "BYWE",
+   "state": "yu-gi-oh-world-championship-tournament-2004/us-hand.ss",
+   "desc": "B asks to end the turn, YES: the logo while the opponent plays",
+   "rules": [
+    "WCT-9"
+   ],
+   "input": [
+    [
+     120,
+     "B"
+    ],
+    [
+     124,
+     "-"
+    ],
+    [
+     160,
+     "LEFT"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     204,
+     "-"
+    ]
+   ],
+   "shots": {
+    "a": 150,
+    "b": 600
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "second",
+     "probes": [
+      [
+       988,
+       700,
+       "0000FF"
+      ],
+      [
+       988,
+       664,
+       "0000FF"
+      ],
+      [
+       36,
+       150,
+       "000000"
+      ]
+     ],
+     "rule": "WCT-9",
+     "shot": "a",
+     "what": "Card View with the question open"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rule": "WCT-9",
+     "shot": "b",
+     "what": "the logo in the opponent's turn",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  }
+ ]
+}

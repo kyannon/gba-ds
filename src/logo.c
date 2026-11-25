@@ -38,30 +38,45 @@ static void layer_set(Emu* e, unsigned mask) {
 	for (int i = 0; i < NLAYERS; ++i) e->core->enableVideoLayer(e->core, i, (mask >> i) & 1);
 }
 
+/* the profile's sprites to leave out, for the render that follows */
+static void logo_hide(Emu* e, const LogoSpec* L) {
+	int n = 0;
+	while (n < 2 && (L->hide[n].x1 > L->hide[n].x0 || L->hide[n].y1 > L->hide[n].y0)) ++n;
+	emu_hide_sprites(e, n ? L->hide : NULL, n);
+}
+
 bool logo_extract(const char* romPath, const char* gameCode, const char* outPng) {
 	const MapProfile* p = profile_find(gameCode);
-	if (!p || (!p->logo.wait && !p->logo.steps[0].frames)) return false;
+	if (!p) return false;
 	Emu e;
 	if (!emu_open(&e, romPath, NULL, false)) return false;
+	/* this ROM file's recipe (a romhack's own, by its CRC32), and for a game
+	 * whose logos are per ROM file, never a patched copy's (a patched game
+	 * is the base game: it uses the base's logo, from the unpatched file) */
+	const LogoSpec* L = profile_logo_spec(p, e.fileCrc);
+	if ((!L->wait && !L->steps[0].frames) || (p->logoPerRom && e.romCrc != e.fileCrc)) {
+		emu_close(&e);
+		return false;
+	}
 	/* the profile's patches for this copy only, all or none (another
 	 * revision of the ROM is left alone) */
 	bool patchOk = true;
-	for (int k = 0; k < 2 && p->logo.patch[k].addr; ++k) {
-		const RomPatch* r = &p->logo.patch[k];
+	for (int k = 0; k < 2 && L->patch[k].addr; ++k) {
+		const RomPatch* r = &L->patch[k];
 		for (int i = 0; i < r->len; ++i) patchOk &= emu_read8(&e, r->addr + i) == (r->orig ? r->orig[i] : 0xFF);
 	}
-	for (int k = 0; k < 2 && patchOk && p->logo.patch[k].addr; ++k) {
-		const RomPatch* r = &p->logo.patch[k];
+	for (int k = 0; k < 2 && patchOk && L->patch[k].addr; ++k) {
+		const RomPatch* r = &L->patch[k];
 		for (int i = 0; i < r->len; ++i) e.core->rawWrite8(e.core, r->addr + i, -1, r->bytes[i]);
 	}
 
-	for (int i = 0; i < 24 && p->logo.steps[i].frames && !cancelAll; ++i) {
-		for (int f = 0; f < p->logo.steps[i].frames && !cancelAll; ++f) emu_frame(&e, p->logo.steps[i].keys);
+	for (int i = 0; i < 24 && L->steps[i].frames && !cancelAll; ++i) {
+		for (int f = 0; f < L->steps[i].frames && !cancelAll; ++f) emu_frame(&e, L->steps[i].keys);
 	}
-	for (int f = 0; f < p->logo.wait && !cancelAll; ++f) emu_frame(&e, 0);
-	if (p->logo.pressStart) {
+	for (int f = 0; f < L->wait && !cancelAll; ++f) emu_frame(&e, 0);
+	if (L->pressStart) {
 		for (int f = 0; f < 4; ++f) emu_frame(&e, K_START);
-		for (int f = 0; f < p->logo.wait2 && !cancelAll; ++f) emu_frame(&e, 0);
+		for (int f = 0; f < L->wait2 && !cancelAll; ++f) emu_frame(&e, 0);
 	}
 	if (cancelAll) {
 		emu_close(&e);
@@ -81,28 +96,31 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	emu_state_load(&e, st);
 	emu_frame(&e, 0);
 	memcpy(back, e.fb, GBA_W * GBA_H * 4);
-	if (p->logo.mask) layers(&e, -2); /* a mask cuts the logo out of the whole picture */
-	else if (p->logo.layers) layer_set(&e, p->logo.layers); /* a logo over several layers (FFTA: its shadow) */
-	else layers(&e, p->logo.layer);
+	if (L->mask) layers(&e, -2); /* a mask cuts the logo out of the whole picture */
+	else if (L->layers) layer_set(&e, L->layers); /* a logo over several layers (FFTA: its shadow) */
+	else layers(&e, L->layer);
 	emu_state_load(&e, st);
+	logo_hide(&e, L);
 	emu_frame(&e, 0);
 	memcpy(fg, e.fb, GBA_W * GBA_H * 4);
-	if (!p->logo.mask && p->logo.layers && p->logo.objMaxY > 0 && p->logo.objMaxY < GBA_H) {
+	if (!L->mask && L->layers && L->objMaxY > 0 && L->objMaxY < GBA_H) {
 		/* below objMaxY, the BG layers without the sprites (Summon Night:
 		 * its PRESS START BUTTON is a sprite across the sword's hilt) */
-		layer_set(&e, p->logo.layers & ~0x10u);
+		layer_set(&e, L->layers & ~0x10u);
 		emu_state_load(&e, st);
 		emu_frame(&e, 0);
-		memcpy(fg + p->logo.objMaxY * GBA_W, e.fb + p->logo.objMaxY * GBA_W, (size_t) (GBA_H - p->logo.objMaxY) * GBA_W * 4);
+		memcpy(fg + L->objMaxY * GBA_W, e.fb + L->objMaxY * GBA_W, (size_t) (GBA_H - L->objMaxY) * GBA_W * 4);
 	}
-	if (!p->logo.mask && p->logo.layers && p->logo.lowFrom > 0 && p->logo.lowFrom < GBA_H) {
+	if (!L->mask && L->layers && L->lowFrom > 0 && L->lowFrom < GBA_H) {
 		/* from lowFrom down, only lowLayers (Sonic Pinball Party: its
 		 * badge's lowest rows beside the copyright line's) */
-		layer_set(&e, p->logo.lowLayers);
+		layer_set(&e, L->lowLayers);
 		emu_state_load(&e, st);
+		logo_hide(&e, L);
 		emu_frame(&e, 0);
-		memcpy(fg + p->logo.lowFrom * GBA_W, e.fb + p->logo.lowFrom * GBA_W, (size_t) (GBA_H - p->logo.lowFrom) * GBA_W * 4);
+		memcpy(fg + L->lowFrom * GBA_W, e.fb + L->lowFrom * GBA_W, (size_t) (GBA_H - L->lowFrom) * GBA_W * 4);
 	}
+	emu_hide_sprites(&e, NULL, 0);
 	layers(&e, -2);
 	emu_close(&e);
 	free(st);
@@ -115,8 +133,8 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		stbi_write_png(dbg, GBA_W, GBA_H, 4, back, GBA_W * 4);
 	}
 	uint8_t* inMask = NULL;
-	if (p->logo.mask) {
-		const LogoMask* m = p->logo.mask;
+	if (L->mask) {
+		const LogoMask* m = L->mask;
 		inMask = calloc(GBA_W * GBA_H, 1);
 		int pos = 0;
 		for (int r = 0; r < m->nRuns; ++r) {
@@ -135,17 +153,17 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	}
 	/* opaque mask and bounding box above maxY */
 	int x0 = GBA_W, y0 = GBA_H, x1 = -1, y1 = -1, count = 0;
-	int maxY = p->logo.maxY ? p->logo.maxY : GBA_H;
-	int maxX = p->logo.maxX ? p->logo.maxX : GBA_W;
-	for (int y = p->logo.minY; y < maxY; ++y) {
-		for (int x = p->logo.minX; x < maxX; ++x) {
+	int maxY = L->maxY ? L->maxY : GBA_H;
+	int maxX = L->maxX ? L->maxX : GBA_W;
+	for (int y = L->minY; y < maxY; ++y) {
+		for (int x = L->minX; x < maxX; ++x) {
 			uint32_t c = fg[y * GBA_W + x];
 			bool clear = inMask ? !inMask[y * GBA_W + x] : c == back[y * GBA_W + x];
-			if (p->logo.blackIsClear && (c & 0xFF) < 24 && ((c >> 8) & 0xFF) < 24 && ((c >> 16) & 0xFF) < 24) clear = true;
+			if (L->blackIsClear && (c & 0xFF) < 24 && ((c >> 8) & 0xFF) < 24 && ((c >> 16) & 0xFF) < 24) clear = true;
 			if (!clear) opaque[y * GBA_W + x] = 1;
 		}
 	}
-	if (p->logo.lightEdgeClear) {
+	if (L->lightEdgeClear) {
 		/* the layer's light background (Pokemon Pinball's white, striped):
 		 * light grey to white pixels reached from the picture's edges
 		 * through others like them, not the logo's own white inside it */
@@ -184,7 +202,7 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 			}
 		}
 	}
-	if (p->logo.edgeClear[0]) {
+	if (L->edgeClear[0]) {
 		int* stack = malloc(sizeof(int) * GBA_W * GBA_H);
 		uint8_t* seen = calloc(GBA_W * GBA_H, 1);
 		int n = 0;
@@ -201,8 +219,8 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 				uint32_t c = fg[i];
 				int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
 				bool clearIt = false;
-				for (int k = 0; k < 4 && p->logo.edgeClear[k] && !clearIt; ++k) {
-					uint32_t e = p->logo.edgeClear[k];
+				for (int k = 0; k < 4 && L->edgeClear[k] && !clearIt; ++k) {
+					uint32_t e = L->edgeClear[k];
 					clearIt = abs(r - (int) (e >> 16 & 0xFF)) + abs(g - (int) (e >> 8 & 0xFF)) + abs(b - (int) (e & 0xFF)) < 20;
 				}
 				if (!clearIt) continue;
@@ -252,16 +270,16 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		free(q);
 		free(done);
 	}
-	if (p->logo.shadow[0] && p->logo.shadowReach > 0) {
+	if (L->shadow[0] && L->shadowReach > 0) {
 		/* (logo.shadow: row by row, each shadow pixel kept or not) */
-		int reach = p->logo.shadowReach;
+		int reach = L->shadowReach;
 		uint8_t* shade = calloc(GBA_W * GBA_H, 1); /* 1 shadow, 2 shadow kept */
 		for (int i = 0; shade && i < GBA_W * maxY; ++i) {
 			if (!opaque[i]) continue;
 			uint32_t c = fg[i];
 			int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
-			for (int k = 0; k < 2 && p->logo.shadow[k]; ++k) {
-				uint32_t e = p->logo.shadow[k];
+			for (int k = 0; k < 2 && L->shadow[k]; ++k) {
+				uint32_t e = L->shadow[k];
 				if (abs(r - (int) (e >> 16 & 0xFF)) + abs(g - (int) (e >> 8 & 0xFF)) + abs(b - (int) (e & 0xFF)) < 12) shade[i] = 1;
 			}
 		}

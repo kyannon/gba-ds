@@ -11,11 +11,14 @@ void ui_stick_dpad(bool on) {
 #include "brand.h"
 #include "font.h"
 #include "textfont.h"
+#include "fonts_data.h"
 #include "logo.h"
 #include "paths.h"
 #include "profiles.h"
 #include "emu.h"
+#include "i18n.h"
 
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +27,9 @@ void ui_stick_dpad(bool on) {
 #include <unistd.h>
 #include <dirent.h>
 #include <strings.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <time.h>
 
 View views[2];
@@ -105,6 +110,9 @@ static float tapX, tapY;
 /* SWIPE:x0,y0,x1,y1 (fractions of the window): down, 4 moves a tick apart, up */
 static float swipe[4];
 static int swipeStep = -1;
+/* DRAG:x,y puts a finger down and leaves it there, MOVE:x,y moves it, LIFT lifts it (WarioWare: Twisted!'s dial) */
+static float dragX, dragY;
+static bool dragDown;
 static char pendingShot[160];
 static char pendingLoad[160]; /* LOAD:file in an input script (regression tests) */
 
@@ -141,7 +149,7 @@ void ui_load_script(const char* path) {
 		s->tick = t;
 		s->btns = 0;
 		s->action[0] = 0;
-		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
+		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "DRAG:", 5) || !strncmp(what, "MOVE:", 5) || !strcmp(what, "LIFT") || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
 		    !strncmp(what, "JOY", 3)) {
 			snprintf(s->action, sizeof(s->action), "%s", what);
 		} else {
@@ -211,6 +219,13 @@ static void run_script(void) {
 				push_finger(SDL_FINGERDOWN, swipe[0], swipe[1]);
 				swipeStep = 0;
 			}
+		} else if (!strncmp(s->action, "DRAG:", 5)) {
+			if (sscanf(s->action + 5, "%f,%f", &dragX, &dragY) == 2) push_finger(SDL_FINGERDOWN, dragX, dragY), dragDown = true;
+		} else if (!strncmp(s->action, "MOVE:", 5)) {
+			if (dragDown && sscanf(s->action + 5, "%f,%f", &dragX, &dragY) == 2) push_finger(SDL_FINGERMOTION, dragX, dragY);
+		} else if (!strcmp(s->action, "LIFT")) {
+			if (dragDown) push_finger(SDL_FINGERUP, dragX, dragY);
+			dragDown = false;
 		} else if (!strncmp(s->action, "SHOT:", 5)) {
 			snprintf(pendingShot, sizeof(pendingShot), "%s", s->action + 5);
 		} else if (!strncmp(s->action, "LOAD:", 5)) {
@@ -375,6 +390,86 @@ static void script_joy(const char* a) {
 	}
 }
 
+/* Rumble (issue #83). The motor is the controller's own when it has one (an external pad), else the
+ * device's (the RG DS Plus's vibration motor shows up as a force-feedback input device of its own,
+ * which SDL lists as a haptic device). ui_rumble(level) is called every frame with how hard the
+ * game wants it (0..1), times the player's strength; it only talks to the motor when the level
+ * moves a step or the last request is about to run out, so it isn't an ioctl a frame. */
+static SDL_Haptic* rumbleHaptic;
+static bool rumbleHapticTried;
+static float rumbleSent;     /* the level the motor was last asked for */
+static Uint32 rumbleSentAt;  /* when (SDL_GetTicks) */
+static bool rumbleOnPad;     /* the last request went to a controller */
+
+static void rumble_haptic_open(void) {
+	if (rumbleHapticTried) return;
+	rumbleHapticTried = true;
+#ifndef __wasi__
+	if (SDL_InitSubSystem(SDL_INIT_HAPTIC) != 0) {
+		fprintf(stderr, "rumble: no haptic support (%s)\n", SDL_GetError());
+		return;
+	}
+	int n = SDL_NumHaptics();
+	for (int i = 0; i < n; ++i) {
+		SDL_Haptic* h = SDL_HapticOpen(i);
+		if (!h) {
+			fprintf(stderr, "rumble: haptic %d (%s): can't open (%s)\n", i, SDL_HapticName(i), SDL_GetError());
+			continue;
+		}
+		bool ok = SDL_HapticRumbleSupported(h) && SDL_HapticRumbleInit(h) == 0;
+		fprintf(stderr, "rumble: haptic %d (%s): %s\n", i, SDL_HapticName(i), ok ? "usable" : "no rumble");
+		if (ok && !rumbleHaptic) rumbleHaptic = h;
+		else SDL_HapticClose(h);
+	}
+	if (!rumbleHaptic) fprintf(stderr, "rumble: no haptic motor found (%d device%s)\n", n, n == 1 ? "" : "s");
+#endif
+}
+
+/* One request to whichever motor there is, for ms. */
+static bool rumble_send(float level, Uint32 ms) {
+	bool onPad = false;
+#ifndef __wasi__
+	if (level > 0) {
+		Uint16 v = (Uint16) (level * 65535.0f);
+		for (int i = 0; i < 8; ++i)
+			if (pads[i] && SDL_GameControllerRumble(pads[i], v, v, ms) == 0) onPad = true;
+	} else {
+		for (int i = 0; i < 8; ++i) if (pads[i] && rumbleOnPad) SDL_GameControllerRumble(pads[i], 0, 0, 0);
+	}
+	if (!onPad) {
+		rumble_haptic_open();
+		if (rumbleHaptic) {
+			if (level > 0) SDL_HapticRumblePlay(rumbleHaptic, level, ms);
+			else SDL_HapticRumbleStop(rumbleHaptic);
+		}
+	} else if (rumbleHaptic) {
+		SDL_HapticRumbleStop(rumbleHaptic);
+	}
+#else
+	(void) level, (void) ms;
+#endif
+	rumbleOnPad = onPad;
+	return onPad;
+}
+
+void ui_rumble(float level) {
+	if (level < 0) level = 0;
+	if (level > 1) level = 1;
+	level = floorf(level * 20.0f + 0.5f) / 20.0f; /* steps of 5 % */
+	Uint32 now = SDL_GetTicks();
+	if ((int) (now - rumbleSentAt) < 0) return; /* a pulse is still running */
+	if (level == rumbleSent && (level == 0 || now - rumbleSentAt < 60)) return;
+	rumbleSent = level;
+	rumbleSentAt = now;
+	if (level > 0 || rumbleOnPad || rumbleHaptic) rumble_send(level, 120); /* (each request runs out by itself if we stop asking) */
+}
+
+void ui_rumble_pulse(float level, int ms) {
+	rumble_send(level, (Uint32) ms);
+	rumbleSent = level;
+	rumbleSentAt = SDL_GetTicks() + (Uint32) ms; /* (the next ui_rumble doesn't cut it short) */
+}
+
 static void open_pads(void) {
 	for (int i = 0; i < SDL_NumJoysticks() && i < 8; ++i) {
 		if (!pads[i] && SDL_IsGameController(i)) {
@@ -529,6 +624,8 @@ void ui_textures_reset(void) {
 }
 
 void ui_shutdown(void) {
+	ui_rumble(0);
+	if (rumbleHaptic) SDL_HapticClose(rumbleHaptic), rumbleHaptic = NULL;
 	for (int v = 0; v < 2; ++v) {
 		for (int i = 0; i < PIPE_CACHE; ++i) {
 			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
@@ -1279,16 +1376,27 @@ static uint32_t tex_version(SDL_Texture* t) {
  * 5-bit colour each 8-bit one came from (mGBA: c << 3 | c >> 2). */
 static uint32_t* ccLut;
 static bool ccOn;              /* pictures go through ccLut */
-static bool ccWant;            /* Display > Color Correction */
+static int ccWant;             /* Display > Color Correction: 0 off, 1 GBA, 2 Game Boy Color */
 static int ccGain = 100;       /* brightening, in percent (the subpixel shaders) */
-static bool lutCc = false;     /* what ccLut holds */
+static int lutCc = 0;           /* what ccLut holds */
 static int lutGain = -1;
-static void cc_build(bool cc, int gain) {
-	static const double m[3][3] = {
+static void cc_build(int mode, int gain) {
+	bool cc = mode != 0;
+	static const double gbaM[3][3] = {
 		{ 0.80, 0.275, -0.075 },
 		{ 0.135, 0.64, 0.225 },
 		{ 0.195, 0.155, 0.65 },
 	};
+	/* A Game Boy Color's screen (GB-8): our own first guess, not copied from anywhere: its colours
+	 * wash out and bleed into each other more than the GBA's (each row adds to 1.0, so white stays
+	 * white), through gamma 2.2 both ways, no darkening */
+	static const double gbcM[3][3] = {
+		{ 0.78, 0.18, 0.04 },
+		{ 0.10, 0.74, 0.16 },
+		{ 0.16, 0.16, 0.68 },
+	};
+	const double (*m)[3] = mode == 2 ? gbcM : gbaM;
+	double gam = mode == 2 ? 2.2 : 2.0, lum = mode == 2 ? 1.0 : 0.93, dark = mode == 2 ? 0.0 : 0.5;
 	if (!ccLut) ccLut = malloc(32768 * sizeof(uint32_t));
 	if (!ccLut) return;
 	for (int c = 0; c < 32768; ++c) {
@@ -1296,14 +1404,14 @@ static void cc_build(bool cc, int gain) {
 		for (int k = 0; k < 3; ++k) {
 			int v5 = c >> (k * 5) & 31;
 			double v = ((v5 << 3) | (v5 >> 2)) / 255.0;
-			if (cc) v = pow(v, 2.0 + 0.5) * 0.93;
+			if (cc) v = pow(v, gam + dark) * lum;
 			in[k] = v < 0 ? 0 : v > 1 ? 1 : v;
 		}
 		double o[3], top = 0;
 		for (int k = 0; k < 3; ++k) {
 			double v = cc ? m[k][0] * in[0] + m[k][1] * in[1] + m[k][2] * in[2] : in[k];
 			v = v < 0 ? 0 : v > 1 ? 1 : v;
-			o[k] = cc ? pow(v, 1.0 / 2.0) : v;
+			o[k] = cc ? pow(v, 1.0 / gam) : v;
 			if (o[k] > top) top = o[k];
 		}
 		/* brightened (the shader's stripes darken it again), all three
@@ -1318,15 +1426,15 @@ static void cc_build(bool cc, int gain) {
 		}
 		ccLut[c] = out;
 	}
-	lutCc = cc, lutGain = gain;
+	lutCc = mode, lutGain = gain;
 }
 static void cc_refresh(void) {
-	bool want = ccWant || ccGain != 100;
+	bool want = ccWant != 0 || ccGain != 100;
 	if (want && (lutCc != ccWant || lutGain != ccGain || !ccLut)) cc_build(ccWant, ccGain);
 	ccOn = want && ccLut;
 }
-void ui_color_correction(bool on) {
-	ccWant = on;
+void ui_color_correction(int mode) {
+	ccWant = mode;
 	cc_refresh();
 }
 
@@ -1356,9 +1464,17 @@ uint32_t ui_color_correct(uint32_t p) {
 	return ccLut[key] | (p & 0xFF000000u);
 }
 
+static void update_texture(SDL_Texture* t, const void* px, int pitch, bool correct);
 void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
+	update_texture(t, px, pitch, true);
+}
+/* the same for the interface's own pictures: no colour correction (it's the game's) */
+void ui_update_texture_plain(SDL_Texture* t, const void* px, int pitch) {
+	update_texture(t, px, pitch, false);
+}
+static void update_texture(SDL_Texture* t, const void* px, int pitch, bool correct) {
 	if (!t) return;
-	if (ccOn) {
+	if (ccOn && correct) {
 		/* (through the colour correction's table, alpha kept) */
 		static uint32_t* buf;
 		static size_t bufN;
@@ -1392,6 +1508,8 @@ void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
 	++texVer[slot].v;
 }
 
+static void font_text_raw(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
+
 /* Retained views (Android: both screens). A view's draw calls are recorded
  * instead of drawn, and at ui_present they're replayed only if they differ
  * from that view's last frame (same calls, same texture contents), with a
@@ -1400,7 +1518,8 @@ void ui_update_texture(SDL_Texture* t, const void* px, int pitch) {
  * showing the last picture. The second screen is drawn by the GPU into the
  * second display's window (android_second_begin/_end) or, failing that, by
  * a software renderer into views[1].surf. */
-enum { OP_IMAGE, OP_PIXELS, OP_FILL, OP_ROUND, OP_TEXT, OP_LABEL, OP_CLIP, OP_NOCLIP };
+enum { OP_IMAGE, OP_PIXELS, OP_FILL, OP_ROUND, OP_TEXT, OP_LABEL, OP_CLIP, OP_NOCLIP, OP_ROUND_TOP };
+static void fill_round_top(int screen, SDL_Rect r, SDL_Color c, int radius);
 typedef struct {
 	int kind, screen;
 	SDL_Texture* const* tex; /* per-view array, as passed in */
@@ -1514,8 +1633,9 @@ static bool sw_render(int v) {
 		case OP_PIXELS: ui_image_pixels(o->screen, o->tex, o->a, o->b, o->mode, o->d); break;
 		case OP_FILL: ui_fill(o->screen, o->r, o->col); break;
 		case OP_ROUND: ui_fill_round(o->screen, o->r, o->col, o->a); break;
+		case OP_ROUND_TOP: fill_round_top(o->screen, o->r, o->col, o->a); break;
 		case OP_TEXT: ui_text(o->screen, o->a, o->b, o->c, o->text, o->col); break;
-		case OP_LABEL: ui_font_text(o->screen, o->d & 15, o->a, o->b, o->c, o->text, o->col, (o->d >> 4) - 1); break;
+		case OP_LABEL: font_text_raw(o->screen, o->d & 15, o->a, o->b, o->c, o->text, o->col, (o->d >> 4) - 1); break;
 		case OP_CLIP: ui_clip(o->screen, &o->r); break;
 		case OP_NOCLIP: ui_clip(o->screen, NULL); break;
 		}
@@ -2205,11 +2325,240 @@ static bool file_there(const char* p) {
 	return f != NULL;
 }
 
-/* The extracted logo's file (whether it exists yet or not). */
-static void extracted_path(const Config* c, const char* code, char* path, size_t n) {
+/* The ROM file's own CRC32: the game's logo is per file for the games where
+ * romhacks share a code. Reading a whole ROM is slow (a list of fifty
+ * Pokémon ROMs read them all, again at every return to the list), so it's
+ * read only for a game whose logo is being shown (compute), kept for every
+ * file (path, size, date) in <state_dir>/romcrc.cache, and a prefetch for
+ * the others just waits until it's known. 0 if not known / not readable. */
+uint32_t doCrc32(const void* buf, size_t size);
+typedef struct { char path[600]; long long size, mtime; uint32_t crc; } FileCrc;
+#define FILE_CRC_MAX 512
+static FileCrc fileCrc[FILE_CRC_MAX];
+static int nFileCrc;
+static bool fileCrcLoaded;
+static char fileCrcPath[1200];
+static pthread_mutex_t fileCrcLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t fileCrcWake = PTHREAD_COND_INITIALIZER;
+/* (fileCrcLock held for all of these) */
+static void file_crc_load(const Config* c) {
+	if (fileCrcLoaded) return;
+	fileCrcLoaded = true;
+	snprintf(fileCrcPath, sizeof(fileCrcPath), "%s/romcrc.cache", c->stateDir);
+	FILE* f = fopen(fileCrcPath, "r");
+	if (!f) return;
+	char line[1400];
+	while (nFileCrc < FILE_CRC_MAX && fgets(line, sizeof(line), f)) {
+		FileCrc e;
+		unsigned crc;
+		int off = 0;
+		if (sscanf(line, "%lld %lld %x %n", &e.size, &e.mtime, &crc, &off) < 3 || !off) continue;
+		line[strcspn(line, "\r\n")] = 0;
+		snprintf(e.path, sizeof(e.path), "%s", line + off);
+		e.crc = crc;
+		fileCrc[nFileCrc++] = e;
+	}
+	fclose(f);
+}
+static const FileCrc* file_crc_find(const char* rom, const struct stat* st) {
+	for (int i = 0; i < nFileCrc; ++i)
+		if (fileCrc[i].size == st->st_size && fileCrc[i].mtime == st->st_mtime && !strcmp(fileCrc[i].path, rom)) return &fileCrc[i];
+	return NULL;
+}
+static bool fileCrcDirty;
+static void file_crc_put(const char* rom, const struct stat* st, uint32_t crc) {
+	FileCrc e = { .size = st->st_size, .mtime = st->st_mtime, .crc = crc };
+	snprintf(e.path, sizeof(e.path), "%s", rom);
+	int at = nFileCrc < FILE_CRC_MAX ? nFileCrc++ : 0; /* (full: the oldest slot) */
+	for (int i = 0; i < nFileCrc; ++i)
+		if (!strcmp(fileCrc[i].path, rom)) at = i; /* (the file changed: its entry again) */
+	fileCrc[at] = e;
+	if (crc) fileCrcDirty = true; /* (one that couldn't be read is remembered for this run only) */
+}
+/* The cache file, written with the lock NOT held: the list asks for checksums
+ * on the main thread, and a write to a busy SD card must not hold it up. */
+static pthread_mutex_t fileCrcWriteLock = PTHREAD_MUTEX_INITIALIZER;
+static void file_crc_flush(void) {
+	pthread_mutex_lock(&fileCrcWriteLock);
+	pthread_mutex_lock(&fileCrcLock);
+	char* text = NULL;
+	char path[sizeof(fileCrcPath)];
+	if (fileCrcDirty) {
+		fileCrcDirty = false;
+		snprintf(path, sizeof(path), "%s", fileCrcPath);
+		size_t cap = (size_t) nFileCrc * 1400 + 16, len = 0;
+		text = malloc(cap);
+		for (int i = 0; text && i < nFileCrc; ++i)
+			if (fileCrc[i].crc) len += (size_t) snprintf(text + len, cap - len, "%lld %lld %08X %s\n", fileCrc[i].size, fileCrc[i].mtime, fileCrc[i].crc, fileCrc[i].path);
+		if (text) text[len] = 0;
+	}
+	pthread_mutex_unlock(&fileCrcLock);
+	if (text) {
+		FILE* f = fopen(path, "w");
+		if (f) {
+			fputs(text, f);
+			fclose(f);
+		}
+		free(text);
+	}
+	pthread_mutex_unlock(&fileCrcWriteLock);
+}
+
+static uint32_t file_crc_read(const char* rom) {
+	size_t n = 0;
+	uint8_t* buf = emu_rom_read_all(rom, &n);
+	uint32_t crc = buf ? doCrc32(buf, n) : 0;
+	free(buf);
+	return crc;
+}
+
+/* In the game list (ui_file_crc_async) a checksum that isn't known yet is
+ * worked out on a thread of its own, the newest request first (the game under
+ * the cursor), and the list reloads its logos when one is done. Reading a
+ * 16 MB Pokemon ROM from the SD card on the main thread, as the first look at
+ * each file used to, stopped the list for a good part of a second. */
+#define FILE_CRC_QUEUE 64
+static char fileCrcQueue[FILE_CRC_QUEUE][1200];
+static int nFileCrcQueue;
+static char fileCrcBusy[1200];
+static bool fileCrcAsync, fileCrcThread;
+static volatile unsigned fileCrcGen;
+
+static void* file_crc_worker(void* arg) {
+	(void) arg;
+#ifndef __wasi__
+	setpriority(PRIO_PROCESS, (id_t) syscall(SYS_gettid), 10); /* (below the list, above the logo extraction's 19) */
+#endif
+	pthread_mutex_lock(&fileCrcLock);
+	for (;;) {
+		while (!nFileCrcQueue) pthread_cond_wait(&fileCrcWake, &fileCrcLock);
+		char rom[1200];
+		snprintf(rom, sizeof(rom), "%s", fileCrcQueue[--nFileCrcQueue]); /* (the newest) */
+		snprintf(fileCrcBusy, sizeof(fileCrcBusy), "%s", rom);
+		struct stat st;
+		bool ok = stat(rom, &st) == 0 && !file_crc_find(rom, &st);
+		pthread_mutex_unlock(&fileCrcLock);
+		uint32_t crc = ok ? file_crc_read(rom) : 0;
+		pthread_mutex_lock(&fileCrcLock);
+		if (ok) file_crc_put(rom, &st, crc);
+		fileCrcBusy[0] = 0;
+		++fileCrcGen;
+		pthread_mutex_unlock(&fileCrcLock);
+		file_crc_flush();
+		pthread_mutex_lock(&fileCrcLock);
+	}
+	return NULL;
+}
+
+void ui_file_crc_async(bool on) {
+#ifndef __wasi__
+	/* (not with GBADS_SYNC: the regression tests want it done there and then) */
+	fileCrcAsync = on && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")));
+#else
+	(void) on;
+#endif
+}
+
+uint32_t ui_file_crc_generation(void) {
+	return __atomic_load_n(&fileCrcGen, __ATOMIC_SEQ_CST);
+}
+
+bool ui_file_crc_pending(void) {
+	pthread_mutex_lock(&fileCrcLock);
+	bool p = nFileCrcQueue > 0 || fileCrcBusy[0];
+	pthread_mutex_unlock(&fileCrcLock);
+	return p;
+}
+
+/* 0 if it isn't known (compute false), or can't be read. *pending: it's being
+ * worked out (the list asked for it: ask again when ui_file_crc_generation moves). */
+static uint32_t rom_file_crc_ex(const Config* c, const char* rom, bool compute, bool* pending) {
+	struct stat st;
+	if (pending) *pending = false;
+	if (!rom || !*rom || stat(rom, &st)) return 0;
+	pthread_mutex_lock(&fileCrcLock);
+	file_crc_load(c);
+	const FileCrc* hit = file_crc_find(rom, &st);
+	if (hit) {
+		uint32_t crc = hit->crc;
+		pthread_mutex_unlock(&fileCrcLock);
+		return crc;
+	}
+	if (!compute) {
+		pthread_mutex_unlock(&fileCrcLock);
+		return 0;
+	}
+	if (fileCrcAsync) {
+		bool queued = !strcmp(fileCrcBusy, rom);
+		for (int i = 0; i < nFileCrcQueue && !queued; ++i) queued = !strcmp(fileCrcQueue[i], rom);
+		if (!queued) {
+			if (nFileCrcQueue == FILE_CRC_QUEUE) { /* (full: the oldest goes) */
+				memmove(fileCrcQueue[0], fileCrcQueue[1], sizeof(fileCrcQueue[0]) * (FILE_CRC_QUEUE - 1));
+				--nFileCrcQueue;
+			}
+			snprintf(fileCrcQueue[nFileCrcQueue++], sizeof(fileCrcQueue[0]), "%s", rom);
+		} else {
+			/* asked for again: the one under the cursor is first */
+			for (int i = 0; i < nFileCrcQueue; ++i) {
+				if (strcmp(fileCrcQueue[i], rom)) continue;
+				char tmp[1200];
+				snprintf(tmp, sizeof(tmp), "%s", fileCrcQueue[i]);
+				memmove(fileCrcQueue[i], fileCrcQueue[i + 1], sizeof(fileCrcQueue[0]) * (nFileCrcQueue - i - 1));
+				snprintf(fileCrcQueue[nFileCrcQueue - 1], sizeof(fileCrcQueue[0]), "%s", tmp);
+				break;
+			}
+		}
+		if (!fileCrcThread) {
+			pthread_t t;
+			fileCrcThread = pthread_create(&t, NULL, file_crc_worker, NULL) == 0;
+			if (fileCrcThread) pthread_detach(t);
+		}
+		if (fileCrcThread) {
+			pthread_cond_signal(&fileCrcWake);
+			pthread_mutex_unlock(&fileCrcLock);
+			if (pending) *pending = true;
+			return 0;
+		}
+		/* (no thread: now, below) */
+	}
+	pthread_mutex_unlock(&fileCrcLock);
+	uint32_t crc = file_crc_read(rom);
+	pthread_mutex_lock(&fileCrcLock);
+	if (crc) file_crc_put(rom, &st, crc);
+	pthread_mutex_unlock(&fileCrcLock);
+	file_crc_flush();
+	return crc;
+}
+static uint32_t rom_file_crc(const Config* c, const char* rom, bool compute) {
+	return rom_file_crc_ex(c, rom, compute, NULL);
+}
+
+/* The extracted logo's file (whether it exists yet or not): per code, or
+ * (profile logoPerRom) per ROM file, so romhacks that share a code each
+ * get their own; a patched game is its base ROM file, so it has the base's.
+ * False when the ROM file's checksum isn't known yet and isn't being asked
+ * for (compute): nothing to look for, or make, yet. */
+static bool extracted_path_for(const Config* c, const char* rom, const char* code, char* path, size_t n, bool compute) {
 	const MapProfile* prof = profile_find(code);
+	if (prof && prof->logoPerRom) {
+		bool pending;
+		uint32_t crc = rom_file_crc_ex(c, rom, compute, &pending);
+		if (crc) {
+			snprintf(path, n, "%s/logos/%.4s-%08X.png", c->stateDir, code, crc);
+			return true;
+		}
+		if (pending) { /* (the game list: the checksum's being worked out; no path yet) */
+			path[0] = 0;
+			return false;
+		}
+		if (!compute) return false;
+	}
 	if (prof && prof->logo.rev) snprintf(path, n, "%s/logos/%.4s-r%d.png", c->stateDir, code, prof->logo.rev);
 	else snprintf(path, n, "%s/logos/%.4s.png", c->stateDir, code);
+	return true;
+}
+static void extracted_path(const Config* c, const char* rom, const char* code, char* path, size_t n) {
+	extracted_path_for(c, rom, code, path, n, true);
 }
 
 /* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg|.webp. */
@@ -2407,9 +2756,9 @@ static bool scrapedProvisional;
  * 1); otherwise LOGO_SUB pixels per GBA pixel, the same size on the screen. */
 #define LOGO_BOX_W 224
 #define LOGO_BOX_H 64
-static SDL_Surface* sized_surface(const Config* c, const char* src, const char* code, int* sub) {
+static SDL_Surface* sized_surface(const Config* c, const char* rom, const char* src, const char* code, int* sub) {
 	char ref[1200];
-	extracted_path(c, code, ref, sizeof(ref));
+	extracted_path(c, rom, code, ref, sizeof(ref));
 	int refH = 0;
 	SDL_Surface* r = image_load(ref);
 	if (r) refH = r->h, SDL_FreeSurface(r);
@@ -2449,11 +2798,61 @@ static SDL_Surface* sized_surface(const Config* c, const char* src, const char* 
 	return SDL_DuplicateSurface(o);
 }
 
+/* A screen of two lines on every screen (a start-up that would otherwise look
+ * like a hang); not in the regression tests (GBADS_SYNC). */
+void ui_notice(const char* title, const char* line) {
+	if (getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC"))) return;
+	ui_events(); /* (keeps the system from thinking the app has hung) */
+	ui_clear();
+	for (int scr = 0; scr < nScreens; ++scr) {
+		SDL_Rect r = screens[scr].rect;
+		float px = ui_px(scr);
+		ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, ui_accent_color(AC_BG));
+		ui_label(scr, r.w / 2, r.h / 2 - px * 6, px * 6, title, (SDL_Color) { 236, 236, 244, 255 });
+		if (line && *line) ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 8, px * 4, line, (SDL_Color) { 140, 140, 172, 255 }, 0);
+	}
+	ui_present();
+	ui_events();
+}
+
+/* A game about to start whose logo is its own file's (profile logoPerRom) needs the
+ * ROM file's checksum, which is read once and kept (romcrc.cache). Left to the first
+ * frames it froze the game for seconds (the whole file read and summed from the SD
+ * card), so it's done here, with a screen saying so, before the game starts. */
+void ui_game_prepare(const Config* c, const char* rom) {
+	uint8_t h[EMU_HEADER_MAX];
+	char code[5];
+	if (!rom || !emu_rom_header(rom, h, sizeof(h)) || !emu_rom_code(h, sizeof(h), code)) return;
+	const MapProfile* prof = profile_find(code);
+	if (!prof || !prof->logoPerRom) return;
+	/* what the first start of a ROM file has to do: sum the file (above), and
+	 * extract its logo (a hidden copy of the game run to its title screen: seconds
+	 * of CPU on the device, which, done beside the running game, froze it) */
+	bool needCrc = !rom_file_crc(c, rom, false);
+	char logoFile[1200] = "";
+	bool needLogo = false;
+	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+	if (!needCrc && !needLogo) return;
+	ui_notice("Initializing game...", tr("Only the first time for each game"));
+	if (needCrc) {
+		fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
+		rom_file_crc(c, rom, true);
+		if (ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+	}
+	if (needLogo && logoFile[0]) {
+		char dir[1200];
+		snprintf(dir, sizeof(dir), "%s/logos", c->stateDir);
+		mkdirs(dir);
+		fprintf(stderr, "initializing %s: extracting its logo\n", rom);
+		logo_extract(rom, code, logoFile);
+	}
+}
+
 void ui_logo_queue(const Config* c, const char* rom, const char* code) {
 	char path[1200];
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
-	extracted_path(c, code, path, sizeof(path));
+	if (!extracted_path_for(c, rom, code, path, sizeof(path), false)) return; /* (its checksum isn't known yet) */
 	if (!file_there(path)) logo_request(rom, code, path);
 }
 
@@ -2485,7 +2884,7 @@ int ui_logo_source(const Config* c, const char* rom, const char* code, char* pat
 			logo_note("the game's own: nothing in %s (%d images) named after %s, and no logos/%.4s.png", c->logoFolder,
 			          logoDir.n, base ? base + 1 : rom ? rom : "?", code);
 	} else logo_note("the game's own (no logos/%.4s.png, logo_folder not set)", code);
-	extracted_path(c, code, path, n);
+	extracted_path(c, rom, code, path, n);
 	return LOGO_EXTRACTED;
 }
 
@@ -2502,12 +2901,12 @@ SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code,
 	scrapedProvisional = false;
 	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
 		/* the player's own or a scraped logo, as tall as the extracted one (GEN-11) */
-		SDL_Surface* s = sized_surface(c, path, code, sub);
+		SDL_Surface* s = sized_surface(c, rom, path, code, sub);
 		if (s) {
 			*pixelArt = *sub == 1;
 			return s;
 		}
-		extracted_path(c, code, path, sizeof(path));
+		extracted_path(c, rom, code, path, sizeof(path));
 	}
 	*pixelArt = true;
 	return image_load(path);
@@ -2520,12 +2919,16 @@ bool ui_load_logo(const Config* c, const char* rom, const char* code, SDL_Textur
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
 	char ext[1200];
-	extracted_path(c, code, ext, sizeof(ext));
+	extracted_path(c, rom, code, ext, sizeof(ext));
+	if (!ext[0]) { /* (its ROM's checksum is still being worked out: asked again when it's known) */
+		*pixelArt = true;
+		return false;
+	}
 	/* the player's own logo, else a scraped one: sized from the extracted
 	 * one (made if missing) */
 	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
 		int sub = 1;
-		SDL_Surface* s = sized_surface(c, path, code, &sub);
+		SDL_Surface* s = sized_surface(c, rom, path, code, &sub);
 		if (s) {
 			if (scrapedProvisional && rom) logo_request(rom, code, ext);
 			*pixelArt = sub == 1;
@@ -2598,7 +3001,7 @@ bool ui_screenshot_stacked(const char* pngPath) {
 void ui_osd(const char* fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(osdText, sizeof(osdText), fmt, ap);
+	vsnprintf(osdText, sizeof(osdText), tr(fmt), ap);
 	va_end(ap);
 	osdUntil = ticks + 120;
 }
@@ -2606,7 +3009,7 @@ void ui_osd(const char* fmt, ...) {
 void ui_osd_long(const char* fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(osdText, sizeof(osdText), fmt, ap);
+	vsnprintf(osdText, sizeof(osdText), tr(fmt), ap);
 	va_end(ap);
 	osdUntil = ticks + 300;
 }
@@ -2679,6 +3082,38 @@ void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
 	SDL_Rect dst[4] = { { ox, oy, radius, radius }, { ox + r.w - radius, oy, radius, radius },
 		                { ox, oy + r.h - radius, radius, radius }, { ox + r.w - radius, oy + r.h - radius, radius, radius } };
 	for (int i = 0; i < 4; ++i) SDL_RenderCopy(views[s->view].ren, t, &src[i], &dst[i]);
+}
+
+/* The top r.h rows of a rounded rectangle whose corners have the full radius
+ * even where r.h is less than twice it (ui_fill_round would shrink the radius
+ * to fit: a short strip's corners came out nearly square). The bottom is
+ * left square, for a strip that is laid over a body drawn rounded already. */
+static void fill_round_top(int screen, SDL_Rect r, SDL_Color c, int radius) {
+	RECORD(screen, OP_ROUND_TOP) {
+		o->r = r, o->col = c, o->a = radius;
+		return;
+	}
+	radius = SDL_min(radius, r.w / 2);
+	if (radius <= 0 || r.h <= 0) {
+		ui_fill(screen, r, c);
+		return;
+	}
+	int zone = SDL_min(r.h, radius); /* the rows that have a corner in them */
+	ui_fill(screen, (SDL_Rect) { r.x + radius, r.y, r.w - 2 * radius, r.h }, c);
+	if (r.h > radius) {
+		ui_fill(screen, (SDL_Rect) { r.x, r.y + radius, radius, r.h - radius }, c);
+		ui_fill(screen, (SDL_Rect) { r.x + r.w - radius, r.y + radius, radius, r.h - radius }, c);
+	}
+	Screen* s = &screens[screen];
+	SDL_Texture* t = disc_texture(s->view);
+	if (!t) return;
+	SDL_SetTextureColorMod(t, c.r, c.g, c.b);
+	SDL_SetTextureAlphaMod(t, c.a);
+	int h = DISC / 2, sh = SDL_max(1, h * zone / radius);
+	SDL_Rect src[2] = { { 0, 0, h, sh }, { h, 0, h, sh } };
+	int ox = s->rect.x + r.x, oy = s->rect.y + r.y;
+	SDL_Rect dst[2] = { { ox, oy, radius, zone }, { ox + r.w - radius, oy, radius, zone } };
+	for (int i = 0; i < 2; ++i) SDL_RenderCopy(views[s->view].ren, t, &src[i], &dst[i]);
 }
 
 
@@ -2830,24 +3265,33 @@ static SDL_Color key_text_color(int screen, int x, int y, SDL_Color c) {
 	return c;
 }
 
+/* A key's colours: its border, the rim inside it, the top and bottom of the
+ * body, the edge under it and (selected keys) the ring round it. */
+void ui_key_palette(int state, SDL_Color* border, SDL_Color* rim, SDL_Color* hi, SDL_Color* lo, SDL_Color* edge, SDL_Color* ring) {
+	*ring = ui_accent_color(AC_SEL_RING);
+	if (state == KEY_SEL) {
+		*border = *rim = ui_accent_color(AC_SEL_BORDER);
+		*hi = ui_accent_color(AC_SEL_HI), *lo = ui_accent_color(AC_SEL_LO), *edge = ui_accent_color(AC_SEL_EDGE);
+	} else if (state == KEY_LIT) {
+		*border = *rim = ui_accent_color(AC_LIT_BORDER);
+		*hi = ui_accent_color(AC_LIT_HI), *lo = ui_accent_color(AC_LIT_LO), *edge = ui_accent_color(AC_LIT_EDGE);
+	} else if (themeLight) {
+		*border = (SDL_Color) { 171, 173, 181, 255 }, *rim = *border;
+		*hi = (SDL_Color) { 222, 223, 228, 255 }, *lo = (SDL_Color) { 190, 192, 199, 255 }, *edge = (SDL_Color) { 141, 143, 152, 255 };
+	} else {
+		*border = (SDL_Color) { 12, 12, 16, 255 }, *rim = (SDL_Color) { 94, 95, 107, 255 };
+		*hi = (SDL_Color) { 66, 67, 76, 255 }, *lo = (SDL_Color) { 44, 45, 52, 255 }, *edge = (SDL_Color) { 5, 5, 8, 255 };
+	}
+}
+
 void ui_key(int screen, SDL_Rect r, int radius, int state) {
 	inKey = true;
 	int lift = SDL_max(2, SDL_min(r.h / 14, 5));
-	SDL_Color border, rim, hi, lo, edge;
+	SDL_Color border, rim, hi, lo, edge, ring;
+	ui_key_palette(state, &border, &rim, &hi, &lo, &edge, &ring);
 	if (state == KEY_SEL) {
-		border = rim = ui_accent_color(AC_SEL_BORDER);
-		hi = ui_accent_color(AC_SEL_HI), lo = ui_accent_color(AC_SEL_LO), edge = ui_accent_color(AC_SEL_EDGE);
 		int e = SDL_max(2, lift);
-		ui_fill_round(screen, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 + lift }, ui_accent_color(AC_SEL_RING), radius + e);
-	} else if (state == KEY_LIT) {
-		border = rim = ui_accent_color(AC_LIT_BORDER);
-		hi = ui_accent_color(AC_LIT_HI), lo = ui_accent_color(AC_LIT_LO), edge = ui_accent_color(AC_LIT_EDGE);
-	} else if (themeLight) {
-		border = (SDL_Color) { 171, 173, 181, 255 }, rim = border;
-		hi = (SDL_Color) { 222, 223, 228, 255 }, lo = (SDL_Color) { 190, 192, 199, 255 }, edge = (SDL_Color) { 141, 143, 152, 255 };
-	} else {
-		border = (SDL_Color) { 12, 12, 16, 255 }, rim = (SDL_Color) { 94, 95, 107, 255 };
-		hi = (SDL_Color) { 66, 67, 76, 255 }, lo = (SDL_Color) { 44, 45, 52, 255 }, edge = (SDL_Color) { 5, 5, 8, 255 };
+		ui_fill_round(screen, (SDL_Rect) { r.x - e, r.y - e, r.w + e * 2, r.h + e * 2 + lift }, ring, radius + e);
 	}
 	/* the edge under the key, then the key: border, rim, the body in two tones, a highlight along the top */
 	ui_fill_round(screen, (SDL_Rect) { r.x, r.y + lift, r.w, r.h }, edge, radius);
@@ -2861,7 +3305,9 @@ void ui_key(int screen, SDL_Rect r, int radius, int state) {
 	int bh = r.h - (in + 1) * 2, bx = r.x + in + 1, by = r.y + in + 1, bw = r.w - (in + 1) * 2;
 	for (int i = 1; i <= 6; ++i) {
 		SDL_Color m = { (lo.r * (6 - i) + hi.r * i) / 6, (lo.g * (6 - i) + hi.g * i) / 6, (lo.b * (6 - i) + hi.b * i) / 6, 255 };
-		ui_fill_round(screen, (SDL_Rect) { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 }, m, SDL_max(1, radius - in - 1));
+		SDL_Rect band = { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 };
+		/* (a short band keeps the body's corner radius: ui_fill_round would shrink it to fit the band's height, and its corners came out nearly square over the rounded body, plain on a lit key) */
+		fill_round_top(screen, band, m, SDL_max(1, radius - in - 1));
 	}
 	inKey = false;
 	key_add(screen, r, state == KEY_PLAIN);
@@ -2955,10 +3401,12 @@ static int text_width(int font, int capPx, const char* text) {
 }
 
 int ui_font_width(int font, int capPx, const char* text) {
-	return text_width(font, capPx, text);
+	return text_width(font, capPx, tr(text));
 }
 
-void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
+/* Text as it is: ui_font_text (what the interface says: translated) and
+ * ui_title_block (a game's title: the player's own) both end here. */
+static void font_text_raw(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
 	if (!text || !text[0] || capPx <= 0) return;
 	c = key_text_color(screen, x, cy, c);
 	RECORD(screen, OP_LABEL) {
@@ -2978,6 +3426,21 @@ void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* te
 	SDL_RenderCopy(views[s->view].ren, e->tex, NULL, &dst);
 }
 
+void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
+	font_text_raw(screen, font, x, cy, capPx, tr(text), c, align);
+}
+
+/* The language changed (i18n_set): the pictures and widths of the old text are
+ * dropped, and the fonts the new language's script needs are the fallbacks. */
+void ui_language_changed(void) {
+	text_cache_drop();
+	for (int i = 0; i < WIDTH_CACHE; ++i) {
+		free(widthCache[i].text);
+		memset(&widthCache[i], 0, sizeof(widthCache[i]));
+	}
+	tf_fallback_for_script(i18n_script());
+}
+
 void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL_Color c) {
 	if (!text || !text[0] || area.w <= 0 || area.h <= 0) return;
 	/* one line if it fits at a good size, else the break that leaves the
@@ -2988,7 +3451,7 @@ void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL
 	for (int i = 1; one[i]; ++i) {
 		if (one[i] != ' ') continue;
 		snprintf(two[0], sizeof(two[0]), "%.*s", i, one);
-		int w = SDL_max(ui_font_width(TF_BOLD, 100, two[0]), ui_font_width(TF_BOLD, 100, one + i + 1));
+		int w = SDL_max(text_width(TF_BOLD, 100, two[0]), text_width(TF_BOLD, 100, one + i + 1));
 		if (best < 0 || w < bestW) best = i, bestW = w;
 	}
 	/* a subtitle after a colon goes on its own line */
@@ -2996,28 +3459,28 @@ void ui_title_block(int screen, SDL_Rect area, const char* text, int capMax, SDL
 	if (colon) {
 		best = (int) (colon - one) + 1;
 		snprintf(two[0], sizeof(two[0]), "%.*s", best, one);
-		bestW = SDL_max(ui_font_width(TF_BOLD, 100, two[0]), ui_font_width(TF_BOLD, 100, one + best + 1));
+		bestW = SDL_max(text_width(TF_BOLD, 100, two[0]), text_width(TF_BOLD, 100, one + best + 1));
 	}
-	int oneW = ui_font_width(TF_BOLD, 100, one);
+	int oneW = text_width(TF_BOLD, 100, one);
 	/* capitals at most capMax, a line's width at most the area's; two lines
 	 * need 3.2 capitals of height */
 	int capOne = SDL_min(capMax, SDL_min(area.w * 100 / SDL_max(1, oneW), area.h * 10 / 18));
 	int capTwo = best < 0 ? 0 : SDL_min(capMax, SDL_min(area.w * 100 / SDL_max(1, bestW), area.h * 10 / 32));
 	int cx = area.x + area.w / 2, cy = area.y + area.h / 2;
 	if (capOne >= capTwo * 9 / 10 || best < 0) {
-		ui_font_text(screen, TF_BOLD, cx, cy, capOne, one, c, 0);
+		font_text_raw(screen, TF_BOLD, cx, cy, capOne, one, c, 0);
 		return;
 	}
 	snprintf(two[0], sizeof(two[0]), "%.*s", best, one);
 	snprintf(two[1], sizeof(two[1]), "%s", one + best + 1);
 	int gap = capTwo * 8 / 10;
-	ui_font_text(screen, TF_BOLD, cx, cy - (capTwo + gap) / 2, capTwo, two[0], c, 0);
-	ui_font_text(screen, TF_BOLD, cx, cy + (capTwo + gap) / 2, capTwo, two[1], c, 0);
+	font_text_raw(screen, TF_BOLD, cx, cy - (capTwo + gap) / 2, capTwo, two[0], c, 0);
+	font_text_raw(screen, TF_BOLD, cx, cy + (capTwo + gap) / 2, capTwo, two[1], c, 0);
 }
 
 int ui_label_width(int screen, int capPx, const char* text) {
 	(void) screen;
-	return text_width(TF_BOLD, capPx, text);
+	return text_width(TF_BOLD, capPx, tr(text));
 }
 
 void ui_label(int screen, int cx, int cy, int capPx, const char* text, SDL_Color c) {
@@ -3028,18 +3491,67 @@ int ui_font_wrap(int screen, int font, int x, int y, int width, int capPx, const
 	return ui_font_wrap_around(screen, font, x, y, width, capPx, text, c, INT_MAX, width);
 }
 
+/* Line breaking: a Latin word is one piece, a Chinese character (with the closing punctuation that
+ * may not start a line after it, and an opening mark with the character it opens) is one piece. */
+static int utf8_cp(const char* p, int* len) {
+	unsigned char c = (unsigned char) p[0];
+	int n = c < 0x80 ? 1 : c < 0xE0 ? 2 : c < 0xF0 ? 3 : 4, cp = n == 1 ? c : c & (0xFF >> (n + 1));
+	for (int i = 1; i < n; ++i) {
+		if (!p[i]) { n = i; break; }
+		cp = cp << 6 | (p[i] & 0x3F);
+	}
+	*len = n;
+	return cp;
+}
+static bool cp_cjk(int cp) { return (cp >= 0x2E80 && cp <= 0xA4CF) || (cp >= 0xF900 && cp <= 0xFAFF) || (cp >= 0xFE30 && cp <= 0xFE4F) || (cp >= 0xFF00 && cp <= 0xFFEF); }
+static bool cp_no_start(int cp) { /* closing and sentence punctuation, which stays with the character before */
+	switch (cp) {
+		case 0x3001: case 0x3002: case 0xFF0C: case 0xFF0E: case 0xFF1A: case 0xFF1B: case 0xFF1F: case 0xFF01: case 0xFF09:
+		case 0x3009: case 0x300B: case 0x300D: case 0x300F: case 0x3011: case 0x2026: case 0x2014: case 0xFF05: case 0x30FC:
+		case 0x201D: case 0x2019: case 0x00B7: case 0x203A:
+		/* Japanese: the long-vowel mark, the middle dot and the small kana stay with the kana before them */
+		case 0x30FB: case 0x3041: case 0x3043: case 0x3045: case 0x3047: case 0x3049: case 0x3063: case 0x3083: case 0x3085:
+		case 0x3087: case 0x308E: case 0x30A1: case 0x30A3: case 0x30A5: case 0x30A7: case 0x30A9: case 0x30C3: case 0x30E3:
+		case 0x30E5: case 0x30E7: case 0x30EE: case 0x301C:
+			return true;
+	}
+	return false;
+}
+static bool cp_no_end(int cp) { /* opening marks, which stay with the character after */
+	return cp == 0xFF08 || cp == 0x3008 || cp == 0x300A || cp == 0x300C || cp == 0x300E || cp == 0x3010 || cp == 0x201C || cp == 0x2018;
+}
+static int piece_end(const char* p, int n) {
+	int len, cp = utf8_cp(p + n, &len);
+	int e = n;
+	if (cp_cjk(cp) || cp_no_end(cp)) {
+		e = n + len;
+		while (p[e]) { /* closing marks join; an opening mark needs the next character too */
+			int l2, c2 = utf8_cp(p + e, &l2);
+			if (cp_no_start(c2)) e += l2;
+			else if (cp_no_end(cp) && cp_cjk(c2) && e == n + len) { e += l2; cp = 0; }
+			else break;
+		}
+		return e;
+	}
+	while (p[e] && p[e] != ' ') {
+		int l2, c2 = utf8_cp(p + e, &l2);
+		if (e > n && cp_cjk(c2) && !cp_no_start(c2)) break; /* a Latin word ends where Chinese starts */
+		e += l2;
+	}
+	return e;
+}
+
 static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, const char* text, SDL_Color c, int narrowY, int narrowW, bool draw) {
 	int lineH = capPx * 2, fullW = width;
 	char line[512];
-	const char* p = text;
+	const char* p = tr(text); /* (the lines below are drawn as they are) */
 	while (*p) {
 		/* a line whose box reaches the one on the right is narrower */
 		width = y + lineH > narrowY ? narrowW : fullW;
 		/* as many words as fit */
 		int n = 0, fit = 0;
 		while (p[n]) {
-			int e = n;
-			while (p[e] && p[e] != ' ') ++e;
+			int e = piece_end(p, n);
 			if (e >= (int) sizeof(line)) break;
 			memcpy(line, p, e);
 			line[e] = 0;
@@ -3050,7 +3562,7 @@ static int wrap_impl(int screen, int font, int x, int y, int width, int capPx, c
 		}
 		if (!fit) fit = n ? n : (int) strlen(p);
 		snprintf(line, sizeof(line), "%.*s", fit, p);
-		if (draw) ui_font_text(screen, font, x, y + capPx / 2, capPx, line, c, -1);
+		if (draw) font_text_raw(screen, font, x, y + capPx / 2, capPx, line, c, -1);
 		y += lineH;
 		p += fit;
 		while (*p == ' ') ++p;

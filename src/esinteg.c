@@ -1,4 +1,5 @@
 #include "esinteg.h"
+#include "i18n.h"
 
 #include <errno.h>
 #include <limits.h>
@@ -167,13 +168,13 @@ bool es_present(const Config* cfg) {
 static bool install(const Config* cfg, char* msg, size_t msgSize) {
 	char dir[600];
 	if (!app_dir(dir, sizeof(dir))) {
-		snprintf(msg, msgSize, "Can't find the GBA DS folder.");
+		snprintf(msg, msgSize, tr("Can't find the GBA DS folder."));
 		return false;
 	}
 	char src[700];
 	char* xml = read_es_systems(cfg, src, sizeof(src));
 	if (!xml) {
-		snprintf(msg, msgSize, "No es_systems.cfg found.");
+		snprintf(msg, msgSize, tr("No es_systems.cfg found."));
 		return false;
 	}
 	const char *sys, *sysEnd;
@@ -187,7 +188,7 @@ static bool install(const Config* cfg, char* msg, size_t msgSize) {
 	const char* run = cmd ? strstr(cmd, RUNEMU) : NULL;
 	if (!cmd || !emus || !run || run >= cmd + cmdLen) {
 		fprintf(stderr, "es: no usable gba system in %s\n", src);
-		snprintf(msg, msgSize, "Unexpected es_systems.cfg (see the log).");
+		snprintf(msg, msgSize, tr("Unexpected es_systems.cfg (see the log)."));
 		free(xml);
 		return false;
 	}
@@ -255,12 +256,12 @@ static bool install(const Config* cfg, char* msg, size_t msgSize) {
 	free(out);
 	if (!ok) {
 		fprintf(stderr, "es: writing %s: %s\n", cfgPath, strerror(errno));
-		snprintf(msg, msgSize, "Couldn't write to %s.", cfg->esConfigDir);
+		snprintf(msg, msgSize, tr("Couldn't write to %s."), cfg->esConfigDir);
 		unlink(cfgPath);
 		return false;
 	}
 	fprintf(stderr, "es: wrote %s and %s (from %s)\n", cfgPath, script, src);
-	snprintf(msg, msgSize, "On. Restart EmulationStation to see it.");
+	snprintf(msg, msgSize, tr("On. Restart EmulationStation to see it."));
 	return true;
 }
 
@@ -271,7 +272,7 @@ bool es_integration_set(const Config* cfg, bool on, char* msg, size_t msgSize) {
 	bool ok = unlink(p) == 0 || errno == ENOENT;
 	join(p, sizeof(p), cfg->esConfigDir, SCRIPT_NAME);
 	unlink(p);
-	snprintf(msg, msgSize, ok ? "Off. Restart EmulationStation to apply." : "Couldn't remove the setting file.");
+	snprintf(msg, msgSize, ok ? tr("Off. Restart EmulationStation to apply."): tr("Couldn't remove the setting file."));
 	return ok;
 }
 
@@ -327,7 +328,7 @@ static bool gba_run_line(const char* t, const char** start, const char** end) {
 static bool banana_on(char* msg, size_t msgSize) {
 	char dir[600];
 	if (!app_dir(dir, sizeof(dir))) {
-		snprintf(msg, msgSize, "Couldn't find GBA DS's folder.");
+		snprintf(msg, msgSize, tr("Couldn't find GBA DS's folder."));
 		return false;
 	}
 	bool copy = access(BANANA_USER, F_OK) != 0;
@@ -335,7 +336,7 @@ static bool banana_on(char* msg, size_t msgSize) {
 	const char *a, *b;
 	if (!t || !gba_run_line(t, &a, &b)) {
 		free(t);
-		snprintf(msg, msgSize, "BananaOS's systems list has no Game Boy Advance entry.");
+		snprintf(msg, msgSize, tr("BananaOS's systems list has no Game Boy Advance entry."));
 		return false;
 	}
 	/* the original run line, kept as a comment, then GBA DS's: its script
@@ -373,11 +374,11 @@ static bool banana_on(char* msg, size_t msgSize) {
 	free(out);
 	free(t);
 	if (!ok) {
-		snprintf(msg, msgSize, "Couldn't write %s.", BANANA_USER);
+		snprintf(msg, msgSize, tr("Couldn't write %s."), BANANA_USER);
 		return false;
 	}
 	fprintf(stderr, "banana: GBA DS set for the Game Boy Advance list in %s\n", BANANA_USER);
-	snprintf(msg, msgSize, "On. Restart BananaOS (Settings > System) for its menu to use it.");
+	snprintf(msg, msgSize, tr("On. Restart BananaOS (Settings > System) for its menu to use it."));
 	return true;
 }
 
@@ -385,7 +386,7 @@ static bool banana_off(char* msg, size_t msgSize) {
 	char* t = read_file(BANANA_USER);
 	if (!t || !strstr(t, BANANA_MARK)) {
 		free(t);
-		snprintf(msg, msgSize, "Off.");
+		snprintf(msg, msgSize, tr("Off."));
 		return true;
 	}
 	/* "# gba-ds: run = ORIG" + the "run = ..." after it -> "run = ORIG" */
@@ -418,14 +419,14 @@ static bool banana_off(char* msg, size_t msgSize) {
 	free(def);
 	free(out);
 	free(t);
-	snprintf(msg, msgSize, ok ? "Off. Restart BananaOS (Settings > System) for its menu to use it." : "Couldn't change %s.",
+	snprintf(msg, msgSize, ok ? tr("Off. Restart BananaOS (Settings > System) for its menu to use it."): tr("Couldn't change %s."),
 	         BANANA_USER);
 	return ok;
 }
 
 bool banana_integration_set(bool on, char* msg, size_t msgSize) {
 	if (on && banana_integration_on()) {
-		snprintf(msg, msgSize, "On.");
+		snprintf(msg, msgSize, tr("On."));
 		return true;
 	}
 	return on ? banana_on(msg, msgSize) : banana_off(msg, msgSize);

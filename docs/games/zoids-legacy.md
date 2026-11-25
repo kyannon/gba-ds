@@ -6,6 +6,7 @@
 | Dumps | `AZ2E` cartridge `302e75f3` (tested) · `AZ2J` cartridge `0c039503` (tested) |
 | Profile | `src/profiles.c`: the `AZ2E` entry (zl_virt); variant `AZ2J` (its RAM and routines elsewhere: zlRegions) |
 | Tests | `tests/regress/zoids-legacy.json` (`tools/regress.py zoids-legacy`) |
+| Toggle | `none`: the map (ZL-1) is opened only walking about and a Zoid's Status (ZL-8) only in a battle, so there is never a second view to turn to · GEN-14 |
 | Status | supported |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list zoids-legacy`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.

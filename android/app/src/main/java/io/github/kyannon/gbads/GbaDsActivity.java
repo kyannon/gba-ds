@@ -25,6 +25,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -55,6 +57,37 @@ public class GbaDsActivity extends SDLActivity {
      * {@link GbaDsHereActivity}): the launcher sends a new request to it,
      * in its task, rather than starting a second one. */
     static volatile GbaDsActivity running;
+
+    /**
+     * SDL turns a gamepad's BACK key into the controller button it calls
+     * "back", which is also what SELECT is, so a handheld with both keys (the
+     * AYN Thor) gives the game one button for the two: Back counted as Select
+     * (a hotkey remap took it for Select; in a game it pressed Select). When
+     * the pad has a Select key of its own, Back is sent on as the keyboard
+     * Back key instead, which the native side reads as HOME (ui.c). A pad with
+     * only one of the two keeps SDL's way.
+     */
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && padHasBackAndSelect(event)) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
+                SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_BACK);
+            } else if (event.getAction() == KeyEvent.ACTION_UP) {
+                SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_BACK);
+            }
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private static boolean padHasBackAndSelect(KeyEvent event) {
+        InputDevice d = event.getDevice();
+        if (d == null) return false;
+        int pad = InputDevice.SOURCE_GAMEPAD | InputDevice.SOURCE_JOYSTICK | InputDevice.SOURCE_DPAD;
+        if ((d.getSources() & pad) == 0) return false; /* (the system's own Back key and a mouse's are left alone) */
+        boolean[] has = d.hasKeys(KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_SELECT);
+        return has.length == 2 && has[0] && has[1];
+    }
 
     @Override
     protected void onCreate(Bundle state) {
@@ -333,16 +366,29 @@ public class GbaDsActivity extends SDLActivity {
         DisplayManager dm = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
         int mine = getWindowManager().getDefaultDisplay().getDisplayId();
         Display other = null;
+        /* Every display goes to launch.log (a USB-C screen such as the Retroid
+         * Dual Screen Add-on on an AYN Odin 2 may be listed with other flags
+         * or states than a built-in one, issue #65), then the one to use is
+         * chosen: not this activity's, and of those the one Android marks for
+         * presentations first, then one that is on, then the first. */
+        int bestScore = -1;
         for (Display d : dm.getDisplays()) {
             Point size = new Point();
             d.getRealSize(size);
-            Log.i(TAG, "display " + d.getDisplayId() + " \"" + d.getName() + "\" " + size.x + "x" + size.y
-                    + " rotation " + d.getRotation() + " flags 0x" + Integer.toHexString(d.getFlags())
+            int flags = d.getFlags();
+            LauncherActivity.launchLog(this, "display " + d.getDisplayId() + " \"" + d.getName() + "\" " + size.x + "x" + size.y
+                    + " rotation " + d.getRotation() + " flags 0x" + Integer.toHexString(flags)
+                    + ((flags & Display.FLAG_PRESENTATION) != 0 ? " (presentation)" : "") + " state " + d.getState()
                     + (d.getDisplayId() == mine ? " (game activity)" : ""));
-            if (d.getDisplayId() != mine && other == null) other = d;
+            if (d.getDisplayId() == mine) continue;
+            int score = ((flags & Display.FLAG_PRESENTATION) != 0 ? 2 : 0) + (d.getState() == Display.STATE_ON ? 1 : 0);
+            if (score > bestScore) {
+                bestScore = score;
+                other = d;
+            }
         }
         if (other == null) {
-            Log.i(TAG, "only one display: no second screen");
+            LauncherActivity.launchLog(this, "only one display: no second screen");
             return;
         }
         Point size = new Point();
@@ -358,7 +404,7 @@ public class GbaDsActivity extends SDLActivity {
         second = new SecondScreen(this, other);
         try {
             second.show();
-            Log.i(TAG, "second screen on display " + other.getDisplayId() + " (" + size.x + "x" + size.y + ")");
+            LauncherActivity.launchLog(this, "second screen on display " + other.getDisplayId() + " (" + size.x + "x" + size.y + ")");
         } catch (WindowManager.InvalidDisplayException e) {
             Log.e(TAG, "second screen: " + e);
             SecondScreen.nativeSetDisplay(0, 0);

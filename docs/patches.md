@@ -61,6 +61,7 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Final Fantasy VI Advance | `BZ6J` | Color restoration: monster (optional) | colour | ff6_gba_jue_color_restoration_monster.ips | 1150 | `452e75de` |  |  |  |
 | Final Fantasy VI Advance | `BZ6E` | Color restoration: monster (optional) | colour | ff6_gba_jue_color_restoration_monster.ips | 1150 | `452e75de` |  |  |  |
 | Final Fight One | `AFFJ` | Redux Edition | colour | Final Fight One - Redux Edition.ips | 213089 | `62445f39` | `c9e5e223` |  |  |
+| Pokémon FireRed | `BPRE` | FRLG+ 1.5.1 | romhack | frlgPlus.bps | 1549850 | `822a852b` | `dd88761c` | `964763c0` | yes (the Party and the Town Map; the Bag's pockets wrap round, found by their tab) |
 | The Lost Vikings | `ALVP` | Palette restoration v1.0 | colour | Lost Vikings, The (Europe) (En,Fr,De,Es) Palette Restoration v1_0.ips | 3485 | `c4356eb6` | `1c008d32` |  |  |
 | Mother 1+2 | `A2UJ` | English v1.01 | translation | mother12.ips | 165587 | `4e04ba9e` | `0a44569c` |  |  |
 | Mother 3 | `A3UJ` | English v1.3a (fan translation) | translation | mother3_1.3a.ups | 1547180 | `d849ce95` | `42ac9cb9` | `e73b0f7d` | yes |
@@ -79,6 +80,7 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Mother 3 | `A3UJ` | Dutch (fan translation) | translation | MOTHER_3_Dutch.xdelta | 451837 | `d3ee6bc5` | `42ac9cb9` | `8b74324c` | yes |
 | Fire Emblem: Fuuin no Tsurugi | `AFEJ` | English (Dark Twilkitri) | translation | fe6.ips | 610179 | `5befafab` | `d38763e1` |  |  |
 | Fire Emblem: Fuuin no Tsurugi | `AFEJ` | English v1.2.1 (FE6 Localization fan translation) | translation | FE6Localization_v1.2.1.ups | 914642 | `625aeade` | `d38763e1` | `197de10b` | yes |
+| F-Zero Climax | `BFTJ` | English Patch 1.1 (F-Zero Climax Translation Project) | translation | F-Zero Climax English Patch 1.1.ips | 246104 | `4eb16ff2` | `dbdc71e3` | `80366a0a` | yes: the race HUD is the Japanese game's, its own logo (FZC-9) |
 | Rhythm Tengoku | `BRIJ` | Rhythm Heaven Silver beta 13a | translation | Rhythm.Heaven.Silver.-.Beta.13a.ips | 339033 | `be54e107` | `349d7025` |  |  |
 | Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA)_GBPPalette.ips | 15 | `9fa926ad` | `a44ba79f` | `d4f7d398` | yes (SM4-9's check of the opening's frame colour doesn't apply: the frame is there, a shade darker) |
 | Super Mario Advance 4 | `AX4E` | GBP palette v1.0 (djedditt) | colour | AGB-AX4E_(USA, Australia)_(Rev 1)_GBPPalette.ips | 15 | `a99fb3df` | `88dab27f` | `e6c145c2` | yes |
@@ -129,3 +131,5 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | Wario Land 4 | `AWAE` | Color palette enhancement 1.1 (Piggy Chan!) | colour | Wario Land 4 Color Palette Enhancement 1.1.ips | 42658 | `e6ae60dd` | `d6141609` | `c0ce2370` | yes |
 | The Legend of Zelda: A Link to the Past | `AZLE` | Voice removal v0.1 | voice removal | lozalttpgba_voice removal(U)0.1.ips | 3850 | `18ef1718` | `8e91cd13` | `abd1a38b` | yes |
 | The Legend of Zelda: A Link to the Past | `AZLP` | Voice removal v0.1 | voice removal | lozalttpgba_voice removal(E)0.1.ips | 3850 | `58129d2d` | `5a164321` | `72e519b7` | yes |
+| Shin Megami Tensei | `AAUJ` | English v1.3b iOS Localized (Gymzatan; made from the translated ROM: the published patch isn't in hand) | translation | SMT_T-En_Gymzatan_v1.3b_iOS_Localized.bps | 1145166 | `3d110b00` | `b857c3c5` | `f74db49f` | yes |
+| Shin Megami Tensei | `AAUJ` | English v1.3b font hack (Gymzatan; optional, on the translation; made from the font hack ROM) | font | SMT_T-En_Gymzatan_v1.3b_Font_Hack.ips | 732 | `2986ea39` | `f74db49f` | `2050b471` | yes |

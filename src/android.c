@@ -6,6 +6,7 @@
 #endif
 
 #include "android.h"
+#include "i18n.h"
 #include "clocks.h"
 #include "emu.h"
 #include "paths.h"
@@ -139,6 +140,8 @@ void android_config_defaults(Config* c) {
 			              "A screen with no file of its own gets GBA DS's generated bezel in its default colors.\n\n"
 			              "Names for one scaling or screen shape, and more, in the wiki:\n"
 			              "https://github.com/kyannon/gba-ds/wiki/Overlays\n" },
+			{ "bios", "Optional: your own GBA BIOS, as gba_bios.bin (16 KB), for save states made with one.\n"
+			          "Switch it on in Settings > System > GBA BIOS. Off, games run with GBA DS's built-in BIOS.\n" },
 			{ "logos", "Optional: your own logo images (<CODE>.png or .bmp) override the ones extracted from the games.\n" },
 			{ "screenshots", NULL },
 		};
@@ -432,7 +435,7 @@ bool android_install_apk(const char* path, char* err, size_t errSize) {
 	if ((*env)->ExceptionCheck(env)) {
 		(*env)->ExceptionClear(env);
 		ok = false;
-		if (err) snprintf(err, errSize, "Android's installer couldn't be reached");
+		if (err) snprintf(err, errSize, tr("Android's installer couldn't be reached"));
 	}
 	(*env)->DeleteLocalRef(env, cls);
 	(*env)->DeleteLocalRef(env, activity);

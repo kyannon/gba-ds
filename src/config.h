@@ -23,9 +23,16 @@ extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid
 #define FF_SPEED_MAX 5
 /* Hotkeys: the hotkey button held with an action's button does the action
  * (game.c). gba-ds.cfg: hotkey_<name> = a button (a, b, x, y, l, r, l2, r2,
- * select, start, l3, up, down, left, right) or none. */
-enum { HK_QUIT, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_COUNT };
-extern const char* const hotkeyNames[HK_COUNT]; /* quit, save_state, ... */
+ * select, start, l3, up, down, left, right) or none. HK_REWIND_TOGGLE and
+ * HK_FF_TOGGLE turn rewinding / fast-forwarding on until pressed again
+ * (issue #88; no button at first). */
+enum { HK_QUIT, HK_GAME, HK_SAVE, HK_LOAD, HK_BAR, HK_SWAP, HK_SHADER, HK_TOGGLE, HK_REWIND_TOGGLE, HK_FF_TOGGLE, HK_COUNT };
+extern const char* const hotkeyNames[HK_COUNT]; /* quit (close the emulator), close_game, save_state, ... */
+/* Held buttons (issue #88): rewind and fast forward while a button is held,
+ * on its own or with the hotkey button (rewind_button = l2,
+ * fast_forward_button = r2 at first; or none). */
+enum { HOLD_REWIND, HOLD_FF, HOLD_COUNT };
+extern const char* const holdNames[HOLD_COUNT]; /* rewind_button, fast_forward_button */
 
 /* custom_logos (GEN-11): the player's own and scraped logos shrunk to GBA
  * pixels, at full detail (the same size), or not used. */
@@ -36,6 +43,14 @@ typedef struct Config {
 	bool swap;         /* map on the first (left/top) screen instead of the second */
 	char scale[16];    /* game: integer | fit | stretch */
 	char mapScale[16]; /* map:  integer | fit | stretch */
+	char gbSize[8];    /* Game Boy games (GB-2): gba = the picture in the GBA's 240x160 frame | native = the 160x144 picture is the frame */
+	char gbCorrection[8]; /* GB-8: same | off | gbc | gba */
+	char gbShader[12]; /* GB-10: same | off | grid | scanlines | soft | dots */
+	char gbGhosting[8]; /* GB-9: same | off | light | smart | strong */
+	char gbPalette[8]; /* GB-6: own | dmg | pocket | light | gray | sgb: a monochrome game's shades (from the next start) */
+	char gbBorder[8];  /* GB-12: none | sgb: a Super Game Boy game with its own border (from the next start) */
+	char gbDual[8];    /* GB-7: colour | mono: a dual-mode game in colour, or as on a plain Game Boy (from the next start) */
+	char gbScale[16];  /* ...and how that frame fills the screen (GB-2a): integer | fit | stretch */
 	bool smooth;       /* plain linear filtering when scaling (blurry) */
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
 	int overlayMode;   /* OVM_*: overlays */
@@ -51,20 +66,26 @@ typedef struct Config {
 	bool pinCores; /* Android: the game thread on a core of its own, the map capture off it (off by default) */
 	bool map;          /* enable the second-screen map */
 	bool tallLive;     /* Pokemon Pinball: a second copy of the game draws the bottom screen live */
+	bool toggle;       /* the contextual toggle (GEN-14, issue #37): the second screen's pages or view turned by hand; off */
+	bool autoRotate;   /* with the toggle on: timed pages keep turning by themselves (a press moves them on); on */
+	char toggleButton[8]; /* where the toggle's button sits on the second screen: left | center | right | off */
 	bool rewind;       /* keep a rewind buffer (hold L2 to rewind) */
 	int rewindSeconds; /* how far back */
 	bool fastForward;  /* hold R2 to fast-forward */
 	bool matchDisplay; /* run at the display's refresh rate (if close to the GBA's) instead of 59.73 Hz */
 	int mapInterval;   /* frames between periodic map refreshes */
+	int solarLevel;    /* the sunlight a sun sensor (Boktai) reads, 0-10 */
 	bool abSwap;       /* GBA A on the bottom face button instead of the right one */
 	char hotkey[16];   /* home | select | start | l3 (older names: guide = home, back = select) */
 	char hotkeyBtn[HK_COUNT][8]; /* each hotkey action's button (hotkey_quit ...), or none */
+	char holdBtn[HOLD_COUNT][8]; /* the buttons held to rewind / fast-forward (rewind_button ...), or none */
 	int shaderLast;    /* the shader the shader hotkey turns back on (shader_last) */
 	char menuCombo[16]; /* select+start | none: buttons held together that open the pause menu */
 	int homeButton;    /* raw joystick button number that acts as HOME (-1 = off) */
 	bool showFps;
 	bool sway;         /* ask sway to fullscreen the window across all outputs */
 	int audioLatency;  /* ms */
+	bool audioAuto;    /* raise the sound delay a step when the sound keeps running dry (game.c; the setting itself is left alone) */
 	bool keepSound;    /* the game and its sound go on while the system holds up a frame's present (game.c keeper) */
 	bool perfMax;      /* Linux: CPU, memory and GPU clocks held at their fastest while GBA DS runs (clocks.c); off: the system decides */
 	int ffSpeed;       /* fast-forward multiplier (the menu cycles FF_SPEED_MIN..MAX) */
@@ -79,7 +100,8 @@ typedef struct Config {
 	char screenshotDir[512]; /* "Take Screenshot" saves here */
 	char cheatDir[1024]; /* RetroArch .cht folders, ':'-separated (searched two levels deep) */
 	char patchDir[1024]; /* patches, a folder per game in it (GEN-9); default: <assetDir>/patches */
-	char libraryView[8]; /* game list: "list" (names) or "grid" (logos) */
+	char libraryView[8]; /* game list: "list" (names), "grid" (two columns of logos) or "grid3" (three) */
+	char librarySort[8]; /* game list: "alpha" (A to Z, the default) or "recent" (last played first); favorites come first in both */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: the data folder */
 	char logoFolder[512]; /* scraped logos, found by the ROM's file name (GEN-11); empty: none */
@@ -87,7 +109,7 @@ typedef struct Config {
 	char dataDir[512]; /* data_dir: GBA DS's data folder (states/, cheats/...); default: the app's folder (paths.c data_dir_setup) */
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */
-	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c layout_pictures) */
+	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c ui_layout_pictures) */
 	char screenPlace[8];  /* center | no_gap: two screens' pictures centred, or against the edges nearest each other (issue #46) */
 	char screenPpi[32];   /* "top,bottom": the screens' pixels per inch, instead of what the system says */
 	char touchMap[16];    /* window | screen: how touch coordinates map */
@@ -107,6 +129,7 @@ typedef struct Config {
 	char accent[16];      /* the menus' colour: purple | blue | teal | green | red | orange | pink (accent) */
 	bool lightTheme;      /* the light theme for the menus' buttons (theme = light) */
 	bool leftStickDpad;   /* the left stick also presses the D-pad in games (left_stick_dpad, issue #57) */
+	int rumbleStrength;   /* how hard the device's motor runs when a game rumbles, 0..100 %, 0 off (rumble_strength, issue #83) */
 	int turboRate;        /* Turbo A / Turbo B: presses a second, 10, 15 or 20 (turbo_rate, issue #55) */
 	char faceBtn[10][12]; /* what each button gives the game (button_right, _bottom, _top, _left, _l, _r, _dpad_up, _dpad_down, _dpad_left, _dpad_right: a, b, l, r, up, down, left, right, start, select, turbo_a, turbo_b, none); empty: the GBA's own (ab_swap's for A and B) */
 	/* RetroAchievements (casual mode): auto = on when ROCKNIX has an account
@@ -114,10 +137,13 @@ typedef struct Config {
 	char raMode[8];
 	char raUser[128], raPassword[256]; /* override ROCKNIX's account */
 	char raSystemCfg[512]; /* ROCKNIX's system.cfg (global.retroachievements.*) */
+	bool raHardcore;      /* RetroAchievements hardcore (ra_hardcore; the pause menu's switch, kept in prefs.cfg) */
 	char raHost[256];     /* testing: another server */
+	bool gbaBios;         /* run games with the player's own GBA BIOS (<data folder>/bios/gba_bios.bin; issue #78; Settings > System) */
 	bool updateCheck;     /* look for a new release once a day (the game list's Settings can switch it) */
 	char updateUrl[256];  /* testing: the release API to ask instead of GitHub's */
 	char rom[512];        /* launch straight into this game (skips the library) */
+	char language[16];    /* the interface's language (i18n.h): auto (the system's), en or a catalogue's code */
 
 	/* testing / automation */
 	char loadState[512];
