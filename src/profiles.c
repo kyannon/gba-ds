@@ -13042,6 +13042,31 @@ static const MapProfile profiles[] = {
 		/* the lettering and its (c) line (BG1) above the PRESS START sprites; START cuts the opening short */
 		.logo = { .steps = { { 0, 1600 }, { K_START, 4 }, { 0, 200 } }, .layer = 1, .maxY = 96 },
 	},
+	{
+		/* Densetsu no Stafy 3 (docs/games/densetsu-no-stafy-3.md), and the English patch
+		 * (Mods row): the same RAM and screens */
+		.codes = { "B3DJ" },
+		.title = "Densetsu no Stafy 3",
+		.logoOnly = true,
+		.hud = {
+			/* DISPCNT bit 15 (the sprite window) and BG0CNT 0x0Fxx are a stage's, 0x1Exx its pause screens' */
+			.on = { { 0x04000000, 0x8000, 0x8000, 2 }, { 0x04000008, 0xFF00, 0x0F00, 2 } },
+			/* the black comes with the HUD's face (palette 1), after the opening conversation, and stays through later ones, which hide the HUD */
+			.onWith = { 0, 136, 239, 159, 0, 1023, 0, 0x2 },
+			.onLost = 1 << 30,
+			/* the HUD's palettes (0 and 1) only: a signpost's board has its prompts at the same priority, in palette 15, in rows 145 and up */
+			.objs = { { 0, 136, 239, 159, 0, 1023, 0, 0x3 } },
+			/* the game draws the HUD two rows lower than the other two; along the top all three sit on the same rows */
+			.moves = { { 56, 136, 83, 159, 'L', 8, 'T', 4 }, { 84, 136, 167, 159, 'C', 120, 'T', 4 }, { 168, 136, 239, 159, 'R', 231, 'T', 5 } },
+			.logoBelow = true,
+		},
+		/* the game's own pause screens (BG0CNT 0x1E00; the Stuff page's 0x1E01) */
+		.logoIf = { { 0x04000008, 0xFFFC, 0x1E00, 2 } },
+		.logoIfLast = true,
+		/* the lettering and the (c) line (BG0) above the sprites; START cuts the opening short (a boot's START
+		 * works from about frame 900 to 2000, and is lost at 3000 and later) */
+		.logo = { .steps = { { 0, 1300 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
