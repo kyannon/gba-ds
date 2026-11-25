@@ -805,7 +805,7 @@ one session"). Empty after each release.
 
 (Empty: Rotation and Performance went into v1.5.5's changelog.)
 
-Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays are read once at start; a display added later (hot-plug) isn't picked up: it needs a DisplayListener and a native re-layout (ui.c, shared code), tracked in a separate issue.
+Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays were read once at start; a display added or taken away later is picked up since issue #90 (a restart with the new layout: see "Notes for sessions: second display hot-plug" below; its line is in CHANGELOG.md's v1.6.2 Fixes).
 
 ## Rotation, and Performance (issue #60, Nov 2026; in v1.5.5)
 
@@ -850,13 +850,6 @@ Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6
   left out: `Window.setSustainedPerformanceMode`, which holds clocks steady
   for heat rather than raising them; `pin_cores` (no difference, see above).
 - Desktop kit: `stubs_gpu.c` has stand-ins that log the change.
-
-- **A second screen plugged in (or taken out) while a game runs now works
-  (issue #90).** GBA DS used to look at the displays once, when the game
-  started, so a USB-C screen connected or woken afterwards stayed unused until
-  you started the game again. Now it notices, and restarts the game once with
-  the new layout, picking up exactly where you were (even with Save on quit or
-  Auto-load off). The game restarts about a second after the screen shows up.
 
 ### Notes for sessions: second display hot-plug (issue #90, `android`)
 
