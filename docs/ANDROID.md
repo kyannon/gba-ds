@@ -653,6 +653,19 @@ line as on Linux (left/right between them). hotkeys.c calls B_HOME "Back"
 on Android (HOME_TITLE): BACK is HOME there (ui.c), so the default hotkey
 is BACK.
 
+### Back vs Select on a pad with both keys (AYN Thor report, Nov 24, 2026)
+
+SDL's Android joystick code maps a gamepad's KEYCODE_BACK and
+KEYCODE_BUTTON_SELECT to the same controller button (SDL_sysjoystick.c
+`keycode_to_SDL`), and SDLActivity consumes the Back key for such a device,
+so the keyboard Back key ui.c turns into HOME never arrives. On the Thor,
+which has both keys, Back therefore counted as Select (a hotkey remap took
+it for Select). `GbaDsActivity.dispatchKeyEvent` now sends a gamepad's Back
+on as the keyboard Back key (`SDLActivity.onNativeKeyDown`) when the device
+also has a Select key (`InputDevice.hasKeys`); a pad with only one of the
+two, and the system's own Back, are left as they were. Not tried on a
+Thor: whether `hasKeys` says yes for its Back and Select.
+
 ## GBA DS's folder, chosen (issue #34, Nov 11, 2026)
 
 Settings > Folders > Choose GBA DS folder (FB_DATA, PICK_DATA in

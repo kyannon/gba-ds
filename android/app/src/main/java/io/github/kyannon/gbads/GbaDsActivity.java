@@ -23,6 +23,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -53,6 +55,37 @@ public class GbaDsActivity extends SDLActivity {
      * {@link GbaDsHereActivity}): the launcher sends a new request to it,
      * in its task, rather than starting a second one. */
     static volatile GbaDsActivity running;
+
+    /**
+     * SDL turns a gamepad's BACK key into the controller button it calls
+     * "back", which is also what SELECT is, so a handheld with both keys (the
+     * AYN Thor) gives the game one button for the two: Back counted as Select
+     * (a hotkey remap took it for Select; in a game it pressed Select). When
+     * the pad has a Select key of its own, Back is sent on as the keyboard
+     * Back key instead, which the native side reads as HOME (ui.c). A pad with
+     * only one of the two keeps SDL's way.
+     */
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && padHasBackAndSelect(event)) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
+                SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_BACK);
+            } else if (event.getAction() == KeyEvent.ACTION_UP) {
+                SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_BACK);
+            }
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private static boolean padHasBackAndSelect(KeyEvent event) {
+        InputDevice d = event.getDevice();
+        if (d == null) return false;
+        int pad = InputDevice.SOURCE_GAMEPAD | InputDevice.SOURCE_JOYSTICK | InputDevice.SOURCE_DPAD;
+        if ((d.getSources() & pad) == 0) return false; /* (the system's own Back key and a mouse's are left alone) */
+        boolean[] has = d.hasKeys(KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_SELECT);
+        return has.length == 2 && has[0] && has[1];
+    }
 
     @Override
     protected void onCreate(Bundle state) {
