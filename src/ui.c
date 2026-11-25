@@ -1445,6 +1445,7 @@ void ui_color_correction(int mode) {
  * so the brightest can't be brightened much, and look a little darker
  * under the stripes than without them). */
 static int uiShader = SH_OFF;
+static bool uiShaderGame; /* a game session chose the pattern (a Game Boy game's own, GB-10): else Display > Shader's */
 static const struct {
 	float other, gap, row; /* a stripe's other two colours, the gap column, the bottom row */
 	int gain;
@@ -1454,9 +1455,18 @@ static const struct {
 	{ 0.45f, 0.50f, 0.75f, 140 }, /* strong: for bright screens (about 0.7) */
 };
 void ui_shader(int sh) {
-	uiShader = sh >= 0 && sh < SH_COUNT ? sh : SH_OFF;
+	uiShaderGame = sh >= 0 && sh < SH_COUNT;
+	uiShader = uiShaderGame ? sh : SH_OFF;
 	ccGain = uiShader >= SH_SUB_LIGHT ? subPresets[uiShader - SH_SUB_LIGHT].gain : 100;
 	cc_refresh();
+}
+/* the pattern the pictures are drawn with: the session's (ui_shader), else Display > Shader's */
+static int shader_choice(void) {
+	return uiShaderGame ? uiShader : cfg->shader;
+}
+/* a session is over: the game list follows Display > Shader again */
+void ui_shader_setting(void) {
+	uiShaderGame = false;
 }
 uint32_t ui_color_correct(uint32_t p) {
 	if (!ccOn) return p;
@@ -1581,7 +1591,7 @@ static uint64_t ops_sig(const Retained* rv) {
 	for (size_t i = 0; i < sizeof(*rv->ops) * rv->nOps; ++i) h = (h ^ p[i]) * 1099511628211ull;
 	h = (h ^ (uint64_t) rv->nOps) * 1099511628211ull;
 	h = (h ^ (uint64_t) cfg->lcdStrength) * 1099511628211ull;
-	h = (h ^ (uint64_t) cfg->shader) * 1099511628211ull;
+	h = (h ^ (uint64_t) shader_choice()) * 1099511628211ull;
 	return h ^ (cfg->smooth ? 0x9e3779b97f4a7c15ull : 0);
 }
 
@@ -2117,13 +2127,14 @@ static SDL_Texture* pipe_pattern(int v, int dw, int dh, int gw, int gh, int sh, 
  * screen pixels per cell when the picture is drawn at a whole multiple
  * (the grid then draws its lines a whole screen pixel each), else 0. */
 static SDL_Texture* shader_mask(int v, int dw, int dh, int gw, int gh, int kc) {
+	int sh = shader_choice();
 	bool small = dw < gw * 3 || dh < gh * 3;
-	if (cfg->shader == SH_GRID || cfg->shader <= SH_OFF || cfg->shader >= SH_COUNT || (cfg->shader == SH_SOFT && small)) {
+	if (sh == SH_GRID || sh <= SH_OFF || sh >= SH_COUNT || (sh == SH_SOFT && small)) {
 		/* (soft cells have no room for their falloff in under 3 screen
 		 * pixels: the fine grid there) */
-		return kc > 0 && !(cfg->shader == SH_SOFT && small) ? pipe_grid(v, gw, gh, kc, cfg->lcdStrength) : pipe_grid_fine(v, dw, dh, gw, gh, cfg->lcdStrength);
+		return kc > 0 && !(sh == SH_SOFT && small) ? pipe_grid(v, gw, gh, kc, cfg->lcdStrength) : pipe_grid_fine(v, dw, dh, gw, gh, cfg->lcdStrength);
 	}
-	return pipe_pattern(v, dw, dh, gw, gh, cfg->shader, cfg->lcdStrength);
+	return pipe_pattern(v, dw, dh, gw, gh, sh, cfg->lcdStrength);
 }
 
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd);

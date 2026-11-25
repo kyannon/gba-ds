@@ -1,22 +1,29 @@
 # Changelog
 
-## v1.6.2 (not yet released)
+## v1.6.3 (not yet released)
+
+## v1.6.2 (2026-11-24)
 
 ### New games
 - **WarioWare: Twisted!** (USA, and Mawaru Made in Wario in Japan): the game's gyro is played by turning the device. In Gyro mode, which every start begins in, the second screen is the game's logo on white that tilts with the device, with a **Touch!** button (or HOME + A). In **Touch mode** the touchscreen is a dial: touch anywhere and drag left or right to tilt the game that way, and let go to ease back to level; the second screen shows the game's menu wheel turning with it, with **Gyro!** and **Pause** buttons along the top. The dial's sensitivity (5% to 25%, 15% at first) is in the quick bar. The cartridge's motor is limited to short pulses here, since the gyro and the dial can make the game ask for far more rumble than the original's could. Known: no gyro sensor was found on the RG DS Plus under BananaOS yet, so there Touch mode is the way to play; the Europe release hasn't been tried; bug reports don't record the gyro.
 
+### New: Super Game Boy border
+- **Game Boy games that support the Super Game Boy can show their own border.** Display > Game Boy border > **Super Game Boy** (Castlevania Legends, Donkey Kong (1994) and the other "SGB Enhanced" games; greyed out for other games): the game's border fills the screen around its picture, at the Game Boy scale, with the Super Game Boy's colours. It counts from the next start, like the palette. The border is black until the game sends its own (a game that never does keeps a black one).
+
 ### Game list
+- **A modified Game Boy ROM says so.** Under a Game Boy or Game Boy Color game's logo in the game list, a ROM that is not one of the dumps in No-Intro's Game Boy and Game Boy Color lists (a hack, a translation, a trimmed or bad dump) says "Modified ROM: not a known dump" ("Patched ROM..." when a patch made it so). It is only a note: the game plays as any other.
 - **Sort the game list, and pin favorites to the top.** A bar of two buttons now sits at the top of the list, under the header, and scrolls away with the games: **A to Z** (as before) and **Recently played** (the game you played last first; games you haven't played yet follow, A to Z). Touch a button, or press Up from the first game, choose with Left / Right and press A. GBA DS remembers the sort you chose.
 - **Favorites:** touch the star on a game's tile, or press **Y** with the game selected, to make it a favorite. Favorites are listed first, whatever the sort, and the star turns gold; do it again to take it off.
 
 ### RetroAchievements
 - **Hardcore mode (still hidden until RetroAchievements approves it) now turns fast forward off**, as it does rewind, cheats and loading states, since GBA DS reads RetroAchievements' ban on frame advance as covering any speed-up. Fast forward still works in casual mode.
 
-### New: Super Game Boy border
-- **Game Boy games that support the Super Game Boy can show their own border.** Display > Game Boy border > **Super Game Boy** (Castlevania Legends, Donkey Kong (1994) and the other "SGB Enhanced" games; greyed out for other games): the game's border fills the screen around its picture, at the Game Boy scale, with the Super Game Boy's colours. It counts from the next start, like the palette. The border is black until the game sends its own (a game that never does keeps a black one). Known: screenshots and the quick bar's pictures still use the GBA frame.
-
 ### Fixes
+- **Game Boy: the Scanlines and Soft Cells shaders work.** With Display > Game Boy shader set to Scanlines or Soft Cells, a Game Boy game showed Display > Shader's pattern instead: the LCD grid, unless that was itself Scanlines or Soft Cells. GBA games were not affected.
+- **Game Boy games' saved pictures show the real picture.** The picture under a game's name in the list (after a resume point is made) and the one beside a state in RetroArch's folder are now the Game Boy screen's own size, or the Super Game Boy border with its picture, instead of always the GBA frame. Take Screenshot already saved both screens as shown.
 - **Game Boy: games that support the Super Game Boy show the colours they were made with** (issue #91). Castlevania Legends and the other "SGB Enhanced" games were grey; they now play as on a Super Game Boy (without its border) and show their own colours, with the default palette or with *Super Game Boy*. Choose DMG, Pocket, Light or Grayscale for those shades instead. A game started under the old setup starts over once instead of resuming.
+- **Android: a second screen plugged in or taken out while a game runs is picked up** (issue #90). GBA DS looked at the displays only when the game started, so a USB-C screen connected or woken afterwards stayed unused until the game was started again. Now, about a second after a screen appears or goes, the game restarts once with the new layout and picks up where you were, even with Save on quit or Auto-load off. (Started from the game list, you come back to the list, with the game saved.) Not yet tried on a device.
+- **Android: a gamepad's Back key is no longer taken for Select on pads that have both** (AYN Thor). Back now opens GBA DS's menus as it does on other devices, and Select stays Select. Not yet tried on a Thor.
 - **Highlighted buttons and rows have the same round top corners as bottom ones.** The top corners of a lit or selected button (the pause menu's tabs, the quick bar, the game list's buttons) were nearly square next to the bottom ones.
 - **Pokémon: the Town Map shows on the second screen in FRLG+ 1.5.1**, the FireRed romhack (BPS patch or ROM). Its Bag wraps round from the last pocket to the first, so the map was never found and only the Party showed. GBA DS now finds the Key Items pocket by its tab, in any Bag that wraps. FRLG+ 1.5.1 is added to the tested romhacks.
 - **Rumble patches that stop the motor by switching the cartridge's motor pin off no longer leave the device rumbling.** Mario & Luigi: Superstar Saga's rumble patch started rumbling in the story intro and never stopped; it now stops when the game says so.

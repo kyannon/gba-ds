@@ -395,6 +395,1475 @@
      "tol": 4
     }
    ]
+  },
+  {
+   "id": "gb-picture-saved-gba-frame",
+   "rom": "g6cn",
+   "desc": "The picture saved for the game list (GB-13) in the GBA frame (the default): 240x160",
+   "rules": [
+    "GB-13"
+   ],
+   "config": {},
+   "shots": {
+    "s": 400
+   },
+   "golden": [],
+   "checks": [
+    {
+     "type": "image_size",
+     "rule": "GB-13",
+     "what": "the resume picture's size",
+     "path": "state/g6cn.game.bmp",
+     "size": [
+      240,
+      160
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-picture-saved-native",
+   "rom": "g6cn",
+   "desc": "The picture saved for the game list (GB-13) with Game Boy size = native: the game's own 160x144",
+   "rules": [
+    "GB-13"
+   ],
+   "config": {
+    "gb_size": "native"
+   },
+   "shots": {
+    "s": 400
+   },
+   "golden": [],
+   "checks": [
+    {
+     "type": "image_size",
+     "rule": "GB-13",
+     "what": "the resume picture's size",
+     "path": "state/g6cn.game.bmp",
+     "size": [
+      160,
+      144
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-picture-saved-border",
+   "rom": "g6cn",
+   "desc": "The picture saved for the game list (GB-13) with the Super Game Boy border: 256x224",
+   "rules": [
+    "GB-13"
+   ],
+   "config": {
+    "gb_border": "sgb"
+   },
+   "shots": {
+    "s": 400
+   },
+   "golden": [],
+   "checks": [
+    {
+     "type": "image_size",
+     "rule": "GB-13",
+     "what": "the resume picture's size",
+     "path": "state/g6cn.game.bmp",
+     "size": [
+      256,
+      224
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-size-gba-frame",
+   "rom": "cvju",
+   "desc": "The default: the 160x144 picture at 4x (the GBA's pixel size) centred in the black 240x160 frame; the second screen idle grey",
+   "rules": [
+    "GB-2",
+    "GB-3"
+   ],
+   "config": {},
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-2",
+     "what": "the picture sits in a black frame",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       180,
+       384,
+       "000000"
+      ],
+      [
+       850,
+       384,
+       "000000"
+      ],
+      [
+       500,
+       80,
+       "000000"
+      ],
+      [
+       500,
+       690,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "type": "not_pixels",
+     "rule": "GB-2",
+     "what": "the picture is 160x144 at the GBA's pixel size (640x576, 192-832 by 96-672)",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       196,
+       384,
+       "000000"
+      ],
+      [
+       828,
+       384,
+       "000000"
+      ],
+      [
+       500,
+       100,
+       "000000"
+      ],
+      [
+       500,
+       668,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "type": "uniform",
+     "rule": "GB-3",
+     "what": "the second screen is idle grey, 303030",
+     "screen": "second",
+     "shot": "s",
+     "rect": [
+      100,
+      100,
+      900,
+      600
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "gb-size-native-pixel",
+   "rom": "cvju",
+   "desc": "Game Boy screen, Pixel Perfect: 5x, 800x720, centred; the second screen idle grey",
+   "rules": [
+    "GB-2",
+    "GB-2a",
+    "GB-3"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_scale": "integer"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-2a",
+     "what": "5x: the picture is 800x720, centred",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       100,
+       384,
+       "000000"
+      ],
+      [
+       930,
+       384,
+       "000000"
+      ],
+      [
+       500,
+       10,
+       "000000"
+      ],
+      [
+       500,
+       756,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "type": "not_pixels",
+     "rule": "GB-2a",
+     "what": "the picture fills 112-912 by 24-744",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       116,
+       384,
+       "000000"
+      ],
+      [
+       908,
+       384,
+       "000000"
+      ],
+      [
+       500,
+       28,
+       "000000"
+      ],
+      [
+       500,
+       740,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "type": "uniform",
+     "rule": "GB-3",
+     "what": "the second screen is idle grey, 303030",
+     "screen": "second",
+     "shot": "s",
+     "rect": [
+      100,
+      100,
+      900,
+      600
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "gb-size-native-fit",
+   "rom": "cvju",
+   "desc": "Game Boy screen, Fit: as large as fits with the picture's own shape (853x768); the second screen idle grey",
+   "rules": [
+    "GB-2a",
+    "GB-3"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_scale": "fit"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-2a",
+     "what": "Fit keeps the 10:9 shape: black either side",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       50,
+       384,
+       "000000"
+      ],
+      [
+       980,
+       384,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "type": "not_pixels",
+     "rule": "GB-2a",
+     "what": "Fit fills the screen's height",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       500,
+       4,
+       "000000"
+      ],
+      [
+       500,
+       764,
+       "000000"
+      ],
+      [
+       100,
+       384,
+       "000000"
+      ],
+      [
+       925,
+       384,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "type": "uniform",
+     "rule": "GB-3",
+     "what": "the second screen is idle grey, 303030",
+     "screen": "second",
+     "shot": "s",
+     "rect": [
+      100,
+      100,
+      900,
+      600
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "gb-size-native-stretch",
+   "rom": "cvju",
+   "desc": "Game Boy screen, Stretch: the whole screen; the second screen idle grey",
+   "rules": [
+    "GB-2a",
+    "GB-3"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_scale": "stretch"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "not_pixels",
+     "rule": "GB-2a",
+     "what": "Stretch fills the whole screen",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       3,
+       384,
+       "000000"
+      ],
+      [
+       1020,
+       384,
+       "000000"
+      ],
+      [
+       500,
+       3,
+       "000000"
+      ],
+      [
+       500,
+       764,
+       "000000"
+      ]
+     ]
+    },
+    {
+     "type": "uniform",
+     "rule": "GB-3",
+     "what": "the second screen is idle grey, 303030",
+     "screen": "second",
+     "shot": "s",
+     "rect": [
+      100,
+      100,
+      900,
+      600
+     ],
+     "color": "303030"
+    }
+   ]
+  },
+  {
+   "id": "gb-palette-own",
+   "rom": "g14u",
+   "desc": "A plain Game Boy game with Display > Game Boy palette = Game's own (a game the colour table has no entry for: grey)",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "own"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-palette-dmg",
+   "rom": "g14u",
+   "desc": "A plain Game Boy game with Display > Game Boy palette = DMG: the first Game Boy's greens",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "dmg"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-palette-pocket",
+   "rom": "g14u",
+   "desc": "A plain Game Boy game with Display > Game Boy palette = Pocket",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "pocket"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-palette-light",
+   "rom": "g14u",
+   "desc": "A plain Game Boy game with Display > Game Boy palette = Light",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "light"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-palette-gray",
+   "rom": "g14u",
+   "desc": "A plain Game Boy game with Display > Game Boy palette = Grayscale",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "gray"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-palette-sgb",
+   "rom": "g14u",
+   "desc": "A plain Game Boy game with Display > Game Boy palette = Super Game Boy (a game that does not support it keeps its own colours)",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "sgb"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-palette-gbc-only-unchanged",
+   "rom": "c1wu",
+   "desc": "A Game Boy Color only game keeps its own colours whatever the palette says (DMG chosen)",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "dmg"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-6",
+     "what": "the Game Boy Color's own colours: blue, white, red, green stripes",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "0000FF"
+      ],
+      [
+       232,
+       384,
+       "FFFFFF"
+      ],
+      [
+       264,
+       384,
+       "FF0000"
+      ],
+      [
+       296,
+       384,
+       "00FF00"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-palette-dual-in-colour-unchanged",
+   "rom": "cvju",
+   "desc": "A dual-mode game plays in colour (the default), so the palette (DMG chosen) changes nothing",
+   "rules": [
+    "GB-6",
+    "GB-7"
+   ],
+   "config": {
+    "gb_palette": "dmg"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-6",
+     "what": "the Game Boy Color's own colours: blue, white, red, green stripes",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "0000FF"
+      ],
+      [
+       232,
+       384,
+       "FFFFFF"
+      ],
+      [
+       264,
+       384,
+       "FF0000"
+      ],
+      [
+       296,
+       384,
+       "00FF00"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-dual-colour",
+   "rom": "cvju",
+   "desc": "A dual-mode game plays in colour by default: blue, white, red and green stripes",
+   "rules": [
+    "GB-7"
+   ],
+   "config": {},
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-6",
+     "what": "the Game Boy Color's own colours: blue, white, red, green stripes",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "0000FF"
+      ],
+      [
+       232,
+       384,
+       "FFFFFF"
+      ],
+      [
+       264,
+       384,
+       "FF0000"
+      ],
+      [
+       296,
+       384,
+       "00FF00"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-dual-mono-dmg",
+   "rom": "cvju",
+   "desc": "A dual-mode game kept in monochrome plays as on a plain Game Boy, with the DMG palette (greens)",
+   "rules": [
+    "GB-7",
+    "GB-6"
+   ],
+   "config": {
+    "gb_dual": "mono",
+    "gb_palette": "dmg"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "not_pixels",
+     "rule": "GB-7",
+     "what": "no colour: the Game Boy Color's red, green and blue are gone",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "0000FF"
+      ],
+      [
+       264,
+       384,
+       "FF0000"
+      ],
+      [
+       296,
+       384,
+       "00FF00"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-dual-gbc-only-unchanged",
+   "rom": "c1wu",
+   "desc": "A Game Boy Color only game is not affected by the dual-mode setting (monochrome chosen): still in colour",
+   "rules": [
+    "GB-7"
+   ],
+   "config": {
+    "gb_dual": "mono"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-6",
+     "what": "the Game Boy Color's own colours: blue, white, red, green stripes",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "0000FF"
+      ],
+      [
+       232,
+       384,
+       "FFFFFF"
+      ],
+      [
+       264,
+       384,
+       "FF0000"
+      ],
+      [
+       296,
+       384,
+       "00FF00"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-correction-same",
+   "rom": "cvju",
+   "desc": "Game Boy color correction = As GBA, with Display > Color correction off (the default): the colours the game draws",
+   "rules": [
+    "GB-8"
+   ],
+   "config": {
+    "gb_correction": "same"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-correction-same-on",
+   "rom": "cvju",
+   "desc": "Game Boy color correction = As GBA, with Display > Color correction on: the GBA's screen",
+   "rules": [
+    "GB-8"
+   ],
+   "config": {
+    "gb_correction": "same",
+    "color_correction": true
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-8",
+     "what": "the GBA screen's colours: blue, white, red, green",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "0075C6"
+      ],
+      [
+       232,
+       384,
+       "F6F6F6"
+      ],
+      [
+       264,
+       384,
+       "DC5A6D"
+      ],
+      [
+       296,
+       384,
+       "81C561"
+      ]
+     ],
+     "tol": 6
+    }
+   ]
+  },
+  {
+   "id": "gb-correction-off",
+   "rom": "cvju",
+   "desc": "Game Boy color correction = Off, even with Color correction on: the colours the game draws",
+   "rules": [
+    "GB-8"
+   ],
+   "config": {
+    "gb_correction": "off",
+    "color_correction": true
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-8",
+     "what": "the colours the game draws, even with Color correction on",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "0000FF"
+      ],
+      [
+       264,
+       384,
+       "FF0000"
+      ],
+      [
+       296,
+       384,
+       "00FF00"
+      ]
+     ],
+     "tol": 6
+    }
+   ]
+  },
+  {
+   "id": "gb-correction-gbc",
+   "rom": "cvju",
+   "desc": "Game Boy color correction = Game Boy Color: the washed, cross-mixed colours",
+   "rules": [
+    "GB-8"
+   ],
+   "config": {
+    "gb_correction": "gbc"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-8",
+     "what": "the Game Boy Color's washed, cross-mixed colours",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "3B6FD6"
+      ],
+      [
+       264,
+       384,
+       "E45A6F"
+      ],
+      [
+       296,
+       384,
+       "75DE6F"
+      ]
+     ],
+     "tol": 6
+    }
+   ]
+  },
+  {
+   "id": "gb-correction-gba",
+   "rom": "cvju",
+   "desc": "Game Boy color correction = Game Boy Advance: the GBA's screen, whatever Color correction says",
+   "rules": [
+    "GB-8"
+   ],
+   "config": {
+    "gb_correction": "gba"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "rule": "GB-8",
+     "what": "the GBA screen's colours: blue, white, red, green",
+     "screen": "game",
+     "shot": "s",
+     "probes": [
+      [
+       204,
+       384,
+       "0075C6"
+      ],
+      [
+       232,
+       384,
+       "F6F6F6"
+      ],
+      [
+       264,
+       384,
+       "DC5A6D"
+      ],
+      [
+       296,
+       384,
+       "81C561"
+      ]
+     ],
+     "tol": 6
+    }
+   ]
+  },
+  {
+   "id": "gb-ghosting-same",
+   "rom": "cvju",
+   "desc": "Game Boy ghosting = As GBA (Display > LCD ghosting off by default: no ghosting)",
+   "rules": [
+    "GB-9"
+   ],
+   "config": {
+    "gb_ghosting": "same"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-ghosting-off",
+   "rom": "cvju",
+   "desc": "Game Boy ghosting = Off",
+   "rules": [
+    "GB-9"
+   ],
+   "config": {
+    "gb_ghosting": "off"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-ghosting-light",
+   "rom": "cvju",
+   "desc": "Game Boy ghosting = Light: each frame half and half with the one before",
+   "rules": [
+    "GB-9"
+   ],
+   "config": {
+    "gb_ghosting": "light"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-ghosting-smart",
+   "rom": "cvju",
+   "desc": "Game Boy ghosting = Smart: only what flickers is blended; scrolling stays sharp",
+   "rules": [
+    "GB-9"
+   ],
+   "config": {
+    "gb_ghosting": "smart"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-ghosting-strong",
+   "rom": "cvju",
+   "desc": "Game Boy ghosting = Strong: each frame slowly takes over from the last",
+   "rules": [
+    "GB-9"
+   ],
+   "config": {
+    "gb_ghosting": "strong"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-shader-same",
+   "rom": "g14u",
+   "desc": "Game Boy shader = As GBA (Display > Shader, none by default) (Game Boy screen size, so a grid cell is 5 screen pixels)",
+   "rules": [
+    "GB-10"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_shader": "same"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-shader-off",
+   "rom": "g14u",
+   "desc": "Game Boy shader = Off (Game Boy screen size, so a grid cell is 5 screen pixels)",
+   "rules": [
+    "GB-10"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_shader": "off"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-shader-grid",
+   "rom": "g14u",
+   "desc": "Game Boy shader = LCD Grid, a grid cell to a Game Boy pixel (Game Boy screen size, so a grid cell is 5 screen pixels)",
+   "rules": [
+    "GB-10"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_shader": "grid"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-shader-scanlines",
+   "rom": "g14u",
+   "desc": "Game Boy shader = Scanlines (Game Boy screen size, so a grid cell is 5 screen pixels)",
+   "rules": [
+    "GB-10"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_shader": "scanlines"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-shader-soft",
+   "rom": "g14u",
+   "desc": "Game Boy shader = Soft Cells (Game Boy screen size, so a grid cell is 5 screen pixels)",
+   "rules": [
+    "GB-10"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_shader": "soft"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-shader-dots",
+   "rom": "g14u",
+   "desc": "Game Boy shader = Dot matrix: the LCD Grid and the shadow behind darker pixels (Game Boy screen size, so a grid cell is 5 screen pixels)",
+   "rules": [
+    "GB-10"
+   ],
+   "config": {
+    "gb_size": "native",
+    "gb_shader": "dots"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ]
+  },
+  {
+   "id": "gb-restart-prompt",
+   "rom": "g14u",
+   "desc": "Changing the palette in the pause menu: the row says Restart required; leaving the menu asks Restart now or Discard changes",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {},
+   "input": [
+    [
+     30,
+     "-"
+    ],
+    [
+     40,
+     "TAP:0.5,0.75"
+    ],
+    [
+     60,
+     "TAP:0.28,0.527"
+    ],
+    [
+     80,
+     "TAP:0.961,0.712"
+    ],
+    [
+     120,
+     "B"
+    ],
+    [
+     122,
+     "-"
+    ]
+   ],
+   "shots": {
+    "changed": 100,
+    "prompt": 150
+   },
+   "golden": [
+    "changed",
+    "prompt"
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     130,
+     60
+    ]
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "rule": "GB-6",
+     "what": "the palette was changed to DMG",
+     "match": "setting: gb_palette = dmg"
+    }
+   ]
+  },
+  {
+   "id": "gb-restart-discard",
+   "rom": "g14u",
+   "desc": "Discard changes: the palette goes back to Game's own and the game goes on as it was",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {},
+   "input": [
+    [
+     30,
+     "-"
+    ],
+    [
+     40,
+     "TAP:0.5,0.75"
+    ],
+    [
+     60,
+     "TAP:0.28,0.527"
+    ],
+    [
+     80,
+     "TAP:0.961,0.712"
+    ],
+    [
+     120,
+     "B"
+    ],
+    [
+     122,
+     "-"
+    ],
+    [
+     170,
+     "TAP:0.5,0.837"
+    ]
+   ],
+   "shots": {
+    "after": 220
+   },
+   "golden": [
+    "after"
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     130,
+     60
+    ]
+   ]
+  },
+  {
+   "id": "gb-restart-now",
+   "rom": "g14u",
+   "desc": "Restart now: the game starts again from the top with the DMG palette",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {},
+   "input": [
+    [
+     30,
+     "-"
+    ],
+    [
+     40,
+     "TAP:0.5,0.75"
+    ],
+    [
+     60,
+     "TAP:0.28,0.527"
+    ],
+    [
+     80,
+     "TAP:0.961,0.712"
+    ],
+    [
+     120,
+     "B"
+    ],
+    [
+     122,
+     "-"
+    ],
+    [
+     170,
+     "TAP:0.5,0.793"
+    ]
+   ],
+   "shots": {
+    "after": 300
+   },
+   "golden": [
+    "after"
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     130,
+     60
+    ]
+   ]
+  },
+  {
+   "id": "gb-resume-same-palette",
+   "rom": "g14u",
+   "desc": "A resume point made with the DMG palette, the game started with DMG: it resumes",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "dmg"
+   },
+   "input": [],
+   "shots": {
+    "s": 30
+   },
+   "golden": [],
+   "checks": [
+    {
+     "type": "log",
+     "rule": "GB-6",
+     "what": "the resume point is loaded",
+     "match": "load state: .*g14u\\.auto\\.state: loaded"
+    }
+   ],
+   "state_files": {
+    "g14u.auto.state": "game-boy/g14u-dmg.state",
+    "g14u.auto.state.colours": "text:dmg -\n"
+   }
+  },
+  {
+   "id": "gb-resume-other-palette",
+   "rom": "g14u",
+   "desc": "A resume point made with the DMG palette, the game started with Pocket: not loaded, the game starts over and says so (its message is on screen, in the golden)",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "pocket"
+   },
+   "input": [],
+   "shots": {
+    "s": 20
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "no_log",
+     "rule": "GB-6",
+     "what": "the resume point is not loaded",
+     "match": "load state: .*g14u\\.auto\\.state: loaded"
+    }
+   ],
+   "state_files": {
+    "g14u.auto.state": "game-boy/g14u-dmg.state",
+    "g14u.auto.state.colours": "text:dmg -\n"
+   }
+  },
+  {
+   "id": "gb-resume-old-point-default",
+   "rom": "g14u",
+   "desc": "A resume point with no note (from before the setting existed), the game started with the defaults: it resumes",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {},
+   "input": [],
+   "shots": {
+    "s": 30
+   },
+   "golden": [],
+   "checks": [
+    {
+     "type": "log",
+     "rule": "GB-6",
+     "what": "the resume point is loaded",
+     "match": "load state: .*g14u\\.auto\\.state: loaded"
+    }
+   ],
+   "state_files": {
+    "g14u.auto.state": "game-boy/g14u-dmg.state"
+   }
+  },
+  {
+   "id": "gb-resume-old-point-changed",
+   "rom": "g14u",
+   "desc": "A resume point with no note, the game started with the Light palette: not loaded, the game starts over and says so (its message is on screen, in the golden)",
+   "rules": [
+    "GB-6"
+   ],
+   "config": {
+    "gb_palette": "light"
+   },
+   "input": [],
+   "shots": {
+    "s": 20
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "no_log",
+     "rule": "GB-6",
+     "what": "the resume point is not loaded",
+     "match": "load state: .*g14u\\.auto\\.state: loaded"
+    }
+   ],
+   "state_files": {
+    "g14u.auto.state": "game-boy/g14u-dmg.state"
+   }
+  },
+  {
+   "id": "gb-library-known-dump",
+   "kind": "library",
+   "rom": "g6cn",
+   "desc": "The game list with Castlevania Legends (USA, Europe) (SGB Enhanced), a dump in No-Intro's Game Boy list: nothing said about the ROM (GB-14)",
+   "rules": [
+    "GB-14"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "config": {
+    "show_all": 1
+   }
+  },
+  {
+   "id": "gb-library-modified-rom",
+   "kind": "library",
+   "rom": "g14u",
+   "desc": "The game list with a ROM that is not in No-Intro's lists (the generated test ROM): Modified ROM: not a known dump (GB-14)",
+   "rules": [
+    "GB-14"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "config": {
+    "show_all": 1
+   }
   }
  ]
 }

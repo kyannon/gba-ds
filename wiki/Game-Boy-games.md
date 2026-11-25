@@ -26,6 +26,5 @@ A row that can't apply to the game you're playing is greyed out and says why.
 ## Known issues
 
 - The shades of DMG, Pocket and Light, the Game Boy Color's colour matrix and the dot matrix's look are first guesses and may change.
-- Take Screenshot and the quick bar's pictures use the GBA frame, even with the Game Boy screen size.
-- A Super Game Boy game runs about 2 % slower than on a real Super Game Boy (GBA DS keeps every Game Boy game at the GBA's speed), and the Super Game Boy's own sound effects and controller features aren't played. No rumble, Game Boy Camera or link cable. No list of known Game Boy dumps yet, so "Modified ROM" isn't shown for them. No RetroAchievements for these games, and RetroArch's shared save states aren't checked.
+- A Super Game Boy game runs about 2 % slower than on a real Super Game Boy (GBA DS keeps every Game Boy game at the GBA's speed), and the Super Game Boy's own sound effects and controller features aren't played. No rumble, Game Boy Camera or link cable. No RetroAchievements for these games, and RetroArch's shared save states aren't checked.
 - mGBA's Game Boy core is mGBA's: a timing-sensitive game may show problems that belong to it.
