@@ -653,6 +653,19 @@ line as on Linux (left/right between them). hotkeys.c calls B_HOME "Back"
 on Android (HOME_TITLE): BACK is HOME there (ui.c), so the default hotkey
 is BACK.
 
+### Back vs Select on a pad with both keys (AYN Thor report, Nov 24, 2026)
+
+SDL's Android joystick code maps a gamepad's KEYCODE_BACK and
+KEYCODE_BUTTON_SELECT to the same controller button (SDL_sysjoystick.c
+`keycode_to_SDL`), and SDLActivity consumes the Back key for such a device,
+so the keyboard Back key ui.c turns into HOME never arrives. On the Thor,
+which has both keys, Back therefore counted as Select (a hotkey remap took
+it for Select). `GbaDsActivity.dispatchKeyEvent` now sends a gamepad's Back
+on as the keyboard Back key (`SDLActivity.onNativeKeyDown`) when the device
+also has a Select key (`InputDevice.hasKeys`); a pad with only one of the
+two, and the system's own Back, are left as they were. Not tried on a
+Thor: whether `hasKeys` says yes for its Back and Select.
+
 ## GBA DS's folder, chosen (issue #34, Nov 11, 2026)
 
 Settings > Folders > Choose GBA DS folder (FB_DATA, PICK_DATA in
@@ -792,7 +805,7 @@ one session"). Empty after each release.
 
 (Empty: Rotation and Performance went into v1.5.5's changelog.)
 
-Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays are read once at start; a display added later (hot-plug) isn't picked up: it needs a DisplayListener and a native re-layout (ui.c, shared code), tracked in a separate issue.
+Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays were read once at start; a display added or taken away later is picked up since issue #90 (a restart with the new layout: see "Notes for sessions: second display hot-plug" below; its line is in CHANGELOG.md's v1.6.2 Fixes).
 
 ## Rotation, and Performance (issue #60, Nov 2026; in v1.5.5)
 
@@ -837,3 +850,30 @@ Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6
   left out: `Window.setSustainedPerformanceMode`, which holds clocks steady
   for heat rather than raising them; `pin_cores` (no difference, see above).
 - Desktop kit: `stubs_gpu.c` has stand-ins that log the change.
+
+### Notes for sessions: second display hot-plug (issue #90, `android`)
+
+- The simpler of the issue's two options: restart, not a live switch (`ui.c`
+  decides `nViews` and the layout at init; switching while a game runs would
+  be shared code and touch ROCKNIX and the regression cases).
+- `GbaDsActivity.watchDisplays` registers a `DisplayListener`; events are
+  debounced 1 s (`checkDisplays`). It restarts when `hasSecondDisplay()` differs
+  from what it was at start, or the second display's id or size changed. Not
+  while the app is in the background (Android blocks starting an activity from
+  there; `onStart` looks again). The restart is the "asked for another game"
+  path (`switchTo`, `LauncherActivity` choosing `GbaDsActivity` or
+  `GbaDsHereActivity` again from the displays, which also re-picks the
+  orientation).
+- Keeping the place: Java calls `nativeRelayout()` (android.c: `android_relayout_save`
+  makes game.c `auto_save` save even with `save_on_quit` off) and, when the
+  game was started with a ROM, writes `relayout.flag` in the app's own
+  storage; the next start's `android_relayout_resume` reads and removes it, so
+  game.c loads the auto state even with `auto_load` off. Started from the game
+  list (no ROM), the player comes back to the list; a game played from it is
+  saved.
+- Shared-file change (game.c, two `#ifdef __ANDROID__` lines): ROCKNIX is
+  unchanged (the host and ROCKNIX paths compile as before).
+- Not tried on a device. To check: start a game with nothing connected, plug
+  the screen in, and after about a second the game restarts and the map or
+  logo is on it, where you were. `launch.log` has "displays changed (one -> two)".
+  Unplugging goes back to one screen the same way.

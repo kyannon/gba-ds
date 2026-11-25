@@ -48,6 +48,7 @@ typedef struct Config {
 	char gbShader[12]; /* GB-10: same | off | grid | scanlines | soft | dots */
 	char gbGhosting[8]; /* GB-9: same | off | light | smart | strong */
 	char gbPalette[8]; /* GB-6: own | dmg | pocket | light | gray | sgb: a monochrome game's shades (from the next start) */
+	char gbBorder[8];  /* GB-12: none | sgb: a Super Game Boy game with its own border (from the next start) */
 	char gbDual[8];    /* GB-7: colour | mono: a dual-mode game in colour, or as on a plain Game Boy (from the next start) */
 	char gbScale[16];  /* ...and how that frame fills the screen (GB-2a): integer | fit | stretch */
 	bool smooth;       /* plain linear filtering when scaling (blurry) */
@@ -100,6 +101,7 @@ typedef struct Config {
 	char cheatDir[1024]; /* RetroArch .cht folders, ':'-separated (searched two levels deep) */
 	char patchDir[1024]; /* patches, a folder per game in it (GEN-9); default: <assetDir>/patches */
 	char libraryView[8]; /* game list: "list" (names), "grid" (two columns of logos) or "grid3" (three) */
+	char librarySort[8]; /* game list: "alpha" (A to Z, the default) or "recent" (last played first); favorites come first in both */
 	char esConfigDir[512]; /* EmulationStation's config folder (Settings: GBA DS in EmulationStation) */
 	char assetDir[512]; /* logos etc.; default: the data folder */
 	char logoFolder[512]; /* scraped logos, found by the ROM's file name (GEN-11); empty: none */

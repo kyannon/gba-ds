@@ -110,6 +110,9 @@ static float tapX, tapY;
 /* SWIPE:x0,y0,x1,y1 (fractions of the window): down, 4 moves a tick apart, up */
 static float swipe[4];
 static int swipeStep = -1;
+/* DRAG:x,y puts a finger down and leaves it there, MOVE:x,y moves it, LIFT lifts it (WarioWare: Twisted!'s dial) */
+static float dragX, dragY;
+static bool dragDown;
 static char pendingShot[160];
 static char pendingLoad[160]; /* LOAD:file in an input script (regression tests) */
 
@@ -146,7 +149,7 @@ void ui_load_script(const char* path) {
 		s->tick = t;
 		s->btns = 0;
 		s->action[0] = 0;
-		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
+		if (!strncmp(what, "TAP:", 4) || !strncmp(what, "SWIPE:", 6) || !strncmp(what, "DRAG:", 5) || !strncmp(what, "MOVE:", 5) || !strcmp(what, "LIFT") || !strncmp(what, "SHOT:", 5) || !strncmp(what, "LOAD:", 5) || !strcmp(what, "QUIT") ||
 		    !strncmp(what, "JOY", 3)) {
 			snprintf(s->action, sizeof(s->action), "%s", what);
 		} else {
@@ -216,6 +219,13 @@ static void run_script(void) {
 				push_finger(SDL_FINGERDOWN, swipe[0], swipe[1]);
 				swipeStep = 0;
 			}
+		} else if (!strncmp(s->action, "DRAG:", 5)) {
+			if (sscanf(s->action + 5, "%f,%f", &dragX, &dragY) == 2) push_finger(SDL_FINGERDOWN, dragX, dragY), dragDown = true;
+		} else if (!strncmp(s->action, "MOVE:", 5)) {
+			if (dragDown && sscanf(s->action + 5, "%f,%f", &dragX, &dragY) == 2) push_finger(SDL_FINGERMOTION, dragX, dragY);
+		} else if (!strcmp(s->action, "LIFT")) {
+			if (dragDown) push_finger(SDL_FINGERUP, dragX, dragY);
+			dragDown = false;
 		} else if (!strncmp(s->action, "SHOT:", 5)) {
 			snprintf(pendingShot, sizeof(pendingShot), "%s", s->action + 5);
 		} else if (!strncmp(s->action, "LOAD:", 5)) {
@@ -1469,6 +1479,7 @@ void ui_color_correction(int mode) {
  * so the brightest can't be brightened much, and look a little darker
  * under the stripes than without them). */
 static int uiShader = SH_OFF;
+static bool uiShaderGame; /* a game session chose the pattern (a Game Boy game's own, GB-10): else Display > Shader's */
 static const struct {
 	float other, gap, row; /* a stripe's other two colours, the gap column, the bottom row */
 	int gain;
@@ -1478,9 +1489,18 @@ static const struct {
 	{ 0.45f, 0.50f, 0.75f, 140 }, /* strong: for bright screens (about 0.7) */
 };
 void ui_shader(int sh) {
-	uiShader = sh >= 0 && sh < SH_COUNT ? sh : SH_OFF;
+	uiShaderGame = sh >= 0 && sh < SH_COUNT;
+	uiShader = uiShaderGame ? sh : SH_OFF;
 	ccGain = uiShader >= SH_SUB_LIGHT ? subPresets[uiShader - SH_SUB_LIGHT].gain : 100;
 	cc_refresh();
+}
+/* the pattern the pictures are drawn with: the session's (ui_shader), else Display > Shader's */
+static int shader_choice(void) {
+	return uiShaderGame ? uiShader : cfg->shader;
+}
+/* a session is over: the game list follows Display > Shader again */
+void ui_shader_setting(void) {
+	uiShaderGame = false;
 }
 uint32_t ui_color_correct(uint32_t p) {
 	if (!ccOn) return p;
@@ -1542,7 +1562,8 @@ static void font_text_raw(int screen, int font, int x, int cy, int capPx, const 
  * showing the last picture. The second screen is drawn by the GPU into the
  * second display's window (android_second_begin/_end) or, failing that, by
  * a software renderer into views[1].surf. */
-enum { OP_IMAGE, OP_PIXELS, OP_FILL, OP_ROUND, OP_TEXT, OP_LABEL, OP_CLIP, OP_NOCLIP };
+enum { OP_IMAGE, OP_PIXELS, OP_FILL, OP_ROUND, OP_TEXT, OP_LABEL, OP_CLIP, OP_NOCLIP, OP_ROUND_TOP };
+static void fill_round_top(int screen, SDL_Rect r, SDL_Color c, int radius);
 typedef struct {
 	int kind, screen;
 	SDL_Texture* const* tex; /* per-view array, as passed in */
@@ -1604,7 +1625,7 @@ static uint64_t ops_sig(const Retained* rv) {
 	for (size_t i = 0; i < sizeof(*rv->ops) * rv->nOps; ++i) h = (h ^ p[i]) * 1099511628211ull;
 	h = (h ^ (uint64_t) rv->nOps) * 1099511628211ull;
 	h = (h ^ (uint64_t) cfg->lcdStrength) * 1099511628211ull;
-	h = (h ^ (uint64_t) cfg->shader) * 1099511628211ull;
+	h = (h ^ (uint64_t) shader_choice()) * 1099511628211ull;
 	return h ^ (cfg->smooth ? 0x9e3779b97f4a7c15ull : 0);
 }
 
@@ -1656,6 +1677,7 @@ static bool sw_render(int v) {
 		case OP_PIXELS: ui_image_pixels(o->screen, o->tex, o->a, o->b, o->mode, o->d); break;
 		case OP_FILL: ui_fill(o->screen, o->r, o->col); break;
 		case OP_ROUND: ui_fill_round(o->screen, o->r, o->col, o->a); break;
+		case OP_ROUND_TOP: fill_round_top(o->screen, o->r, o->col, o->a); break;
 		case OP_TEXT: ui_text(o->screen, o->a, o->b, o->c, o->text, o->col); break;
 		case OP_LABEL: font_text_raw(o->screen, o->d & 15, o->a, o->b, o->c, o->text, o->col, (o->d >> 4) - 1); break;
 		case OP_CLIP: ui_clip(o->screen, &o->r); break;
@@ -2139,13 +2161,14 @@ static SDL_Texture* pipe_pattern(int v, int dw, int dh, int gw, int gh, int sh, 
  * screen pixels per cell when the picture is drawn at a whole multiple
  * (the grid then draws its lines a whole screen pixel each), else 0. */
 static SDL_Texture* shader_mask(int v, int dw, int dh, int gw, int gh, int kc) {
+	int sh = shader_choice();
 	bool small = dw < gw * 3 || dh < gh * 3;
-	if (cfg->shader == SH_GRID || cfg->shader <= SH_OFF || cfg->shader >= SH_COUNT || (cfg->shader == SH_SOFT && small)) {
+	if (sh == SH_GRID || sh <= SH_OFF || sh >= SH_COUNT || (sh == SH_SOFT && small)) {
 		/* (soft cells have no room for their falloff in under 3 screen
 		 * pixels: the fine grid there) */
-		return kc > 0 && !(cfg->shader == SH_SOFT && small) ? pipe_grid(v, gw, gh, kc, cfg->lcdStrength) : pipe_grid_fine(v, dw, dh, gw, gh, cfg->lcdStrength);
+		return kc > 0 && !(sh == SH_SOFT && small) ? pipe_grid(v, gw, gh, kc, cfg->lcdStrength) : pipe_grid_fine(v, dw, dh, gw, gh, cfg->lcdStrength);
 	}
-	return pipe_pattern(v, dw, dh, gw, gh, cfg->shader, cfg->lcdStrength);
+	return pipe_pattern(v, dw, dh, gw, gh, sh, cfg->lcdStrength);
 }
 
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd);
@@ -3106,6 +3129,38 @@ void ui_fill_round(int screen, SDL_Rect r, SDL_Color c, int radius) {
 	for (int i = 0; i < 4; ++i) SDL_RenderCopy(views[s->view].ren, t, &src[i], &dst[i]);
 }
 
+/* The top r.h rows of a rounded rectangle whose corners have the full radius
+ * even where r.h is less than twice it (ui_fill_round would shrink the radius
+ * to fit: a short strip's corners came out nearly square). The bottom is
+ * left square, for a strip that is laid over a body drawn rounded already. */
+static void fill_round_top(int screen, SDL_Rect r, SDL_Color c, int radius) {
+	RECORD(screen, OP_ROUND_TOP) {
+		o->r = r, o->col = c, o->a = radius;
+		return;
+	}
+	radius = SDL_min(radius, r.w / 2);
+	if (radius <= 0 || r.h <= 0) {
+		ui_fill(screen, r, c);
+		return;
+	}
+	int zone = SDL_min(r.h, radius); /* the rows that have a corner in them */
+	ui_fill(screen, (SDL_Rect) { r.x + radius, r.y, r.w - 2 * radius, r.h }, c);
+	if (r.h > radius) {
+		ui_fill(screen, (SDL_Rect) { r.x, r.y + radius, radius, r.h - radius }, c);
+		ui_fill(screen, (SDL_Rect) { r.x + r.w - radius, r.y + radius, radius, r.h - radius }, c);
+	}
+	Screen* s = &screens[screen];
+	SDL_Texture* t = disc_texture(s->view);
+	if (!t) return;
+	SDL_SetTextureColorMod(t, c.r, c.g, c.b);
+	SDL_SetTextureAlphaMod(t, c.a);
+	int h = DISC / 2, sh = SDL_max(1, h * zone / radius);
+	SDL_Rect src[2] = { { 0, 0, h, sh }, { h, 0, h, sh } };
+	int ox = s->rect.x + r.x, oy = s->rect.y + r.y;
+	SDL_Rect dst[2] = { { ox, oy, radius, zone }, { ox + r.w - radius, oy, radius, zone } };
+	for (int i = 0; i < 2; ++i) SDL_RenderCopy(views[s->view].ren, t, &src[i], &dst[i]);
+}
+
 
 /* ---------------------------------------------------------- keys and the theme
  * The menus' buttons look like a GBA's: a raised key with an edge under it.
@@ -3295,7 +3350,9 @@ void ui_key(int screen, SDL_Rect r, int radius, int state) {
 	int bh = r.h - (in + 1) * 2, bx = r.x + in + 1, by = r.y + in + 1, bw = r.w - (in + 1) * 2;
 	for (int i = 1; i <= 6; ++i) {
 		SDL_Color m = { (lo.r * (6 - i) + hi.r * i) / 6, (lo.g * (6 - i) + hi.g * i) / 6, (lo.b * (6 - i) + hi.b * i) / 6, 255 };
-		ui_fill_round(screen, (SDL_Rect) { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 }, m, SDL_max(1, radius - in - 1));
+		SDL_Rect band = { bx, by, bw, bh * (7 - i) * 11 / 100 + 1 };
+		/* (a short band keeps the body's corner radius: ui_fill_round would shrink it to fit the band's height, and its corners came out nearly square over the rounded body, plain on a lit key) */
+		fill_round_top(screen, band, m, SDL_max(1, radius - in - 1));
 	}
 	inKey = false;
 	key_add(screen, r, state == KEY_PLAIN);

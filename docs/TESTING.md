@@ -164,6 +164,11 @@ pictures before they're compared; any case can use it). A fifth item, a shot's n
 leaves out the Updates row's note ("This is v<version>...") in that shot only, so a version
 change doesn't touch the case's other pictures (`aw-retroarch-settings`).
 
+A case with `"state_files": {"NAME": "FIXTURE"}` puts the fixture `states/FIXTURE` in the app's state
+folder as NAME (`"text:..."` as the value writes that text instead): what an earlier play left
+there, as the automatic state `CODE.auto.state` and its note `CODE.auto.state.colours` (GB-6's
+resume logic). The app saves over a copy on leaving, never the fixture.
+
 A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS,
 BPS or xdelta) beside its ROM, named as the ROM with the patch's extension, so the app
 applies it as the game starts (GEN-9). `"patch_folder": [FILE, ...]` puts
@@ -235,6 +240,7 @@ Check types:
 | `same` / `differs` | rect `a` of one shot and rect `b` of another differ in at most / more than `frac` (default 1%) of their pixels |
 | `log` / `no_log` | the app's log (`GBADS_DEBUG=1`) matches / doesn't match the regex `match` (e.g. `map updated`) |
 | `file` / `no_file` | `path` in a `retroarch` case's state folder is there and starts with `starts` (its bytes as Latin-1: `"#RZIPv\u0001#"`, `"RASTATE\u0001"`, `"\u0089PNG"`) / isn't there |
+| `image_size` | the picture at `path` (a BMP or PNG, as `file`'s: `state/CODE.game.bmp` is the resume picture a case leaves behind) is `size` `[w, h]` |
 
 Rule checks say *why* a picture is right and keep passing through
 harmless changes elsewhere; goldens catch everything else. A case can
@@ -281,6 +287,21 @@ on (`gMain.saveData.rumbleEnabled`, 0x0200B201, in the battery save). Checked wi
 patched ROM (CRC32 4eff7204) from a cold boot with that option forced on (a Code Breaker cheat,
 `3200B201 0001`): the log's rumble line at frame 1205; resuming that run's auto state rumbles
 too; a state saved before the patch was on doesn't (no pin setup) until Restart Game.
+
+Superstar Saga's rumble patch (`MARIOLUIGIU/P/J_CartRumble.ips`, Nov 24, 2026: "started rumbling during
+the story intro but never stopped"). Its helpers (USA at 0x1E19A0) switch the motor on with control 1,
+direction 8, data 8, and off with one write: direction 0, the data register left at 8, as a cartridge
+whose motor has nothing driving it when the pin is an input. mGBA keeps the data bit as the output
+level, so the motor stayed on. emu.c `gpio_settle` turns the motor off while pin 3 is not an output
+(after every store the hook sees; the data bit comes back on with the direction). The game's rumble
+state is the byte at 0x03000D28 (1 timed, 2 continuous), and it only starts the cartridge when
+0x03000BD7 bit 0 is set (the game's own rumble setting, not found by the A-button run from a new game:
+forced by `poke 0x3000bd7 1 1` each poll). Checked with the harness (`GBADS_HARNESS_RUMBLE=1`, `rumble`
+prints the motor level) on the patched USA ROM (CRC32 e554f7e3), A pressed through the intro: in the
+Cackletta scene the state is 2 and the level 1.00; back to state 0 it is 0.00 with the fix and stayed
+1.00 without. `tools/rumble_test.py` has the stop-by-direction cases (its test ROM keeps its code clear
+of 0xC0-0xCA: a branch at 0xC0 makes mGBA take it for a multiboot image, and the GPIO registers read
+back pins).
 
 Game Boy Player rumble (Mario & Luigi, Pokemon Pinball R&S, SMA4) is not supported. Correction
 of Nov 22's note: with mGBA's `gba.forceGbp` on the live game, the *unpatched* Pokemon Pinball

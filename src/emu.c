@@ -2,6 +2,7 @@
  * screen height: include it first, then let emu.h take the name over. */
 #include <mgba/flags.h>
 #include <mgba/internal/gba/gba.h>
+#include <mgba/internal/gb/gb.h>
 #include <mgba/internal/gba/renderers/video-software.h>
 #include <mgba/internal/gba/cheats.h>
 #include <mgba/internal/gba/bios.h>
@@ -174,7 +175,10 @@ static struct {
 	size_t size;
 } patched;
 
-static struct { int colors; bool usePal; uint32_t rgb[4]; bool mono; } gbOpt = { 1, false, { 0 }, false };
+static struct { int colors; bool usePal; uint32_t rgb[4]; bool mono; bool border; } gbOpt = { 1, false, { 0 }, false, false };
+void emu_gb_border_wanted(bool on) {
+	gbOpt.border = on;
+}
 void emu_gb_colours(int colors, const uint32_t* rgb, bool mono) {
 	gbOpt.colors = colors;
 	gbOpt.usePal = rgb != NULL;
@@ -419,10 +423,13 @@ float emu_rumble_level(const Emu* e) {
  *   "CartRumble" patch keeps BPPE), and keeps that device list in states;
  * - drops 8-bit stores to the cartridge ("Unimplemented memory Store8"), where a real cartridge
  *   bus takes a byte as a 16-bit write of it twice; that patch writes the pins with strb.
+ * - keeps a pin's last output level after the game makes it an input, where the cartridge's motor
+ *   has nothing driving it and stops (Superstar Saga's rumble patch stops by writing 0 to the
+ *   direction register and leaves the data register at 8, Nov 24, 2026: "never stopped rumbling").
  * So the game being played (and only it) has its stores to the three GPIO registers looked at:
- * the first one switches the motor pin on (unless the cartridge has a sensor on that port), and
- * an 8-bit one is passed on as that 16-bit write. A game that never writes there is untouched:
- * no device added, the ROM not copied. */
+ * the first one switches the motor pin on (unless the cartridge has a sensor on that port), an
+ * 8-bit one is passed on as that 16-bit write, and after each the motor is off while pin 3 is not
+ * an output. A game that never writes there is untouched: no device added, the ROM not copied. */
 static void (*mgbaStore8)(struct ARMCore*, uint32_t, int8_t, int*);
 static void (*mgbaStore16)(struct ARMCore*, uint32_t, int16_t, int*);
 
@@ -433,20 +440,57 @@ static bool gpio_listen(struct ARMCore* cpu, uint32_t address) {
 	return (hw->devices & HW_GPIO) != 0;
 }
 
+/* The motor pin as hardware has it: a pin the game has made an input drives nothing, so the motor
+ * is off whatever the data register last held (mGBA keeps that bit as the output level). */
+static void gpio_settle(struct ARMCore* cpu) {
+	struct GBA* gba = (struct GBA*) cpu->master;
+	struct GBACartridgeHardware* hw = &gba->memory.hw;
+	if (!(hw->devices & HW_RUMBLE) || (hw->direction & 8) || !(hw->pinState & 8)) return;
+	hw->pinState &= ~8;
+	if (hw->gpioBase && hw->readWrite) ((uint16_t*) hw->gpioBase)[0] = hw->pinState; /* (the ROM's readable copy; little-endian hosts only, as mGBA's own) */
+	if (gba->rumble) {
+		int32_t now = mTimingCurrentTime(&gba->timing);
+		gba->rumble->setRumble(gba->rumble, false, now - gba->lastRumble);
+		gba->lastRumble = now;
+	}
+}
+
 static void gpio_store8(struct ARMCore* cpu, uint32_t address, int8_t value, int* cycleCounter) {
-	if (gpio_listen(cpu, address)) {
+	bool gpio = gpio_listen(cpu, address);
+	if (gpio) {
 		uint8_t b = (uint8_t) value;
 		GBAHardwareGPIOWrite(&((struct GBA*) cpu->master)->memory.hw, address & 0xFFFFFE, (uint16_t) (b | b << 8));
+		gpio_settle(cpu);
 	}
 	mgbaStore8(cpu, address, value, cycleCounter); /* (its wait states; it stores nothing there) */
 }
 
 static void gpio_store16(struct ARMCore* cpu, uint32_t address, int16_t value, int* cycleCounter) {
-	gpio_listen(cpu, address);
+	bool gpio = gpio_listen(cpu, address);
 	mgbaStore16(cpu, address, value, cycleCounter);
+	if (gpio) gpio_settle(cpu);
 }
 
 static struct GBALuminanceSource luxSource ={ .sample = lux_sample, .readLuminance = lux_read };
+
+/* The cartridge's gyro (WarioWare: Twisted!; mGBA knows it by game code). Every GBA core has a
+ * source that reads what emu_set_gyro last gave it, 0 (the sensor's resting value) until then, so
+ * the hidden copies' games sit still. The value is mGBA's own: the cartridge reads its top
+ * bits (a 12-bit sample, 0x700 at rest, 2^21 to a count). Only the game being played is given
+ * anything (src/ww_twisted.inc). */
+typedef struct { struct mRotationSource d; int32_t value; } EmuGyro;
+static int32_t gyro_read_z(struct mRotationSource* s) {
+	return ((EmuGyro*) s)->value;
+}
+static int32_t gyro_read_tilt(struct mRotationSource* s) {
+	(void) s;
+	return 0;
+}
+void emu_set_gyro(Emu* e, int32_t value) {
+	if (e->gyro) ((EmuGyro*) e->gyro)->value = value;
+}
+
+static void gb_border_snapshot(Emu* e);
 
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	memset(e, 0, sizeof(*e));
@@ -462,9 +506,14 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	}
 	e->platform = (int) e->core->platform(e->core);
 	e->gbKind = 0;
+	bool sgbHeader = false; /* the cartridge says it supports the Super Game Boy (0x146 = 3) */
 	if (e->platform == mPLATFORM_GB) {
 		uint8_t h[EMU_HEADER_MAX];
-		if (emu_rom_header(romPath, h, sizeof(h))) e->gbKind = h[0x143] == 0xC0 ? 2 : h[0x143] == 0x80 ? 1 : 0;
+		if (emu_rom_header(romPath, h, sizeof(h))) {
+			e->gbKind = h[0x143] == 0xC0 ? 2 : h[0x143] == 0x80 ? 1 : 0;
+			sgbHeader = h[0x146] == 0x03 && h[0x143] != 0xC0;
+			e->gbSgbHeader = sgbHeader;
+		}
 	}
 	mCoreInitConfig(e->core, NULL);
 	struct mCoreOptions opts = { .useBios = false, .volume = 0x100, .audioBuffers = 1024 };
@@ -476,11 +525,22 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		 * gave it (mGBA's table of the colour boot ROM's palettes, no boot ROM needed). Settings
 		 * for the other models and colours come later (they are these same mGBA options). */
 		mCoreConfigSetDefaultValue(&e->core->config, "gb.model", "AGB");
-		mCoreConfigSetDefaultValue(&e->core->config, "sgb.model", "AGB");
+		/* (GB-11) a game that supports the Super Game Boy (header 0x146 = 3) runs as on one, without its
+		 * border (sgb.borders below), so it sends its own colours to it: by default (Game's own) and with
+		 * the Super Game Boy palette (GB-6); a dual-mode one only while it is kept in monochrome (GB-7).
+		 * Another palette (DMG, Pocket, Light, Grayscale) is the Game Boy Color hardware with those shades.
+		 * Otherwise the Game Boy Color hardware (GB-1). */
+		bool sgbOk = sgbHeader && (e->gbKind == 0 || (e->gbKind == 1 && gbOpt.mono));
+		/* (GB-12) with the border it is a Super Game Boy whatever the palette says (the colours are its) */
+		bool border = gbOpt.border && sgbOk;
+		bool asSgb = sgbOk && (border || gbOpt.colors == 1 || gbOpt.colors == 3);
+		e->gbSgb = asSgb;
+		e->gbBorder = border;
+		mCoreConfigSetDefaultValue(&e->core->config, "sgb.model", asSgb ? "SGB" : "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.model", "AGB");
 		mCoreConfigSetDefaultValue(&e->core->config, "cgb.hybridModel", gbOpt.mono ? "DMG" : "AGB"); /* (GB-7) */
-		mCoreConfigSetDefaultValue(&e->core->config, "cgb.sgbModel", "AGB");
-		mCoreConfigSetDefaultIntValue(&e->core->config, "gb.colors", gbOpt.colors); /* (GB-6: 1 is GB_COLORS_CGB) */
+		mCoreConfigSetDefaultValue(&e->core->config, "cgb.sgbModel", asSgb && gbOpt.mono ? "SGB" : "AGB");
+		mCoreConfigSetDefaultIntValue(&e->core->config, "gb.colors", asSgb ? 0 : gbOpt.colors); /* (GB-6: 1 is GB_COLORS_CGB; none for a game running as an SGB: its own packets colour it, a table would override them) */
 		if (gbOpt.usePal) {
 			for (int i = 0; i < 12; ++i) {
 				char key[16];
@@ -488,7 +548,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 				mCoreConfigSetDefaultIntValue(&e->core->config, key, (int) gbOpt.rgb[i & 3]); /* background, then the two sprite palettes */
 			}
 		}
-		mCoreConfigSetDefaultIntValue(&e->core->config, "sgb.borders", 0);
+		mCoreConfigSetDefaultIntValue(&e->core->config, "sgb.borders", e->gbBorder ? 1 : 0);
 	}
 	mCoreLoadConfig(e->core);
 
@@ -498,9 +558,23 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		e->picW = 160, e->picH = 144;
 		e->picX = (GBA_W - e->picW) / 2, e->picY = (GBA_H - e->picH) / 2;
 	}
-	e->core->setVideoBuffer(e->core, (mColor*) (e->fb + e->picY * GBA_W + e->picX), GBA_W);
+	if (e->gbBorder) { /* (GB-12) the core draws the border and the window in a 256x224 picture of its own */
+		e->sgbFb = calloc(SGB_W * SGB_H, sizeof(uint32_t));
+		e->core->setVideoBuffer(e->core, (mColor*) e->sgbFb, SGB_W);
+	} else {
+		e->core->setVideoBuffer(e->core, (mColor*) (e->fb + e->picY * GBA_W + e->picX), GBA_W);
+	}
 	if (e->platform == mPLATFORM_GBA) e->core->setPeripheral(e->core, mPERIPH_GBA_LUMINANCE, &luxSource);
-	if (audio) { /* only the game being played has a motor; the hidden copies stay quiet */
+	if (e->platform == mPLATFORM_GBA) {
+		EmuGyro* g = calloc(1, sizeof(*g));
+		if (g) {
+			g->d.readGyroZ = gyro_read_z;
+			g->d.readTiltX = g->d.readTiltY = gyro_read_tilt;
+			e->gyro = g;
+			e->core->setPeripheral(e->core, mPERIPH_ROTATION, &g->d);
+		}
+	}
+	if (audio || getenv("GBADS_HARNESS_RUMBLE")) { /* only the game being played has a motor; the hidden copies stay quiet (the harness asks for one with GBADS_HARNESS_RUMBLE: its `rumble` command) */
 		EmuRumble* r = calloc(1, sizeof(*r));
 		if (r) {
 			mRumbleIntegratorInit(&r->integrator);
@@ -567,6 +641,7 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		}
 	}
 	e->core->reset(e->core);
+	if (e->gbBorder) gb_border_snapshot(e);
 
 	struct mGameInfo info;
 	memset(&info, 0, sizeof(info));
@@ -594,12 +669,55 @@ void emu_close(Emu* e) {
 	}
 	free(e->fb);
 	e->fb = NULL;
+	free(e->sgbFb);
+	free(e->gbBorderDefault);
+	e->gbBorderDefault = NULL;
+	e->sgbFb = NULL;
 	free(e->rumble);
 	e->rumble = NULL;
+	free(e->gyro);
+	e->gyro = NULL;
 }
 
 bool emu_cancelled(const Emu* e) {
 	return e->cancel && *e->cancel;
+}
+
+/* (GB-12) mGBA starts a Super Game Boy with a frame of its own (it says "mGBA"), until the game sends its own.
+ * The border's two memories are kept as they start; the border stays black while they still are. */
+static void gb_border_mem(Emu* e, uint8_t** ch, uint8_t** mp) {
+	struct GB* gb = e->core->board;
+	*ch = gb->video.renderer ? gb->video.renderer->sgbCharRam : NULL;
+	*mp = gb->video.renderer ? gb->video.renderer->sgbMapRam : NULL;
+}
+
+static void gb_border_snapshot(Emu* e) {
+	uint8_t *ch, *mp;
+	gb_border_mem(e, &ch, &mp);
+	if (!ch || !mp) { e->gbBorderOwn = true; return; } /* nothing to compare: show whatever the core draws */
+	free(e->gbBorderDefault);
+	e->gbBorderDefault = malloc(SGB_SIZE_CHAR_RAM + SGB_SIZE_MAP_RAM);
+	memcpy(e->gbBorderDefault, ch, SGB_SIZE_CHAR_RAM);
+	memcpy(e->gbBorderDefault + SGB_SIZE_CHAR_RAM, mp, SGB_SIZE_MAP_RAM);
+	e->gbBorderOwn = false;
+}
+
+static void gb_border_hide_default(Emu* e) {
+	if (e->gbBorderOwn) return;
+	uint8_t *ch, *mp;
+	gb_border_mem(e, &ch, &mp);
+	if (ch && mp && memcmp(ch, e->gbBorderDefault, SGB_SIZE_CHAR_RAM) == 0 && memcmp(mp, e->gbBorderDefault + SGB_SIZE_CHAR_RAM, SGB_SIZE_MAP_RAM) == 0) {
+		for (int y = 0; y < SGB_H; ++y) {
+			uint32_t* row = e->sgbFb + (size_t) y * SGB_W;
+			bool inY = y >= SGB_WIN_Y && y < SGB_WIN_Y + 144;
+			for (int x = 0; x < SGB_W; ++x) {
+				if (inY && x >= SGB_WIN_X && x < SGB_WIN_X + 160) { x = SGB_WIN_X + 159; continue; }
+				row[x] = 0xFF000000u;
+			}
+		}
+		return;
+	}
+	e->gbBorderOwn = true; /* the game's own: from now on as the core draws it */
 }
 
 void emu_frame(Emu* e, uint32_t keys) {
@@ -607,6 +725,12 @@ void emu_frame(Emu* e, uint32_t keys) {
 	++e->frames;
 	e->core->setKeys(e->core, keys);
 	e->core->runFrame(e->core);
+	if (e->sgbFb) gb_border_hide_default(e);
+	if (e->sgbFb && e->fb) { /* (GB-12) the game's window into the frame, where it is without a border: everything else works on that */
+		for (int y = 0; y < e->picH; ++y) {
+			memcpy(e->fb + (size_t) (e->picY + y) * GBA_W + e->picX, e->sgbFb + (size_t) (SGB_WIN_Y + y) * SGB_W + SGB_WIN_X, (size_t) e->picW * sizeof(uint32_t));
+		}
+	}
 	if (!e->audio) {
 		struct mAudioBuffer* ab = e->core->getAudioBuffer(e->core);
 		if (ab) {
@@ -632,6 +756,7 @@ void emu_frame_blind(Emu* e, uint32_t keys) {
 
 void emu_reset(Emu* e) {
 	e->core->reset(e->core);
+	if (e->gbBorder) gb_border_snapshot(e);
 	split_resync(e);
 }
 
@@ -1067,6 +1192,18 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n) {
 	return ok;
 }
 
+bool emu_gb_sgb_header(const Emu* e) {
+	return e && e->gbSgbHeader;
+}
+bool emu_gb_border(const Emu* e) {
+	return e && e->gbBorder;
+}
+const uint32_t* emu_gb_border_px(const Emu* e) {
+	return e ? e->sgbFb : NULL;
+}
+bool emu_gb_sgb(const Emu* e) {
+	return e && e->gbSgb;
+}
 int emu_gb_kind(const Emu* e) {
 	return e ? e->gbKind : 0;
 }
