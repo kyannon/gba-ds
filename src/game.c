@@ -10506,6 +10506,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_on_background(NULL);
 	ui_on_foreground(NULL);
 	ui_sync_view(-1);
+	ui_shader_setting(); /* (the game list: Display > Shader again, not a Game Boy game's own pattern) */
 	fprintf(stderr, "leaving game after %llu frames\n", (unsigned long long) frameCount);
 	if (bugPend.pending) {
 		/* (a report waiting for its note: saved with what's typed) */

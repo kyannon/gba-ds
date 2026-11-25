@@ -174,6 +174,19 @@ def run_app(case, args, workdir):
         return r
     statedir = os.path.join(workdir, "state")
     os.makedirs(statedir)
+    # "state_files" {a name in the state folder: a fixture under states/, or "text:..." for its content}:
+    # what an earlier play left there (the auto state and its ".colours" note, GB-6: the resume logic)
+    for name, spec in case.get("state_files", {}).items():
+        dst = os.path.join(statedir, name)
+        if spec.startswith("text:"):
+            with open(dst, "w") as f:
+                f.write(spec[5:])
+        else:
+            src = os.path.join(args.fixtures, "states", spec)
+            if not os.path.exists(src):
+                r.error = "missing state fixture states/%s" % spec
+                return r
+            shutil.copy(src, dst)  # (a copy: GBA DS saves over it on leaving)
     # the ROM in a folder of the case's own: the game writes its battery save
     # beside it, so nothing lands in the fixtures and every run starts clean
     romdir = os.path.join(workdir, "rom")

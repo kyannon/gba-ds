@@ -164,6 +164,11 @@ pictures before they're compared; any case can use it). A fifth item, a shot's n
 leaves out the Updates row's note ("This is v<version>...") in that shot only, so a version
 change doesn't touch the case's other pictures (`aw-retroarch-settings`).
 
+A case with `"state_files": {"NAME": "FIXTURE"}` puts the fixture `states/FIXTURE` in the app's state
+folder as NAME (`"text:..."` as the value writes that text instead): what an earlier play left
+there, as the automatic state `CODE.auto.state` and its note `CODE.auto.state.colours` (GB-6's
+resume logic). The app saves over a copy on leaving, never the fixture.
+
 A case with `"patch": "FILE"` puts the fixture `patches/FILE` (an IPS, UPS,
 BPS or xdelta) beside its ROM, named as the ROM with the patch's extension, so the app
 applies it as the game starts (GEN-9). `"patch_folder": [FILE, ...]` puts

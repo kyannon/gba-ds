@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""Makes two tiny Game Boy test ROMs (no copyrighted code, no tools needed):
-a DMG one (.gb) and a Game Boy Color one (.gbc), for trying the GB core
-without a commercial game (issue #77).
+"""Makes three tiny Game Boy test ROMs (no copyrighted code, no tools needed):
+a DMG one (.gb), a dual-mode one (.gbc: CGB flag 0x80, works on both) and a
+Game Boy Color only one (-gbconly.gbc: CGB flag 0xC0), for trying the GB core
+without a commercial game (issue #77) and for the regression cases (GB-2 to
+GB-10). The three differ in the header (title, flag, checksums), so each has
+its own app-made code (`emu_rom_code`: `g...` for the plain one, `c...` for
+the other two).
 
 Each shows four vertical stripes (the four shades / four palette colours),
 scrolls sideways by one pixel a frame, plays a steady tone, and while A is
@@ -9,7 +13,7 @@ held it inverts the DMG palette and moves the picture down (so input is
 visible in a screenshot). The GBC one sets its four colours white, red,
 green, blue through the colour palette registers.
 
-    tools/make_gb_test_rom.py OUTDIR      # OUTDIR/gbads-test.gb, OUTDIR/gbads-test.gbc
+    tools/make_gb_test_rom.py OUTDIR      # OUTDIR/gbads-test.gb, gbads-test.gbc, gbads-test-gbconly.gbc
 """
 import sys, os
 
@@ -100,13 +104,14 @@ def program(gbc):
     return bytes(code)
 
 
-def make(gbc):
+def make(gbc, only=False):
+    """gbc: sets the colour palettes; only: the Game Boy Color only variant (CGB flag 0xC0)"""
     rom = bytearray(0x8000)
     rom[0x100:0x104] = bytes([0x00, 0xC3, 0x50, 0x01])  # nop; jp $0150
     rom[0x104:0x134] = LOGO
-    title = b"GBADSTEST" if gbc else b"GBADS TEST"
+    title = b"GBADSONLY" if only else b"GBADSTEST" if gbc else b"GBADS TEST"
     rom[0x134:0x134 + len(title)] = title
-    rom[0x143] = 0x80 if gbc else 0x00  # CGB flag: works on both
+    rom[0x143] = 0xC0 if only else 0x80 if gbc else 0x00  # CGB flag: Color only / works on both / plain
     rom[0x147] = 0x00                   # ROM only
     rom[0x148] = 0x00                   # 32 KB
     rom[0x149] = 0x00                   # no RAM
@@ -127,4 +132,5 @@ if __name__ == "__main__":
     os.makedirs(out, exist_ok=True)
     open(os.path.join(out, "gbads-test.gb"), "wb").write(make(False))
     open(os.path.join(out, "gbads-test.gbc"), "wb").write(make(True))
-    print("wrote", out + "/gbads-test.gb and gbads-test.gbc")
+    open(os.path.join(out, "gbads-test-gbconly.gbc"), "wb").write(make(True, only=True))
+    print("wrote", out + "/gbads-test.gb, gbads-test.gbc and gbads-test-gbconly.gbc")
