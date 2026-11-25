@@ -39,10 +39,12 @@ This is an extension of the idea behind GBA DS (wiki/Philosophy.md, principle 1:
 
 **GB-5. The game is never touched.** As GEN-2: nothing is paused, sent input or changed for the second screen. (There is nothing on the second screen to capture yet.)
 
+**GB-13. Pictures of the game.** The pictures saved of a Game Boy game show what the screen shows: the game's own 160x144 at the Game Boy screen size (GB-2), the 256x224 with the border when the Super Game Boy border is on (GB-12), the GBA frame with the picture in it when the GBA frame is the size. That is the picture under the game's name in the game list after a resume point is made, and the picture beside a state in RetroArch's folder. Take Screenshot saves both screens as displayed (it always has: with the Game Boy size or the border it shows them). The game list draws a picture in its own shape, not squeezed to the GBA frame's. Shader, ghosting, colour correction and the dot matrix are in the picture as they are in the game; the shader's grid and the bezel are not (a screenshot has them, being the screen).
+
 ## Known limitations (so far)
 
 - The palette and dual-mode rows (GB-6, GB-7) count from the next start: Leaving the menu asks to restart now (from the top) or discard the change. A resume point remembers the colours it was made with: if they differ from the settings when the game starts, the game starts over instead of resuming (it says so). The shades of DMG, Pocket and Light are the first guesses and may change after seeing them on the device. A game made for the Game Boy Color alone is never changed by them.
-- The Game Boy size and scale rows sit at the top of the pause menu's Display page for Game Boy games, and in Settings > Display (they have no effect on GBA games). Scale is shown even while the size is the GBA frame. Screenshots (Take Screenshot) and the quick bar's pictures still use the GBA frame.
+- The Game Boy size and scale rows sit at the top of the pause menu's Display page for Game Boy games, and in Settings > Display (they have no effect on GBA games). Scale is shown even while the size is the GBA frame.
 - ES-DE / BananaOS / Android launchers don't hand `.gb` / `.gbc` games to GBA DS yet (Phase 5): start them from GBA DS's own game list.
 - A Game Boy game has no 4-letter code like a GBA game's, so it gets its own from its header: `g` (plain Game Boy) or `c` (works on the Game Boy Color) and 3 characters, in lower case (`src/emu.c` `emu_rom_code`). The patch folder is named from its title and that code.
 - The ROM checksum note under the list's logo ("Modified ROM") has no list of Game Boy dumps to compare with yet.

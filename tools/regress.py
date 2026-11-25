@@ -402,6 +402,12 @@ def check(run, chk):
         with open(path, "rb") as f:
             head = f.read(max(len(want), 8))
         return head.startswith(want), "%s starts %r" % (chk["path"], head)
+    if t == "image_size":  # a picture the app saved (a BMP or PNG: the resume picture, GB-13) has this size
+        path = os.path.join(run.ra_states or run.dir, chk["path"])
+        if not os.path.exists(path):
+            return False, "no %s" % chk["path"]
+        size = Image.open(path).size
+        return list(size) == list(chk["size"]), "%s is %dx%d (need %dx%d)" % (chk["path"], size[0], size[1], chk["size"][0], chk["size"][1])
     if t == "no_log":
         m = re.search(chk["match"], run.log, re.M)
         return m is None, "log has %r" % m.group(0) if m else "log lacks /%s/" % chk["match"]

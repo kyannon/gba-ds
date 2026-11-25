@@ -235,6 +235,7 @@ Check types:
 | `same` / `differs` | rect `a` of one shot and rect `b` of another differ in at most / more than `frac` (default 1%) of their pixels |
 | `log` / `no_log` | the app's log (`GBADS_DEBUG=1`) matches / doesn't match the regex `match` (e.g. `map updated`) |
 | `file` / `no_file` | `path` in a `retroarch` case's state folder is there and starts with `starts` (its bytes as Latin-1: `"#RZIPv\u0001#"`, `"RASTATE\u0001"`, `"\u0089PNG"`) / isn't there |
+| `image_size` | the picture at `path` (a BMP or PNG, as `file`'s: `state/CODE.game.bmp` is the resume picture a case leaves behind) is `size` `[w, h]` |
 
 Rule checks say *why* a picture is right and keep passing through
 harmless changes elsewhere; goldens catch everything else. A case can

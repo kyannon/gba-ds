@@ -6071,7 +6071,8 @@ static bool sun_tap(int s, int x, int y) {
 }
 
 static void save_thumbs(void) {
-	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormatFrom(emu.fb, GBA_W, GBA_H, 32, GBA_W * 4, SDL_PIXELFORMAT_XBGR8888);
+	/* the picture as the game screen shows it (GB-13): a Game Boy game's own size or border too */
+	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormatFrom((void*) game_tex_px(emu.fb), game_tex_w(), game_tex_h(), 32, game_tex_pitch(), SDL_PIXELFORMAT_XBGR8888);
 	if (s) {
 		SDL_SaveBMP(s, gp.thumb);
 		SDL_FreeSurface(s);
@@ -6158,16 +6159,18 @@ static bool state_is_retroarch(const char* path) {
 	return n && !strncmp(path, gp.raDir, n) && path[n] == '/';
 }
 /* RetroArch's thumbnail beside a state (<state>.png, for its menu): the
- * game's picture as it is now, at the GBA's size */
+ * game's picture as it is now, as the game screen shows it (GB-13) */
 static void state_thumbnail(const char* path) {
-	uint8_t* px = malloc((size_t) GBA_W * GBA_H * 4);
+	int w = game_tex_w(), h = game_tex_h(), pitch = game_tex_pitch();
+	uint8_t* px = malloc((size_t) w * h * 4);
 	if (!px) return;
-	memcpy(px, emu.fb, (size_t) GBA_W * GBA_H * 4); /* (bytes R, G, B, X) */
-	for (size_t i = 0; i < (size_t) GBA_W * GBA_H; ++i) px[i * 4 + 3] = 255;
+	const uint8_t* src = (const uint8_t*) game_tex_px(emu.fb);
+	for (int y = 0; y < h; ++y) memcpy(px + (size_t) y * w * 4, src + (size_t) y * pitch, (size_t) w * 4); /* (bytes R, G, B, X) */
+	for (size_t i = 0; i < (size_t) w * h; ++i) px[i * 4 + 3] = 255;
 	char png[1100], tmp[1110];
 	snprintf(png, sizeof(png), "%s.png", path);
 	snprintf(tmp, sizeof(tmp), "%s.tmp.png", path);
-	if (!stbi_write_png(tmp, GBA_W, GBA_H, 4, px, GBA_W * 4) || rename(tmp, png) != 0) {
+	if (!stbi_write_png(tmp, w, h, 4, px, w * 4) || rename(tmp, png) != 0) {
 		remove(tmp);
 		fprintf(stderr, "save state: no thumbnail %s\n", png);
 	}

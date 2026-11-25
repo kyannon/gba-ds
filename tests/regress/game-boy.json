@@ -395,6 +395,85 @@
      "tol": 4
     }
    ]
+  },
+  {
+   "id": "gb-picture-saved-gba-frame",
+   "rom": "g6cn",
+   "desc": "The picture saved for the game list (GB-13) in the GBA frame (the default): 240x160",
+   "rules": [
+    "GB-13"
+   ],
+   "config": {},
+   "shots": {
+    "s": 400
+   },
+   "golden": [],
+   "checks": [
+    {
+     "type": "image_size",
+     "rule": "GB-13",
+     "what": "the resume picture's size",
+     "path": "state/g6cn.game.bmp",
+     "size": [
+      240,
+      160
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-picture-saved-native",
+   "rom": "g6cn",
+   "desc": "The picture saved for the game list (GB-13) with Game Boy size = native: the game's own 160x144",
+   "rules": [
+    "GB-13"
+   ],
+   "config": {
+    "gb_size": "native"
+   },
+   "shots": {
+    "s": 400
+   },
+   "golden": [],
+   "checks": [
+    {
+     "type": "image_size",
+     "rule": "GB-13",
+     "what": "the resume picture's size",
+     "path": "state/g6cn.game.bmp",
+     "size": [
+      160,
+      144
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gb-picture-saved-border",
+   "rom": "g6cn",
+   "desc": "The picture saved for the game list (GB-13) with the Super Game Boy border: 256x224",
+   "rules": [
+    "GB-13"
+   ],
+   "config": {
+    "gb_border": "sgb"
+   },
+   "shots": {
+    "s": 400
+   },
+   "golden": [],
+   "checks": [
+    {
+     "type": "image_size",
+     "rule": "GB-13",
+     "what": "the resume picture's size",
+     "path": "state/g6cn.game.bmp",
+     "size": [
+      256,
+      224
+     ]
+    }
+   ]
   }
  ]
 }

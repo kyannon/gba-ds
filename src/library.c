@@ -772,6 +772,7 @@ static void scan(Config* cfg) {
 /* -------------------------------------------------------------- preview */
 
 static SDL_Texture* thumbTex[2]; /* resume screenshot, per view */
+static int thumbW = GBA_W, thumbH = GBA_H; /* its size (a Game Boy game's is its own, GB-13) */
 static int thumbFor = -2;
 static SDL_Texture* logoTex[2];
 static int logoW, logoH;
@@ -833,6 +834,7 @@ static void load_thumbs(Config* cfg, int idx) {
 	}
 	SDL_Surface* s = SDL_LoadBMP(gp.thumb);
 	if (s) {
+		thumbW = s->w, thumbH = s->h;
 		for (int v = 0; v < nViews; ++v) thumbTex[v] = SDL_CreateTextureFromSurface(views[v].ren, s);
 		SDL_FreeSurface(s);
 	}
@@ -929,7 +931,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	int y = m + headH * 2 + px * 16;
 	SDL_Rect area = { m, y, r.w - m * 2, gy - px * 14 - y };
 	if (thumbTex[0] || thumbTex[1]) {
-		ui_image(scr, thumbTex, GBA_W, GBA_H, "fit", &area);
+		ui_image(scr, thumbTex, thumbW, thumbH, "fit", &area);
 	} else {
 		ui_label(scr, r.w / 2, area.y + area.h / 2, px * 7, "no save state yet!", C_TEXT);
 	}
