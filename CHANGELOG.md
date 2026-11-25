@@ -2,6 +2,9 @@
 
 ## v1.6.3 (not yet released)
 
+### AYN Thor on Armada
+- **The second screen goes on the Thor's bottom panel in Armada's Game Mode, with its touchscreen** (issue #86, pull request #96 by cerroverb). Game Mode shows only the top panel and lends the bottom one to a program that asks for it; until now GBA DS put both screens on the top panel there. Now it asks for the bottom panel, draws the second screen on it, turned the way the panel is mounted, and reads its touchscreen directly, so the quick bar and the menus work there. Started from a Steam shortcut, `launch.sh` finds the panel and the touchscreen from Armada's own device profile. In the desktop, and on any other system, nothing changes. Experimental: tried on a Thor in Game Mode. New wiki page, [Install on Armada OS](https://github.com/kyannon/gba-ds/wiki/Install-on-Armada-OS). The request for the panel is a port of the DRM lease code in the Azahar-Enhanced fork (virtudude/azahar), see Licenses.
+
 ### Web player
 - **A screen in a second window, for another monitor** (issue #93). On a computer, the new two-windows button in the web player's toolbar opens the bottom screen (the touchscreen) in a window of its own, to drag to another monitor; the player's window then shows the top screen alone, as large as it fits. Settings > Screens > Second window puts the top screen there instead. Keys, controllers and clicks on the touchscreen work in either window. The second window has its own Full screen button, at its top right when you move the mouse (with the top screen in it, a double-click works too). Pressing the two-windows button again, or closing the window, brings the screen back. In Chrome and Edge with more than one monitor, the window opens on the other monitor once you allow the player to place windows. The game keeps running when either window is hidden, so long as the other can be seen.
 

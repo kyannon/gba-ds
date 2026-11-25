@@ -123,6 +123,10 @@ kyannon/gba-ds-tests). The run's summary lists what was picked and why,
 each share's failures, and the releases tested only on their logo; a
 failing share keeps its report as an artifact for 7 days.
 
+## The leased panel's second screen (Armada, issue #86)
+
+`GBADS_DRM_LEASE=DSI-1 GBADS_DRM_LEASE_TEST=1240x1080,270,/tmp/panel.png` runs the app with a panel of that size and orientation in memory instead of a compositor's lease (nothing is leased), and writes what the panel would show to the PNG at exit: the second screen drawn by the software renderer, turned by the rotation, as the panel scans it out. Use it with `GBADS_WINDOW=1920x1080` and `--input-script`; the regression suite doesn't set it, so its cases run the ordinary path.
+
 ## How a case runs
 
 The app runs headless (`SDL_VIDEODRIVER=offscreen`) in a 1024x1536 window
