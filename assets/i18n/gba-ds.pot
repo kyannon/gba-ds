@@ -76,7 +76,7 @@ msgid_plural "%d RetroArch states here"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/game.c:6967 src/game.c:9451 src/game.c:9794 src/game.c:9798
+#: src/game.c:6967 src/game.c:9459 src/game.c:9802 src/game.c:9806
 #, c-format
 msgid "%s"
 msgstr ""
@@ -208,7 +208,7 @@ msgstr ""
 msgid "A and B buttons"
 msgstr ""
 
-#: src/game.c:9105
+#: src/game.c:9109
 msgid "A few seconds"
 msgstr ""
 
@@ -248,11 +248,11 @@ msgstr ""
 msgid "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before."
 msgstr ""
 
-#: src/game.c:8528
+#: src/game.c:8532
 msgid "Again for casual: the game restarts"
 msgstr ""
 
-#: src/game.c:8528
+#: src/game.c:8532
 msgid "Again for hardcore: restarts, no cheats, loads or fast forward"
 msgstr ""
 
@@ -269,7 +269,7 @@ msgstr ""
 msgid "All games"
 msgstr ""
 
-#: src/game.c:8401
+#: src/game.c:8405
 msgid "Already the value for all games"
 msgstr ""
 
@@ -453,7 +453,7 @@ msgstr ""
 msgid "Bug report saved in bug-reports."
 msgstr ""
 
-#: src/game.c:9449
+#: src/game.c:9457
 msgid "Bug reports aren't available in hardcore mode."
 msgstr ""
 
@@ -536,12 +536,12 @@ msgstr ""
 msgid "Choose GBA DS folder"
 msgstr ""
 
-#: src/game.c:8530
+#: src/game.c:8534
 #, c-format
 msgid "Choose it again to close %s: %s"
 msgstr ""
 
-#: src/game.c:8529
+#: src/game.c:8533
 msgid "Choose it again to restart: unsaved progress is lost"
 msgstr ""
 
@@ -662,7 +662,7 @@ msgstr ""
 msgid "Couldn't load the achievements"
 msgstr ""
 
-#: src/game.c:9082
+#: src/game.c:9086
 msgid "Couldn't load the game"
 msgstr ""
 
@@ -779,7 +779,7 @@ msgstr ""
 msgid "Deleted the settings of 1 game."
 msgstr ""
 
-#: src/game.c:8450
+#: src/game.c:8454
 msgid "Discard changes"
 msgstr ""
 
@@ -871,11 +871,11 @@ msgstr ""
 msgid "Fast forward (hold)"
 msgstr ""
 
-#: src/game.c:9786
+#: src/game.c:9794
 msgid "Fast forward is off in the settings."
 msgstr ""
 
-#: src/game.c:9785
+#: src/game.c:9793
 msgid "Fast forward isn't available in hardcore mode."
 msgstr ""
 
@@ -1024,7 +1024,7 @@ msgstr ""
 msgid "Game on top"
 msgstr ""
 
-#: src/game.c:8609
+#: src/game.c:8613
 msgid "Game restarted"
 msgstr ""
 
@@ -1219,7 +1219,7 @@ msgstr ""
 msgid "Green"
 msgstr ""
 
-#: src/game.c:8625
+#: src/game.c:8629
 msgid "Hardcore needs this game's achievements"
 msgstr ""
 
@@ -1472,7 +1472,7 @@ msgstr ""
 msgid "Like a GBA"
 msgstr ""
 
-#: src/game.c:8591
+#: src/game.c:8595
 msgid "Load failed"
 msgstr ""
 
@@ -1606,7 +1606,7 @@ msgstr ""
 msgid "No achievements for this ROM (MD5 %s)"
 msgstr ""
 
-#: src/game.c:8549
+#: src/game.c:8553
 msgid "No cheats found (see Cheats in the wiki)"
 msgstr ""
 
@@ -1638,7 +1638,7 @@ msgstr ""
 msgid "No patches here yet"
 msgstr ""
 
-#: src/game.c:9440 src/game.c:9771
+#: src/game.c:9448 src/game.c:9779
 msgid "No quick state saved yet."
 msgstr ""
 
@@ -1690,7 +1690,7 @@ msgstr ""
 msgid "Not available with the Super Game Boy border: the colors are the Super Game Boy's"
 msgstr ""
 
-#: src/game.c:6330 src/game.c:8548 src/game.c:8570 src/game.c:8597 ...
+#: src/game.c:6330 src/game.c:8552 src/game.c:8574 src/game.c:8601 ...
 msgid "Not in hardcore mode (Achievements)"
 msgstr ""
 
@@ -1698,15 +1698,15 @@ msgstr ""
 msgid "Not in the folder any more: it's left out"
 msgstr ""
 
-#: src/game.c:9233
+#: src/game.c:9241
 msgid "Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA."
 msgstr ""
 
-#: src/game.c:9235
+#: src/game.c:9243
 msgid "Not resumed: the automatic state was saved with a GBA BIOS (RetroArch's core had one). To use your own, see Settings > System > GBA BIOS."
 msgstr ""
 
-#: src/game.c:9237
+#: src/game.c:9245
 msgid "Not resumed: the automatic state was saved without a GBA BIOS, and GBA DS is set to use yours. Switch it off in Settings > System > GBA BIOS."
 msgstr ""
 
@@ -1726,7 +1726,7 @@ msgstr ""
 msgid "Nothing mapped"
 msgstr ""
 
-#: src/game.c:8572
+#: src/game.c:8576
 #, c-format
 msgid "Nothing saved in slot %d yet"
 msgstr ""
@@ -1909,7 +1909,7 @@ msgstr ""
 msgid "Patches"
 msgstr ""
 
-#: src/game.c:9225
+#: src/game.c:9233
 msgid "Patches changed"
 msgstr ""
 
@@ -1917,7 +1917,7 @@ msgstr ""
 msgid "Patches changed since the game started"
 msgstr ""
 
-#: src/game.c:9225
+#: src/game.c:9233
 msgid "Patches changed: carrying on from where you were"
 msgstr ""
 
@@ -1953,7 +1953,7 @@ msgstr ""
 msgid "Pink"
 msgstr ""
 
-#: src/game.c:9468
+#: src/game.c:9476
 msgid "Pinned: the bar stays up."
 msgstr ""
 
@@ -2116,15 +2116,15 @@ msgstr ""
 msgid "Restart Game"
 msgstr ""
 
-#: src/game.c:8450
+#: src/game.c:8454
 msgid "Restart now"
 msgstr ""
 
-#: src/game.c:4026 src/game.c:8447
+#: src/game.c:4026 src/game.c:8451
 msgid "Restart required"
 msgstr ""
 
-#: src/game.c:8449
+#: src/game.c:8453
 msgid "Restarting starts it from the top."
 msgstr ""
 
@@ -2132,11 +2132,11 @@ msgstr ""
 msgid "Resume"
 msgstr ""
 
-#: src/game.c:9230
+#: src/game.c:9238
 msgid "Resumed in casual mode (hardcore resumes from the menu). Tap or HOME for the menu"
 msgstr ""
 
-#: src/game.c:9230
+#: src/game.c:9238
 msgid "Resumed. Tap or HOME for the menu"
 msgstr ""
 
@@ -2201,11 +2201,11 @@ msgstr ""
 msgid "Rewind (hold)"
 msgstr ""
 
-#: src/game.c:9781
+#: src/game.c:9789
 msgid "Rewind is off in the settings."
 msgstr ""
 
-#: src/game.c:9780
+#: src/game.c:9788
 msgid "Rewind isn't available in hardcore mode."
 msgstr ""
 
@@ -2271,15 +2271,15 @@ msgstr ""
 msgid "Run at the display's rate: no small regular stutter."
 msgstr ""
 
-#: src/game.c:8412
+#: src/game.c:8416
 msgid "Same as all games again"
 msgstr ""
 
-#: src/game.c:8565
+#: src/game.c:8569
 msgid "Save failed"
 msgstr ""
 
-#: src/game.c:9436 src/game.c:9768
+#: src/game.c:9444 src/game.c:9776
 msgid "Save failed."
 msgstr ""
 
@@ -2320,15 +2320,15 @@ msgstr ""
 msgid "Save States: Shared with RetroArch"
 msgstr ""
 
-#: src/game.c:8582
+#: src/game.c:8586
 msgid "Saved by another emulator: can't load it"
 msgstr ""
 
-#: src/game.c:8337
+#: src/game.c:8341
 msgid "Saved for all games"
 msgstr ""
 
-#: src/game.c:8337
+#: src/game.c:8341
 msgid "Saved for this game"
 msgstr ""
 
@@ -2336,11 +2336,11 @@ msgstr ""
 msgid "Saved for when a patch is on"
 msgstr ""
 
-#: src/game.c:8587
+#: src/game.c:8591
 msgid "Saved with a GBA BIOS: see Settings > System"
 msgstr ""
 
-#: src/game.c:8589
+#: src/game.c:8593
 msgid "Saved without a GBA BIOS: see Settings > System"
 msgstr ""
 
@@ -2401,11 +2401,11 @@ msgstr ""
 msgid "Screens"
 msgstr ""
 
-#: src/game.c:8657
+#: src/game.c:8661
 msgid "Screenshot failed"
 msgstr ""
 
-#: src/game.c:8657
+#: src/game.c:8661
 msgid "Screenshot saved"
 msgstr ""
 
@@ -2553,7 +2553,7 @@ msgstr ""
 msgid "Skipped in %d s if nothing is pressed"
 msgstr ""
 
-#: src/game.c:8575
+#: src/game.c:8579
 #, c-format
 msgid "Slot %d loaded"
 msgstr ""
@@ -2634,7 +2634,7 @@ msgstr ""
 msgid "Sound delay"
 msgstr ""
 
-#: src/game.c:8935
+#: src/game.c:8939
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr ""
@@ -2659,20 +2659,20 @@ msgstr ""
 msgid "Starting a game picks up where you closed it."
 msgstr ""
 
-#: src/game.c:9227
+#: src/game.c:9235
 msgid "Starting over: the colors were changed since the game was last played"
 msgstr ""
 
-#: src/game.c:9441 src/game.c:9772
+#: src/game.c:9449 src/game.c:9780
 msgid "State loaded."
 msgstr ""
 
-#: src/game.c:8561
+#: src/game.c:8565
 #, c-format
 msgid "State saved to slot %d"
 msgstr ""
 
-#: src/game.c:9436 src/game.c:9768
+#: src/game.c:9444 src/game.c:9776
 msgid "State saved."
 msgstr ""
 
@@ -2772,15 +2772,15 @@ msgstr ""
 msgid "Take Screenshot"
 msgstr ""
 
-#: src/game.c:8331
+#: src/game.c:8335
 msgid "Takes effect after you close and restart GBA DS"
 msgstr ""
 
-#: src/game.c:9455
+#: src/game.c:9463
 msgid "Tap again to close GBA DS."
 msgstr ""
 
-#: src/game.c:9240
+#: src/game.c:9248
 msgid "Tap the screen or press HOME for the menu"
 msgstr ""
 
@@ -2838,7 +2838,7 @@ msgstr ""
 msgid "the button that opens GBA DS's menu (Home, Menu or Function)"
 msgstr ""
 
-#: src/game.c:8530
+#: src/game.c:8534
 msgid "the game"
 msgstr ""
 
@@ -2871,7 +2871,7 @@ msgstr ""
 msgid "The menus' color for what's selected, with a dark and a light version of each."
 msgstr ""
 
-#: src/game.c:8448
+#: src/game.c:8452
 msgid "The new colors count when the game starts again."
 msgstr ""
 
@@ -2945,7 +2945,7 @@ msgstr ""
 msgid "This is v%s. Look for a new version, and download and install it."
 msgstr ""
 
-#: src/game.c:8584
+#: src/game.c:8588
 msgid "This state can't be read"
 msgstr ""
 
@@ -3032,11 +3032,11 @@ msgstr ""
 msgid "Unlocks will be sent when the connection is back"
 msgstr ""
 
-#: src/game.c:9468
+#: src/game.c:9476
 msgid "Unpinned: the bar hides after 5 seconds."
 msgstr ""
 
-#: src/game.c:8527
+#: src/game.c:8531
 msgid "unsaved progress is lost"
 msgstr ""
 
@@ -3238,7 +3238,7 @@ msgstr ""
 msgid "Your own PNGs in gba-ds/overlays/. A screen without one gets the generated bezel in its default colors."
 msgstr ""
 
-#: src/game.c:8527
+#: src/game.c:8531
 msgid "your place is saved"
 msgstr ""
 
