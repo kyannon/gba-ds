@@ -23,6 +23,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "profiles.h"
 #include "workers.h"
 #include "twins.h"
+#include "toggle.h"
 #include "patch.h"
 #include "cheats.h"
 
@@ -100,8 +101,8 @@ static int current_cpu(void) {
 #define GBA_FPS (16777216.0 / 280896.0)
 #define FF_MAX_RUNS 30 /* fast-forward at Max: at most this many frames a display frame */
 
-static Config* cfg;
-static Emu emu;
+Config* cfg;
+Emu emu;
 
 /* ------------------------------------------------- frame buffer (option)
  * With frame_buffer on, the next frame is emulated on this thread while the
@@ -127,7 +128,7 @@ static uint32_t aheadFb[GBA_W * GBA_H]; /* the frame on screen, while the worker
  * (profile controls.snes) left / right while a shoulder is held. */
 #define KX_PAN_L (1u << 20)
 #define KX_PAN_R (1u << 21)
-static bool debug; /* GBADS_DEBUG (declared again below) */
+bool debug; /* GBADS_DEBUG (declared again below) */
 static const struct MapProfile* ctlProf; /* NULL: no alternate layout for this game */
 
 /* One frame of the game with these keys (on the worker too, while the main
@@ -152,7 +153,7 @@ static struct {
 	uint64_t frame;
 	bool have;
 } bugSnap[BUG_SNAPS];
-static uint64_t frameCount;
+uint64_t frameCount;
 /* (the Pinball copies: twins.c) */
 
 /* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
@@ -289,7 +290,7 @@ static void ahead_stop(void) {
 	if (started) pthread_join(ahead.thread, NULL);
 	ahead.started = false;
 }
-static MapCapture* mc;
+MapCapture* mc;
 static const MapProfile* pickProf; /* a compilation's profile (pick), or NULL */
 static char subCode[5];          /* the profile in use: the game's code, or what pickProf picked */
 /* what the ROM is, by its CRC32 (the log, bug reports) */
@@ -388,9 +389,9 @@ static int logoW, logoH;
 static bool logoPixel;
 static int logoSub = 1; /* logoTex's pixels per GBA pixel (LOGO_SUB: a scraped logo at full resolution) */
 static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-11) */
-static MapResult mapRes;
+MapResult mapRes;
 static int mapW = GBA_W, mapH = GBA_H;
-static int mapShownIdx = -1;
+int mapShownIdx = -1;
 /* "Map Animations: Off" shows this composed still instead of mapRes.frames[] */
 #define STILL_IDX MAP_MAX_FRAMES
 static uint32_t* stillPx;        /* mapW * mapH */
@@ -398,7 +399,7 @@ static int stillW, stillH;
 static bool stillValid;
 /* The map button did nothing at the last attempt (A Link to the Past indoors
  * without a map): keep showing the last map, dimmed. */
-static bool mapInactive;
+bool mapInactive;
 static bool logoOnly; /* the game has a profile but no map: logo on the second screen */
 static const MapProfile* snapProf; /* logo-only game with screens copied to the second screen */
 static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
@@ -466,14 +467,14 @@ static uint32_t hudLogoBack[HUD_CW * HUD_CH];
 static bool hudLogoDone;
 static bool hudShown; /* the second screen shows the HUD picture (hudTex) */
 /* the profile's logoIf probes match: the logo, the map picture and HUD kept */
-static bool logoForced;
+bool logoForced;
 /* logoIf just stopped matching: the logo still, until the second screen has
  * a new picture to show (a HUD picture drawn, a map picture taken), at
  * most a second; not the last picture from before for a frame (SM4-11) */
 static int logoHolding;
 /* profile hud.overMap: this frame's HUD is drawn into the map picture;
  * the map picture needs uploading again (the HUD changed) */
-static bool overOn, overDirty;
+bool overOn, overDirty;
 static bool overAlone; /* a piece that goes alone is in the map picture (shown even in a fight) */
 /* the HUD's pieces as last seen (hud.overMap): the pixels inside each
  * move's box, cut to what's there (0: nothing); latched pieces wait for
@@ -507,37 +508,20 @@ static bool hudLogoBelowDone;
 static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
 static uint32_t snapShown[GBA_W * GBA_H]; /* the copy on the second screen (kept with save states) */
 
-static uint64_t mapAnimStart;
+uint64_t mapAnimStart;
 /* the contextual toggle (GEN-14, issue #37): where the pages' count starts
  * (0 with the toggle off: then nothing here is used), the picture's
  * brightness while a turn that waits fades (256: as it is), and whether
  * the capture under way is for a new subject (a room, a unit, a loaded
  * state: the pages start again at the first) */
-static int pageOffset;
-static int fadeLevel = 256;
-static bool fadeUpload; /* the picture is uploaded again this frame for the fade, one picture or not */
-static bool capSubject;
+int pageOffset;
+int fadeLevel = 256;
+bool fadeUpload; /* the picture is uploaded again this frame for the fade, one picture or not */
+bool capSubject;
 /* ONPRESS views (GEN-14): the other view is up (viewAlt), a capture of the view wanted is to be asked for now (pressCap), how many captures have come in (capDone), and which one the press waits for (tgCapWant; 0: not asked for yet) */
-static bool viewAlt, pressCap, viewWait;
-static unsigned capDone, tgCapWant;
-/* which of the second screen's pictures shows now: the map's frames turn
- * every frameStep frames from mapAnimStart (a marker's blinking, or pages:
- * mapRes.pages); never out of range, even with mapAnimStart ahead of
- * frameCount (it once came from the game played before: frames[-1]).
- * The one place that says which page is up (the toggle, GEN-14, changes
- * it from here). */
-static int second_page(void) {
-	if (mapRes.nFrames < 1 || frameCount < mapAnimStart) return 0;
-	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
-	if (hp && hp->holdPage) {
-		int hold = hp->holdPage(&emu); /* (a page kept up: Pokémon's Party in a battle) */
-		if (hold >= 0 && hold < mapRes.nFrames) return hold;
-	}
-	if (hp && hp->views) return cfg->toggle ? pageOffset % mapRes.nFrames : 0; /* (views: the first until the toggle turns to another; no timer) */
-	bool by_hand = cfg->toggle && mapRes.pages;
-	if (by_hand && !cfg->autoRotate) return pageOffset % mapRes.nFrames; /* (auto-rotate off: a page stays until you press) */
-	return (int) ((((frameCount - mapAnimStart) / (uint64_t) SDL_max(1, mapRes.frameStep)) + (uint64_t) (by_hand ? pageOffset : 0)) % (uint64_t) mapRes.nFrames);
-}
+bool viewAlt, pressCap, viewWait;
+unsigned capDone, tgCapWant;
+/* (second_page: toggle.c) */
 static bool singleShowsMap;
 static double fps, speedPct;
 static Uint64 emuTicks, drawTicks; /* time spent emulating / drawing, for the 5 s report */
@@ -607,7 +591,7 @@ static void slow_frame_report(bool debug) {
 	slowCount = 0;
 	slowWorst.total = 0;
 }
-static bool debug;
+bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
@@ -6347,7 +6331,7 @@ static void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned 
  * every time the map is refreshed. Returns true if the still changed. */
 static bool stillStale; /* stillPx is from an older map (built only when it's shown) */
 /* The map animates, unless the game's is always still */
-static bool map_anim(void) {
+bool map_anim(void) {
 	const MapProfile* p = mc ? mapcap_profile(mc) : NULL;
 	return !(p && p->mapStill);
 }
@@ -6381,7 +6365,6 @@ static bool update_still(void) {
 /* A new map picture in mapRes (a capture; or one kept with a save state,
  * `fresh` false: the level name above the HUD isn't taken from it, it's
  * kept on its own) */
-static void toggle_new_subject(void);
 static void map_show_new(bool fresh) {
 	mapInactive = false;
 	if (!fresh || capSubject) capSubject = false, toggle_new_subject();
@@ -6415,128 +6398,9 @@ static void map_show_new(bool fresh) {
 
 
 /* a profile's own live picture is up (liveView): drawn as it is */
-static bool liveOn;
+bool liveOn;
 
-/* ---- the contextual toggle (GEN-14, issue #37). Turning the second screen
- * by hand: this is the one gate (toggle_ready: the button's active state
- * and the hotkey both read it) and the one state machine. A page is always
- * held, so it is shown at once (a cut); a turn that has to wait fades the
- * picture to black (5 frames), holds on black until the next picture is
- * ready (2 s at most, then the old picture comes back and nothing
- * changes), and fades back (5 frames). Presses outside IDLE are ignored,
- * not queued. Step 2 turns pages only; views are for the profiles (step 4),
- * and GBADS_TOGGLE_WAIT=N (frames, for tests) makes a page turn wait too. */
-enum { TG_IDLE, TG_FADE_OUT, TG_HOLD, TG_FADE_IN };
-#define TG_FADE_FRAMES 5
-#define TG_HOLD_MAX 120
-#define TG_HOLD_PRESS_MAX 600 /* (capture on press: a capture can take seconds) */
-static int tgState, tgFrames, tgTarget, tgWait = -1;
-
-/* a press turns the view (captured on the press) rather than a page: the profile's views, unless its picture is pages (Mother 3's Status where there's no map) and the other view isn't up */
-static bool tg_view_mode(const MapProfile* hp) {
-	if (!hp || !hp->onPress) return false;
-	const bool paged = mapRes.pages && mapRes.nFrames >= 2;
-	if (!paged) return true;
-	/* the picture is pages: they turn as pages do, and from the other view's last page a press brings the game's own view back (map, Status p1, p2, p3, map) */
-	return viewAlt && second_page() == mapRes.nFrames - 1;
-}
-
-static bool toggle_ready(void) {
-	if (!cfg->toggle || tgState != TG_IDLE) return false;
-	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
-	if (tg_view_mode(hp)) {
-		/* the other view is captured on the press: ready when there is one here (or this is it, and the game's own is to come back), a picture is up and the hidden copy is free */
-		if (mapShownIdx < 0 || logoForced || liveOn || mapInactive || pressCap || (capSubject && mapcap_busy(mc))) return false; /* (a refresh still running doesn't count: a press calls it off) */
-		return viewAlt || !hp->altHere || hp->altHere(&emu);
-	}
-	if (!mapRes.pages || mapRes.nFrames < 2 || mapShownIdx < 0 || !map_anim()) return false; /* (one picture, the logo, Map Animations off) */
-	if (logoForced || liveOn || mapInactive) return false;
-	if (hp && hp->holdPage && hp->holdPage(&emu) >= 0) return false; /* (a page kept up: Pokémon's Party in a battle) */
-	if (capSubject && mapcap_busy(mc)) return false; /* (the next subject's pictures aren't here yet: GEN-6) */
-	return true;
-}
-
-/* the page shows, the timer (auto-rotate) starting again from it */
-static void toggle_apply(int page) {
-	if (cfg->autoRotate) mapAnimStart = frameCount;
-	pageOffset = page;
-	overDirty = true;
-	if (debug) fprintf(stderr, "frame %llu: toggle: page %d of %d\n", (unsigned long long) frameCount, page + 1, mapRes.nFrames);
-}
-
-static void toggle_press(void) {
-	if (!toggle_ready()) {
-		if (debug) fprintf(stderr, "frame %llu: toggle: not ready, ignored\n", (unsigned long long) frameCount);
-		return;
-	}
-	if (tgWait < 0) {
-		const char* e = getenv("GBADS_TOGGLE_WAIT");
-		tgWait = e ? SDL_max(0, atoi(e)) : 0;
-	}
-	const MapProfile* pp = mc ? mapcap_profile(mc) : NULL;
-	if (tg_view_mode(pp)) {
-		/* capture on press: the other view is asked for now; the picture fades out, stays black until it is here (or it isn't, in time: the old one comes back) */
-		viewAlt = !viewAlt, viewWait = true, tgCapWant = 0;
-		pageOffset = 0, mapAnimStart = frameCount; /* (a view's pages start at the first: coming round again, not from the page the last turn ended on) */
-		if (mc && mapcap_busy(mc)) mapcap_cancel(mc); /* (a refresh of the old view: the new one starts as soon as it has stopped) */
-		tgState = TG_FADE_OUT, tgFrames = 0, tgTarget = -1;
-		if (debug) fprintf(stderr, "frame %llu: toggle: view %s asked for\n", (unsigned long long) frameCount, viewAlt ? "2" : "1");
-		return;
-	}
-	int next = (second_page() + 1) % mapRes.nFrames;
-	if (tgWait > 0) tgState = TG_FADE_OUT, tgFrames = 0, tgTarget = next;
-	else toggle_apply(next);
-}
-
-/* a new subject (a unit, a room, a loaded state): the pages start again at
- * the first; a turn under way ends, no fade. Nothing at all with the toggle
- * off: the pages go on turning through new captures as they always did. */
-static void toggle_new_subject(void) {
-	if (tgState != TG_IDLE) tgState = TG_IDLE, fadeLevel = 256, overDirty = true;
-	if (!cfg->toggle) return;
-	pageOffset = 0;
-	if (mapRes.pages) mapAnimStart = frameCount;
-}
-
-/* each frame */
-static void toggle_step(void) {
-	if (!cfg->toggle && viewAlt) viewAlt = false, pressCap = true; /* (switched off while the other view was up: the game's own comes back) */
-	if (!cfg->toggle && tgState != TG_IDLE) tgState = TG_IDLE, fadeLevel = 256, overDirty = true; /* (switched off meanwhile) */
-	if (tgState == TG_IDLE) return;
-	overDirty = true, fadeUpload = true; /* (the picture is drawn again each frame of a turn) */
-	++tgFrames;
-	switch (tgState) {
-	case TG_FADE_OUT:
-		fadeLevel = 256 * (TG_FADE_FRAMES - tgFrames) / TG_FADE_FRAMES;
-		if (tgFrames >= TG_FADE_FRAMES) tgState = TG_HOLD, tgFrames = 0, fadeLevel = 0, pressCap = viewWait; /* (capture on press: asked for now that the old view is dark) */
-		break;
-	case TG_HOLD:
-		if (tgTarget < 0) {
-			/* (capture on press) the view is in: fade up; not in time: the old one stays, and the capture is called off */
-			if (tgCapWant && capDone >= tgCapWant) {
-				tgState = TG_FADE_IN, tgFrames = 0, viewWait = false;
-				if (debug) fprintf(stderr, "frame %llu: toggle: view %s\n", (unsigned long long) frameCount, viewAlt ? "2" : "1");
-			} else if (tgFrames >= TG_HOLD_PRESS_MAX) {
-				viewAlt = !viewAlt, pressCap = false, viewWait = false, tgCapWant = 0;
-				if (mc && mapcap_busy(mc)) mapcap_cancel(mc);
-				tgState = TG_FADE_IN, tgFrames = 0;
-				if (debug) fprintf(stderr, "frame %llu: toggle: the view didn't come in time, the old one stays\n", (unsigned long long) frameCount);
-			}
-			break;
-		}
-		if (tgFrames >= tgWait) {
-			toggle_apply(tgTarget);
-			tgState = TG_FADE_IN, tgFrames = 0;
-		} else if (tgFrames >= TG_HOLD_MAX) {
-			tgState = TG_FADE_IN, tgFrames = 0; /* (not found in time: the old picture comes back) */
-		}
-		break;
-	case TG_FADE_IN:
-		fadeLevel = 256 * tgFrames / TG_FADE_FRAMES;
-		if (tgFrames >= TG_FADE_FRAMES) tgState = TG_IDLE, fadeLevel = 256;
-		break;
-	}
-}
+/* (the contextual toggle's state machine: toggle.c) */
 
 /* ---- the toggle button (GEN-14): a key in the quick bar's look, drawn at
  * the second screen's own pixel size on a canvas a little taller than the
