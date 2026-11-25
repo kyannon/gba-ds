@@ -385,7 +385,6 @@ static int logoW, logoH;
 static bool logoPixel;
 static int logoSub = 1; /* logoTex's pixels per GBA pixel (LOGO_SUB: a scraped logo at full resolution) */
 static bool logoProvisional; /* a scraped logo sized before the extracted one existed (GEN-11) */
-static int mapW = GBA_W, mapH = GBA_H;
 /* "Map Animations: Off" shows this composed still instead of mapRes.frames[] */
 /* The map button did nothing at the last attempt (A Link to the Past indoors
  * without a map): keep showing the last map, dimmed. */
@@ -478,7 +477,6 @@ typedef struct {
 	bool atBottom; /* it reached the game screen's bottom edge */
 } Piece;
 static Piece pieces[4];
-static void upload_map_frame(int idx);
 static const uint32_t* hud_over_map(const uint32_t* px);
 static void make_combat_canvas(void);
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
@@ -4148,7 +4146,7 @@ static void hud_compose(void) {
 	if (hudScene) {
 		if (!hudLogoDone) hud_make_logo_back();
 		memcpy(hudCanvas, hudLogoBack, sizeof(hudCanvas));
-	} else if ((hudAlt ? h->alt.mapBelow : h->mapBelow) && sec.mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(sec.mapShownIdx)) {
+	} else if ((hudAlt ? h->alt.mapBelow : h->mapBelow) && sec.mapShownIdx >= 0 && sec.mapW == GBA_W && sec.mapH == GBA_H && map_px(sec.mapShownIdx)) {
 		/* (hud.mapBelow, hud.alt.mapBelow: the map picture behind, at the game's size) */
 		const uint32_t* mp = map_px(sec.mapShownIdx);
 		for (int y = 0; y < GBA_H; ++y) {
@@ -4555,7 +4553,7 @@ static void update_hud(void) {
 				const uint32_t* px = hud_over_map(combatPx);
 				if (!overAlone) px = combatPx;
 				for (int i = 0; i < nViews; ++i) {
-					if (combatTex[i]) ui_update_texture(combatTex[i], px, mapW * 4);
+					if (combatTex[i]) ui_update_texture(combatTex[i], px, sec.mapW * 4);
 				}
 			}
 		}
@@ -5074,7 +5072,7 @@ static void save_thumbs(void) {
 	}
 	const uint32_t* still = sec.stillValid ? sec.stillPx : sec.mapRes.frames[0];
 	if (sec.mapShownIdx >= 0 && still) {
-		s = SDL_CreateRGBSurfaceWithFormatFrom((void*) still, mapW, mapH, 32, mapW * 4, SDL_PIXELFORMAT_XBGR8888);
+		s = SDL_CreateRGBSurfaceWithFormatFrom((void*) still, sec.mapW, sec.mapH, 32, sec.mapW * 4, SDL_PIXELFORMAT_XBGR8888);
 		if (s) {
 			SDL_SaveBMP(s, gp.mapThumb);
 			SDL_FreeSurface(s);
@@ -5082,7 +5080,6 @@ static void save_thumbs(void) {
 	}
 }
 
-static void map_show_new(bool fresh);
 
 /* The second screen kept with save states (inside the state file: emu.c
  * emu_state_file_*_extra): what it holds that the loaded game can't give
@@ -6042,10 +6039,10 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 	if (!hudProf || (!sec.overOn && !hudProf->hud.logoUnder)) return px;
 	const typeof(hudProf->hud)* h = &hudProf->hud;
 	if (h->logoUnder && combatProf && !combatMade) make_combat_canvas();
-	if (overSize != mapW * mapH) {
+	if (overSize != sec.mapW * sec.mapH) {
 		free(over);
-		over = malloc((size_t) mapW * mapH * 4);
-		overSize = over ? mapW * mapH : 0;
+		over = malloc((size_t) sec.mapW * sec.mapH * 4);
+		overSize = over ? sec.mapW * sec.mapH : 0;
 		if (!over) return px;
 	}
 	uint32_t mapClr = h->mapClear & 0xFFFFFF;
@@ -6056,7 +6053,7 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		if (h->moves[m].alone && pieces[m].valid) alone = m;
 	}
 	overAlone = alone >= 0;
-	memcpy(over, alone >= 0 && h->logoUnder && combatPx ? combatPx : px, (size_t) mapW * mapH * 4);
+	memcpy(over, alone >= 0 && h->logoUnder && combatPx ? combatPx : px, (size_t) sec.mapW * sec.mapH * 4);
 	int px0[4] = { 0 }, py0[4] = { 0 };
 	for (int k = 0; k < 8; ++k) {
 		int m = k & 3;
@@ -6068,19 +6065,19 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		int x0 = mv->how == 'C' ? mv->x - (pc->w - 1) / 2 : mv->how == 'R' ? mv->x - pc->w + 1 : mv->x;
 		int y0 = mv->vhow == 'M' ? mv->y - (pc->h - 1) / 2 : mv->vhow == 'B' ? mv->y - pc->h + 1 : mv->y;
 		if (mv->asIs) {
-			x0 = pc->sx + (mapW - GBA_W) / 2, y0 = pc->sy + (mapH - GBA_H) / 2;
-			if (mv->asIsBottom && pc->atBottom && !hudAlt) y0 = mapH - pc->h;
+			x0 = pc->sx + (sec.mapW - GBA_W) / 2, y0 = pc->sy + (sec.mapH - GBA_H) / 2;
+			if (mv->asIsBottom && pc->atBottom && !hudAlt) y0 = sec.mapH - pc->h;
 		}
 		if (mv->wide) {
 			/* as wide as the picture: each pixel from the piece's, scaled */
-			int sw = pc->w * mapW / GBA_W, sh = pc->h * mapW / GBA_W;
-			x0 = pc->sx * mapW / GBA_W;
+			int sw = pc->w * sec.mapW / GBA_W, sh = pc->h * sec.mapW / GBA_W;
+			x0 = pc->sx * sec.mapW / GBA_W;
 			for (int y = 0; y < sh; ++y) {
 				for (int x = 0; x < sw; ++x) {
-					uint32_t c = pc->px[(y * GBA_W / mapW) * pc->w + x * GBA_W / mapW];
+					uint32_t c = pc->px[(y * GBA_W / sec.mapW) * pc->w + x * GBA_W / sec.mapW];
 					int nx = x0 + x, ny = y0 + y;
-					if (!c || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
-					over[ny * mapW + nx] = c;
+					if (!c || nx < 0 || ny < 0 || nx >= sec.mapW || ny >= sec.mapH) continue;
+					over[ny * sec.mapW + nx] = c;
 				}
 			}
 			px0[m] = x0, py0[m] = y0;
@@ -6098,8 +6095,8 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 			/* the box goes round the piece */
 			for (int y = y0 - mv->pad; y < y0 + pc->h + mv->pad; ++y) {
 				for (int x = x0 - mv->pad; x < x0 + pc->w + mv->pad; ++x) {
-					if (x < 0 || y < 0 || x >= mapW || y >= mapH) continue;
-					uint32_t* o = &over[y * mapW + x];
+					if (x < 0 || y < 0 || x >= sec.mapW || y >= sec.mapH) continue;
+					uint32_t* o = &over[y * sec.mapW + x];
 					if ((*o & 0xFFFFFF) == mapClr) *o = 0xFF000000u | bc;
 				}
 			}
@@ -6108,26 +6105,26 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		if (shade) {
 			static uint32_t* orig;
 			static int origSize;
-			if (origSize != mapW * mapH) free(orig), orig = malloc((size_t) mapW * mapH * 4), origSize = orig ? mapW * mapH : 0;
+			if (origSize != sec.mapW * sec.mapH) free(orig), orig = malloc((size_t) sec.mapW * sec.mapH * 4), origSize = orig ? sec.mapW * sec.mapH : 0;
 			if (orig) {
 				/* the black (the game screen's, stretched over the whole
 				 * picture) darkens; the piece's other pixels (the lettering)
 				 * go where it is */
-				memcpy(orig, over, (size_t) mapW * mapH * 4);
-				for (int ny = 0; ny < mapH; ++ny) {
-					int ly = ny * GBA_H / mapH - pc->sy;
-					for (int nx = 0; nx < mapW; ++nx) {
-						int lx = nx * GBA_W / mapW - pc->sx;
+				memcpy(orig, over, (size_t) sec.mapW * sec.mapH * 4);
+				for (int ny = 0; ny < sec.mapH; ++ny) {
+					int ly = ny * GBA_H / sec.mapH - pc->sy;
+					for (int nx = 0; nx < sec.mapW; ++nx) {
+						int lx = nx * GBA_W / sec.mapW - pc->sx;
 						uint32_t c = lx >= 0 && ly >= 0 && lx < pc->w && ly < pc->h ? pc->px[ly * pc->w + lx] : 0;
-						if (c && (c & 0xFFFFFF) == 0) over[ny * mapW + nx] = shade_px(orig[ny * mapW + nx]);
+						if (c && (c & 0xFFFFFF) == 0) over[ny * sec.mapW + nx] = shade_px(orig[ny * sec.mapW + nx]);
 					}
 				}
 				for (int y = 0; y < pc->h; ++y) {
 					for (int x = 0; x < pc->w; ++x) {
 						uint32_t c = pc->px[y * pc->w + x];
 						int nx = x0 + x, ny = y0 + y;
-						if (!c || (c & 0xFFFFFF) == 0 || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
-						over[ny * mapW + nx] = c;
+						if (!c || (c & 0xFFFFFF) == 0 || nx < 0 || ny < 0 || nx >= sec.mapW || ny >= sec.mapH) continue;
+						over[ny * sec.mapW + nx] = c;
 					}
 				}
 				continue;
@@ -6137,34 +6134,22 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 			for (int x = 0; x < pc->w; ++x) {
 				uint32_t c = pc->px[y * pc->w + x];
 				int nx = x0 + x, ny = y0 + y;
-				if (!c || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
-				uint32_t* o = &over[ny * mapW + nx];
+				if (!c || nx < 0 || ny < 0 || nx >= sec.mapW || ny >= sec.mapH) continue;
+				uint32_t* o = &over[ny * sec.mapW + nx];
 				if (mv->follow || mv->alone || mv->top || (*o & 0xFFFFFF) == mapClr || (*o & 0xFFFFFF) == bc) *o = c;
 			}
 		}
 	}
 	if (h->logoUnder && combatPx) {
 		/* the logo behind: where nothing else is: last */
-		for (int i = 0; i < mapW * mapH; ++i) {
+		for (int i = 0; i < sec.mapW * sec.mapH; ++i) {
 			if ((over[i] & 0xFFFFFF) == mapClr) over[i] = combatPx[i];
 		}
 	}
 	return over;
 }
 
-static void upload_map_frame(int idx) {
-	const uint32_t* px = map_px(idx);
-	if ((idx == sec.mapShownIdx && !sec.overDirty) || !px) return;
-	sec.overDirty = false;
-	px = hud_over_map(px);
-	if (sec.fadeLevel < 256) {
-		/* (a turn that waits, GEN-14: only the picture fades, so the
-		 * shader and the bezel stay as they are) */
-		px = second_fade(px, (size_t) mapW * mapH, sec.fadeLevel);
-	}
-	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, mapW * 4);
-	sec.mapShownIdx = idx;
-}
+/* (upload_map_frame: second.c) */
 
 /* (compose_still: second.c) */
 
@@ -6172,42 +6157,16 @@ static void upload_map_frame(int idx) {
  * from the one on screen where the markers animate (a pulse caught at
  * another point of its loop) keeps the old still, so it doesn't jump around
  * every time the map is refreshed. Returns true if the still changed. */
-static bool stillStale; /* stillPx is from an older map (built only when it's shown) */
 /* The map animates, unless the game's is always still */
 /* (map_anim: second.c) */
 
-static bool update_still(void) {
-	int w = sec.mapRes.w, h = sec.mapRes.h, wh = w * h;
-	uint32_t* px = malloc((size_t) wh * 4);
-	unsigned char* mask = malloc((size_t) wh);
-	if (!px || !mask) {
-		free(px);
-		free(mask);
-		return false;
-	}
-	const MapProfile* prof = sec.mc ? mapcap_profile(sec.mc) : NULL;
-	compose_still(&sec.mapRes, prof ? (int) prof->stillPick : STILL_BRIGHT, px, mask);
-	if (sec.stillValid && sec.stillW == w && sec.stillH == h) {
-		bool same = true;
-		for (int i = 0; i < wh && same; ++i) same = px[i] == sec.stillPx[i] || mask[i];
-		if (same) {
-			free(px);
-			free(mask);
-			return false;
-		}
-	}
-	free(sec.stillPx);
-	free(mask);
-	sec.stillPx = px, sec.stillW = w, sec.stillH = h, sec.stillValid = true;
-	return true;
-}
 
 /* A new map picture in mapRes (a capture; or one kept with a save state,
  * `fresh` false: the level name above the HUD isn't taken from it, it's
  * kept on its own) */
-static void map_show_new(bool fresh) {
-	sec.mapInactive = false;
-	if (!fresh || sec.capSubject) sec.capSubject = false, toggle_new_subject();
+/* (second.h hook) a new map picture is in: what the HUD split keeps of it (the
+ * held number, the level list's title row) */
+static void hud_new_map(bool fresh) {
 	if (fresh && hudProf && hudProf->hud.held.over.x1 && sec.mapRes.frames[0] && sec.mapRes.w * sec.mapRes.h <= GBA_W * GBA_H) {
 		/* hud.held.over: the number, laid over the held picture */
 		heldNumW = sec.mapRes.w, heldNumH = sec.mapRes.h;
@@ -6220,20 +6179,6 @@ static void map_show_new(bool fresh) {
 		mapTitleN = SDL_min(hudProf->hud.mapTitleRows, 32);
 		for (int i = 0; i < GBA_W * mapTitleN; ++i) mapTitle[i] = sec.mapRes.frames[0][i] | 0xFF000000;
 	}
-	sec.mapShownIdx = -1;
-	/* (pages, a few seconds each: Fire Emblem's unit status; they
-	 * keep turning at their pace through new captures) */
-	bool pages = sec.mapRes.pages;
-	if (!pages) sec.mapAnimStart = sec.frame;
-	/* the still (each marker frozen) is only shown with map animations
-	 * off, and building it is real work: only then */
-	bool stillChanged = false;
-	stillStale = map_anim();
-	if (!stillStale) stillChanged = update_still();
-	int first = pages ? second_page() : 0;
-	upload_map_frame(map_anim() ? first : STILL_IDX);
-	if (debug) fprintf(stderr, "frame %llu: map %s (%d frame(s) %d apart%s)\n", (unsigned long long) sec.frame, fresh ? "updated" : "from the save state",
-	                   sec.mapRes.nFrames, sec.mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
 }
 
 
@@ -6859,12 +6804,12 @@ static void make_logo_canvas(void) {
  * picture. */
 static void make_combat_canvas(void) {
 	combatMade = true;
-	uint32_t* px = malloc((size_t) mapW * mapH * 4);
+	uint32_t* px = malloc((size_t) sec.mapW * sec.mapH * 4);
 	if (!px) return;
-	for (int i = 0; i < mapW * mapH; ++i) px[i] = SCREEN_GREY;
-	logo_draw(px, mapW, mapH, SDL_max(1, mapW / GBA_W), 0, LOGO_IDLE);
+	for (int i = 0; i < sec.mapW * sec.mapH; ++i) px[i] = SCREEN_GREY;
+	logo_draw(px, sec.mapW, sec.mapH, SDL_max(1, sec.mapW / GBA_W), 0, LOGO_IDLE);
 	for (int i = 0; i < nViews; ++i) {
-		if (combatTex[i]) ui_update_texture(combatTex[i], px, mapW * 4);
+		if (combatTex[i]) ui_update_texture(combatTex[i], px, sec.mapW * 4);
 	}
 	free(combatPx);
 	combatPx = px; /* (hud.logoUnder) */
@@ -6923,14 +6868,14 @@ static void draw_game(void) {
 			ui_image_pixels(s, ww.tex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
 		} else if (((combatOn && !(overAlone && sec.mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
-			ui_image_pixels(s, combatTex, mapW, mapH, cfg->mapScale, SHADER_ON);
+			ui_image_pixels(s, combatTex, sec.mapW, sec.mapH, cfg->mapScale, SHADER_ON);
 		} else if (hudShown && !sec.logoForced) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, SHADER_ON ? 2 : 0);
 		} else if (sec.mapShownIdx >= 0 && !sec.logoForced) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
-			ui_image_pixels(s, mapTex, mapW, mapH, cfg->mapScale, SHADER_ON);
+			ui_image_pixels(s, mapTex, sec.mapW, sec.mapH, cfg->mapScale, SHADER_ON);
 		} else if ((logoCanvasTex[0] || logoCanvasTex[1]) && logoSub > 1) {
 			/* a scraped logo at full resolution (GEN-11): its picture made at
 			 * LOGO_SUB pixels per GBA pixel, onto where the GBA picture goes */
@@ -7397,8 +7342,8 @@ static void take_screenshot(void) {
  * or for a compilation the game running in it: subCode): the map capture,
  * the HUD split, the fights' picture. */
 static void ss_setup(const char* rom, const char* code) {
-	mapW = GBA_W;
-	mapH = GBA_H;
+	sec.mapW = GBA_W;
+	sec.mapH = GBA_H;
 	memset(&sec.mapRes, 0, sizeof(sec.mapRes));
 	sec.mapShownIdx = -1;
 	sec.stillValid = false;
@@ -7475,7 +7420,7 @@ static void ss_setup(const char* rom, const char* code) {
 		sec.hideWhenProf = NULL;
 		if (sec.mc) {
 			fprintf(stderr, "map profile: %s\n", mapcap_title(sec.mc));
-			mapcap_size(sec.mc, &mapW, &mapH);
+			mapcap_size(sec.mc, &sec.mapW, &sec.mapH);
 			/* the full map is always up, so hide the game's own corner mini-map */
 			const MapProfile* prof = profile_find(code);
 			int nRules = 0;
@@ -7497,8 +7442,8 @@ static void ss_textures(void) {
 		if (mapTex[i]) SDL_DestroyTexture(mapTex[i]);
 		if (combatTex[i]) SDL_DestroyTexture(combatTex[i]);
 		if (hudTex[i]) SDL_DestroyTexture(hudTex[i]);
-		mapTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, mapW, mapH);
-		combatTex[i] = combatProf ? SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, mapW, mapH) : NULL;
+		mapTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, sec.mapW, sec.mapH);
+		combatTex[i] = combatProf ? SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, sec.mapW, sec.mapH) : NULL;
 		if (combatTex[i]) SDL_SetTextureBlendMode(combatTex[i], SDL_BLENDMODE_NONE);
 		hudTex[i] = hudProf ? SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, HUD_CW, HUD_CH) : NULL;
 		if (hudTex[i]) SDL_SetTextureBlendMode(hudTex[i], SDL_BLENDMODE_NONE);
@@ -7776,9 +7721,9 @@ static SDL_AudioDeviceID open_game_audio(SDL_AudioSpec* want) {
 
 /* (map_refresh_step: second.c) */
 
-/* (second.h hook) a profile's own live picture, put up as it is */
-static void show_live(const uint32_t* px) {
-	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, mapW * 4);
+/* (second.h hook) the second screen's picture, put up as it is */
+static void show_picture(const uint32_t* px) {
+	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, sec.mapW * 4);
 }
 
 static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary);
@@ -7821,7 +7766,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	romPath = rom, lastLoop = 0;
 	/* what the second screen reads, and how it puts its pictures up (second.h) */
 	sec.emu = &emu, sec.cfg = cfg, sec.debug = debug, sec.romPath = romPath;
-	sec.hooks = (SecondHooks) { upload_map_frame, map_show_new, show_live };
+	sec.hooks = (SecondHooks) { hud_new_map, hud_over_map, show_picture };
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
 	game_keys_reload();

@@ -18,14 +18,15 @@ const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
 /* "Map Animations: Off" shows the composed still (sec.stillPx) as this index */
 #define STILL_IDX MAP_MAX_FRAMES
 
-/* How the second screen's pictures go up (set by the app; for now the app's
- * own composition and upload, until they move here): upload picture idx
- * (map_px), show a capture that just came in (fresh: a capture, not one kept
- * with a state), put a profile's live picture up as it is. */
+/* What the app does for the second screen (set by the app, once per game):
+ * hudNew and overMap are the HUD split's part, still the app's for now (what
+ * it keeps of a new map picture; its pieces laid over the picture, returning
+ * the picture to show, px itself if none); present puts the picture (sec.mapW
+ * x sec.mapH) on the screen. */
 typedef struct {
-	void (*upload)(int idx);
-	void (*showNew)(bool fresh);
-	void (*showLive)(const uint32_t* px);
+	void (*hudNew)(bool fresh);
+	const uint32_t* (*overMap)(const uint32_t* px);
+	void (*present)(const uint32_t* px);
 } SecondHooks;
 
 /* ---- The second screen's state (libretro core, discussion #75: the module's
@@ -36,6 +37,7 @@ typedef struct {
 typedef struct {
 	/* the capture's pictures and which is up */
 	MapResult mapRes;
+	int mapW, mapH;         /* the second screen's picture (the capture's size: mapcap_size) */
 	int mapShownIdx;        /* the picture on the second screen (STILL_IDX: the still), -1 none (the logo) */
 	/* "Map Animations: Off" shows this composed still instead of mapRes.frames[] */
 	uint32_t* stillPx;      /* mapW * mapH */
@@ -101,6 +103,10 @@ bool map_anim(void);
 void map_refresh_step(void);
 /* picture idx of the second screen (STILL_IDX: the still), NULL if none */
 const uint32_t* map_px(int idx);
+/* put picture idx up (unless it is up already and nothing changed: overDirty) */
+void upload_map_frame(int idx);
+/* a new map picture is in sec.mapRes (fresh: a capture; else kept with a state) */
+void map_show_new(bool fresh);
 /* the frame is mostly dark / one colour nearly all over (a fade, a blank screen) */
 bool frame_is_dark(const uint32_t* fb);
 bool frame_is_flat(const uint32_t* fb);

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-SecondState sec = { .mapShownIdx = -1, .fadeLevel = 256, .tgWait = -1 };
+SecondState sec = { .mapW = GBA_W, .mapH = GBA_H, .mapShownIdx = -1, .fadeLevel = 256, .tgWait = -1 };
 
 void second_new_subject(void) {
 	sec.refresh.forceMap = true;
@@ -176,6 +176,73 @@ bool frame_is_dark(const uint32_t* fb) {
 	return bright * 40 < total;
 }
 
+/* put picture idx up: the HUD's pieces over it, faded during a turn that
+ * waits (GEN-14), handed to the app (unless it is up already) */
+void upload_map_frame(int idx) {
+	const uint32_t* px = map_px(idx);
+	if ((idx == sec.mapShownIdx && !sec.overDirty) || !px) return;
+	sec.overDirty = false;
+	px = sec.hooks.overMap(px); /* (the HUD's pieces over it: the app's, for now) */
+	if (sec.fadeLevel < 256) {
+		/* (a turn that waits, GEN-14: only the picture fades, so the
+		 * shader and the bezel stay as they are) */
+		px = second_fade(px, (size_t) sec.mapW * sec.mapH, sec.fadeLevel);
+	}
+	sec.hooks.present(px);
+	sec.mapShownIdx = idx;
+}
+
+/* stillPx is from an older map (built only when it's shown) */
+static bool stillStale;
+static bool update_still(void) {
+	int w = sec.mapRes.w, h = sec.mapRes.h, wh = w * h;
+	uint32_t* px = malloc((size_t) wh * 4);
+	unsigned char* mask = malloc((size_t) wh);
+	if (!px || !mask) {
+		free(px);
+		free(mask);
+		return false;
+	}
+	const MapProfile* prof = sec.mc ? mapcap_profile(sec.mc) : NULL;
+	compose_still(&sec.mapRes, prof ? (int) prof->stillPick : STILL_BRIGHT, px, mask);
+	if (sec.stillValid && sec.stillW == w && sec.stillH == h) {
+		bool same = true;
+		for (int i = 0; i < wh && same; ++i) same = px[i] == sec.stillPx[i] || mask[i];
+		if (same) {
+			free(px);
+			free(mask);
+			return false;
+		}
+	}
+	free(sec.stillPx);
+	free(mask);
+	sec.stillPx = px, sec.stillW = w, sec.stillH = h, sec.stillValid = true;
+	return true;
+}
+
+/* A new map picture in mapRes (a capture; or one kept with a save state,
+ * `fresh` false: the level name above the HUD isn't taken from it, it's
+ * kept on its own) */
+void map_show_new(bool fresh) {
+	sec.mapInactive = false;
+	if (!fresh || sec.capSubject) sec.capSubject = false, toggle_new_subject();
+	sec.hooks.hudNew(fresh); /* (what the HUD split keeps of it: the app's, for now) */
+	sec.mapShownIdx = -1;
+	/* (pages, a few seconds each: Fire Emblem's unit status; they
+	 * keep turning at their pace through new captures) */
+	bool pages = sec.mapRes.pages;
+	if (!pages) sec.mapAnimStart = sec.frame;
+	/* the still (each marker frozen) is only shown with map animations
+	 * off, and building it is real work: only then */
+	bool stillChanged = false;
+	stillStale = map_anim();
+	if (!stillStale) stillChanged = update_still();
+	int first = pages ? second_page() : 0;
+	upload_map_frame(map_anim() ? first : STILL_IDX);
+	if (sec.debug) fprintf(stderr, "frame %llu: map %s (%d frame(s) %d apart%s)\n", (unsigned long long) sec.frame, fresh ? "updated" : "from the save state",
+	                   sec.mapRes.nFrames, sec.mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
+}
+
 /* a picture of the second screen by its index (STILL_IDX: the still) */
 const uint32_t* map_px(int idx) {
 	return idx == STILL_IDX ? (sec.stillValid ? sec.stillPx : NULL) : sec.mapRes.frames[idx];
@@ -272,12 +339,12 @@ void map_refresh_step(void) {
 		if (fresh && mapcap_in_menu(sec.mc, &(*sec.emu))) {
 			/* a capture that finished after quitting to the title: drop it */
 		} else if (fresh) {
-			sec.hooks.showNew(true);
+			map_show_new(true);
 			++sec.capDone;
 		} else if (((map_anim() && sec.mapRes.nFrames > 1) || sec.fadeUpload) && sec.mapShownIdx >= 0) {
 			int idx = second_page();
 			sec.fadeUpload = false;
-			sec.hooks.upload(idx);
+			upload_map_frame(idx);
 		}
 		/* a profile's own live picture (Mega Man Battle Network's maps on
 		 * the net), drawn every frame over whatever was captured; when it
@@ -285,7 +352,7 @@ void map_refresh_step(void) {
 		const MapProfile* lvp = mapcap_profile(sec.mc);
 		const uint32_t* lv = lvp && lvp->liveView && sec.romPath ? lvp->liveView(&(*sec.emu), sec.romPath) : NULL;
 		if (lv) {
-			sec.hooks.showLive(lv);
+			sec.hooks.present(lv);
 			if (sec.mapShownIdx < 0) sec.mapShownIdx = 0;
 			if (!sec.liveOn && sec.debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) sec.frame);
 			sec.liveOn = true;
@@ -294,7 +361,7 @@ void map_refresh_step(void) {
 			if (sec.debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) sec.frame);
 			if (sec.mapRes.ok && map_px(sec.mapShownIdx)) {
 				sec.overDirty = true;
-				sec.hooks.upload(sec.mapShownIdx);
+				upload_map_frame(sec.mapShownIdx);
 			} else {
 				sec.mapShownIdx = -1;
 			}
