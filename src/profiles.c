@@ -12958,6 +12958,25 @@ static const MapProfile profiles[] = {
 		/* the title's lettering, the sprites, above the copyright lines (BOF2-1) */
 		.logo = { .steps = { { 0, 1500 } }, .layers = 0x10, .maxY = 120 },
 	},
+	{
+		/* Mario Pinball Land (docs/games/mario-pinball-land.md) */
+		.codes = { "BMVE" },
+		.title = "Mario Pinball Land",
+		.logoOnly = true,
+		/* START cuts the intro film short: the title's lettering alone on BG3 (PRESS START is sprites) */
+		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 300 } }, .layer = 3 },
+		.hud = {
+			/* a room: not the title (BG3), with the star counter's icon in the top corner, which the ball bonus screens lack */
+			.on = { { 0x04000000, 0x0800, 0, 2 } },
+			.onWith = { -1, 0, -1, 0, 0, 1023, 1, 1u << 2 },
+			.onLost = 30,
+			/* the HUD is priority-1 sprites: 16x16 in palettes 0 and 2 along the top, palettes 0-4 in the bottom left, anything but
+			 * Toad's palette 13 in the bottom right (the held item), and the 64x64 slot; Toad and the item roulette pass the same places */
+			.objs = { { -512, -256, 511, 19, 0, 1023, 1, 1u << 0 | 1u << 2, 0, 1u << 1 }, { -512, 112, 60, 255, 0, 1023, 1, 0x1F, 0, 1u << 1 },
+			          { 170, 112, 511, 255, 0, 1023, 1, 0xFFFF & ~(1u << 13) }, { 170, 80, 511, 255, 0, 1023, 1, 0, 0, 1u << 3 } },
+			.logoBelow = true,
+		},
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -13485,6 +13504,9 @@ static void kdl_jpn(MapProfile* p) {
 }
 
 static const Variant variants[] = {
+	/* Mario Pinball Land: Super Mario Ball in Europe and Japan; the same intro, palettes and sprites, so nothing to move */
+	{ "BMVP", "BMVE", 0, NULL },
+	{ "BMVJ", "BMVE", 0, NULL },
 	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
 	{ "B8KP", "B8KE", 0, NULL },
 	{ "B8KJ", "B8KE", 0, NULL },

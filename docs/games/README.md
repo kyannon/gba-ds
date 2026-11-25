@@ -20,6 +20,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Super Mario Advance 2: Super Mario World](super-mario-advance-2.md) | SMA | `AA2E` + 2 |
 | [Super Mario Advance 3: Yoshi's Island](super-mario-advance-3.md) | SM3 | `A3AE` + 2 |
 | [Super Mario Advance 4: Super Mario Bros. 3](super-mario-advance-4.md) | SM4 | `AX4E` + 2 |
+| [Mario Pinball Land (Super Mario Ball in Europe and Japan)](mario-pinball-land.md) | MPL | `BMVE` + 2 |
 | [Final Fantasy Tactics Advance](final-fantasy-tactics-advance.md) | FT | `AFXE` + 2 |
 | [Final Fantasy I & II: Dawn of Souls](final-fantasy-1-2-dawn-of-souls.md) | FF | `BFFE` + 2 |
 | [Final Fantasy V Advance](final-fantasy-v-advance.md) | FV | `BZ5E` + 2 |
