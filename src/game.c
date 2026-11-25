@@ -7892,6 +7892,15 @@ static void overlays_reload(void) {
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 }
 
+/* GEN-18: with both screens on one display the pause menu takes the whole
+ * display (it is drawn on the touch screen, which would be half of it); the
+ * two screens come back when it closes. */
+static void menu_layout_sync(void) {
+	int was = nScreens;
+	ui_menu_full(menuOpen);
+	if (nScreens != was) overlays_reload(), gameTexAll = true;
+}
+
 /* s: the physical screen (0 top, 1 bottom); which: what's on it (0 the game, 1 the second screen) */
 static void load_overlay(int s, int which) {
 	const char* scale = which ? cfg->mapScale : cfg->scale;
@@ -9368,6 +9377,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			lastLoop = SDL_GetTicks();
 		}
 		ui_stick_dpad(cfg->leftStickDpad || menuOpen || barShown > 0); /* (#57: off for the game only) */
+		menu_layout_sync();
 		if (!ui_events()) {
 			exitTo = GAME_QUIT_APP;
 			break;
@@ -9985,6 +9995,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			hl.quietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
 		}
 		wasMenu = menuOpen;
+		menu_layout_sync();
 
 		if (menuOpen) {
 			ra_idle();

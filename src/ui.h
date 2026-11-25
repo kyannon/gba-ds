@@ -74,6 +74,7 @@ uint64_t ui_ticks(void);
 /* The two screens' shapes differ (by more than 2%): screen_match can do
  * something. */
 bool ui_screens_differ(void);
+void ui_menu_full(bool on); /* with both screens on one display (GEN-18): the pause menu and its screens take the whole display while on; the two screens come back when off */
 bool ui_one_display(void); /* the screens are cut from one display's window (not two displays, or a window over two panels): both screens on it are an option (issue #84) */
 /* Works out the screens' picture areas again (screen_match or
  * screen_placement changed). */

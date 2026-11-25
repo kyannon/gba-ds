@@ -762,6 +762,13 @@ void ui_layout_pictures(void) {
 }
 
 static bool oneDisplay; /* (set by layout_screens) */
+static bool menuFull;   /* the pause menu is up: one screen over the whole display */
+
+void ui_menu_full(bool on) {
+	if (on == menuFull) return;
+	menuFull = on;
+	if (oneDisplay && strcmp(cfg->singleLayout, "off")) ui_layout();
+}
 
 bool ui_one_display(void) {
 	return oneDisplay;
@@ -847,7 +854,7 @@ static void layout_screens(void) {
 		 * Where the game is (swap) is the player's, as with two screens. */
 		oneDisplay = true;
 		const char* sl = cfg->singleLayout;
-		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0;
+		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && !menuFull;
 		if (together) {
 			bool side = !strcmp(sl, "side") || (!strcmp(sl, "auto") && w >= h);
 			int pct = !strcmp(cfg->singleSize, "small") ? 30 : !strcmp(cfg->singleSize, "medium") ? 40 : 50;
