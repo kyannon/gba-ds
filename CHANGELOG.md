@@ -2,6 +2,9 @@
 
 ## v1.6.3 (not yet released)
 
+### Menus
+- **GBA DS asks which language to use the first time it starts after it's installed** (issue #92). Every language is listed by its own name, and the top screen says "Language" in all of them, so you can find yours even when the system reports a language you don't read (the RG DS Plus's stock Linux OS reports Chinese, which put every menu in Chinese). Pick one with A and both screens change to it straight away; press A again, START or Continue to keep it, or B to go back to the one it started in. Started straight into a game from your frontend, the game starts as usual and the question comes up the first time you open the pause menu. Updating GBA DS doesn't ask; you can still change the language in Settings > System > Language.
+
 ### Web player
 - **A screen in a second window, for another monitor** (issue #93). On a computer, the new two-windows button in the web player's toolbar opens the bottom screen (the touchscreen) in a window of its own, to drag to another monitor; the player's window then shows the top screen alone, as large as it fits. Settings > Screens > Second window puts the top screen there instead. Keys, controllers and clicks on the touchscreen work in either window. The second window has its own Full screen button, at its top right when you move the mouse (with the top screen in it, a double-click works too). Pressing the two-windows button again, or closing the window, brings the screen back. In Chrome and Edge with more than one monitor, the window opens on the other monitor once you allow the player to place windows. The game keeps running when either window is hidden, so long as the other can be seen.
 
