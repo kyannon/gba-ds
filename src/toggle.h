@@ -8,14 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/* game.c's state the toggle reads and writes (to become one struct when the
- * second-screen module's interface is defined) */
-extern Emu emu;
-extern Config* cfg;
-extern bool debug;
-extern uint64_t frameCount;
-extern MapCapture* mc;
-bool map_anim(void);
+/* (its state, and what it reads from outside: second.h's sec) */
 
 /* the toggle (state machine: TG_IDLE, TG_FADE_OUT, TG_HOLD, TG_FADE_IN) */
 enum { TG_IDLE, TG_FADE_OUT, TG_HOLD, TG_FADE_IN };

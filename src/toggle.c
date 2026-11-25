@@ -17,16 +17,16 @@ static inline int imin(int a, int b) { return a < b ? a : b; }
  * The one place that says which page is up (the toggle, GEN-14, changes
  * it from here). */
 int second_page(void) {
-	if (sec.mapRes.nFrames < 1 || frameCount < sec.mapAnimStart) return 0;
-	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	if (sec.mapRes.nFrames < 1 || sec.frame < sec.mapAnimStart) return 0;
+	const MapProfile* hp = sec.mc ? mapcap_profile(sec.mc) : NULL;
 	if (hp && hp->holdPage) {
-		int hold = hp->holdPage(&emu); /* (a page kept up: Pokémon's Party in a battle) */
+		int hold = hp->holdPage(&(*sec.emu)); /* (a page kept up: Pokémon's Party in a battle) */
 		if (hold >= 0 && hold < sec.mapRes.nFrames) return hold;
 	}
-	if (hp && hp->views) return cfg->toggle ? sec.pageOffset % sec.mapRes.nFrames : 0; /* (views: the first until the toggle turns to another; no timer) */
-	bool by_hand = cfg->toggle && sec.mapRes.pages;
-	if (by_hand && !cfg->autoRotate) return sec.pageOffset % sec.mapRes.nFrames; /* (auto-rotate off: a page stays until you press) */
-	return (int) ((((frameCount - sec.mapAnimStart) / (uint64_t) imax(1, sec.mapRes.frameStep)) + (uint64_t) (by_hand ? sec.pageOffset : 0)) % (uint64_t) sec.mapRes.nFrames);
+	if (hp && hp->views) return sec.cfg->toggle ? sec.pageOffset % sec.mapRes.nFrames : 0; /* (views: the first until the toggle turns to another; no timer) */
+	bool by_hand = sec.cfg->toggle && sec.mapRes.pages;
+	if (by_hand && !sec.cfg->autoRotate) return sec.pageOffset % sec.mapRes.nFrames; /* (auto-rotate off: a page stays until you press) */
+	return (int) ((((sec.frame - sec.mapAnimStart) / (uint64_t) imax(1, sec.mapRes.frameStep)) + (uint64_t) (by_hand ? sec.pageOffset : 0)) % (uint64_t) sec.mapRes.nFrames);
 }
 
 /* ---- the contextual toggle (GEN-14, issue #37). Turning the second screen
@@ -52,45 +52,45 @@ bool tg_view_mode(const MapProfile* hp) {
 }
 
 bool toggle_ready(void) {
-	if (!cfg->toggle || sec.tgState != TG_IDLE) return false;
-	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	if (!sec.cfg->toggle || sec.tgState != TG_IDLE) return false;
+	const MapProfile* hp = sec.mc ? mapcap_profile(sec.mc) : NULL;
 	if (tg_view_mode(hp)) {
 		/* the other view is captured on the press: ready when there is one here (or this is it, and the game's own is to come back), a picture is up and the hidden copy is free */
-		if (sec.mapShownIdx < 0 || sec.logoForced || sec.liveOn || sec.mapInactive || sec.pressCap || (sec.capSubject && mapcap_busy(mc))) return false; /* (a refresh still running doesn't count: a press calls it off) */
-		return sec.viewAlt || !hp->altHere || hp->altHere(&emu);
+		if (sec.mapShownIdx < 0 || sec.logoForced || sec.liveOn || sec.mapInactive || sec.pressCap || (sec.capSubject && mapcap_busy(sec.mc))) return false; /* (a refresh still running doesn't count: a press calls it off) */
+		return sec.viewAlt || !hp->altHere || hp->altHere(&(*sec.emu));
 	}
 	if (!sec.mapRes.pages || sec.mapRes.nFrames < 2 || sec.mapShownIdx < 0 || !map_anim()) return false; /* (one picture, the logo, Map Animations off) */
 	if (sec.logoForced || sec.liveOn || sec.mapInactive) return false;
-	if (hp && hp->holdPage && hp->holdPage(&emu) >= 0) return false; /* (a page kept up: Pokémon's Party in a battle) */
-	if (sec.capSubject && mapcap_busy(mc)) return false; /* (the next subject's pictures aren't here yet: GEN-6) */
+	if (hp && hp->holdPage && hp->holdPage(&(*sec.emu)) >= 0) return false; /* (a page kept up: Pokémon's Party in a battle) */
+	if (sec.capSubject && mapcap_busy(sec.mc)) return false; /* (the next subject's pictures aren't here yet: GEN-6) */
 	return true;
 }
 
 /* the page shows, the timer (auto-rotate) starting again from it */
 void toggle_apply(int page) {
-	if (cfg->autoRotate) sec.mapAnimStart = frameCount;
+	if (sec.cfg->autoRotate) sec.mapAnimStart = sec.frame;
 	sec.pageOffset = page;
 	sec.overDirty = true;
-	if (debug) fprintf(stderr, "frame %llu: toggle: page %d of %d\n", (unsigned long long) frameCount, page + 1, sec.mapRes.nFrames);
+	if (sec.debug) fprintf(stderr, "frame %llu: toggle: page %d of %d\n", (unsigned long long) sec.frame, page + 1, sec.mapRes.nFrames);
 }
 
 void toggle_press(void) {
 	if (!toggle_ready()) {
-		if (debug) fprintf(stderr, "frame %llu: toggle: not ready, ignored\n", (unsigned long long) frameCount);
+		if (sec.debug) fprintf(stderr, "frame %llu: toggle: not ready, ignored\n", (unsigned long long) sec.frame);
 		return;
 	}
 	if (sec.tgWait < 0) {
 		const char* e = getenv("GBADS_TOGGLE_WAIT");
 		sec.tgWait = e ? imax(0, atoi(e)) : 0;
 	}
-	const MapProfile* pp = mc ? mapcap_profile(mc) : NULL;
+	const MapProfile* pp = sec.mc ? mapcap_profile(sec.mc) : NULL;
 	if (tg_view_mode(pp)) {
 		/* capture on press: the other view is asked for now; the picture fades out, stays black until it is here (or it isn't, in time: the old one comes back) */
 		sec.viewAlt = !sec.viewAlt, sec.viewWait = true, sec.tgCapWant = 0;
-		sec.pageOffset = 0, sec.mapAnimStart = frameCount; /* (a view's pages start at the first: coming round again, not from the page the last turn ended on) */
-		if (mc && mapcap_busy(mc)) mapcap_cancel(mc); /* (a refresh of the old view: the new one starts as soon as it has stopped) */
+		sec.pageOffset = 0, sec.mapAnimStart = sec.frame; /* (a view's pages start at the first: coming round again, not from the page the last turn ended on) */
+		if (sec.mc && mapcap_busy(sec.mc)) mapcap_cancel(sec.mc); /* (a refresh of the old view: the new one starts as soon as it has stopped) */
 		sec.tgState = TG_FADE_OUT, sec.tgFrames = 0, sec.tgTarget = -1;
-		if (debug) fprintf(stderr, "frame %llu: toggle: view %s asked for\n", (unsigned long long) frameCount, sec.viewAlt ? "2" : "1");
+		if (sec.debug) fprintf(stderr, "frame %llu: toggle: view %s asked for\n", (unsigned long long) sec.frame, sec.viewAlt ? "2" : "1");
 		return;
 	}
 	int next = (second_page() + 1) % sec.mapRes.nFrames;
@@ -103,15 +103,15 @@ void toggle_press(void) {
  * off: the pages go on turning through new captures as they always did. */
 void toggle_new_subject(void) {
 	if (sec.tgState != TG_IDLE) sec.tgState = TG_IDLE, sec.fadeLevel = 256, sec.overDirty = true;
-	if (!cfg->toggle) return;
+	if (!sec.cfg->toggle) return;
 	sec.pageOffset = 0;
-	if (sec.mapRes.pages) sec.mapAnimStart = frameCount;
+	if (sec.mapRes.pages) sec.mapAnimStart = sec.frame;
 }
 
 /* each frame */
 void toggle_step(void) {
-	if (!cfg->toggle && sec.viewAlt) sec.viewAlt = false, sec.pressCap = true; /* (switched off while the other view was up: the game's own comes back) */
-	if (!cfg->toggle && sec.tgState != TG_IDLE) sec.tgState = TG_IDLE, sec.fadeLevel = 256, sec.overDirty = true; /* (switched off meanwhile) */
+	if (!sec.cfg->toggle && sec.viewAlt) sec.viewAlt = false, sec.pressCap = true; /* (switched off while the other view was up: the game's own comes back) */
+	if (!sec.cfg->toggle && sec.tgState != TG_IDLE) sec.tgState = TG_IDLE, sec.fadeLevel = 256, sec.overDirty = true; /* (switched off meanwhile) */
 	if (sec.tgState == TG_IDLE) return;
 	sec.overDirty = true, sec.fadeUpload = true; /* (the picture is drawn again each frame of a turn) */
 	++sec.tgFrames;
@@ -125,12 +125,12 @@ void toggle_step(void) {
 			/* (capture on press) the view is in: fade up; not in time: the old one stays, and the capture is called off */
 			if (sec.tgCapWant && sec.capDone >= sec.tgCapWant) {
 				sec.tgState = TG_FADE_IN, sec.tgFrames = 0, sec.viewWait = false;
-				if (debug) fprintf(stderr, "frame %llu: toggle: view %s\n", (unsigned long long) frameCount, sec.viewAlt ? "2" : "1");
+				if (sec.debug) fprintf(stderr, "frame %llu: toggle: view %s\n", (unsigned long long) sec.frame, sec.viewAlt ? "2" : "1");
 			} else if (sec.tgFrames >= TG_HOLD_PRESS_MAX) {
 				sec.viewAlt = !sec.viewAlt, sec.pressCap = false, sec.viewWait = false, sec.tgCapWant = 0;
-				if (mc && mapcap_busy(mc)) mapcap_cancel(mc);
+				if (sec.mc && mapcap_busy(sec.mc)) mapcap_cancel(sec.mc);
 				sec.tgState = TG_FADE_IN, sec.tgFrames = 0;
-				if (debug) fprintf(stderr, "frame %llu: toggle: the view didn't come in time, the old one stays\n", (unsigned long long) frameCount);
+				if (sec.debug) fprintf(stderr, "frame %llu: toggle: the view didn't come in time, the old one stays\n", (unsigned long long) sec.frame);
 			}
 			break;
 		}

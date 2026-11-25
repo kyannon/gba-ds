@@ -36,9 +36,6 @@ typedef struct {
 	uint8_t shadow[1024]; /* the game's shadow of it, as the copy left it: its own sprites, for a frame whose logic runs long */
 } Twin;
 
-/* the game's own emulator and GBADS_DEBUG, as game.c has them */
-extern Emu* twinGame;
-extern bool twinDebug;
 
 extern Twin twins[TWINS];
 extern bool twinOpen;

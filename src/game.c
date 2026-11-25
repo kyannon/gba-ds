@@ -102,8 +102,8 @@ static int current_cpu(void) {
 #define GBA_FPS (16777216.0 / 280896.0)
 #define FF_MAX_RUNS 30 /* fast-forward at Max: at most this many frames a display frame */
 
-Config* cfg;
-Emu emu;
+static Config* cfg;
+static Emu emu;
 
 /* ------------------------------------------------- frame buffer (option)
  * With frame_buffer on, the next frame is emulated on this thread while the
@@ -129,7 +129,7 @@ static uint32_t aheadFb[GBA_W * GBA_H]; /* the frame on screen, while the worker
  * (profile controls.snes) left / right while a shoulder is held. */
 #define KX_PAN_L (1u << 20)
 #define KX_PAN_R (1u << 21)
-bool debug; /* GBADS_DEBUG (declared again below) */
+static bool debug; /* GBADS_DEBUG (declared again below) */
 static const struct MapProfile* ctlProf; /* NULL: no alternate layout for this game */
 
 /* One frame of the game with these keys (on the worker too, while the main
@@ -154,7 +154,6 @@ static struct {
 	uint64_t frame;
 	bool have;
 } bugSnap[BUG_SNAPS];
-uint64_t frameCount;
 /* (the Pinball copies: twins.c) */
 
 /* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
@@ -291,7 +290,6 @@ static void ahead_stop(void) {
 	if (started) pthread_join(ahead.thread, NULL);
 	ahead.started = false;
 }
-MapCapture* mc;
 static const MapProfile* pickProf; /* a compilation's profile (pick), or NULL */
 static char subCode[5];          /* the profile in use: the game's code, or what pickProf picked */
 /* what the ROM is, by its CRC32 (the log, bug reports) */
@@ -576,7 +574,7 @@ static void slow_frame_report(bool debug) {
 	slowCount = 0;
 	slowWorst.total = 0;
 }
-bool debug;
+static bool debug;
 
 /* ---------------------------------------------------------------- menu */
 
@@ -2148,7 +2146,7 @@ static SDL_Rect bar_cell_g(int i) {
  * the picture's w / 240 screen pixels. With no map the touchscreen may show
  * the game: then the game's picture. */
 static SDL_Rect bar_pic_full(int s) {
-	bool gameHere = nScreens == 1 || s == game_screen() || !((mc || logoOnly) && cfg->map);
+	bool gameHere = nScreens == 1 || s == game_screen() || !((sec.mc || logoOnly) && cfg->map);
 	return ui_image_rect(s, GBA_W, GBA_H, gameHere ? cfg->scale : cfg->mapScale);
 }
 static SDL_Rect bar_to_screen(int s, SDL_Rect g) {
@@ -2686,7 +2684,7 @@ static const uint32_t* dots_filter(const uint32_t* fb) {
 	return dotsOut;
 }
 static const uint32_t* ghost_frame(const uint32_t* fb, int mode) {
-	if (ghostHave && frameCount == ghostFrame) return ghostOut; /* (the same frame drawn again) */
+	if (ghostHave && sec.frame == ghostFrame) return ghostOut; /* (the same frame drawn again) */
 	if (!ghostHave) {
 		memcpy(ghostPrev, fb, sizeof(ghostPrev));
 		memcpy(ghostPrev2, fb, sizeof(ghostPrev2));
@@ -2718,7 +2716,7 @@ static const uint32_t* ghost_frame(const uint32_t* fb, int mode) {
 		ghostPrev2[i] = b;
 		ghostPrev[i] = a;
 	}
-	ghostFrame = frameCount;
+	ghostFrame = sec.frame;
 	return ghostOut;
 }
 
@@ -3214,7 +3212,7 @@ static uint32_t fb_keys(bool faces) {
 	static const uint32_t key[FG_COUNT] = { K_A, K_B, K_L, K_R, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_START, K_SELECT, K_A, K_B, 0 };
 	/* Turbo A / B (#55): the key goes down and up turbo_rate times a second (60 frames a second) */
 	int period = SDL_clamp(60 / SDL_max(1, cfg->turboRate), 2, 12);
-	bool turboOn = (frameCount % (uint64_t) period) < (uint64_t) (period / 2);
+	bool turboOn = (sec.frame % (uint64_t) period) < (uint64_t) (period / 2);
 	/* (ui.c puts the bottom button on B_A with ab_swap: by position again) */
 	int phys[FB_COUNT] = { cfg->abSwap ? B_B : B_A, cfg->abSwap ? B_A : B_B, B_X, B_Y, B_L, B_R, B_UP, B_DOWN, B_LEFT, B_RIGHT };
 	uint32_t keys = 0;
@@ -3275,7 +3273,7 @@ static bool rowTagOn[ROW_MAX + 1];
 
 /* the game has a second screen the toggle can turn (pages, or views: GEN-14) */
 static bool toggle_supported(void) {
-	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	const MapProfile* hp = sec.mc ? mapcap_profile(sec.mc) : NULL;
 	return hp && (hp->pages || hp->views || hp->onPress);
 }
 
@@ -3791,7 +3789,7 @@ static void hud_make_backdrop(void) {
 		lastLevel = level;
 		hudSettle = !good; /* (a poor take: the next must also hold steady) */
 		hudRegrab = good ? 0 : hudFrames + (hudSettle ? 5 : 30);
-		if (debug) fprintf(stderr, "frame %llu: backdrop taken: %ld%% drawn, brightness %ld%s\n", (unsigned long long) frameCount,
+		if (debug) fprintf(stderr, "frame %llu: backdrop taken: %ld%% drawn, brightness %ld%s\n", (unsigned long long) sec.frame,
 		                   drawn * 100 / (GBA_W * GBA_H), luma / SDL_max(drawn, 1) / 3, good ? "" : " (again later)");
 		if (!good) return; /* keep the last good one meanwhile (or none: black) */
 	}
@@ -3803,7 +3801,7 @@ static void hud_make_backdrop(void) {
 		snprintf(path, sizeof(path), "%s/hud-backdrop.bmp", cfg->stateDir);
 		SDL_Surface* bs = SDL_CreateRGBSurfaceWithFormatFrom(hudGrab, GBA_W, GBA_H, 32, GBA_W * 4, SDL_PIXELFORMAT_XBGR8888);
 		if (bs) SDL_SaveBMP(bs, path), SDL_FreeSurface(bs);
-		fprintf(stderr, "frame %llu: backdrop from %d rows (%s)\n", (unsigned long long) frameCount, h, path);
+		fprintf(stderr, "frame %llu: backdrop from %d rows (%s)\n", (unsigned long long) sec.frame, h, path);
 	}
 	if (!hudBackValid) return;
 	/* where the layers drew nothing: black, not the 'nothing here' colour */
@@ -3982,7 +3980,7 @@ static bool side_take(void) {
 	if (sideScore >= 0 && off >= sideScore) return false;
 	sideScore = off;
 	memcpy(sideBest, hudPx, sizeof(sideBest));
-	if (debug) fprintf(stderr, "frame %llu: title card's side part taken (rows %d-%d, %d off centre)\n", (unsigned long long) frameCount, top, bot, off);
+	if (debug) fprintf(stderr, "frame %llu: title card's side part taken (rows %d-%d, %d off centre)\n", (unsigned long long) sec.frame, top, bot, off);
 	return true;
 }
 
@@ -4007,7 +4005,7 @@ static void card_backdrop(void) {
 	hudBackValid = true;
 	hudFadeIn = 0;
 	bg_pal_levels(hudPalRef);
-	if (debug) fprintf(stderr, "frame %llu: title card taken (%d pixels off centre)\n", (unsigned long long) frameCount, cardScore);
+	if (debug) fprintf(stderr, "frame %llu: title card taken (%d pixels off centre)\n", (unsigned long long) sec.frame, cardScore);
 }
 
 /* hud.card: no card taken yet: the logo, below the HUD's pieces; for a
@@ -4117,7 +4115,7 @@ static void hud_compose(void) {
 	bool racing = !hudScene && memprobes_match(h->layout, 4, &emu);
 	{
 		static int lastRacing = -1;
-		if (debug && racing != lastRacing) fprintf(stderr, "frame %llu: HUD layout %s\n", (unsigned long long) frameCount, racing ? "racing" : "plain");
+		if (debug && racing != lastRacing) fprintf(stderr, "frame %llu: HUD layout %s\n", (unsigned long long) sec.frame, racing ? "racing" : "plain");
 		lastRacing = racing;
 	}
 	/* the map's box: grown over the race's first frames, then kept */
@@ -4464,7 +4462,7 @@ static void update_hud(void) {
 				memcpy(heldPic, emu.fb + h->held.y0 * GBA_W, (size_t) heldN * GBA_W * 4);
 				heldNumW = 0; /* (its own number is the latest till the next capture) */
 				hudLogoBelowDone = false;
-				if (debug) fprintf(stderr, "frame %llu: picture kept for under the HUD\n", (unsigned long long) frameCount);
+				if (debug) fprintf(stderr, "frame %llu: picture kept for under the HUD\n", (unsigned long long) sec.frame);
 			}
 		}
 	}
@@ -4479,7 +4477,7 @@ static void update_hud(void) {
 			 * the middle of it: left as it is; shown instead of emu.fb,
 			 * which can't be written over: the renderer redraws only the
 			 * lines that change) */
-			if (!mirrorOn && debug) fprintf(stderr, "frame %llu: the screen mirrored\n", (unsigned long long) frameCount);
+			if (!mirrorOn && debug) fprintf(stderr, "frame %llu: the screen mirrored\n", (unsigned long long) sec.frame);
 			mirrorOn = hudShown = true;
 			if (mirMain && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu)) {
 				/* hud.alt's probes too (a menu over the paused world): its
@@ -4512,7 +4510,7 @@ static void update_hud(void) {
 			mirrorHave = true;
 			if (mirrorOn) {
 				mirrorOn = hudShown = false;
-				if (debug) fprintf(stderr, "frame %llu: the screen mirrored: off\n", (unsigned long long) frameCount);
+				if (debug) fprintf(stderr, "frame %llu: the screen mirrored: off\n", (unsigned long long) sec.frame);
 			}
 		}
 	}
@@ -4523,11 +4521,11 @@ static void update_hud(void) {
 	 * on[0] stops matching (the battle's over) */
 	if (h->offAfter[0].addr) {
 		if (!memprobes_match(h->on, 1, &emu)) {
-			if (hudOffLatch && debug) fprintf(stderr, "frame %llu: HUD held off: done\n", (unsigned long long) frameCount);
+			if (hudOffLatch && debug) fprintf(stderr, "frame %llu: HUD held off: done\n", (unsigned long long) sec.frame);
 			hudOffLatch = false;
 		} else if (!hudOffLatch && memprobes_match(h->offAfter, 2, &emu)) {
 			hudOffLatch = true;
-			if (debug) fprintf(stderr, "frame %llu: HUD held off\n", (unsigned long long) frameCount);
+			if (debug) fprintf(stderr, "frame %llu: HUD held off\n", (unsigned long long) sec.frame);
 		}
 		if (hudOffLatch) race = altOn = false, main = false;
 	}
@@ -4624,7 +4622,7 @@ static void update_hud(void) {
 			emptyFor = empty ? emptyFor + 1 : 0;
 		}
 		if (h->emptyIsOff && emptyFor >= 20) {
-			if (hudShown && debug) fprintf(stderr, "frame %llu: HUD empty: the logo\n", (unsigned long long) frameCount);
+			if (hudShown && debug) fprintf(stderr, "frame %llu: HUD empty: the logo\n", (unsigned long long) sec.frame);
 			hudShown = false;
 		} else if (h->freeze[0].addr && memprobes_match(h->freeze, 2, &emu)) {
 			/* hud.freeze: the picture as it was (World-e's status bar
@@ -4637,9 +4635,9 @@ static void update_hud(void) {
 			    !(hudProf->logoIfOr[0].addr && memprobes_match(hudProf->logoIfOr, 2, &emu))) {
 				/* (a new HUD picture: the logo's hold is over) */
 				sec.logoForced = false, sec.logoHolding = 0;
-				if (debug) fprintf(stderr, "frame %llu: logo only off: a new HUD picture\n", (unsigned long long) frameCount);
+				if (debug) fprintf(stderr, "frame %llu: logo only off: a new HUD picture\n", (unsigned long long) sec.frame);
 			}
-			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
+			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) sec.frame);
 			hudShown = true;
 		}
 	}
@@ -4660,7 +4658,7 @@ static void update_hud(void) {
 	 * forgotten, the logo behind the HUD */
 	if (race && h->card.drop[0].addr && (hudBackValid || cardScore >= 0) && memprobes_match(h->card.drop, 2, &emu)) {
 		hudBackValid = false, cardScore = -1, sideScore = -1;
-		if (debug) fprintf(stderr, "frame %llu: title card dropped\n", (unsigned long long) frameCount);
+		if (debug) fprintf(stderr, "frame %llu: title card dropped\n", (unsigned long long) sec.frame);
 	}
 	if (card != hudCard) {
 		/* a card coming up: a new take; going: the best one, if not yet */
@@ -4676,7 +4674,7 @@ static void update_hud(void) {
 			memcpy(emu.fb, noHud, sizeof(noHud));
 		}
 		else if (cardScore >= 0 && !hudBackValid) card_backdrop();
-		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) frameCount, card ? "up" : "gone");
+		if (debug) fprintf(stderr, "frame %llu: title card %s\n", (unsigned long long) sec.frame, card ? "up" : "gone");
 	}
 	if (race != hudOn || scene != hudScene || world != hudWorld || alt != hudAlt || card != hudCard) {
 		/* (hud.card.hideTillTake: the HUD split off as usual, but not shown
@@ -4694,7 +4692,7 @@ static void update_hud(void) {
 		splitting = race && some;
 		if (race && some) emu_hud_copy(&emu, cardObjs); /* (the card stays on the game screen too) */
 		hudCard = card;
-		if (debug && race && alt != hudAlt) fprintf(stderr, "frame %llu: HUD on its other layer%s\n", (unsigned long long) frameCount, alt ? "" : ": off");
+		if (debug && race && alt != hudAlt) fprintf(stderr, "frame %llu: HUD on its other layer%s\n", (unsigned long long) sec.frame, alt ? "" : ": off");
 		hudAlt = alt;
 		/* (by priority: the renderer picks the layers line by line) */
 		emu_hud_by_priority(h->bgPrioBelow);
@@ -4707,7 +4705,7 @@ static void update_hud(void) {
 			emu_hud_mem_layers(a, m, v, sz, race ? n : 0, h->memLayers.any, h->memLayers.bgMask, h->memLayers.gamePal);
 		}
 		hudKeep = 0;
-		if (debug && race && scene != hudScene) fprintf(stderr, "frame %llu: HUD scene %s\n", (unsigned long long) frameCount, scene ? "on" : "off");
+		if (debug && race && scene != hudScene) fprintf(stderr, "frame %llu: HUD scene %s\n", (unsigned long long) sec.frame, scene ? "on" : "off");
 		hudOn = race;
 		hudScene = scene;
 		hudWorld = world;
@@ -4723,7 +4721,7 @@ static void update_hud(void) {
 	if (hudOn && h->effects[0].addr && memprobes_match(h->effects, 2, &emu)) keep = effect_bgs(h->effectsPal);
 	if (keep != hudKeep) {
 		emu_hud_keep_bgs(keep);
-		if (debug) fprintf(stderr, "frame %llu: effect layers %X\n", (unsigned long long) frameCount, keep);
+		if (debug) fprintf(stderr, "frame %llu: effect layers %X\n", (unsigned long long) sec.frame, keep);
 		hudKeep = keep;
 	}
 	/* the course's backdrop, as each race starts (not for the scene) */
@@ -4762,7 +4760,7 @@ static void update_hud(void) {
 			++darkRun;
 		} else {
 			if (darkRun >= 6 && hudBackValid) {
-				if (debug) fprintf(stderr, "frame %llu: faded in: the backdrop again\n", (unsigned long long) frameCount);
+				if (debug) fprintf(stderr, "frame %llu: faded in: the backdrop again\n", (unsigned long long) sec.frame);
 				if (hudOn) hudRegrab = hudFrames + 10;
 				hudSettle = true;
 				hudMapSum = 0; /* (and when the HUD comes back on) */
@@ -4781,7 +4779,7 @@ static void update_hud(void) {
 	if (goneFor >= 20) {
 		hudShown = false;
 		goneFor = 0;
-		if (debug) fprintf(stderr, "frame %llu: HUD gone\n", (unsigned long long) frameCount);
+		if (debug) fprintf(stderr, "frame %llu: HUD gone\n", (unsigned long long) sec.frame);
 	}
 }
 
@@ -4817,7 +4815,7 @@ static void update_snapshot(void) {
 				memcpy(snapShown, px, sizeof(snapShown));
 				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, GBA_W * 4);
 			}
-			if (sec.mapShownIdx < 0 && debug) fprintf(stderr, "frame %llu: screen copied to the second screen\n", (unsigned long long) frameCount);
+			if (sec.mapShownIdx < 0 && debug) fprintf(stderr, "frame %llu: screen copied to the second screen\n", (unsigned long long) sec.frame);
 			sec.mapShownIdx = 0;
 		}
 		return;
@@ -4833,7 +4831,7 @@ static void update_snapshot(void) {
 	} else if (++snapRevert >= SDL_max(1, sn->stable)) {
 		sec.mapShownIdx = -1;
 		snapRevert = 0;
-		if (debug) fprintf(stderr, "frame %llu: back at the menus, logo\n", (unsigned long long) frameCount);
+		if (debug) fprintf(stderr, "frame %llu: back at the menus, logo\n", (unsigned long long) sec.frame);
 	}
 }
 
@@ -4993,7 +4991,7 @@ static bool ctl_tap(int s, int x, int y) {
 		if (SDL_PointInRect(&pt, &g.tile[i]) && ctlMode != i) {
 			ctlMode = i;
 			ctl_save();
-			if (debug) fprintf(stderr, "frame %llu: controls %s\n", (unsigned long long) frameCount, ctl_name(i));
+			if (debug) fprintf(stderr, "frame %llu: controls %s\n", (unsigned long long) sec.frame, ctl_name(i));
 		}
 	}
 	return true;
@@ -5080,7 +5078,7 @@ static bool sun_tap(int s, int x, int y) {
 		sun_set(i == SUN_DARK ? 0 : i == SUN_FULL ? 10 : sunLevel + (i == SUN_UP ? 1 : -1));
 		if (sunLevel != was) {
 			sun_save();
-			if (debug) fprintf(stderr, "frame %llu: sun %d\n", (unsigned long long) frameCount, sunLevel);
+			if (debug) fprintf(stderr, "frame %llu: sun %d\n", (unsigned long long) sec.frame, sunLevel);
 		}
 	}
 	return true;
@@ -5217,7 +5215,7 @@ static uint32_t rd32(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v;
 /* a loaded state's frames are pages when this game's profile says its
  * frames are (a state keeps the frames and their pace, not what they are) */
 static bool state_pages(int nFrames) {
-	const MapProfile* hp = mc ? mapcap_profile(mc) : NULL;
+	const MapProfile* hp = sec.mc ? mapcap_profile(sec.mc) : NULL;
 	return nFrames > 1 && hp && (hp->pages || hp->views);
 }
 /* (at the start of a frame, everything set up) */
@@ -5660,11 +5658,11 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 		text_add(t, "ROM dump: %s\n", dump_text(d, sizeof(d)));
 	}
 	text_add(t, "Running %.1f minutes (%llu frames), %.1f FPS (%.0f%%) when the report was made\n", SDL_GetTicks() / 60000.0,
-	         (unsigned long long) frameCount, fps, speedPct);
+	         (unsigned long long) sec.frame, fps, speedPct);
 	text_add(t, "Second screen: %s\n", combatOn ? "logo (a fight)" : hudShown ? "HUD" : sec.mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
-	if (mc) {
+	if (sec.mc) {
 		const char* why = NULL;
-		int fails = mapcap_failures(mc, &why);
+		int fails = mapcap_failures(sec.mc, &why);
 		if (fails) text_add(t, "Last capture: failed (%d in a row): %s\n", fails, why ? why : "?");
 		else text_add(t, "Last capture: ok\n");
 	}
@@ -6070,7 +6068,7 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 		overSize = over ? mapW * mapH : 0;
 		if (!over) return px;
 	}
-	uint32_t mc = h->mapClear & 0xFFFFFF;
+	uint32_t mapClr = h->mapClear & 0xFFFFFF;
 	/* a piece that goes alone (a conversation): on the plain background,
 	 * the others waiting */
 	int alone = -1;
@@ -6122,7 +6120,7 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 				for (int x = x0 - mv->pad; x < x0 + pc->w + mv->pad; ++x) {
 					if (x < 0 || y < 0 || x >= mapW || y >= mapH) continue;
 					uint32_t* o = &over[y * mapW + x];
-					if ((*o & 0xFFFFFF) == mc) *o = 0xFF000000u | bc;
+					if ((*o & 0xFFFFFF) == mapClr) *o = 0xFF000000u | bc;
 				}
 			}
 		}
@@ -6161,14 +6159,14 @@ static const uint32_t* hud_over_map(const uint32_t* px) {
 				int nx = x0 + x, ny = y0 + y;
 				if (!c || nx < 0 || ny < 0 || nx >= mapW || ny >= mapH) continue;
 				uint32_t* o = &over[ny * mapW + nx];
-				if (mv->follow || mv->alone || mv->top || (*o & 0xFFFFFF) == mc || (*o & 0xFFFFFF) == bc) *o = c;
+				if (mv->follow || mv->alone || mv->top || (*o & 0xFFFFFF) == mapClr || (*o & 0xFFFFFF) == bc) *o = c;
 			}
 		}
 	}
 	if (h->logoUnder && combatPx) {
 		/* the logo behind: where nothing else is: last */
 		for (int i = 0; i < mapW * mapH; ++i) {
-			if ((over[i] & 0xFFFFFF) == mc) over[i] = combatPx[i];
+			if ((over[i] & 0xFFFFFF) == mapClr) over[i] = combatPx[i];
 		}
 	}
 	return over;
@@ -6196,10 +6194,7 @@ static void upload_map_frame(int idx) {
  * every time the map is refreshed. Returns true if the still changed. */
 static bool stillStale; /* stillPx is from an older map (built only when it's shown) */
 /* The map animates, unless the game's is always still */
-bool map_anim(void) {
-	const MapProfile* p = mc ? mapcap_profile(mc) : NULL;
-	return !(p && p->mapStill);
-}
+/* (map_anim: second.c) */
 
 static bool update_still(void) {
 	int w = sec.mapRes.w, h = sec.mapRes.h, wh = w * h;
@@ -6210,7 +6205,7 @@ static bool update_still(void) {
 		free(mask);
 		return false;
 	}
-	const MapProfile* prof = mc ? mapcap_profile(mc) : NULL;
+	const MapProfile* prof = sec.mc ? mapcap_profile(sec.mc) : NULL;
 	compose_still(&sec.mapRes, prof ? (int) prof->stillPick : STILL_BRIGHT, px, mask);
 	if (sec.stillValid && sec.stillW == w && sec.stillH == h) {
 		bool same = true;
@@ -6249,7 +6244,7 @@ static void map_show_new(bool fresh) {
 	/* (pages, a few seconds each: Fire Emblem's unit status; they
 	 * keep turning at their pace through new captures) */
 	bool pages = sec.mapRes.pages;
-	if (!pages) sec.mapAnimStart = frameCount;
+	if (!pages) sec.mapAnimStart = sec.frame;
 	/* the still (each marker frozen) is only shown with map animations
 	 * off, and building it is real work: only then */
 	bool stillChanged = false;
@@ -6257,7 +6252,7 @@ static void map_show_new(bool fresh) {
 	if (!stillStale) stillChanged = update_still();
 	int first = pages ? second_page() : 0;
 	upload_map_frame(map_anim() ? first : STILL_IDX);
-	if (debug) fprintf(stderr, "frame %llu: map %s (%d frame(s) %d apart%s)\n", (unsigned long long) frameCount, fresh ? "updated" : "from the save state",
+	if (debug) fprintf(stderr, "frame %llu: map %s (%d frame(s) %d apart%s)\n", (unsigned long long) sec.frame, fresh ? "updated" : "from the save state",
 	                   sec.mapRes.nFrames, sec.mapRes.frameStep, stillStale ? "" : stillChanged ? ", still changed" : ", still unchanged");
 }
 
@@ -6290,8 +6285,8 @@ static const char* const icon_toggle[] = {
 
 /* the screen the button is on, or -1: the second screen, if it takes touch and the game has something to turn */
 static int toggle_btn_screen(void) {
-	if (!cfg->toggle || !strcmp(cfg->toggleButton, "off") || nScreens < 2 || !mc) return -1;
-	const MapProfile* hp = mapcap_profile(mc);
+	if (!cfg->toggle || !strcmp(cfg->toggleButton, "off") || nScreens < 2 || !sec.mc) return -1;
+	const MapProfile* hp = mapcap_profile(sec.mc);
 	if (!hp || !(hp->pages || hp->views || hp->onPress)) return -1;
 	int s = 1 - game_screen();
 	if (s != ui_touch_screen() || !cfg->map) return -1;
@@ -6769,7 +6764,7 @@ static void draw_osd(void) {
 	if (!osd || menuOpen || shotPending || barShown > 0) return; /* (the quick bar shows it) */
 	int s = ui_touch_screen();
 	SDL_Rect r = screens[s].rect;
-	bool gameHere = nScreens == 1 || s == game_screen() || !((mc || logoOnly) && cfg->map);
+	bool gameHere = nScreens == 1 || s == game_screen() || !((sec.mc || logoOnly) && cfg->map);
 	SDL_Rect img = gameHere ? ui_image_rect(s, game_tex_w(), game_tex_h(), game_scale()) : ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
 	int gap = r.h - (img.y + img.h);
 	int fpx = small_text_px(s, img.y < gap ? img.y : gap);
@@ -6908,7 +6903,7 @@ static void make_combat_canvas(void) {
 #include "ww_twisted.inc"
 
 static void draw_game(void) {
-	bool mapOn = (mc || logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
+	bool mapOn = (sec.mc || logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
 	for (int s = 0; s < nScreens; ++s) {
 		bool showGame = nScreens == 1 ? !(singleShowsMap && mapOn) : (s == game_screen() || !mapOn);
 		SDL_Rect r = screens[s].rect;
@@ -7462,14 +7457,13 @@ static void ss_setup(const char* rom, const char* code) {
 #ifdef __ANDROID__
 		android_set_pinning(cfg->pinCores);
 #endif
-		mc = mapcap_create(rom, code, true);
+		sec.mc = mapcap_create(rom, code, true);
 		const MapProfile* lp = profile_find(code);
 		memprobe_virtual = lp ? lp->virt : NULL;
 		logoOnly = lp && lp->logoOnly;
 		ww_setup(lp, rom);
 		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
 		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
-		twinGame = &emu, twinDebug = debug;
 		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
 		else twin_close();
 		/* the HUD moves only when there's another screen to put it on */
@@ -7477,7 +7471,7 @@ static void ss_setup(const char* rom, const char* code) {
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
 		emu_hud_rows(hudProf ? hudProf->hud.rows : 0);
 		emu_hud_band(hudProf && hudProf->hud.band, true, hudProf && hudProf->hud.band == BAND_WATCH);
-		combatProf = mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
+		combatProf = sec.mc && lp && lp->combat[0].addr && nScreens > 1 ? lp : NULL;
 		combatOn = combatMade = false;
 		sec.overOn = false;
 		for (int m = 0; m < 4; ++m) pieces[m].valid = false, pieces[m].still = 0;
@@ -7506,12 +7500,12 @@ static void ss_setup(const char* rom, const char* code) {
 		hudBackValid = false;
 		hudRegrab = 0;
 		snapShow = snapRevert = 0;
-		if (mc) mapcap_set_still(mc, !map_anim());
+		if (sec.mc) mapcap_set_still(sec.mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
 		hideWhenProf = NULL;
-		if (mc) {
-			fprintf(stderr, "map profile: %s\n", mapcap_title(mc));
-			mapcap_size(mc, &mapW, &mapH);
+		if (sec.mc) {
+			fprintf(stderr, "map profile: %s\n", mapcap_title(sec.mc));
+			mapcap_size(sec.mc, &mapW, &mapH);
 			/* the full map is always up, so hide the game's own corner mini-map */
 			const MapProfile* prof = profile_find(code);
 			int nRules = 0;
@@ -7572,13 +7566,13 @@ static void rebuild_textures(void) {
 /* A compilation (profile.pick): the game running in it changed, so the
  * second screen is set up again for that game's profile. */
 static void ss_switch(const char* rom, const char* code) {
-	fprintf(stderr, "frame %llu: now %s\n", (unsigned long long) frameCount, code);
+	fprintf(stderr, "frame %llu: now %s\n", (unsigned long long) sec.frame, code);
 	snprintf(subCode, sizeof(subCode), "%.4s", code);
 	if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(&emu, NULL, 0);
 	hideWhenProf = NULL;
-	mapcap_destroy(mc);
-	mc = NULL;
+	mapcap_destroy(sec.mc);
+	sec.mc = NULL;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
 		free(sec.mapRes.frames[i]);
 		sec.mapRes.frames[i] = NULL;
@@ -7676,21 +7670,21 @@ static void health_init(Health* h, int audioLatencyMs, int freq) {
 	slowCount = 0, slowWorst.total = 0;
 }
 static void health_frame(Health* h, const HealthFrame* in) {
-	const uint64_t frameCount = in->frame;
+	const uint64_t frameNow = in->frame;
 	const int queuedNow = in->queuedNow;
 	const bool audio = in->audio, ff = in->ff, rewinding = in->rewinding, dropAudio = in->dropAudio;
 	Uint64 nowT = SDL_GetPerformanceCounter();
 	if (h->lastIter && !ff && (nowT - h->lastIter) * 1000 / SDL_GetPerformanceFrequency() > 25) ++h->slow;
 	h->lastIter = nowT;
-	if (audio && frameCount > 120 && queuedNow == 0 && !ff) ++h->underruns;
+	if (audio && frameNow > 120 && queuedNow == 0 && !ff) ++h->underruns;
 	/* The sound keeps running dry (a queue that had sound in it a frame ago and has
 	 * none now, three times in about 10 s): the sound delay goes up a step. Not while
 	 * fast-forwarding or rewinding, nor for 2.5 s after either or after the menu
 	 * (the queue is being filled again then). */
-	if (ff || rewinding || dropAudio) h->quietUntil = frameCount + 150;
-	if (audio && in->autoRaise && frameCount > 120 && frameCount >= h->quietUntil) {
+	if (ff || rewinding || dropAudio) h->quietUntil = frameNow + 150;
+	if (audio && in->autoRaise && frameNow > 120 && frameNow >= h->quietUntil) {
 		if (queuedNow == 0 && h->dryQueueBefore > 0) {
-			if (!h->dryEvents || frameCount - h->dryWindowStart > 600) h->dryWindowStart = frameCount, h->dryEvents = 0;
+			if (!h->dryEvents || frameNow - h->dryWindowStart > 600) h->dryWindowStart = frameNow, h->dryEvents = 0;
 			if (++h->dryEvents >= 3) {
 				static const int steps[] = { 32, 64, 96, 128, 192 };
 				int to = h->audioMs;
@@ -7699,20 +7693,20 @@ static void health_frame(Health* h, const HealthFrame* in) {
 				if (to != h->audioMs) {
 					fprintf(stderr, "frame %llu: the sound ran dry %d times in %.0f s: sound delay raised from %d to %d ms "
 					                "for this run (audio_auto = 0 turns this off)\n",
-					        (unsigned long long) frameCount, h->dryEvents, (double) (frameCount - h->dryWindowStart) / 60.0, h->audioMs, to);
+					        (unsigned long long) frameNow, h->dryEvents, (double) (frameNow - h->dryWindowStart) / 60.0, h->audioMs, to);
 					h->audioMs = to;
 					h->targetQueued = in->freq * h->audioMs / 1000;
 					ui_osd_long("Sound delay raised to %d ms: the sound kept breaking up", h->audioMs);
 				}
 				h->dryEvents = 0;
-				h->quietUntil = frameCount + 150; /* (the queue climbs to the new level first) */
+				h->quietUntil = frameNow + 150; /* (the queue climbs to the new level first) */
 			}
 		}
 		h->dryQueueBefore = queuedNow;
 	} else {
 		h->dryQueueBefore = 1;
 	}
-	if (audio && frameCount > 120 && !ff && !rewinding) {
+	if (audio && frameNow > 120 && !ff && !rewinding) {
 		int qMs = queuedNow * 1000 / in->freq;
 		if (qMs < h->queueLo) h->queueLo = qMs;
 		if (qMs > h->queueHi) h->queueHi = qMs;
@@ -7733,7 +7727,7 @@ static void health_frame(Health* h, const HealthFrame* in) {
 			double ms = 1000.0 / SDL_GetPerformanceFrequency() / h->frames;
 			fprintf(stderr, "frame %llu: last 5 s: %.1f fps, %d audio underrun(s), %d slow frame(s), map capture busy %d%%, "
 			                "audio queue %d ms; per frame: emulating %.2f ms, drawing %.2f ms; game thread preempted %ld time(s)",
-			        (unsigned long long) frameCount, fps, h->underruns, h->slow, h->captureBusy * 100 / h->frames,
+			        (unsigned long long) frameNow, fps, h->underruns, h->slow, h->captureBusy * 100 / h->frames,
 			        queuedNow * 1000 / in->freq, emuTicks * ms, drawTicks * ms, thread_preemptions() - h->preemptT0);
 			if (h->queueHi >= 0) fprintf(stderr, "; audio queue between %d and %d ms (sound delay %d ms)", h->queueLo, h->queueHi, h->audioMs);
 			if (stallCount) fprintf(stderr, "; %d stall(s) over %d ms, the longest %.0f ms", stallCount, STALL_MS, stallWorst);
@@ -7811,7 +7805,7 @@ static SDL_AudioDeviceID open_game_audio(SDL_AudioSpec* want) {
 /* (its state: sec.refresh, second.h) */
 
 static void map_refresh_step(void) {
-	if (mc) {
+	if (sec.mc) {
 		++sec.refresh.sinceMapRequest;
 		/* the profile's sprite hiding, where it's only for some moments
 		 * (hideWhen: Lady Sia's HUD in play, not its credits or pause
@@ -7819,36 +7813,36 @@ static void map_refresh_step(void) {
 		if (hideWhenProf && memprobes_match(hideWhenProf->hideWhen, 2, &emu) != hideWhenOn) {
 			hideWhenOn = !hideWhenOn;
 			emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
-			if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
+			if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) sec.frame, hideWhenOn ? "on" : "off");
 		}
 		{
 			/* (logoIf: the logo for now, SM4-11) */
-			const MapProfile* lp = mapcap_profile(mc);
+			const MapProfile* lp = mapcap_profile(sec.mc);
 			bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
 			                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
 			if (lf) sec.logoHolding = lp->logoIfLast ? 0 : 60;
 			else if (sec.logoHolding > 0) --sec.logoHolding;
 			lf = lf || sec.logoHolding > 0;
-			if (debug && lf != sec.logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
+			if (debug && lf != sec.logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) sec.frame, lf ? "on" : "off");
 			sec.logoForced = lf;
 		}
 		bool dark = frame_is_dark(emu.fb);
-		if (sec.refresh.wasDark && !dark) sec.refresh.refreshAt = (long) frameCount + 6;
+		if (sec.refresh.wasDark && !dark) sec.refresh.refreshAt = (long) sec.frame + 6;
 		sec.refresh.wasDark = dark;
-		if (sec.refresh.refreshAt >= 0 && (long) frameCount >= sec.refresh.refreshAt) {
+		if (sec.refresh.refreshAt >= 0 && (long) sec.frame >= sec.refresh.refreshAt) {
 			sec.refresh.forceMap = true;
 			sec.refresh.refreshAt = -1;
-			if (debug) fprintf(stderr, "frame %llu: room transition\n", (unsigned long long) frameCount);
+			if (debug) fprintf(stderr, "frame %llu: room transition\n", (unsigned long long) sec.frame);
 		}
-		if (sec.mapShownIdx >= 0 && frameCount % 30 == 0 && mapcap_in_menu(mc, &emu)) {
+		if (sec.mapShownIdx >= 0 && sec.frame % 30 == 0 && mapcap_in_menu(sec.mc, &emu)) {
 			/* quit to the title: the map belongs to the old session */
 			sec.mapShownIdx = -1;
 			sec.mapInactive = false;
 			sec.refresh.forceMap = true;
 			/* (always logged: what sends the second screen back to the logo) */
-			fprintf(stderr, "frame %llu: second screen back to the logo (the profile's menu probes matched)\n", (unsigned long long) frameCount);
+			fprintf(stderr, "frame %llu: second screen back to the logo (the profile's menu probes matched)\n", (unsigned long long) sec.frame);
 		}
-		uint32_t rk = mapcap_room_key(mc, &emu);
+		uint32_t rk = mapcap_room_key(sec.mc, &emu);
 		if (rk != sec.refresh.seenRoomKey) sec.refresh.seenRoomKey = rk, sec.refresh.seenRoomFor = 0;
 		else ++sec.refresh.seenRoomFor;
 		/* a change counts once it has held for 3 frames (a cursor
@@ -7856,17 +7850,17 @@ static void map_refresh_step(void) {
 		 * a capture still running for the old one is called off, so
 		 * the new one starts as soon as it has stopped */
 		bool roomChanged = rk && rk != sec.refresh.lastRoomKey && sec.refresh.seenRoomFor >= 2;
-		if (roomChanged && mapcap_busy(mc)) mapcap_cancel(mc);
+		if (roomChanged && mapcap_busy(sec.mc)) mapcap_cancel(sec.mc);
 		/* Back off while captures keep failing (e.g. the game says "playing"
 		 * but the map can't open: intro cutscenes, briefings). Each failed
 		 * attempt emulates a few seconds in the background, which starves
 		 * the game and its audio on slower devices. */
 		const char* why = NULL;
-		int fails = mapcap_failures(mc, &why);
+		int fails = mapcap_failures(sec.mc, &why);
 		if (fails != sec.refresh.lastFails) {
 			if (debug && fails) fprintf(stderr, "frame %llu: map capture failed (%d in a row): %s\n",
-			                            (unsigned long long) frameCount, fails, why ? why : "?");
-			const MapProfile* dp = mapcap_profile(mc);
+			                            (unsigned long long) sec.frame, fails, why ? why : "?");
+			const MapProfile* dp = mapcap_profile(sec.mc);
 			if (fails && why && dp && dp->dimWhenUnavailable &&
 			    (!strcmp(why, "map screen did not appear") || !strcmp(why, "map button did nothing"))) {
 				sec.mapInactive = true;
@@ -7877,18 +7871,18 @@ static void map_refresh_step(void) {
 		 * and are expected, so they don't back off */
 		bool cheapFail = why && !strncmp(why, "map button did nothing", 22); /* (Pokémon's menu failures say why in brackets) */
 		/* (a profile's own interval, when it's quicker: Swordcraft Story) */
-		const MapProfile* ip = mapcap_profile(mc);
+		const MapProfile* ip = mapcap_profile(sec.mc);
 		int every = ip && ip->interval > 0 && ip->interval < cfg->mapInterval ? ip->interval : cfg->mapInterval;
 		int interval = cheapFail ? every : every << SDL_min(fails, 3);
 		/* after failures, a room change still triggers a try, but no more
 		 * often than the normal interval */
 		bool due = sec.refresh.sinceMapRequest >= interval || sec.pressCap ||
 		           ((sec.refresh.forceMap || roomChanged) && (!fails || sec.refresh.sinceMapRequest >= every));
-		if (due && !mapcap_busy(mc) && mapcap_live_ok(mc, &emu) && !(sec.viewWait && sec.tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
+		if (due && !mapcap_busy(sec.mc) && mapcap_live_ok(sec.mc, &emu) && !(sec.viewWait && sec.tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
 			/* a new subject (a room, a loaded state) shows the game's own view again */
 			if (roomChanged || sec.refresh.forceMap) sec.viewAlt = false;
 			mapcap_set_alt(sec.viewAlt && cfg->toggle);
-			if (mapcap_request(mc, &emu)) {
+			if (mapcap_request(sec.mc, &emu)) {
 				sec.refresh.sinceMapRequest = 0;
 				sec.refresh.lastRoomKey = rk;
 				sec.capSubject = roomChanged || sec.refresh.forceMap; /* (not a refresh of the same subject) */
@@ -7897,8 +7891,8 @@ static void map_refresh_step(void) {
 			}
 		}
 		toggle_step();
-		bool fresh = mapcap_poll(mc, sec.mapRes.serial, &sec.mapRes);
-		if (fresh && mapcap_in_menu(mc, &emu)) {
+		bool fresh = mapcap_poll(sec.mc, sec.mapRes.serial, &sec.mapRes);
+		if (fresh && mapcap_in_menu(sec.mc, &emu)) {
 			/* a capture that finished after quitting to the title: drop it */
 		} else if (fresh) {
 			map_show_new(true);
@@ -7911,16 +7905,16 @@ static void map_refresh_step(void) {
 		/* a profile's own live picture (Mega Man Battle Network's maps on
 		 * the net), drawn every frame over whatever was captured; when it
 		 * stops, the captured picture again */
-		const MapProfile* lvp = mapcap_profile(mc);
+		const MapProfile* lvp = mapcap_profile(sec.mc);
 		const uint32_t* lv = lvp && lvp->liveView && romPath ? lvp->liveView(&emu, romPath) : NULL;
 		if (lv) {
 			for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], lv, mapW * 4);
 			if (sec.mapShownIdx < 0) sec.mapShownIdx = 0;
-			if (!sec.liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) frameCount);
+			if (!sec.liveOn && debug) fprintf(stderr, "frame %llu: live view on\n", (unsigned long long) sec.frame);
 			sec.liveOn = true;
 		} else if (sec.liveOn) {
 			sec.liveOn = false;
-			if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) frameCount);
+			if (debug) fprintf(stderr, "frame %llu: live view off\n", (unsigned long long) sec.frame);
 			if (sec.mapRes.ok && map_px(sec.mapShownIdx)) {
 				sec.overDirty = true;
 				upload_map_frame(sec.mapShownIdx);
@@ -7968,6 +7962,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	cfg = c;
 	tallLiveAtStart = cfg->tallLive;
 	debug = getenv("GBADS_DEBUG") != NULL;
+	sec.emu = &emu, sec.cfg = cfg, sec.debug = debug; /* (what the second screen reads: second.h) */
 	romPath = rom, lastLoop = 0;
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
@@ -8019,9 +8014,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_on_background(on_background);
 	ui_on_foreground(on_foreground);
 
-	mc = NULL;
+	sec.mc = NULL;
 	gameTexAll = true;
-	frameCount = 0;
+	sec.frame = 0;
 	sec.mapAnimStart = 0; /* (the last game's count was further on) */
 	menuOpen = false;
 	{
@@ -8215,7 +8210,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					        thread_preemptions() - p->preempt, p->queueMs, queueMs, mono_seconds(), p->kept ? keptNote : "");
 				}
 			}
-			loopCur = (LoopMarks) { .top = t, .cpuMs = thread_cpu_ms(), .preempt = thread_preemptions(), .queueMs = queueMs, .frame = (unsigned long long) frameCount };
+			loopCur = (LoopMarks) { .top = t, .cpuMs = thread_cpu_ms(), .preempt = thread_preemptions(), .queueMs = queueMs, .frame = (unsigned long long) sec.frame };
 		}
 		ahead_sync(); /* the core is the loop's again */
 		loopCur.synced = SDL_GetPerformanceCounter();
@@ -8236,7 +8231,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			Uint32 nowT = SDL_GetTicks();
 			bool reset = ui_render_reset();
 			if (reset || (lastLoop && nowT - lastLoop > 2000)) {
-				fprintf(stderr, "frame %llu: %s, pictures rebuilt\n", (unsigned long long) frameCount,
+				fprintf(stderr, "frame %llu: %s, pictures rebuilt\n", (unsigned long long) sec.frame,
 				        reset ? "renderer reset" : "back after a pause");
 				rebuild_textures();
 			}
@@ -8311,7 +8306,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 						barOpen = true;
 						barSince = SDL_GetTicks();
 						barGesture = G_DONE;
-						if (debug) fprintf(stderr, "frame %llu: quick bar up\n", (unsigned long long) frameCount);
+						if (debug) fprintf(stderr, "frame %llu: quick bar up\n", (unsigned long long) sec.frame);
 					} else if (barOpen && dy >= u * 10) {
 						bar_close();
 						barGesture = G_DONE;
@@ -8857,7 +8852,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			fpsFrames = 0;
 			pacedMisses = pacedMissSecs = 0; /* (the menu's time isn't the game's) */
 			second_new_subject();
-			hl.quietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
+			hl.quietUntil = sec.frame + 150; /* (the queue was cleared for the menu: refilling) */
 		}
 		wasMenu = menuOpen;
 
@@ -8943,7 +8938,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		if (comboPulse[1] > 0) keys |= K_START, --comboPulse[1];
 		{
 			static uint32_t lastKeys;
-			if (debug && keys != lastKeys) fprintf(stderr, "frame %llu: game keys %03x\n", (unsigned long long) frameCount, keys);
+			if (debug && keys != lastKeys) fprintf(stderr, "frame %llu: game keys %03x\n", (unsigned long long) sec.frame, keys);
 			lastKeys = keys;
 		}
 
@@ -8965,10 +8960,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		bool dropAudio = queuedNow > hl.targetQueued * 3; /* hard cap on drift */
 		/* Health report (always on, every 5 s when something went wrong), and the sound delay
 		 * raised when the sound keeps running dry */
-		health_frame(&hl, &(HealthFrame) { .frame = frameCount, .queuedNow = queuedNow, .freq = want.freq, .audio = audio != 0,
+		health_frame(&hl, &(HealthFrame) { .frame = sec.frame, .queuedNow = queuedNow, .freq = want.freq, .audio = audio != 0,
 		                                   .ff = ff, .rewinding = rewinding, .dropAudio = dropAudio,
-		                                   .mapBusy = mc && mapcap_busy(mc), .autoRaise = cfg->audioAuto });
-		if (debug && audio && frameCount % 30 == 0) {
+		                                   .mapBusy = sec.mc && mapcap_busy(sec.mc), .autoRaise = cfg->audioAuto });
+		if (debug && audio && sec.frame % 30 == 0) {
 			fprintf(stderr, "audio queue %d ms%s\n", queuedNow * 1000 / want.freq, ff ? " (ff)" : "");
 		}
 		Uint64 emuT0 = SDL_GetPerformanceCounter(), raT = 0, audT = 0;
@@ -9007,7 +9002,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			size_t got;
 			while ((got = emu_audio_read(&emu, samples, 4096)) > 0) {
 				if (!audio || dropAudio) continue;
-				if (testStarve && frameCount > 200 && frameCount % 100 >= 20 && frameCount % 100 < 40) continue;
+				if (testStarve && sec.frame > 200 && sec.frame % 100 >= 20 && sec.frame % 100 < 40) continue;
 				if (thin > 1) {
 					size_t outN = 0;
 					for (size_t f = 0; f < got; ++f) {
@@ -9026,7 +9021,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				if (rate != convFrom || !audioConv) {
 					if (audioConv) SDL_FreeAudioStream(audioConv);
 					audioConv = SDL_NewAudioStream(AUDIO_S16SYS, 2, rate, AUDIO_S16SYS, 2, want.freq);
-					if (debug || convFrom) fprintf(stderr, "frame %llu: game audio rate %d Hz\n", (unsigned long long) frameCount, rate);
+					if (debug || convFrom) fprintf(stderr, "frame %llu: game audio rate %d Hz\n", (unsigned long long) sec.frame, rate);
 					convFrom = rate;
 				}
 				if (!audioConv) continue;
@@ -9062,15 +9057,15 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		Uint64 emuT1 = SDL_GetPerformanceCounter();
 		double emuCpu1 = thread_cpu_ms();
 		emuTicks += emuT1 - emuT0;
-		++frameCount;
+		++sec.frame;
 		/* the game's motor, at the player's strength (issue #83); not while rewinding or fast-forwarding
 		 * (a frame in the loop isn't a frame of the game's time), and a paused game stops by itself:
 		 * each request to the motor runs out after 120 ms */
 		ui_rumble((rewinding || ran > 1 || ffMax) ? 0.0f : ww_rumble(emu_rumble_level(&emu)) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
 		{ /* (the log says what the game did, for a device that doesn't buzz) */
 			static bool rumbleSaid, stopSaid;
-			if (rumbleSaid && !stopSaid && emu_rumble_level(&emu) <= 0) stopSaid = true, fprintf(stderr, "rumble: the game stopped rumble (frame %llu)\n", (unsigned long long) frameCount);
-			if (!rumbleSaid && emu_rumble_level(&emu) > 0) rumbleSaid = true, fprintf(stderr, "rumble: the game asked for rumble (frame %llu, level %.2f, strength %d%%, motor %.2f)\n", (unsigned long long) frameCount, emu_rumble_level(&emu), cfg->rumbleStrength, emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
+			if (rumbleSaid && !stopSaid && emu_rumble_level(&emu) <= 0) stopSaid = true, fprintf(stderr, "rumble: the game stopped rumble (frame %llu)\n", (unsigned long long) sec.frame);
+			if (!rumbleSaid && emu_rumble_level(&emu) > 0) rumbleSaid = true, fprintf(stderr, "rumble: the game asked for rumble (frame %llu, level %.2f, strength %d%%, motor %.2f)\n", (unsigned long long) sec.frame, emu_rumble_level(&emu), cfg->rumbleStrength, emu_rumble_level(&emu) * SDL_clamp(cfg->rumbleStrength, 0, 100) / 100.0f);
 		}
 		/* the rewind buffer: a state every second emulated frame */
 		if (cfg->rewind && !ra_hardcore() && !rewinding && (rewindTick += runs) >= 2) {
@@ -9079,7 +9074,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 
 		/* ---- a compilation: the game running in it */
-		if (pickProf && frameCount % 15 == 0) {
+		if (pickProf && sec.frame % 15 == 0) {
 			const char* pc = pickProf->pick(&emu);
 			if (!pc) pc = emu.gameCode;
 			if (strncmp(pc, subCode, 4)) ss_switch(rom, pc);
@@ -9090,7 +9085,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 
 		if (snapProf) update_snapshot();
 		if (tallProf) {
-			TallEnv env = { nScreens, frameCount, cfg->swap, hudPx, &sec.mapShownIdx, tall_show, logo_draw };
+			TallEnv env = { nScreens, sec.frame, cfg->swap, hudPx, &sec.mapShownIdx, tall_show, logo_draw };
 			update_tall(&env);
 		}
 		if (hudProf) update_hud();
@@ -9106,7 +9101,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				combatOn = c;
 				streak = 0;
 				if (combatOn && !combatMade) make_combat_canvas();
-				fprintf(stderr, "frame %llu: fight %s (the second screen's logo %s)\n", (unsigned long long) frameCount, combatOn ? "on" : "off",
+				fprintf(stderr, "frame %llu: fight %s (the second screen's logo %s)\n", (unsigned long long) sec.frame, combatOn ? "on" : "off",
 				        combatOn ? "up" : "gone");
 			}
 		}
@@ -9119,7 +9114,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				ctlPlaying = !ctlPlaying;
 				ctlStreak = 0;
 				if (debug && ctlMode == CTL_AUTO) {
-					fprintf(stderr, "frame %llu: auto controls: %s\n", (unsigned long long) frameCount, ctlPlaying ? "four-face" : "GBA");
+					fprintf(stderr, "frame %llu: auto controls: %s\n", (unsigned long long) sec.frame, ctlPlaying ? "four-face" : "GBA");
 				}
 			}
 		}
@@ -9178,7 +9173,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					/* those frames are the game's time since: the next one is
 					 * due a frame after the last of them */
 					next += kept * (pacedHz > 0 ? frameSec / 1.005 : frameSec);
-					frameCount += (unsigned) kept;
+					sec.frame += (unsigned) kept;
 					loopCur.kept = kept;
 					keptTotal += kept;
 				}
@@ -9204,7 +9199,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			if (!ff && total > frameSec * 1000.0 * (pacedHz > 0 ? 1.4 : 1.0)) {
 				SlowFrame f = { total, (double) (emuT0 - workT0) * msPer, (double) (emuT1 - emuT0 - raT) * msPer, (double) raT * msPer,
 					            (double) (drawT0 - emuT1) * msPer, (double) (drawT1 - drawT0) * msPer, 0, 0, 0,
-					            (unsigned long long) frameCount };
+					            (unsigned long long) sec.frame };
 				/* by screen (top first, as they're stacked), not by view */
 				int sTop = 0, sBot = nScreens > 1 ? 1 : 0;
 				int vTop = screens[sTop].view, vBot = screens[sBot].view;
@@ -9229,7 +9224,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			}
 		}
 #ifdef __ANDROID__
-		if (frameCount == 1) fprintf(stderr, "startup: first frame shown\n");
+		if (sec.frame == 1) fprintf(stderr, "startup: first frame shown\n");
 #endif
 
 		/* ---- pacing: real-time clock nudged by audio queue depth */
@@ -9243,7 +9238,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			fpsT0 = now;
 			if (pacedHz > 0) {
 				pacedMissSecs = pacedMisses >= 3 ? pacedMissSecs + 1 : 0;
-				if (pacedMisses >= 3) fprintf(stderr, "frame %llu: %d frame(s) missed the display's refresh in the last second\n", (unsigned long long) frameCount, pacedMisses);
+				if (pacedMisses >= 3) fprintf(stderr, "frame %llu: %d frame(s) missed the display's refresh in the last second\n", (unsigned long long) sec.frame, pacedMisses);
 				pacedMisses = 0;
 				if (pacedMissSecs >= 3) {
 					pacedFallback = true;
@@ -9287,7 +9282,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_on_background(NULL);
 	ui_on_foreground(NULL);
 	ui_sync_view(-1);
-	fprintf(stderr, "leaving game after %llu frames\n", (unsigned long long) frameCount);
+	fprintf(stderr, "leaving game after %llu frames\n", (unsigned long long) sec.frame);
 	if (bugPend.pending) {
 		/* (a report waiting for its note: saved with what's typed) */
 		char out[200];
@@ -9299,8 +9294,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	if (audio) SDL_CloseAudioDevice(audio);
 	if (audioConv) SDL_FreeAudioStream(audioConv);
 	ww_free();
-	mapcap_destroy(mc);
-	mc = NULL;
+	mapcap_destroy(sec.mc);
+	sec.mc = NULL;
 	emu_rewind_deinit();
 #ifdef __wasi__
 	webPlaying = false;

@@ -1,6 +1,8 @@
 /* The second screen's picture: the pure pixel steps (see second.c). */
 #ifndef SECOND_H
 #define SECOND_H
+#include "config.h"
+#include "emu.h"
 #include "mapcap.h"
 #include "profiles.h"
 #include <stdbool.h>
@@ -16,8 +18,8 @@ const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
 /* ---- The second screen's state (libretro core, discussion #75: the module's
  * interface is being gathered here). Everything the second screen keeps
  * between frames, in one place, so the app and a core hold it the same way.
- * What it reads from outside (the emulator, the settings, the frame count,
- * the capture) is still game.c's for now (toggle.h): the next step. */
+ * What it reads from the app (the emulator, the settings) it holds as
+ * pointers, set once per game. */
 typedef struct {
 	/* the capture's pictures and which is up */
 	MapResult mapRes;
@@ -58,11 +60,22 @@ typedef struct {
 		bool forceMap, wasDark;
 		long refreshAt;
 	} refresh;
+	/* owned by the second screen: the hidden copy that captures the map
+	 * (mapcap), and the frame count the app advances once a frame */
+	MapCapture* mc;
+	uint64_t frame;
+	/* what it reads from the app, set once per game: the game's emulator,
+	 * the settings, GBADS_DEBUG's logging */
+	Emu* emu;
+	const Config* cfg;
+	bool debug;
 } SecondState;
 extern SecondState sec;
 
 /* A new subject: a state loaded, a rewind. The map is captured again as soon
  * as it can be (and the toggle's pages and views start again). */
 void second_new_subject(void);
+/* the map's frames animate (Map Animations, not a still map) */
+bool map_anim(void);
 
 #endif

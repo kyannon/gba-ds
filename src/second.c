@@ -11,6 +11,12 @@ void second_new_subject(void) {
 	sec.refresh.forceMap = true;
 }
 
+/* the map's frames animate (not a profile whose map is still: mapStill) */
+bool map_anim(void) {
+	const MapProfile* p = sec.mc ? mapcap_profile(sec.mc) : NULL;
+	return !(p && p->mapStill);
+}
+
 static inline int imax(int a, int b) { return a > b ? a : b; }
 static inline int imin(int a, int b) { return a < b ? a : b; }
 
