@@ -24,11 +24,12 @@ const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
  * hudNew and overMap are the HUD split's part, still the app's for now (what
  * it keeps of a new map picture; its pieces laid over the picture, returning
  * the picture to show, px itself if none); present puts the picture (sec.mapW
- * x sec.mapH) on the screen. */
+ * x sec.mapH) on the screen, presentGba one of the game's own size. */
 typedef struct {
 	void (*hudNew)(bool fresh);
 	const uint32_t* (*overMap)(const uint32_t* px);
 	void (*present)(const uint32_t* px);
+	void (*presentGba)(const uint32_t* px); /* a picture GBA_W x GBA_H (the screen copy) */
 } SecondHooks;
 
 /* ---- The second screen's state (libretro core, discussion #75: the module's
@@ -91,6 +92,13 @@ typedef struct {
 	const Config* cfg;
 	bool debug;
 	const char* romPath; /* the game's ROM (a profile's liveView reads it) */
+	char subCode[5];      /* the profile in use: the game's code, or what pickProf picked */
+	/* a logo-only game with screens copied to the second screen (profile .snap:
+	 * THPS2's goal sheet): consecutive frames matching show / a revert screen,
+	 * and the copy shown (kept with save states) */
+	const MapProfile* snapProf;
+	int snapShow, snapRevert;
+	uint32_t snapShown[GBA_W * GBA_H];
 	SecondHooks hooks;
 } SecondState;
 extern SecondState sec;
@@ -109,6 +117,14 @@ const uint32_t* map_px(int idx);
 void upload_map_frame(int idx);
 /* a new map picture is in sec.mapRes (fresh: a capture; else kept with a state) */
 void map_show_new(bool fresh);
+/* a logo-only game's screen copy (sec.snapProf), once a frame */
+void update_snapshot(void);
+/* The second screen kept with save states (GBA DS's block inside the state:
+ * EXTDATA_GBADS): made now (malloc'd, *n bytes; NULL if nothing), and put
+ * back from a loaded state's block (b may be NULL: none; the title card and
+ * the level name kept from before go either way) */
+void* second_state_save(size_t* n);
+void second_state_load(const uint8_t* b, size_t n);
 /* the frame is mostly dark / one colour nearly all over (a fade, a blank screen) */
 bool frame_is_dark(const uint32_t* fb);
 bool frame_is_flat(const uint32_t* fb);

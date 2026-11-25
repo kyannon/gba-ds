@@ -289,7 +289,6 @@ static void ahead_stop(void) {
 	ahead.started = false;
 }
 static const MapProfile* pickProf; /* a compilation's profile (pick), or NULL */
-static char subCode[5];          /* the profile in use: the game's code, or what pickProf picked */
 /* what the ROM is, by its CRC32 (the log, bug reports) */
 static const char* dump_text(char* buf, size_t n) {
 	const char* name;
@@ -387,7 +386,6 @@ static bool logoProvisional; /* a scraped logo sized before the extracted one ex
 /* The map button did nothing at the last attempt (A Link to the Past indoors
  * without a map): keep showing the last map, dimmed. */
 static bool logoOnly; /* the game has a profile but no map: logo on the second screen */
-static const MapProfile* snapProf; /* logo-only game with screens copied to the second screen */
 static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
 static char gbPaletteAtStart[8], gbDualAtStart[8], gbBorderAtStart[8]; /* GB-6, GB-7 as this game started: a change counts from the next start */
 /* a Game Boy game's colours (GB-6, GB-7), from the settings, for emu_open */
@@ -426,8 +424,6 @@ static bool tallLiveAtStart; /* pinball_live as this game started with it: a cha
  * most a second; not the last picture from before for a frame (SM4-11) */
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
 static void logo_refresh(void);
-static int snapShow, snapRevert;   /* consecutive frames matching show / a revert screen */
-static uint32_t snapShown[GBA_W * GBA_H]; /* the copy on the second screen (kept with save states) */
 
 /* the contextual toggle (GEN-14, issue #37): where the pages' count starts
  * (0 with the toggle off: then nothing here is used), the picture's
@@ -3596,49 +3592,7 @@ static void tall_show(const uint32_t* second) {
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
 }
 
-static void update_snapshot(void) {
-	const typeof(snapProf->snap)* sn = &snapProf->snap;
-	int tol = sn->tol ? sn->tol : 12;
-	if (probes_hit(emu.fb, sn->show, tol) >= sn->showMin) {
-		snapRevert = 0;
-		if (++snapShow >= SDL_max(1, sn->stable)) {
-			const uint32_t* px = emu.fb;
-			if (sn->hide[0].x1) {
-				/* only when the picture changes (the sheets are still) */
-				static uint32_t last[GBA_W * GBA_H], clean[GBA_W * GBA_H];
-				if (sec.mapShownIdx < 0 || memcmp(last, emu.fb, sizeof(last))) {
-					memcpy(last, emu.fb, sizeof(last));
-					int n = 0;
-					while (n < 4 && sn->hide[n].x1) ++n;
-					snapshot_hiding_sprites(sn->hide, n, NULL, 0, clean);
-					memcpy(snapShown, clean, sizeof(snapShown));
-					for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], clean, GBA_W * 4);
-				}
-				px = NULL;
-			}
-			if (px) {
-				memcpy(snapShown, px, sizeof(snapShown));
-				for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], px, GBA_W * 4);
-			}
-			if (sec.mapShownIdx < 0 && debug) fprintf(stderr, "frame %llu: screen copied to the second screen\n", (unsigned long long) sec.frame);
-			sec.mapShownIdx = 0;
-		}
-		return;
-	}
-	snapShow = 0;
-	if (sec.mapShownIdx < 0) return;
-	bool menu = false;
-	for (int k = 0; k < 2; ++k) {
-		if (sn->revertMin[k] && probes_hit(emu.fb, sn->revert[k], tol) >= sn->revertMin[k]) menu = true;
-	}
-	if (!menu) {
-		snapRevert = 0;
-	} else if (++snapRevert >= SDL_max(1, sn->stable)) {
-		sec.mapShownIdx = -1;
-		snapRevert = 0;
-		if (debug) fprintf(stderr, "frame %llu: back at the menus, logo\n", (unsigned long long) sec.frame);
-	}
-}
+/* (update_snapshot: second.c) */
 
 /* ---------------------------------------------------------- control scheme
  * Games with a four-face-button layout (profile `controls`): a picker on the
@@ -3907,70 +3861,7 @@ static void save_thumbs(void) {
 }
 
 
-/* The second screen kept with save states (inside the state file: emu.c
- * emu_state_file_*_extra): what it holds that the loaded game can't give
- * back at once. A block "GDS2", version, the game's code, then sections
- * (a 4-letter tag, a size, the data):
- *   MAP  the map or status pictures shown (w, h, frames, step, frames' pixels)
- *   SNAP the screen copied there (THPS2's goal sheet)
- *   TITL the level name kept above the HUD (Super Mario Advance 2)
- *   CARD the title card taken (Sonic Advance)
- * Put back at the next frame after the load (screen_restore_apply), where
- * the game's code is the same; anything else of the second screen comes
- * back from the loaded game as usual. */
-typedef struct { uint8_t* p; size_t n, cap; } Blob;
-static void blob_add(Blob* b, const void* d, size_t n) {
-	if (b->n + n > b->cap) {
-		size_t c = SDL_max(b->cap * 2, b->n + n + 4096);
-		uint8_t* q = realloc(b->p, c);
-		if (!q) return;
-		b->p = q, b->cap = c;
-	}
-	memcpy(b->p + b->n, d, n), b->n += n;
-}
-static void blob_u32(Blob* b, uint32_t v) { blob_add(b, &v, 4); }
-static void blob_section(Blob* b, const char* tag, const void* d, size_t n) {
-	blob_add(b, tag, 4), blob_u32(b, (uint32_t) n), blob_add(b, d, n);
-}
-static void* screen_blob(size_t* n) {
-	Blob b = { 0 };
-	blob_add(&b, "GDS2", 4), blob_u32(&b, 1), blob_add(&b, subCode, 4);
-	if (sec.mapShownIdx >= 0 && !snapProf && sec.mapRes.ok && sec.mapRes.frames[0] && sec.mapRes.nFrames > 0 && sec.mapRes.w > 0 && sec.mapRes.h > 0) {
-		Blob m = { 0 };
-		size_t px = (size_t) sec.mapRes.w * sec.mapRes.h * 4;
-		blob_u32(&m, (uint32_t) sec.mapRes.w), blob_u32(&m, (uint32_t) sec.mapRes.h), blob_u32(&m, (uint32_t) sec.mapRes.nFrames), blob_u32(&m, (uint32_t) sec.mapRes.frameStep);
-		for (int i = 0; i < sec.mapRes.nFrames; ++i) blob_add(&m, sec.mapRes.frames[i], px);
-		if (m.p) blob_section(&b, "MAP ", m.p, m.n);
-		free(m.p);
-	}
-	if (snapProf && sec.mapShownIdx >= 0) blob_section(&b, "SNAP", snapShown, sizeof(snapShown));
-	if (hud.mapTitleN > 0) {
-		Blob t = { 0 };
-		blob_u32(&t, (uint32_t) hud.mapTitleN), blob_add(&t, hud.mapTitle, (size_t) GBA_W * hud.mapTitleN * 4);
-		if (t.p) blob_section(&b, "TITL", t.p, t.n);
-		free(t.p);
-	}
-	if (hud.hudProf && hud.hudProf->hud.held.y1 && hud.heldN > 0) {
-		Blob t = { 0 };
-		blob_u32(&t, (uint32_t) hud.heldN), blob_add(&t, hud.heldPic, (size_t) GBA_W * hud.heldN * 4);
-		if (t.p) blob_section(&b, "HELD", t.p, t.n);
-		free(t.p);
-		if (hud.heldNumW > 0) {
-			Blob u = { 0 };
-			blob_u32(&u, (uint32_t) hud.heldNumW), blob_u32(&u, (uint32_t) hud.heldNumH), blob_add(&u, hud.heldNum, (size_t) hud.heldNumW * hud.heldNumH * 4);
-			if (u.p) blob_section(&b, "HNUM", u.p, u.n);
-			free(u.p);
-		}
-	}
-	if (hud.hudProf && hud.hudProf->hud.card.tile && hud.hudBackValid && hud.cardScore >= 0) {
-		Blob c = { 0 };
-		blob_u32(&c, (uint32_t) hud.cardScore), blob_add(&c, hud.cardBest, sizeof(hud.cardBest));
-		if (c.p) blob_section(&b, "CARD", c.p, c.n);
-		free(c.p);
-	}
-	*n = b.n;
-	return b.p;
-}
+/* (the second screen kept with save states: second.c, second_state_save / _load) */
 /* a slot or the automatic state in RetroArch's folder (shared with it: issue #39) */
 static bool state_is_retroarch(const char* path) {
 	size_t n = strlen(gp.raDir);
@@ -3996,7 +3887,7 @@ static void state_thumbnail(const char* path) {
 }
 static bool state_file_save(const char* path) {
 	size_t n;
-	void* blob = screen_blob(&n);
+	void* blob = second_state_save(&n);
 	bool ra = state_is_retroarch(path);
 	StateFormat fmt = !ra ? STATE_FORMAT_MGBA : gp.raCompress ? STATE_FORMAT_RETROARCH_RZIP : STATE_FORMAT_RETROARCH;
 	if (ra) mkdirs(gp.raDir);
@@ -4008,87 +3899,11 @@ static bool state_file_save(const char* path) {
 static uint8_t* screenRestore; /* a loaded state's block, put back at the next frame */
 static size_t screenRestoreN;
 static bool screenRestorePending;
-static const uint8_t* blob_find(const uint8_t* b, size_t n, const char* tag, uint32_t* size) {
-	for (size_t at = 12; at + 8 <= n;) {
-		uint32_t sz;
-		memcpy(&sz, b + at + 4, 4);
-		if (at + 8 + sz > n) break;
-		if (!memcmp(b + at, tag, 4)) return *size = sz, b + at + 8;
-		at += 8 + sz;
-	}
-	return NULL;
-}
-static uint32_t rd32(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v; }
-/* a loaded state's frames are pages when this game's profile says its
- * frames are (a state keeps the frames and their pace, not what they are) */
-static bool state_pages(int nFrames) {
-	const MapProfile* hp = sec.mc ? mapcap_profile(sec.mc) : NULL;
-	return nFrames > 1 && hp && (hp->pages || hp->views);
-}
 /* (at the start of a frame, everything set up) */
 static void screen_restore_apply(void) {
 	if (!screenRestorePending) return;
 	screenRestorePending = false;
-	const uint8_t* b = screenRestore;
-	size_t n = screenRestoreN;
-	bool ours = b && n >= 12 && !memcmp(b, "GDS2", 4) && rd32(b + 4) == 1 && !memcmp(b + 8, subCode, 4);
-	/* what was kept from before the load is another moment's: the title
-	 * card and the level name go (back from the state, if it has them) */
-	if (hud.hudProf && hud.hudProf->hud.card.tile) hud.hudBackValid = false, hud.cardScore = -1, hud.sideScore = -1;
-	hud.mapTitleN = 0, hud.hudLogoBelowDone = false;
-	hud.heldN = 0, hud.heldNumW = 0, hud.heldArmed = true;
-	sec.logoForced = false, sec.logoHolding = 0;
-	if (!ours) {
-		if (b && debug) fprintf(stderr, "load state: its second screen is for another game or version: not used\n");
-		return;
-	}
-	uint32_t sz;
-	const uint8_t* d;
-	if ((d = blob_find(b, n, "MAP ", &sz)) && sz >= 16) {
-		int w = (int) rd32(d), h = (int) rd32(d + 4), nf = (int) rd32(d + 8), step = (int) rd32(d + 12);
-		size_t px = (size_t) w * h * 4;
-		/* (only at the size this game's captures are: frames are that big) */
-		if (sec.mapRes.frames[0] && w == sec.mapRes.w && h == sec.mapRes.h && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
-			for (int i = 0; i < nf; ++i) memcpy(sec.mapRes.frames[i], d + 16 + px * i, px);
-			sec.mapRes.nFrames = nf, sec.mapRes.frameStep = step, sec.mapRes.pages = state_pages(nf), sec.mapRes.ok = true, sec.mapRes.pixels = sec.mapRes.frames[0];
-			map_show_new(false);
-		} else if (!sec.mapRes.frames[0] && w > 0 && h > 0 && nf >= 1 && nf <= MAP_MAX_FRAMES && sz == 16 + px * nf) {
-			/* (no capture yet this session: the frames made here, as mapcap_poll does) */
-			for (int i = 0; i < MAP_MAX_FRAMES; ++i) sec.mapRes.frames[i] = malloc(px);
-			bool ok = true;
-			for (int i = 0; i < MAP_MAX_FRAMES; ++i) ok = ok && sec.mapRes.frames[i];
-			if (ok) {
-				for (int i = 0; i < nf; ++i) memcpy(sec.mapRes.frames[i], d + 16 + px * i, px);
-				sec.mapRes.w = w, sec.mapRes.h = h, sec.mapRes.nFrames = nf, sec.mapRes.frameStep = step, sec.mapRes.pages = state_pages(nf), sec.mapRes.ok = true, sec.mapRes.pixels = sec.mapRes.frames[0];
-				map_show_new(false);
-			}
-		}
-	}
-	if (snapProf && (d = blob_find(b, n, "SNAP", &sz)) && sz == sizeof(snapShown)) {
-		memcpy(snapShown, d, sz);
-		for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], snapShown, GBA_W * 4);
-		sec.mapShownIdx = 0;
-	}
-	if ((d = blob_find(b, n, "TITL", &sz)) && sz >= 4) {
-		int rows = (int) rd32(d);
-		if (rows > 0 && rows <= 32 && sz == 4 + (size_t) GBA_W * rows * 4) memcpy(hud.mapTitle, d + 4, sz - 4), hud.mapTitleN = rows;
-	}
-	if (hud.hudProf && hud.hudProf->hud.held.y1 && (d = blob_find(b, n, "HELD", &sz)) && sz >= 4) {
-		int rows = (int) rd32(d);
-		if (rows > 0 && rows <= GBA_H && sz == 4 + (size_t) GBA_W * rows * 4) memcpy(hud.heldPic, d + 4, sz - 4), hud.heldN = rows;
-	}
-	if (hud.hudProf && hud.hudProf->hud.held.over.x1 && (d = blob_find(b, n, "HNUM", &sz)) && sz >= 8) {
-		int w = (int) rd32(d), hh = (int) rd32(d + 4);
-		if (w > 0 && hh > 0 && w * hh <= GBA_W * GBA_H && sz == 8 + (size_t) w * hh * 4) memcpy(hud.heldNum, d + 8, sz - 8), hud.heldNumW = w, hud.heldNumH = hh;
-	}
-	if (hud.hudProf && hud.hudProf->hud.card.tile && (d = blob_find(b, n, "CARD", &sz)) && sz == 4 + sizeof(hud.cardBest)) {
-		hud.cardScore = (int) rd32(d);
-		memcpy(hud.cardBest, d + 4, sizeof(hud.cardBest));
-		card_backdrop();
-	}
-	if (debug) fprintf(stderr, "load state: the second screen from it (%s%s%s%s%s)\n", blob_find(b, n, "MAP ", &sz) ? " map" : "",
-	                   blob_find(b, n, "SNAP", &sz) ? " copy" : "", blob_find(b, n, "TITL", &sz) ? " title" : "", blob_find(b, n, "CARD", &sz) ? " card" : "",
-	                   blob_find(b, n, "HELD", &sz) ? " held" : "");
+	second_state_load(screenRestore, screenRestoreN);
 }
 
 /* Save states, with the RetroAchievements progress beside them (<state>.ra;
@@ -4457,9 +4272,9 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	if (pct >= 0) text_add(t, "Battery: %d%%\n", pct);
 
 	text_add(t, "\n== Game\n");
-	const MapProfile* prof = profile_find(subCode);
-	text_add(t, "ROM: %s (%s%s%s), %s\n", gp.base, emu.gameCode, strcmp(subCode, emu.gameCode) ? ", playing " : "",
-	         strcmp(subCode, emu.gameCode) ? subCode : "", prof ? prof->title : "no profile");
+	const MapProfile* prof = profile_find(sec.subCode);
+	text_add(t, "ROM: %s (%s%s%s), %s\n", gp.base, emu.gameCode, strcmp(sec.subCode, emu.gameCode) ? ", playing " : "",
+	         strcmp(sec.subCode, emu.gameCode) ? sec.subCode : "", prof ? prof->title : "no profile");
 	{
 		char d[640];
 		text_add(t, "ROM dump: %s\n", dump_text(d, sizeof(d)));
@@ -4594,8 +4409,8 @@ static bool bug_report(char* out, size_t outSize) {
 	const char* version = "?";
 #endif
 	text_add(&t, "# GBA DS bug report, %s\n", date);
-	text_add(&t, "# GBA DS %s, %s (%s%s%s)\n", version, gp.base, emu.gameCode, strcmp(subCode, emu.gameCode) ? ", playing " : "",
-	         strcmp(subCode, emu.gameCode) ? subCode : "");
+	text_add(&t, "# GBA DS %s, %s (%s%s%s)\n", version, gp.base, emu.gameCode, strcmp(sec.subCode, emu.gameCode) ? ", playing " : "",
+	         strcmp(sec.subCode, emu.gameCode) ? sec.subCode : "");
 	text_add(&t, "# Controls: %s. Cheats on: %d.\n", ctlProf ? ctl_name(ctlMode) : "GBA", cheats_on(&cheats));
 	text_add(&t, "# %s is the game %.1f seconds (%llu frames) before %s.\n", name[1], (to - from) / fps60,
 	         (unsigned long long) (to - from), name[0]);
@@ -6026,7 +5841,7 @@ static void ss_setup(const char* rom, const char* code) {
 	singleShowsMap = false;
 	logoOnly = false;
 	ww_setup(NULL, rom);
-	snapProf = NULL;
+	sec.snapProf = NULL;
 	tallProf = NULL;
 	tallOn = false;
 	tallLive = false;
@@ -6052,7 +5867,7 @@ static void ss_setup(const char* rom, const char* code) {
 		memprobe_virtual = lp ? lp->virt : NULL;
 		logoOnly = lp && lp->logoOnly;
 		ww_setup(lp, rom);
-		snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
+		sec.snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
 		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
 		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
 		else twin_close();
@@ -6089,7 +5904,7 @@ static void ss_setup(const char* rom, const char* code) {
 		hud.mapTitleN = 0;
 		hud.hudBackValid = false;
 		hud.hudRegrab = 0;
-		snapShow = snapRevert = 0;
+		sec.snapShow = sec.snapRevert = 0;
 		if (sec.mc) mapcap_set_still(sec.mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
 		sec.hideWhenProf = NULL;
@@ -6157,7 +5972,7 @@ static void rebuild_textures(void) {
  * second screen is set up again for that game's profile. */
 static void ss_switch(const char* rom, const char* code) {
 	fprintf(stderr, "frame %llu: now %s\n", (unsigned long long) sec.frame, code);
-	snprintf(subCode, sizeof(subCode), "%.4s", code);
+	snprintf(sec.subCode, sizeof(sec.subCode), "%.4s", code);
 	if (hud.hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hud.hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(&emu, NULL, 0);
 	sec.hideWhenProf = NULL;
@@ -6167,7 +5982,7 @@ static void ss_switch(const char* rom, const char* code) {
 		free(sec.mapRes.frames[i]);
 		sec.mapRes.frames[i] = NULL;
 	}
-	ss_setup(rom, subCode);
+	ss_setup(rom, sec.subCode);
 	ss_textures();
 	make_logo_canvas();
 }
@@ -6460,7 +6275,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	romPath = rom, lastLoop = 0;
 	/* what the second screen reads, and how it puts its pictures up (second.h) */
 	sec.emu = &emu, sec.cfg = cfg, sec.debug = debug, sec.romPath = romPath;
-	sec.hooks = (SecondHooks) { hud_new_map, hud_over_map, show_picture };
+	sec.hooks = (SecondHooks) { hud_new_map, hud_over_map, show_picture, tall_show };
 	hud.hooks = (HudHooks) { show_hud, show_combat, has_combat, logo_draw, save_bmp };
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
@@ -6521,9 +6336,9 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		/* a compilation: the profile of the game running in it (none yet) */
 		const MapProfile* gp = profile_find(emu.gameCode);
 		pickProf = gp && gp->pick ? gp : NULL;
-		snprintf(subCode, sizeof(subCode), "%.4s", emu.gameCode);
+		snprintf(sec.subCode, sizeof(sec.subCode), "%.4s", emu.gameCode);
 	}
-	ss_setup(rom, subCode);
+	ss_setup(rom, sec.subCode);
 	for (int i = 0; i < nViews; ++i) {
 		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
 		SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
@@ -7579,13 +7394,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		if (pickProf && sec.frame % 15 == 0) {
 			const char* pc = pickProf->pick(&emu);
 			if (!pc) pc = emu.gameCode;
-			if (strncmp(pc, subCode, 4)) ss_switch(rom, pc);
+			if (strncmp(pc, sec.subCode, 4)) ss_switch(rom, pc);
 		}
 
 		/* ---- map refresh */
 		map_refresh_step();
 
-		if (snapProf) update_snapshot();
+		if (sec.snapProf) update_snapshot();
 		if (tallProf) {
 			TallEnv env = { nScreens, sec.frame, cfg->swap, hud.hudPx, &sec.mapShownIdx, tall_show, logo_draw };
 			update_tall(&env);
