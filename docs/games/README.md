@@ -70,6 +70,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Shin Megami Tensei](shin-megami-tensei.md) | SMT | `AAUJ` |
 | [Breath of Fire](breath-of-fire.md) | BOF | `ABFE` + 3 |
 | [Breath of Fire II (Shimei no Ko in Japan)](breath-of-fire-ii.md) | BOF2 | `AB2E` + 2 |
+| [Mario Party Advance](mario-party-advance.md) | MPA | `B8ME` |
 
 ## General rules
 
