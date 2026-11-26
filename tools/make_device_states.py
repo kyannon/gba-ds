@@ -6,7 +6,8 @@
 Reads tools/device-states.json (per game: each release's No-Intro name, slots
 1-9 -> fixture state + what to check), copies each fixture from
 gba-ds-tests/states/<game>/ to OUT/<release name>.slotN.state (the name the
-app looks for beside a ROM of that name) and writes OUT/TEST-STATES.txt, the
+app looks for beside a ROM of that name; a name "NAME + PATCH" is NAME's game
+with that patch switched on in Extras > Patches, whose states are its own) and writes OUT/TEST-STATES.txt, the
 table of what each slot is for. scripts/build-rocknix.sh puts OUT in the zip's
 states/ folder when GBADS_DEVICE_STATES=OUT (dev versions only).
 
@@ -47,8 +48,11 @@ def main():
     table, seen = [], set()
     for g in want:
         for rom, slots in man[g].items():
-            if rom not in names:
-                print(f'{g}: "{rom}" is not a name in src/dumps_data.h'); bad += 1
+            # "NAME + PATCH": the states of NAME with that patch switched on in
+            # Extras > Patches (a patched game's own states, paths.c game_paths_patched)
+            base = rom.split(' + ')[0]
+            if base not in names:
+                print(f'{g}: "{base}" is not a name in src/dumps_data.h'); bad += 1
             for slot, (fx, note) in slots.items():
                 if not re.fullmatch(r'[1-9]', slot):
                     print(f'{g}: {rom}: slot {slot} (use 1-9)'); bad += 1; continue
@@ -67,7 +71,8 @@ def main():
         f.write('Test states for this build. Each file is <game name>.slotN.state: it shows in the\n'
                 'pause menu\'s Load State slots when your ROM is named as the game is (No-Intro\n'
                 'names, as below, without .gba / .zip). If your ROM has another name, rename the\n'
-                'state files to match it.\n\n'
+                'state files to match it. A name with " + PATCH" is that game with the patch\n'
+                'switched on in Extras > Patches (its states kept apart, as by default).\n\n'
                 'Unzipping over an install replaces these slot files for these games only.\n'
                 '"After slot 1" means: load slot 1, wait for the second screen to settle, then\n'
                 'load the state named.\n')

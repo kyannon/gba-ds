@@ -9238,6 +9238,29 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
 /* the automap's scroll: steps from where it opened (UP +1, DOWN -1, 8 rows
  * each; signed, 32 bits) */
 #define SMT_SCROLL 0x0200BFCC
+/* Shin Megami Tensei II: the same engine, its state 0xE0 bytes further on
+ * (the area 0x128) and the scroll 0x2000 */
+#define SMT2_MODE   0x03004550
+#define SMT2_FACING 0x03004552
+#define SMT2_X      0x03004562
+#define SMT2_Y      0x03004564
+#define SMT2_AREA   0x03004614
+#define SMT2_SCROLL 0x0200DFCC
+
+/* the addresses the automap's code reads, per game of this engine, and the
+ * sprites left out of its pictures */
+typedef struct {
+	uint32_t mode, facing, x, y, scroll;
+	SpriteRule hide[1];
+	int nHide;
+} SmtGame;
+static const SmtGame smt1 = { .mode = SMT_MODE, .facing = SMT_FACING, .x = SMT_X, .y = SMT_Y, .scroll = SMT_SCROLL };
+/* the second game draws a scroll arrow above and below the compass's column
+ * while the floor is taller than the window (8x8 sprites, tiles 79 and 80, at
+ * (200, 48) and (200, 72)): prompts for the game's own window, put twice and
+ * in the wrong places on a map taller than it, so left out (SMT2-3) */
+static const SmtGame smt2 = { .mode = SMT2_MODE, .facing = SMT2_FACING, .x = SMT2_X, .y = SMT2_Y, .scroll = SMT2_SCROLL,
+                              .hide = { { 196, 40, 204, 80, 79, 80, -1, 0x1, 0, 0 } }, .nHide = 1 };
 
 /* The second screen is the automap taller than the game's window of it: its view
  * (rows 0-87 of the screen, between the side bars) scrolled with the game's
@@ -9255,7 +9278,7 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
 #define SMT_ABOVE  29   /* rows above the game's own view (57 more to share with below) */
 #define SMT_STEPS  4
 
-static int32_t smt_scroll(Emu* s) { return (int32_t)emu_read32(s, SMT_SCROLL); }
+static int32_t smt_scroll(Emu* s, const SmtGame* g) { return (int32_t)emu_read32(s, g->scroll); }
 
 /* the pixel at (x, y) is this colour (0xRRGGBB), give or take */
 static bool smt_px(const uint32_t* fb, int x, int y, uint32_t rgb) {
@@ -9287,10 +9310,10 @@ static bool smt_settle(Emu* s, void* st, uint32_t* a, uint32_t* b, int wait, int
  * draws it over about 52 frames, later when the press came in mid-step, so a
  * fixed wait gave half-drawn maps.) `st` is the state buffer, `a` and `b`
  * two spare frames. */
-static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, uint32_t* b) {
+static const char* smt_open(Emu* s, const SmtGame* g, const void* state, void* st, uint32_t* a, uint32_t* b) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame_blind(s, 0);
-	if (emu_read8(s, SMT_MODE) != 0x01) return "not walking";
+	if (emu_read8(s, g->mode) != 0x01) return "not walking";
 	/* a step or a turn still going on is let finish first (the copy gets no
 	 * keys): the position and facing the same for 20 frames. Opened mid-step
 	 * the markers moved between one piece and the next. */
@@ -9299,18 +9322,18 @@ static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, ui
 		int still = 0;
 		for (int f = 0; f < 90 && still < 20; ++f) {
 			emu_frame_blind(s, 0);
-			uint32_t now = emu_read16(s, SMT_X) | (uint32_t)emu_read16(s, SMT_Y) << 16 | (uint32_t)emu_read8(s, SMT_FACING) << 8;
+			uint32_t now = emu_read16(s, g->x) | (uint32_t)emu_read16(s, g->y) << 16 | (uint32_t)emu_read8(s, g->facing) << 8;
 			still = f > 0 && now == at ? still + 1 : 0;
 			at = now;
 		}
-		if (still < 20 || emu_read8(s, SMT_MODE) != 0x01) return "not standing still";
+		if (still < 20 || emu_read8(s, g->mode) != 0x01) return "not standing still";
 	}
 	for (int i = 0; i < 4; ++i) emu_frame_blind(s, K_L);
 	/* nothing by 20 frames: no automap here (the first dungeon, before the
 	 * app; a town): a quick failure (SMT-4) */
 	int f = 0;
-	while (f < 20 && emu_read8(s, SMT_MODE) != 0x10) emu_frame_blind(s, 0), ++f;
-	if (emu_read8(s, SMT_MODE) != 0x10) return "map button did nothing";
+	while (f < 20 && emu_read8(s, g->mode) != 0x10) emu_frame_blind(s, 0), ++f;
+	if (emu_read8(s, g->mode) != 0x10) return "map button did nothing";
 	if (!smt_settle(s, st, a, b, 36, 4)) return "map did not finish drawing";
 	emu_frame(s, 0);
 	if (!smt_px(s->fb, 216, 98, 0x73738C)) return "map screen did not appear";
@@ -9320,12 +9343,12 @@ static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, ui
 /* one step of the scroll, key UP or DOWN: pressed until the game's counter
  * moves (a press during the last step's slide is lost), then 12 frames for
  * the slide to end; false at the end of the map's scroll */
-static bool smt_step(Emu* s, uint32_t key, void* st, uint32_t* a, uint32_t* b) {
-	int32_t before = smt_scroll(s);
+static bool smt_step(Emu* s, const SmtGame* g, uint32_t key, void* st, uint32_t* a, uint32_t* b) {
+	int32_t before = smt_scroll(s, g);
 	for (int tries = 0; tries < 3; ++tries) {
 		for (int i = 0; i < 4; ++i) emu_frame_blind(s, key);
-		for (int i = 0; i < 24 && smt_scroll(s) == before; ++i) emu_frame_blind(s, 0);
-		if (smt_scroll(s) != before) return smt_settle(s, st, a, b, 10, 3);
+		for (int i = 0; i < 24 && smt_scroll(s, g) == before; ++i) emu_frame_blind(s, 0);
+		if (smt_scroll(s, g) != before) return smt_settle(s, st, a, b, 10, 3);
 	}
 	return false;
 }
@@ -9342,7 +9365,7 @@ static void smt_layers(Emu* s, void* st, unsigned mask, uint32_t* dst) {
 	emu_state_load(s, st);
 }
 
-static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+static const char* smt_compose_for(const SmtGame* g, Emu* s, const void* state, uint32_t* out, int w, int h) {
 	const size_t n = (size_t)GBA_W * GBA_H;
 	if (w != GBA_W || h != SMT_H) return "wrong picture size";
 	void* st = malloc(emu_state_size(s)), *opened = malloc(emu_state_size(s));
@@ -9351,22 +9374,23 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	uint32_t *full = fr, *back = fr + n, *views = fr + 2 * n; /* views[k]: shift[k] rows */
 	uint32_t *sa = fr + (3 + 2 * SMT_STEPS) * n, *sb = sa + n; /* spare */
 	int shift[1 + 2 * SMT_STEPS], nv = 0;
-	const char* err = smt_open(s, state, st, sa, sb);
+	if (g->nHide) emu_hide_sprites(s, g->hide, g->nHide);
+	const char* err = smt_open(s, g, state, st, sa, sb);
 	if (!err) {
-		int32_t c0 = smt_scroll(s);
+		int32_t c0 = smt_scroll(s, g);
 		emu_state_save(s, opened); /* the map as it opened, for the way down */
 		smt_layers(s, st, 0x1F, full);
 		smt_layers(s, st, 0x08, back);
 		smt_layers(s, st, 0x1C, views), shift[nv++] = 0;
-		for (int k = 1; k <= SMT_STEPS && smt_step(s, K_UP, st, sa, sb); ++k) {
+		for (int k = 1; k <= SMT_STEPS && smt_step(s, g, K_UP, st, sa, sb); ++k) {
 			smt_layers(s, st, 0x1C, views + (size_t)nv * n);
-			shift[nv++] = 8 * (smt_scroll(s) - c0);
+			shift[nv++] = 8 * (smt_scroll(s, g) - c0);
 		}
 		/* back to the start, and as far down */
 		if (!emu_state_load(s, opened)) err = "state load failed";
-		for (int k = 1; !err && k <= SMT_STEPS && smt_step(s, K_DOWN, st, sa, sb); ++k) {
+		for (int k = 1; !err && k <= SMT_STEPS && smt_step(s, g, K_DOWN, st, sa, sb); ++k) {
 			smt_layers(s, st, 0x1C, views + (size_t)nv * n);
-			shift[nv++] = 8 * (smt_scroll(s) - c0);
+			shift[nv++] = 8 * (smt_scroll(s, g) - c0);
 		}
 	}
 	if (!err && emu_cancelled(s)) err = "cancelled";
@@ -9413,10 +9437,17 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		for (int r = 4; r <= 40; ++r) memcpy(&out[r * w + 183], &full[r * GBA_W + 183], 39 * sizeof(uint32_t)); /* its box, exactly */
 		for (int r = 0; r < SMT_H - SMT_AREA_H; ++r) memcpy(&out[(SMT_AREA_H + r) * w], &full[(SMT_VIEW + 2 + r) * GBA_W], GBA_W * sizeof(uint32_t));
 	}
+	if (g->nHide) emu_hide_sprites(s, NULL, 0);
 	free(st);
 	free(opened);
 	free(fr);
 	return err;
+}
+static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return smt_compose_for(&smt1, s, state, out, w, h);
+}
+static const char* smt2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return smt_compose_for(&smt2, s, state, out, w, h);
 }
 
 /* ---------------------------------------------------------------- Breath of Fire
@@ -13150,6 +13181,27 @@ static const MapProfile profiles[] = {
 			/* (from off screen: the boxes slide in as the race starts) */
 			.objs = { { -64, -48, 60, 8, 512, 1023, 0 }, { 100, -48, 130, 16, 512, 1023, 0 } },
 		},
+	},
+	{
+		/* Shin Megami Tensei II (Japan; played in English with a patch, the
+		 * same addresses): the automap as Shin Megami Tensei's, from the
+		 * same engine (docs/games/shin-megami-tensei-2.md) */
+		.codes = { "A5TJ" },
+		.title = "Shin Megami Tensei II",
+		.open = { { K_L, 4 } },
+		.settleMax = 200, .openWithin = 140, .stableFrames = 4, .maxDiff = 700,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = SMT_H,
+		.compose = smt2_compose,
+		.probes = { { 10, 3, 0x31316B }, { 10, 60, 0x42429C }, { 212, 6, 0x492BE7 }, { 205, 10, 0xE74200 },
+		            { 216, 98, 0x73738C }, { 232, 60, 0x292929 } },
+		.tolerance = 8,
+		.mem = { { SMT2_MODE, 0xFF, 0x10, 1 } },
+		.live = { { SMT2_MODE, 0xFF, 0x01, 1 } },
+		.menu = { { SMT2_MODE, 0xFF, 0x00, 1 } },
+		.room = { { SMT2_X, 0, 0, 1 }, { SMT2_Y, 0, 0, 1 }, { SMT2_FACING, 0, 0, 1 }, { SMT2_AREA, 0, 0, 1 } },
+		/* the title's lettering is sprites here (a background layer in the
+		 * first game), on rows 24 to 65, 転 the lowest */
+		.logo = { .steps = { { 0, 300 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 200 } }, .layers = 0x10, .maxY = 80 },
 	},
 	{
 		/* Shantae Advance: Risky Revolution (docs/games/shantae-advance-risky-revolution.md): the 2024

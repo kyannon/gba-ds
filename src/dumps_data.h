@@ -33,6 +33,7 @@ static const KnownDump knownDumps[] = {
 	{ "A4NE", 0x8e923168, true, false, "Harvest Moon - Friends of Mineral Town (USA)" },
 	{ "A4NJ", 0x09185657, true, false, "Bokujou Monogatari - Mineral Town no Nakama-tachi (Japan)" },
 	{ "A4NP", 0xf50f82ad, true, false, "Harvest Moon - Friends of Mineral Town (Europe)" },
+	{ "A5TJ", 0xaf40cc99, true, false, "Shin Megami Tensei II (Japan)" },
 	{ "A7KE", 0x1af07ac8, false, false, "Kirby - Nightmare in Dream Land (USA) (Virtual Console)" },
 	{ "A7KE", 0x20ef3f64, true, false, "Kirby - Nightmare in Dream Land (USA)" },
 	{ "A7KJ", 0x15235965, false, false, "Hoshi no Kirby - Yume no Izumi Deluxe (Japan) (Virtual Console)" },
@@ -384,6 +385,7 @@ static const KnownDump knownDumps[] = {
 	{ "A3UJ", 0xb7faa37d, true, true, "HQ audio mix alternative (MusicTheorist)" },
 	{ "A3UJ", 0xe7185f88, true, true, "Italian v1.1.1 (fan translation)" },
 	{ "A3UJ", 0xe73b0f7d, true, true, "English v1.3a (fan translation)" },
+	{ "A5TJ", 0x7e4b4978, true, true, "English (port of the Super Famicom translation)" },
 	{ "A88E", 0x10edf89c, false, true, "Superstar Saga+ v1.5 (80%)" },
 	{ "A88E", 0xba4791f4, true, true, "Superstar Saga+ v1.5 (100%)" },
 	{ "A88E", 0xe9f4ab5e, false, true, "Superstar Saga+ v1.5 (60%)" },
@@ -539,6 +541,7 @@ static const KnownPatch knownPatches[] = {
 	{ "A3UJ", 0xf02e4122, 2336, 0x42ac9cb9, 0xb7faa37d, "audio", "HQ audio mix alternative (MusicTheorist)", "Mother 3 (Japan)", true },
 	{ "A2CE", 0xf3235cb8, 141702, 0x35536183, 0x00d0fddf, "colour", "Symphony of the Colors v1.0 (JonataGuitar)", "Castlevania - Aria of Sorrow (USA)", true },
 	{ "AVFJ", 0xf9d74e31, 532448, 0xea73eb54, 0xec61d726, "translation", "The Legendary Starfy 2 English v0.9.9 (Starfy translation patches)", "Densetsu no Stafy 2 (Japan)", true },
+	{ "A5TJ", 0xfd05f8c5, 527881, 0xaf40cc99, 0x7e4b4978, "translation", "English (port of the Super Famicom translation)", "Shin Megami Tensei II (Japan)", true },
 };
 /* Dumps with no game code in their header, and the code they're filed under
  * (make_dumps.py's CODELESS): known by their CRC32, for a file this size. */
