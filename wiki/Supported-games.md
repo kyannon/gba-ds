@@ -46,6 +46,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | The Legend of Zelda: The Minish Cap | `BZME` `BZMP` `BZMJ` | the map of Hyrule and dungeon maps (Quest Status before you have the map) | |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
+| Mario Party Advance | `B8ME` `B8MP` `B8MJ` | on the board: the Map and Quest Data in turn | |
 | Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
 | Mega Man Battle Network 2 (Battle Network Rockman EXE 2 in Japan) | `AE2E` `AM2P` `AE2J` | MegaMan's status (level, HP, style, buster) with your money, in battles too; on the net, a map of the area | |
@@ -60,6 +61,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
 | Shin Megami Tensei | `AAUJ` (Japan only; Gymzatan's English translation v1.3b, with or without its font hack) | the game's automap, taller than the game draws it | Gymzatan's English v1.3b iOS Localized translation, with and without the font hack |
+| Shin Megami Tensei II | `A5TJ` (Japan only; the English translation) | the game's automap, taller than the game draws it | the English translation (port of the Super Famicom translation), as a patched ROM or its `.xdelta` |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 3 | `B3SE` `B3SP` `B3SJ` | the act card, with the rings, time and lives; the hubs' keys and zone label | |
@@ -501,6 +503,15 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - Not tried yet: the European and Japanese releases beyond the Koopa Cruiser (walking about and its battles were tried in both).
 - **Superstar Saga+** (the romhack, v1.5, its 100% patch for the USA release; its 80% and 60% versions haven't been tried) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
 
+## Mario Party Advance
+
+The USA, European and Japanese releases.
+
+- **On the board,** the second screen shows two of the game's own pages, five seconds each: the **Map** (R, then A), with the area the car is in and the quest places, and **Quest Data** (L's menu), with the quest being asked and the ones you've met. Their button hints, the Map's cursor and the scroll arrows are left out. They're opened in the background in a silent copy of the game about once a second, so the car on the Map trails yours by a second or two while it moves; your game is never paused. On a new file they're there from the first turn, while the game screen still shows its first-time boxes for R and L.
+- In dialogs, the dice, the L menu and scenes, the last pages stay. While you have the game's own Map or Quest Data open, the second screen shows the logo, so the same page isn't on both screens.
+- On the title, the name entry and the main menu, the second screen shows the logo.
+- Tried in Shroom City's Town area (Europe and Japan at a new file's first turn; Europe in English and French). Not tried yet: the minigames, Party Land, Challenge Land and the other areas' boards, a Map with a flag placed.
+
 ## Mario vs. Donkey Kong
 
 The USA, European and Japanese releases.
@@ -648,6 +659,10 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 ## Shin Megami Tensei
 
 The Japanese release and Gymzatan's English translation (v1.3b, with or without its font hack). The second screen shows the game's automap, which you open with L, kept up to date as you walk and turn. The party panels at the bottom of the map screen are left off, so nothing is on both screens. Fights, menus and conversations keep the last map; the title and file lists show the logo. The map is taller than the game draws it: the second screen shows four scroll steps above and below the game's own window, over the game's own grid. Known issues: not tried in a new game's first dungeon or on floor changes outside the test save; one logo is kept for the Japanese game and the translation.
+
+## Shin Megami Tensei II
+
+The Japanese release and the English translation (a port of the Super Famicom game's), as a patched ROM or with its `.xdelta` beside the ROM or switched on in Extras > Patches; the game list says "Romhack: English (port of the Super Famicom translation)" for it. As in Shin Megami Tensei, the second screen shows the game's automap, which you open with L, with the compass, the floor's name and your map markers, kept up to date as you walk and turn. The party panels are left off, so nothing is on both screens. Where a floor is taller than the game's window (Valhalla's streets), the second screen shows four scroll steps above and below it, over the game's own grid; the scroll arrows the game draws beside its window are left out. Fights, menus, conversations and the rooms between dungeons (the training room, the Virtual Battler's room) keep the last map; the title and a new game's training room show the logo. Tried in the training room, the Virtual trainer, Valhalla's first street, the Virtual Battler's first level and Virtual Space. Known issues: a step that starts a conversation (the Virtual trainer's exit, the Virtual Battler's door) keeps the map from before that step; with the translation, the Virtual Battler's levels keep their Japanese names (the patch leaves them); stairs, the overworld, shops, the name entry and later dungeons haven't been tried yet.
 
 ## Sonic Advance
 

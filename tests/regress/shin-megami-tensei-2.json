@@ -1,0 +1,1356 @@
+{
+ "game": "Shin Megami Tensei II",
+ "rules": "docs/games/shin-megami-tensei-2.md",
+ "cases": [
+  {
+   "id": "smt2-logo-jp",
+   "kind": "logo",
+   "rom": "A5TJ",
+   "desc": "the Japanese game's logo",
+   "rules": [
+    "GEN-1",
+    "SMT2-1"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "smt2-logo-en",
+   "kind": "logo",
+   "rom": "A5TJ+smt2-en",
+   "desc": "the English patch's logo: the same lettering",
+   "rules": [
+    "GEN-1",
+    "SMT2-1",
+    "SMT2-9"
+   ],
+   "golden": [
+    "logo"
+   ]
+  },
+  {
+   "id": "smt2-en-library",
+   "kind": "library",
+   "rom": "A5TJ+smt2-en",
+   "desc": "the game list with the English patched ROM: \"Romhack: English (port of the Super Famicom translation)\" under the game's logo",
+   "rules": [
+    "GEN-8",
+    "SMT2-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ]
+  },
+  {
+   "id": "smt2-patch-library",
+   "kind": "library",
+   "rom": "A5TJ",
+   "desc": "the game list with the Japanese ROM and the English xdelta beside it: \"Romhack: English (port of the Super Famicom translation) (patch)\"",
+   "rules": [
+    "GEN-8",
+    "GEN-9",
+    "SMT2-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch": "smt2gbaengfontfix.xdelta"
+  },
+  {
+   "id": "smt2-patches-library",
+   "kind": "library",
+   "rom": "A5TJ",
+   "desc": "the game list with the Japanese ROM and the English xdelta switched on in its patches folder: \"Romhack: English (port of the Super Famicom translation) (patch)\"",
+   "rules": [
+    "GEN-8",
+    "GEN-9",
+    "SMT2-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch_on": "smt2gbaengfontfix.xdelta"
+  },
+  {
+   "id": "smt2-jp-title",
+   "rom": "A5TJ",
+   "desc": "the title and its menu: the logo on the second screen, no map",
+   "rules": [
+    "SMT2-1",
+    "SMT2-6"
+   ],
+   "input": [
+    [
+     300,
+     "START"
+    ],
+    [
+     304,
+     "-"
+    ],
+    [
+     420,
+     "START"
+    ],
+    [
+     424,
+     "-"
+    ],
+    [
+     700,
+     "A"
+    ],
+    [
+     704,
+     "-"
+    ]
+   ],
+   "shots": {
+    "title": 600,
+    "menu": 780
+   },
+   "golden": [
+    "title",
+    "menu"
+   ],
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      560,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.97,
+     "rule": "SMT2-6",
+     "what": "the logo, not a map: nothing in the lower part of the second screen",
+     "shot": "title"
+    },
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      560,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.97,
+     "rule": "SMT2-6",
+     "what": "the logo with the title's menu up",
+     "shot": "menu"
+    }
+   ]
+  },
+  {
+   "id": "smt2-jp-room-start",
+   "rom": "A5TJ",
+   "state": "shin-megami-tensei-2/jp-room-start.ss",
+   "desc": "a new game's first room (the training room's menu): the logo, no map yet",
+   "rules": [
+    "SMT2-6",
+    "SMT2-7"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      560,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.97,
+     "rule": "SMT2-6",
+     "what": "the logo, not a map",
+     "shot": "start"
+    }
+   ]
+  },
+  {
+   "id": "smt2-en-room-start",
+   "rom": "A5TJ+smt2-en",
+   "state": "shin-megami-tensei-2/en-room-start.ss",
+   "desc": "the English patch, a new game's first room: the logo, no map yet",
+   "rules": [
+    "SMT2-6",
+    "SMT2-9"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      560,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.97,
+     "rule": "SMT2-6",
+     "what": "the logo, not a map",
+     "shot": "start"
+    }
+   ]
+  },
+  {
+   "id": "smt2-jp-trainer-map",
+   "rom": "A5TJ",
+   "state": "shin-megami-tensei-2/jp-trainer.ss",
+   "desc": "the Virtual trainer: the game's automap on the second screen, taller than the game's window, with its compass and the room's name",
+   "rules": [
+    "SMT2-2",
+    "SMT2-3",
+    "SMT2-7"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-2",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-2",
+     "what": "the compass's box at the top right, its N red",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       882,
+       90,
+       "492BE7"
+      ],
+      [
+       854,
+       106,
+       "E74200"
+      ]
+     ]
+    },
+    {
+     "rule": "SMT2-3",
+     "what": "the space above the map is the game's grid, not black",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      70,
+      992,
+      170
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-3",
+     "what": "the space below the map, above the room's name, is the game's grid, not black",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      570,
+      992,
+      630
+     ],
+     "color": "000000",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-2",
+     "what": "the tested dump",
+     "type": "log",
+     "match": "ROM: CRC32 af40cc99"
+    }
+   ]
+  },
+  {
+   "id": "smt2-en-trainer-map",
+   "rom": "A5TJ+smt2-en",
+   "state": "shin-megami-tensei-2/en-trainer.ss",
+   "desc": "the English patch in the Virtual trainer: the automap, the room's name in English",
+   "rules": [
+    "SMT2-2",
+    "SMT2-3",
+    "SMT2-9"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-9",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-9",
+     "what": "the compass's box at the top right, its N red",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       882,
+       90,
+       "492BE7"
+      ],
+      [
+       854,
+       106,
+       "E74200"
+      ]
+     ]
+    },
+    {
+     "rule": "SMT2-9",
+     "what": "the patched ROM is the known translation",
+     "type": "log",
+     "match": "ROM: CRC32 7e4b4978"
+    }
+   ]
+  },
+  {
+   "id": "smt2-en-walk",
+   "rom": "A5TJ+smt2-en",
+   "state": "shin-megami-tensei-2/en-trainer.ss",
+   "desc": "a turn on the spot, then a step: a new map after each, the arrow turned, then a cell further on",
+   "rules": [
+    "SMT2-4"
+   ],
+   "input": [
+    [
+     170,
+     "LEFT"
+    ],
+    [
+     176,
+     "-"
+    ],
+    [
+     330,
+     "UP"
+    ],
+    [
+     336,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "turned": 310,
+    "stepped": 500
+   },
+   "golden": [
+    "turned",
+    "stepped"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-4",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "turned",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-4",
+     "what": "the map differs after the turn (the arrow)",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "turned",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0001
+    },
+    {
+     "rule": "SMT2-4",
+     "what": "and again after the step",
+     "type": "differs",
+     "a": {
+      "shot": "turned",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "stepped",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.0001
+    },
+    {
+     "rule": "SMT2-4",
+     "what": "a new map after the turn",
+     "type": "log",
+     "match": "frame (1[7-9][0-9]|2[0-9][0-9]|30[0-9]): map updated"
+    }
+   ]
+  },
+  {
+   "id": "smt2-jp-fight",
+   "rom": "A5TJ",
+   "state": "shin-megami-tensei-2/jp-trainer.ss",
+   "desc": "a fight starts: the map stays, the fight is on the game screen only",
+   "rules": [
+    "SMT2-5",
+    "SMT2-7"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:shin-megami-tensei-2/jp-fight.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "fight": 420
+   },
+   "golden": [
+    "fight"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-5",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "the map is kept through the fight",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "fight",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "smt2-en-fight",
+   "rom": "A5TJ+smt2-en",
+   "state": "shin-megami-tensei-2/en-trainer.ss",
+   "desc": "the English patch, a fight starts: the map stays",
+   "rules": [
+    "SMT2-5",
+    "SMT2-9"
+   ],
+   "input": [
+    [
+     200,
+     "LOAD:shin-megami-tensei-2/en-fight.ss"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "fight": 420
+   },
+   "golden": [
+    "fight"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-5",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "the map is kept through the fight",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "fight",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "smt2-jp-room",
+   "rom": "A5TJ",
+   "state": "shin-megami-tensei-2/jp-trainer-exit.ss",
+   "desc": "the Japanese game, out of the Virtual trainer (its exit: YES, the answer already chosen) into the training room: the trainer's map stays while Okamoto talks",
+   "rules": [
+    "SMT2-5"
+   ],
+   "input": [
+    [
+     170,
+     "UP"
+    ],
+    [
+     176,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     403,
+     "-"
+    ],
+    [
+     440,
+     "A"
+    ],
+    [
+     443,
+     "-"
+    ],
+    [
+     472,
+     "A"
+    ],
+    [
+     475,
+     "-"
+    ],
+    [
+     504,
+     "A"
+    ],
+    [
+     507,
+     "-"
+    ],
+    [
+     536,
+     "A"
+    ],
+    [
+     539,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "asked": 340,
+    "room": 650
+   },
+   "golden": [
+    "asked",
+    "room"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-5",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "the map is kept while Okamoto asks",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "asked",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "and in the training room",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "room",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "the game screen shows the training room (the punching bag), not the trainer",
+     "type": "pixels",
+     "shot": "room",
+     "screen": "game",
+     "probes": [
+      [
+       138,
+       226,
+       "21395A"
+      ],
+      [
+       146,
+       186,
+       "294A7B"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "smt2-en-room",
+   "rom": "A5TJ+smt2-en",
+   "state": "shin-megami-tensei-2/en-trainer-exit.ss",
+   "desc": "out of the Virtual trainer (its exit: YES, the answer already chosen) into the training room: the trainer's map stays while Okamoto talks",
+   "rules": [
+    "SMT2-5"
+   ],
+   "input": [
+    [
+     170,
+     "UP"
+    ],
+    [
+     176,
+     "-"
+    ],
+    [
+     400,
+     "A"
+    ],
+    [
+     403,
+     "-"
+    ],
+    [
+     440,
+     "A"
+    ],
+    [
+     443,
+     "-"
+    ],
+    [
+     472,
+     "A"
+    ],
+    [
+     475,
+     "-"
+    ],
+    [
+     504,
+     "A"
+    ],
+    [
+     507,
+     "-"
+    ],
+    [
+     536,
+     "A"
+    ],
+    [
+     539,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "asked": 340,
+    "room": 650
+   },
+   "golden": [
+    "asked",
+    "room"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-5",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "the map is kept while Okamoto asks",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "asked",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "and in the training room",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "room",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "the game screen shows the training room (the punching bag), not the trainer",
+     "type": "pixels",
+     "shot": "room",
+     "screen": "game",
+     "probes": [
+      [
+       138,
+       226,
+       "21395A"
+      ],
+      [
+       146,
+       186,
+       "294A7B"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "smt2-jp-town",
+   "rom": "A5TJ",
+   "state": "shin-megami-tensei-2/jp-town.ss",
+   "desc": "Valhalla's streets: the town's automap, taller than the game's window of it, with the pieces above and below from the game's own scrolling",
+   "rules": [
+    "SMT2-2",
+    "SMT2-3"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-2",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smt2-en-town",
+   "rom": "A5TJ+smt2-en",
+   "state": "shin-megami-tensei-2/en-town.ss",
+   "desc": "the English patch, Valhalla's streets: the town's automap, taller than the game's window of it, with the pieces above and below from the game's own scrolling",
+   "rules": [
+    "SMT2-2",
+    "SMT2-3",
+    "SMT2-9"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-2",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smt2-en-battler",
+   "rom": "A5TJ+smt2-en",
+   "state": "shin-megami-tensei-2/en-battler-door.ss",
+   "desc": "from the town into the Virtual Battler (its first level, the defaults): the town's map stays through the Virtual Battler's room and its talk, then the new place's map",
+   "rules": [
+    "SMT2-4",
+    "SMT2-5",
+    "SMT2-9"
+   ],
+   "input": [
+    [
+     200,
+     "UP"
+    ],
+    [
+     206,
+     "-"
+    ],
+    [
+     236,
+     "A"
+    ],
+    [
+     239,
+     "-"
+    ],
+    [
+     278,
+     "A"
+    ],
+    [
+     281,
+     "-"
+    ],
+    [
+     320,
+     "A"
+    ],
+    [
+     323,
+     "-"
+    ],
+    [
+     362,
+     "A"
+    ],
+    [
+     365,
+     "-"
+    ],
+    [
+     404,
+     "A"
+    ],
+    [
+     407,
+     "-"
+    ],
+    [
+     446,
+     "A"
+    ],
+    [
+     449,
+     "-"
+    ],
+    [
+     488,
+     "A"
+    ],
+    [
+     491,
+     "-"
+    ],
+    [
+     530,
+     "A"
+    ],
+    [
+     533,
+     "-"
+    ],
+    [
+     572,
+     "A"
+    ],
+    [
+     575,
+     "-"
+    ],
+    [
+     614,
+     "A"
+    ],
+    [
+     617,
+     "-"
+    ],
+    [
+     656,
+     "A"
+    ],
+    [
+     659,
+     "-"
+    ],
+    [
+     698,
+     "A"
+    ],
+    [
+     701,
+     "-"
+    ],
+    [
+     740,
+     "A"
+    ],
+    [
+     743,
+     "-"
+    ],
+    [
+     782,
+     "A"
+    ],
+    [
+     785,
+     "-"
+    ],
+    [
+     824,
+     "A"
+    ],
+    [
+     827,
+     "-"
+    ],
+    [
+     866,
+     "A"
+    ],
+    [
+     869,
+     "-"
+    ]
+   ],
+   "shots": {
+    "start": 150,
+    "room": 400,
+    "battle": 1300
+   },
+   "golden": [
+    "room",
+    "battle"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-5",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-5",
+     "what": "the town's map is kept in the Virtual Battler's room",
+     "type": "same",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "room",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     }
+    },
+    {
+     "rule": "SMT2-4",
+     "what": "another place, another map",
+     "type": "differs",
+     "a": {
+      "shot": "start",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "b": {
+      "shot": "battle",
+      "screen": "second",
+      "rect": [
+       32,
+       64,
+       992,
+       704
+      ]
+     },
+     "frac": 0.01
+    },
+    {
+     "rule": "SMT2-4",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "battle",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    }
+   ]
+  },
+  {
+   "id": "smt2-en-marker",
+   "rom": "A5TJ+smt2-en",
+   "state": "shin-megami-tensei-2/en-marker.ss",
+   "desc": "an EVENT marker set on the map: it shows on the second screen",
+   "rules": [
+    "SMT2-8"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "golden": [
+    "start"
+   ],
+   "checks": [
+    {
+     "rule": "SMT2-8",
+     "what": "the red EVENT marker on the map",
+     "type": "pixels",
+     "shot": "start",
+     "screen": "second",
+     "probes": [
+      [
+       490,
+       358,
+       "E74200"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "smt2-jp-trainer-patch",
+   "rom": "A5TJ",
+   "state": "shin-megami-tensei-2/en-trainer.ss",
+   "desc": "the English xdelta beside the Japanese ROM: the map",
+   "rules": [
+    "SMT2-9",
+    "SMT2-2"
+   ],
+   "patch": "smt2gbaengfontfix.xdelta",
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT2-9",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-9",
+     "what": "the patched result is the known translation",
+     "type": "log",
+     "match": "ROM: CRC32 7e4b4978"
+    }
+   ]
+  },
+  {
+   "id": "smt2-jp-trainer-patch-on",
+   "rom": "A5TJ",
+   "state": "shin-megami-tensei-2/en-trainer.ss",
+   "desc": "the English xdelta switched on in the Patches menu: the map",
+   "rules": [
+    "SMT2-9",
+    "SMT2-2"
+   ],
+   "patch_folder": [
+    "smt2gbaengfontfix.xdelta"
+   ],
+   "patch_on": [
+    "smt2gbaengfontfix.xdelta"
+   ],
+   "shots": {
+    "start": 150
+   },
+   "checks": [
+    {
+     "rule": "SMT2-9",
+     "what": "the map fills the second screen: its grid, floor and compass",
+     "type": "not_uniform",
+     "shot": "start",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "303030",
+     "frac": 0.5
+    },
+    {
+     "rule": "SMT2-9",
+     "what": "the patched result is the known translation",
+     "type": "log",
+     "match": "ROM: CRC32 7e4b4978"
+    }
+   ]
+  }
+ ]
+}

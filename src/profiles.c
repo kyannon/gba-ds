@@ -9238,6 +9238,29 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
 /* the automap's scroll: steps from where it opened (UP +1, DOWN -1, 8 rows
  * each; signed, 32 bits) */
 #define SMT_SCROLL 0x0200BFCC
+/* Shin Megami Tensei II: the same engine, its state 0xE0 bytes further on
+ * (the area 0x128) and the scroll 0x2000 */
+#define SMT2_MODE   0x03004550
+#define SMT2_FACING 0x03004552
+#define SMT2_X      0x03004562
+#define SMT2_Y      0x03004564
+#define SMT2_AREA   0x03004614
+#define SMT2_SCROLL 0x0200DFCC
+
+/* the addresses the automap's code reads, per game of this engine, and the
+ * sprites left out of its pictures */
+typedef struct {
+	uint32_t mode, facing, x, y, scroll;
+	SpriteRule hide[1];
+	int nHide;
+} SmtGame;
+static const SmtGame smt1 = { .mode = SMT_MODE, .facing = SMT_FACING, .x = SMT_X, .y = SMT_Y, .scroll = SMT_SCROLL };
+/* the second game draws a scroll arrow above and below the compass's column
+ * while the floor is taller than the window (8x8 sprites, tiles 79 and 80, at
+ * (200, 48) and (200, 72)): prompts for the game's own window, put twice and
+ * in the wrong places on a map taller than it, so left out (SMT2-3) */
+static const SmtGame smt2 = { .mode = SMT2_MODE, .facing = SMT2_FACING, .x = SMT2_X, .y = SMT2_Y, .scroll = SMT2_SCROLL,
+                              .hide = { { 196, 40, 204, 80, 79, 80, -1, 0x1, 0, 0 } }, .nHide = 1 };
 
 /* The second screen is the automap taller than the game's window of it: its view
  * (rows 0-87 of the screen, between the side bars) scrolled with the game's
@@ -9255,7 +9278,7 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
 #define SMT_ABOVE  29   /* rows above the game's own view (57 more to share with below) */
 #define SMT_STEPS  4
 
-static int32_t smt_scroll(Emu* s) { return (int32_t)emu_read32(s, SMT_SCROLL); }
+static int32_t smt_scroll(Emu* s, const SmtGame* g) { return (int32_t)emu_read32(s, g->scroll); }
 
 /* the pixel at (x, y) is this colour (0xRRGGBB), give or take */
 static bool smt_px(const uint32_t* fb, int x, int y, uint32_t rgb) {
@@ -9287,10 +9310,10 @@ static bool smt_settle(Emu* s, void* st, uint32_t* a, uint32_t* b, int wait, int
  * draws it over about 52 frames, later when the press came in mid-step, so a
  * fixed wait gave half-drawn maps.) `st` is the state buffer, `a` and `b`
  * two spare frames. */
-static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, uint32_t* b) {
+static const char* smt_open(Emu* s, const SmtGame* g, const void* state, void* st, uint32_t* a, uint32_t* b) {
 	if (!emu_state_load(s, state)) return "state load failed";
 	emu_frame_blind(s, 0);
-	if (emu_read8(s, SMT_MODE) != 0x01) return "not walking";
+	if (emu_read8(s, g->mode) != 0x01) return "not walking";
 	/* a step or a turn still going on is let finish first (the copy gets no
 	 * keys): the position and facing the same for 20 frames. Opened mid-step
 	 * the markers moved between one piece and the next. */
@@ -9299,18 +9322,18 @@ static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, ui
 		int still = 0;
 		for (int f = 0; f < 90 && still < 20; ++f) {
 			emu_frame_blind(s, 0);
-			uint32_t now = emu_read16(s, SMT_X) | (uint32_t)emu_read16(s, SMT_Y) << 16 | (uint32_t)emu_read8(s, SMT_FACING) << 8;
+			uint32_t now = emu_read16(s, g->x) | (uint32_t)emu_read16(s, g->y) << 16 | (uint32_t)emu_read8(s, g->facing) << 8;
 			still = f > 0 && now == at ? still + 1 : 0;
 			at = now;
 		}
-		if (still < 20 || emu_read8(s, SMT_MODE) != 0x01) return "not standing still";
+		if (still < 20 || emu_read8(s, g->mode) != 0x01) return "not standing still";
 	}
 	for (int i = 0; i < 4; ++i) emu_frame_blind(s, K_L);
 	/* nothing by 20 frames: no automap here (the first dungeon, before the
 	 * app; a town): a quick failure (SMT-4) */
 	int f = 0;
-	while (f < 20 && emu_read8(s, SMT_MODE) != 0x10) emu_frame_blind(s, 0), ++f;
-	if (emu_read8(s, SMT_MODE) != 0x10) return "map button did nothing";
+	while (f < 20 && emu_read8(s, g->mode) != 0x10) emu_frame_blind(s, 0), ++f;
+	if (emu_read8(s, g->mode) != 0x10) return "map button did nothing";
 	if (!smt_settle(s, st, a, b, 36, 4)) return "map did not finish drawing";
 	emu_frame(s, 0);
 	if (!smt_px(s->fb, 216, 98, 0x73738C)) return "map screen did not appear";
@@ -9320,12 +9343,12 @@ static const char* smt_open(Emu* s, const void* state, void* st, uint32_t* a, ui
 /* one step of the scroll, key UP or DOWN: pressed until the game's counter
  * moves (a press during the last step's slide is lost), then 12 frames for
  * the slide to end; false at the end of the map's scroll */
-static bool smt_step(Emu* s, uint32_t key, void* st, uint32_t* a, uint32_t* b) {
-	int32_t before = smt_scroll(s);
+static bool smt_step(Emu* s, const SmtGame* g, uint32_t key, void* st, uint32_t* a, uint32_t* b) {
+	int32_t before = smt_scroll(s, g);
 	for (int tries = 0; tries < 3; ++tries) {
 		for (int i = 0; i < 4; ++i) emu_frame_blind(s, key);
-		for (int i = 0; i < 24 && smt_scroll(s) == before; ++i) emu_frame_blind(s, 0);
-		if (smt_scroll(s) != before) return smt_settle(s, st, a, b, 10, 3);
+		for (int i = 0; i < 24 && smt_scroll(s, g) == before; ++i) emu_frame_blind(s, 0);
+		if (smt_scroll(s, g) != before) return smt_settle(s, st, a, b, 10, 3);
 	}
 	return false;
 }
@@ -9342,7 +9365,7 @@ static void smt_layers(Emu* s, void* st, unsigned mask, uint32_t* dst) {
 	emu_state_load(s, st);
 }
 
-static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+static const char* smt_compose_for(const SmtGame* g, Emu* s, const void* state, uint32_t* out, int w, int h) {
 	const size_t n = (size_t)GBA_W * GBA_H;
 	if (w != GBA_W || h != SMT_H) return "wrong picture size";
 	void* st = malloc(emu_state_size(s)), *opened = malloc(emu_state_size(s));
@@ -9351,22 +9374,23 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 	uint32_t *full = fr, *back = fr + n, *views = fr + 2 * n; /* views[k]: shift[k] rows */
 	uint32_t *sa = fr + (3 + 2 * SMT_STEPS) * n, *sb = sa + n; /* spare */
 	int shift[1 + 2 * SMT_STEPS], nv = 0;
-	const char* err = smt_open(s, state, st, sa, sb);
+	if (g->nHide) emu_hide_sprites(s, g->hide, g->nHide);
+	const char* err = smt_open(s, g, state, st, sa, sb);
 	if (!err) {
-		int32_t c0 = smt_scroll(s);
+		int32_t c0 = smt_scroll(s, g);
 		emu_state_save(s, opened); /* the map as it opened, for the way down */
 		smt_layers(s, st, 0x1F, full);
 		smt_layers(s, st, 0x08, back);
 		smt_layers(s, st, 0x1C, views), shift[nv++] = 0;
-		for (int k = 1; k <= SMT_STEPS && smt_step(s, K_UP, st, sa, sb); ++k) {
+		for (int k = 1; k <= SMT_STEPS && smt_step(s, g, K_UP, st, sa, sb); ++k) {
 			smt_layers(s, st, 0x1C, views + (size_t)nv * n);
-			shift[nv++] = 8 * (smt_scroll(s) - c0);
+			shift[nv++] = 8 * (smt_scroll(s, g) - c0);
 		}
 		/* back to the start, and as far down */
 		if (!emu_state_load(s, opened)) err = "state load failed";
-		for (int k = 1; !err && k <= SMT_STEPS && smt_step(s, K_DOWN, st, sa, sb); ++k) {
+		for (int k = 1; !err && k <= SMT_STEPS && smt_step(s, g, K_DOWN, st, sa, sb); ++k) {
 			smt_layers(s, st, 0x1C, views + (size_t)nv * n);
-			shift[nv++] = 8 * (smt_scroll(s) - c0);
+			shift[nv++] = 8 * (smt_scroll(s, g) - c0);
 		}
 	}
 	if (!err && emu_cancelled(s)) err = "cancelled";
@@ -9413,10 +9437,17 @@ static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, 
 		for (int r = 4; r <= 40; ++r) memcpy(&out[r * w + 183], &full[r * GBA_W + 183], 39 * sizeof(uint32_t)); /* its box, exactly */
 		for (int r = 0; r < SMT_H - SMT_AREA_H; ++r) memcpy(&out[(SMT_AREA_H + r) * w], &full[(SMT_VIEW + 2 + r) * GBA_W], GBA_W * sizeof(uint32_t));
 	}
+	if (g->nHide) emu_hide_sprites(s, NULL, 0);
 	free(st);
 	free(opened);
 	free(fr);
 	return err;
+}
+static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return smt_compose_for(&smt1, s, state, out, w, h);
+}
+static const char* smt2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return smt_compose_for(&smt2, s, state, out, w, h);
 }
 
 /* ---------------------------------------------------------------- Breath of Fire
@@ -10010,6 +10041,102 @@ static void tmc_jpn(MapProfile* p) {
 	p->listName = "Zelda no Densetsu - Fushigi no Boushi (Japan)";
 	p->logo.layers = 0x12; /* the lettering is on BG1, the subtitle and the bird sprites */
 	p->logo.maxY = 122;
+}
+
+/* ---------------------------------------- Mario Party Advance
+ *
+ * Shroom City's board (docs/games/mario-party-advance.md): the second screen takes turns
+ * between the game's own Map (R opens a look-around, A the Map) and its Quest Data page
+ * (L's menu, A on its first line), each opened on the hidden copy from the board as it is.
+ *   MPA_MODE   0x03002D74: 4 at a turn's start, 2 walking, 0x80 in a dialog, a menu or the
+ *              look-around, 0 on the title, the main menu and the Map
+ *   MPA_SCENE  0x030029CD: 0 on the board, 1 in the look-around and Map, 2 on Quest Data,
+ *              5 on the main menu
+ */
+#define MPA_MODE 0x03002D74
+#define MPA_SCENE 0x030029CD
+#define MPA_MAP_STEP 300 /* 5 seconds a page */
+
+static bool mpa_free(Emu* s) {
+	uint8_t mode = emu_read8(s, MPA_MODE);
+	return (mode == 2 || mode == 4) && (emu_read16(s, 0x04000000) & 0x1F07) == 0x1D00;
+}
+
+/* (BLDY is left at 0x10 with the blend off through a dialog: only a blend on fades) */
+static bool mpa_fading(Emu* s) {
+	unsigned blend = emu_io16(s, 0x50);
+	return (blend & 0xC0) >= 0x80 && (blend & 0x3F) && emu_io16(s, 0x54);
+}
+
+/* One of the game's own pages, its fade done: DISPCNT (layers on) and BG0CNT tell them apart */
+static bool mpa_page_up(Emu* s, unsigned layers, unsigned bg0) {
+	return (emu_read16(s, 0x04000000) & 0x1F07) == layers && emu_read16(s, 0x04000008) == bg0 && !mpa_fading(s);
+}
+
+static const char* mpa_page(Emu* s, const void* state, bool quest, uint32_t* out, int w, int h) {
+	/* the hints, the cursor and the scroll arrows (prompts and a cursor are left off the second screen). The
+	 * Map's tiles move with the area label's text (Japan's are 22 lower), so its rules name the palette, the
+	 * shape and the place: the hints' row, the cursor ring (the only 32x32 sprite in palette 1) and the
+	 * arrows (palette 0, 8x16 or 16x8, on the bar below the parchment, where the car never goes) */
+	static const SpriteRule mapHide[] = { { 0, 112, 255, 112, 0, 1023, 3, 1u << 3, 0, 0 },
+	                                      { -32, -32, 255, 175, 0, 1023, 3, 1u << 1, 0, 1u << 2 },
+	                                      { -16, 124, 255, 175, 0, 1023, 3, 1u << 0, 0, (1u << 4) | (1u << 8) } };
+	static const SpriteRule questHide[] = { { 0, 142, 255, 142, 16, 168, 1, 1u << 2 }, { -16, -16, 255, 175, 312, 312, 1, 1u << 0 } };
+	emu_layers(s, quest ? 0x1F : 0x1B); /* (the Map without BG2: the name of what the cursor is on) */
+	emu_hide_sprites(s, quest ? questHide : mapHide, quest ? 2 : 3);
+	const char* err = NULL;
+	if (!emu_state_load(s, state)) err = "state load failed";
+	if (!err) emu_frame(s, 0);
+	if (!err && !mpa_free(s)) err = "not on the board";
+	if (!err) {
+		aw_run(s, quest ? K_L : K_R, 3);
+		/* A is pressed as the game takes it: in the look-around or the menu, not mid-fade, and again
+		 * through a first-use dialog's boxes (never on the Map, where it would plant a flag) */
+		bool up = false;
+		for (int f = 0; f < 400 && !up && !err; ++f) {
+			up = quest ? mpa_page_up(s, 0x1F00, 0x1A08) : mpa_page_up(s, 0x1C00, 0);
+			if (up) break;
+			bool board = (emu_read16(s, 0x04000000) & 0x1F07) == 0x1D00 && !mpa_fading(s);
+			bool ready = board && emu_read8(s, MPA_MODE) == 0x80 && (quest || emu_read8(s, MPA_SCENE) == 1);
+			if (f >= 20 && f % 20 == 0 && ready) aw_run(s, K_A, 3), f += 2;
+			else emu_frame_blind(s, 0);
+			if (emu_cancelled(s)) err = "called off";
+		}
+		if (!err && !up) err = quest ? "Quest Data didn't open" : "the Map didn't open";
+	}
+	if (!err) {
+		aw_run(s, 0, 3);
+		if (emu_cancelled(s)) err = "called off";
+		else if (w >= GBA_W && h >= GBA_H) {
+			for (int y = 0; y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], GBA_W * sizeof(uint32_t));
+		}
+	}
+	emu_layers(s, 0x1F);
+	emu_hide_sprites(s, NULL, 0);
+	return err;
+}
+
+static const char* mpa_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	*step = MPA_MAP_STEP;
+	int max = *nOut;
+	*nOut = 0;
+	const char* err = mpa_page(s, state, false, out[0], w, h);
+	if (err) return err;
+	*nOut = 1;
+	if (max > 1) {
+		/* a page that doesn't open leaves the other alone */
+		if (!mpa_page(s, state, true, out[1], w, h)) *nOut = 2;
+	}
+	return NULL;
+}
+
+/* Mario Party Advance in Europe: with no battery save, the language screen first (A, LEFT to its Yes, A: English,
+ * which the game saves), then the USA release's health warning, Toad intro and START (MPA-1) */
+static void mpa_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 60 }, { K_LEFT, 4 }, { 0, 20 }, { K_A, 4 }, { 0, 600 },
+	                                   { K_A, 30 }, { 0, 900 }, { K_START, 4 }, { 0, 100 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
 /* ------------------------------------------------------ Cruis'n Velocity
@@ -13193,6 +13320,47 @@ static const MapProfile profiles[] = {
 			.objs = { { -64, -48, 60, 8, 512, 1023, 0 }, { 100, -48, 130, 16, 512, 1023, 0 } },
 		},
 	},
+	{
+		/* Shin Megami Tensei II (Japan; played in English with a patch, the
+		 * same addresses): the automap as Shin Megami Tensei's, from the
+		 * same engine (docs/games/shin-megami-tensei-2.md) */
+		.codes = { "A5TJ" },
+		.title = "Shin Megami Tensei II",
+		.open = { { K_L, 4 } },
+		.settleMax = 200, .openWithin = 140, .stableFrames = 4, .maxDiff = 700,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = SMT_H,
+		.compose = smt2_compose,
+		.probes = { { 10, 3, 0x31316B }, { 10, 60, 0x42429C }, { 212, 6, 0x492BE7 }, { 205, 10, 0xE74200 },
+		            { 216, 98, 0x73738C }, { 232, 60, 0x292929 } },
+		.tolerance = 8,
+		.mem = { { SMT2_MODE, 0xFF, 0x10, 1 } },
+		.live = { { SMT2_MODE, 0xFF, 0x01, 1 } },
+		.menu = { { SMT2_MODE, 0xFF, 0x00, 1 } },
+		.room = { { SMT2_X, 0, 0, 1 }, { SMT2_Y, 0, 0, 1 }, { SMT2_FACING, 0, 0, 1 }, { SMT2_AREA, 0, 0, 1 } },
+		/* the title's lettering is sprites here (a background layer in the
+		 * first game), on rows 24 to 65, 転 the lowest */
+		.logo = { .steps = { { 0, 300 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 200 } }, .layers = 0x10, .maxY = 80 },
+	},
+	{
+		/* Mario Party Advance (docs/games/mario-party-advance.md): Shroom City's board, the
+		 * game's own Map and Quest Data page in turn; see mpa_compose */
+		.codes = { "B8ME" },
+		.title = "Mario Party Advance",
+		.composePages = mpa_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the board with its turn's choices open or the car walking (not a dialog, a menu or a page) */
+		.live = { { MPA_MODE, 0xFF, 2, 1, true, 4 }, { 0x04000000, 0x1F07, 0x1D00, 2 } },
+		/* back at the main menu: the logo, the old board's pages dropped (MPA-7) */
+		.menu = { { MPA_SCENE, 0xFF, 5, 1 } },
+		/* the game's own Map or Quest Data page open: the logo, not the same page twice (MPA-6); held a second
+		 * after, since the game's screen is blank for a few frames between a page's fade out and its fade in */
+		.logoIf = { { 0x04000000, 0x1F07, 0x1C00, 2 }, { 0x04000008, 0xFFFF, 0x0000, 2 } },
+		.logoIfOr = { { 0x04000000, 0x1F07, 0x1F00, 2 }, { 0x04000008, 0xFFFF, 0x1A08, 2 } },
+		/* the title's lettering and copyright line (BG0): START cuts the Toad intro short */
+		.logo = { .steps = { { 0, 300 }, { K_A, 30 }, { 0, 900 }, { K_START, 4 }, { 0, 100 } }, .layer = 0, .maxY = 100 },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
@@ -13784,6 +13952,9 @@ static void dkks_jpn(MapProfile* p) {
 static const Variant variants[] = {
 	{ "B24P", "B24E", 0, pmd_eur },
 	{ "B24J", "B24E", 0, pmd_jpn },
+	/* Mario Party Advance: Europe and Japan, the USA release's addresses */
+	{ "B8MP", "B8ME", 0, mpa_eur },
+	{ "B8MJ", "B8ME", 0, NULL },
 	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
 	{ "B8KP", "B8KE", 0, NULL },
 	{ "B8KJ", "B8KE", 0, NULL },

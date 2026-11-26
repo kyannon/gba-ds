@@ -138,3 +138,4 @@ the repo. Fixtures for the tested ones are in the fixtures repo's
 | The Legend of Zelda: A Link to the Past | `AZLP` | Voice removal v0.1 | voice removal | lozalttpgba_voice removal(E)0.1.ips | 3850 | `58129d2d` | `5a164321` | `72e519b7` | yes |
 | Shin Megami Tensei | `AAUJ` | English v1.3b iOS Localized (Gymzatan; made from the translated ROM: the published patch isn't in hand) | translation | SMT_T-En_Gymzatan_v1.3b_iOS_Localized.bps | 1145166 | `3d110b00` | `b857c3c5` | `f74db49f` | yes |
 | Shin Megami Tensei | `AAUJ` | English v1.3b font hack (Gymzatan; optional, on the translation; made from the font hack ROM) | font | SMT_T-En_Gymzatan_v1.3b_Font_Hack.ips | 732 | `2986ea39` | `f74db49f` | `2050b471` | yes |
+| Shin Megami Tensei II | `A5TJ` | English (port of the Super Famicom translation) | translation | smt2gbaengfontfix.xdelta | 527881 | `fd05f8c5` | `af40cc99` | `7e4b4978` | yes: the Japanese game's screens in English, the same logo (SMT2-9) |
