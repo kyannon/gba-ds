@@ -13010,7 +13010,7 @@ static const MapProfile profiles[] = {
 			/* a room: not the title (BG3), with the item slot's frame, which the ball bonus screens lack (the star counter's
 			 * icon leaves 4 s into a Time Attack run) */
 			.on = { { 0x04000000, 0x0800, 0, 2 } },
-			.onWith = { 176, 96, 176, 96, 0, 1023, 1, 1u << 3 },
+			.onWith = { 176, 96, 176, 96, 0, 1023, 1, 1u << 3, 0, 1u << 3 }, /* 64x64, palette 3 */
 			.onLost = 30,
 			/* the HUD is priority-1 sprites: 16x16 in palettes 0 and 2 along the top, palettes 0-4 in the bottom corners, the item
 			 * falling down the slot's column and in it, and the 64x64 slot; Toad, others running past and the roulette have other places or tiles */

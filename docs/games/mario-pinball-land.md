@@ -53,7 +53,7 @@ Every room is one screen, with its own flippers: none is taller than the GBA's s
 
 ## For the merge
 
-- Shared code: the profile's `hud.onWith` with `onLost` (the split started only while a given sprite shows, kept by `on` alone until that many frames without one: game.c's update_hud), `tools/regress.py --changed` to run.
+- Shared code: the profile's `hud.onWith` with `onLost` (the split started only while a given sprite shows, kept by `on` alone until that many frames without one: game.c's update_hud; the sprite's `shapes` are checked; a loaded state starts the wait again, so a HUD from before the load isn't held over a screen without one), `tools/regress.py --changed` to run.
 - Changelog (New games): Mario Pinball Land (USA, Australia, Europe and Japan; Super Mario Ball in Europe and Japan): in a room, in the adventure or Time Attack, the HUD (stars, coins, lives, the counter or the timer, the item slot) on the second screen over the logo, the table alone on the game screen.
 - Supported games table: `| Mario Pinball Land (Super Mario Ball in Europe and Japan) | `BMVE` `BMVP` `BMVJ` | in a room: the HUD, with the logo | |`
 - Supported games section: the USA and Australia, Europe and Japan releases, checked in the Fun Fair and the Frosty rooms and Time Attack (the USA's), and in the Fun Fair, the Boo room, the target game, the shop and Bowser's (Europe's and Japan's, from their own play; being filled in).
