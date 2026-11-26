@@ -348,6 +348,7 @@ static const KnownDump knownDumps[] = {
 	{ "BZME", 0xabcebbb1, true, false, "Legend of Zelda, The - The Minish Cap (USA)" },
 	{ "BZMJ", 0x6ce771a5, true, false, "Zelda no Densetsu - Fushigi no Boushi (Japan)" },
 	{ "BZMP", 0xe8637292, true, false, "Legend of Zelda, The - The Minish Cap (Europe) (En,Fr,De,Es,It)" },
+	{ "CSAE", 0x31265c5d, true, false, "Shantae Advance - Risky Revolution (World) (Limited Run Games)" },
 	{ "RZWE", 0xcb4e844b, true, false, "WarioWare - Twisted! (USA, Australia)" },
 	{ "RZWJ", 0xe69964f1, true, false, "Mawaru - Made in Wario (Japan)" },
 	{ "U3IE", 0xe715ac45, true, false, "Boktai - The Sun Is in Your Hand (USA)" },

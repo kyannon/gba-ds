@@ -12999,6 +12999,30 @@ static const MapProfile profiles[] = {
 		.swallow = { K_SELECT, { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x1F00, 0x1F00, 2 },
 		                         { 0x0202B07A, 0xF000, 0xE000, 2 }, { 0x0202B43C, 0xF000, 0xE000, 2 } } },
 	},
+	{
+		/* Shantae Advance: Risky Revolution (docs/games/shantae-advance-risky-revolution.md): the 2024
+		 * cartridge's header has no game code, so it's known by its CRC32 (codelessDumps) */
+		.codes = { "CSAE" },
+		.title = "Shantae Advance: Risky Revolution",
+		.logoOnly = true,
+		.hud = {
+			.on = { { 0x04000000, 0x1007, 0x1000, 2 } },
+			/* while any piece of the HUD shows: it slides off the top for a talk and back after (the magic
+			 * bar, its lowest piece, is in sight from row -31) */
+			.onWith = { 0, -31, 239, 63, 0, 43, 0, 0x1 },
+			.onLost = 1,
+			/* the held item's circle, the magic bar, hearts, gems and dance indicator: the only sprites at
+			 * priority 0 in palette 0 */
+			.objs = { { 0, -64, 239, 63, 0, 43, 0, 0x1 } },
+			.logoBelow = true,
+		},
+		/* 0x03000F34, the pause screen: 3 open, 4 its closing (a wipe); the logo then, not the same
+		 * screen twice */
+		.logoIf = { { 0x03000F34, 0xFF, 0x03, 1, true, 0x04 } },
+		.logoIfLast = true,
+		/* the title's lettering, painted into one picture with its gradient: a mask */
+		.logo = { .wait = 900, .mask = &logoMaskSAR },
+	},
 };
 
 /* ---------------------------------------------------------------- regions
