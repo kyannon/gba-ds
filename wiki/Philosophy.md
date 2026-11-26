@@ -76,6 +76,7 @@ What this means in practice:
   - Final Fantasy VI Advance's world map minimap, the game's own corner map taken off the game screen and drawn twice as big on the second;
   - Super Mario Advance 2's level name moved above its status bar;
   - Super Mario Advance's course board, shown before each level, kept under the status bar through the level: trimmed at the top and bottom to fit, with its Ace Coin percentage taken from the pause screen;
+  - Cruis'n Velocity's time box after the finish, showing the race's total time (the figure from the results page, added up correctly) in the game's own digits instead of the zeros the game clears it to;
   - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it;
   - Game Boy and Game Boy Color games on one screen with the other idle (a real GBA played those cartridges too), with the option of showing the Game Boy's own 160×144 picture as the whole screen instead of centred in the GBA's frame ([[Game Boy games]]);
   - Pokémon Mystery Dungeon: Red Rescue Team's SELECT kept from the game on a dungeon's field, where all it does is hide the field to show the floor map the second screen already shows (with two screens only), and its status line centred on the second screen;
@@ -90,7 +91,7 @@ What this means in practice:
   - Mega Man Battle Network 2's status screen and money, and its maps of the net, as the first game's (the money box's HP line left out, the status below showing it);
   - Baldur's Gate: Dark Alliance's maps, made from the game's own screens by a copy of the game, and the red X from its quick slots marking where you are;
   - Boktai's clock and sunrise and sunset times, three lines of the game's own from its ITEM page, kept on the Map at the top (on both screens when that page is open on the game screen), with the Map's title bar left out;
-  - Shin Megami Tensei's automap taller than the game's window, made from the game's own scrolling and drawn over its own grid, which is continued above and below it to fill the second screen.
+  - Shin Megami Tensei's and Shin Megami Tensei II's automap taller than the game's window, made from the game's own scrolling and drawn over its own grid, which is continued above and below it to fill the second screen.
   - Breath of Fire's and Breath of Fire II's party overview kept on the second screen through a battle, taken from before it, though the battle's own boxes on the game screen have the live numbers.
   - an optional toggle (off by default) that turns a second screen's pages, or swaps its view (the map or the party screen), by hand: a hotkey, and a small partly see-through button in the console's own look, that goes dim when there's nothing to turn and isn't there in games with nothing to turn. It fades the picture to black only while the game is finding the next one, so you can see it working. It touches nothing in the game, and with it off every game shows what it always did.
 - **Optional where it can be.** Where an exception changes how the game plays or looks, there's a way back to the original: GBA is the default control layout, and `pinball_live = 0` turns off the pinball games' tall view.
