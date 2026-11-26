@@ -8320,6 +8320,11 @@ static void setting_applied(const Setting* st) {
 		rebuild_textures(); /* (every picture given again, through it or not) */
 	} else if (!strcmp(k, "gb_size")) {
 		rebuild_textures(); /* (the game's texture is another size) */
+	} else if (!strcmp(k, "smooth")) {
+		/* the scaling filter: the game's picture reads it as it's drawn; the
+		 * other pictures take Smooth from the hint when they're made */
+		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->filter == FILTER_SMOOTH ? "linear" : "nearest");
+		rebuild_textures();
 	} else if (!strcmp(k, "lcd_ghosting") || !strcmp(k, "gb_ghosting")) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
@@ -9192,6 +9197,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_DISPLAY, "lcd_strength");
 	ROW(PG_DISPLAY, "color_correction");
 	ROW(PG_DISPLAY, "lcd_ghosting");
+	ROW(PG_DISPLAY, "smooth"); /* the scaling filter (issue #89) */
 	if (ui_logo_custom(cfg, romPath, emu.gameCode)) ROW(PG_DISPLAY, "custom_logos"); /* the game has the player's own or a scraped logo (GEN-11) */
 	if (nScreens >= 2) ROW(PG_SCREENS, "swap");
 	ROW(PG_SCREENS, "single_layout");
