@@ -84,6 +84,10 @@ typedef struct Emu {
 
 /* savePath may be NULL (no battery save attached). */
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio);
+/* While on, this thread's emu_open loads the ROM file as it is: no patch
+ * beside it, none planned (the logo of a game whose logos are per ROM file
+ * is its unpatched file's). */
+void emu_open_unpatched(bool on);
 /* ROMs may also be in a .zip or .7z (the first GBA ROM inside is used). */
 bool emu_is_rom_name(const char* name);   /* .gba, .gb, .gbc (.sgb .dmg .cgb), .zip, .7z */
 bool emu_is_archive_name(const char* name); /* .zip, .7z */

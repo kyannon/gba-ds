@@ -8983,6 +8983,8 @@ typedef struct {
 	int queueLo, queueHi;       /* the queue's range this window (ms) */
 	long preemptT0;
 	Uint64 lastIter;
+	Uint64 windowT0;            /* when this report's window started (performance counter) */
+	int emuFrames;              /* frames emulated in it (fast forward's several a loop counted; added by the loop) */
 } Health;
 typedef struct {
 	uint64_t frame;
@@ -8994,7 +8996,7 @@ typedef struct {
 } HealthFrame;
 static void health_init(Health* h, int audioLatencyMs, int freq) {
 	*h = (Health) { .audioMs = audioLatencyMs, .targetQueued = freq * audioLatencyMs / 1000, .dryQueueBefore = 1,
-		            .queueLo = 1 << 30, .queueHi = -1, .preemptT0 = thread_preemptions() };
+		            .queueLo = 1 << 30, .queueHi = -1, .preemptT0 = thread_preemptions(), .windowT0 = SDL_GetPerformanceCounter() };
 	/* (the file-wide counts the reports read start again too: a game closed
 	 * before its first report left its stalls and times in them) */
 	stallCount = stallLogged = 0, stallWorst = 0;
@@ -9058,9 +9060,13 @@ static void health_frame(Health* h, const HealthFrame* in) {
 		if (show) h->quietWindows = 0;
 		if (show) {
 			double ms = 1000.0 / SDL_GetPerformanceFrequency() / h->frames;
-			fprintf(stderr, "frame %llu: last 5 s: %.1f fps, %d audio underrun(s), %d slow frame(s), map capture busy %d%%, "
+			/* (the window's own speed: frames emulated over its time, not the
+			 * last second's, which a fast forward just before had pushed up) */
+			double secs = (double) (SDL_GetPerformanceCounter() - h->windowT0) / (double) SDL_GetPerformanceFrequency();
+			double fps = secs > 0 ? h->emuFrames / secs : 0;
+			fprintf(stderr, "frame %llu: last %.0f s: %.1f fps, %d audio underrun(s), %d slow frame(s), map capture busy %d%%, "
 			                "audio queue %d ms; per frame: emulating %.2f ms, drawing %.2f ms; game thread preempted %ld time(s)",
-			        (unsigned long long) frameCount, fps, h->underruns, h->slow, h->captureBusy * 100 / h->frames,
+			        (unsigned long long) frameCount, secs, fps, h->underruns, h->slow, h->captureBusy * 100 / h->frames,
 			        queuedNow * 1000 / in->freq, emuTicks * ms, drawTicks * ms, thread_preemptions() - h->preemptT0);
 			if (h->queueHi >= 0) fprintf(stderr, "; audio queue between %d and %d ms (sound delay %d ms)", h->queueLo, h->queueHi, h->audioMs);
 			if (stallCount) fprintf(stderr, "; %d stall(s) over %d ms, the longest %.0f ms", stallCount, STALL_MS, stallWorst);
@@ -9068,7 +9074,8 @@ static void health_frame(Health* h, const HealthFrame* in) {
 			if (keptTotal) fprintf(stderr, "; %u frame(s) run while the screen held a frame up", keptTotal);
 			fputc('\n', stderr);
 		}
-		h->underruns = h->slow = h->captureBusy = h->dropped = h->frames = 0;
+		h->underruns = h->slow = h->captureBusy = h->dropped = h->frames = h->emuFrames = 0;
+		h->windowT0 = SDL_GetPerformanceCounter();
 		h->queueLo = 1 << 30, h->queueHi = -1;
 		stallCount = stallLogged = 0, stallWorst = 0;
 		keptTotal = 0;
@@ -10281,6 +10288,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 		if (ffMax) maxRan = SDL_max(1, ran);
 		runs = rewinding ? runs : SDL_max(1, ran); /* (the frames run, for the rewind buffer and the speed) */
+		hl.emuFrames += runs; /* (the health report's speed) */
 		Uint64 emuT1 = SDL_GetPerformanceCounter();
 		double emuCpu1 = thread_cpu_ms();
 		emuTicks += emuT1 - emuT0;
