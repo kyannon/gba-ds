@@ -902,6 +902,8 @@ typedef enum {
 } DumpKind;
 /* name: No-Intro's name of the dump, or the mod's (NULL when not known) */
 DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
+/* A mod in the game's Mods row: it keeps a logo of its own (GEN-20) */
+bool profile_known_mod(const char* gameCode, uint32_t crc);
 /* A Game Boy / Game Boy Color game (its code is the app's own, lower case: emu_rom_code), and whether
  * its ROM's CRC32 is in No-Intro's Game Boy / Game Boy Color lists (src/dumps_gb_data.h, GB-14) */
 bool profile_code_is_gb(const char* gameCode);

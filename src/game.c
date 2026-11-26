@@ -8060,7 +8060,7 @@ static void draw_osd(void) {
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	bool pixelArt = false;
 	int sub = 1;
-	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, emu.romCrc, &pixelArt, &sub);
 	if (!lg) return false;
 	int room = ch - top;
 	if (room <= 0) {
@@ -8125,7 +8125,7 @@ static void make_logo_canvas(void) {
 	}
 	bool pixelArt = false;
 	int sub = 1;
-	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, emu.romCrc, &pixelArt, &sub);
 	if (!lg) return;
 	logoSub = sub;
 	bool big = lg->w > GBA_W * sub || lg->h > GBA_H * sub;
@@ -8840,7 +8840,7 @@ static void rebuild_textures(void) {
 	if (combatMade) make_combat_canvas();
 	if (hudProf) for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
 	ui_free_image(logoTex);
-	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
+	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, emu.romCrc, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
 	else make_logo_canvas();
 	logoProvisional = ui_logo_provisional();
 	ui_textures_reset();
@@ -8904,7 +8904,7 @@ static void logo_refresh(void) {
 	ui_free_image(logoTex);
 	ui_free_image(logoCanvasTex);
 	logoSub = 1;
-	bool got = ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel);
+	bool got = ui_load_logo(cfg, romPath, emu.gameCode, emu.romCrc, logoTex, &logoW, &logoH, &logoPixel);
 	logoProvisional = ui_logo_provisional();
 	if (!got) return;
 	make_logo_canvas();
@@ -9190,7 +9190,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 	uint32_t logoGen = logo_generation();
 	logoSub = 1;
-	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel) || emu_is_gb(&emu)) make_logo_canvas();
+	if (ui_load_logo(cfg, rom, emu.gameCode, emu.romCrc, logoTex, &logoW, &logoH, &logoPixel) || emu_is_gb(&emu)) make_logo_canvas();
 	logoProvisional = ui_logo_provisional();
 
 	memset(pageLen, 0, sizeof(pageLen));
