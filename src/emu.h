@@ -295,6 +295,9 @@ void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n);
  * palette still the game's), 2 left out. NULL: as the game has them. Mario Pinball Land:
  * the counters where the game puts them when paused (MPL-3). */
 void emu_hud_place(const uint8_t how[128], const uint16_t ab[128][2]);
+/* The HUD split draws the sprites in OAM slots oamIndex[i] with tile tile[i] instead of their own
+ * (the game's picture and its memory are untouched); n = 0: none. */
+void emu_hud_retile(const int* oamIndex, const uint16_t* tile, int n);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */
