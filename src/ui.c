@@ -800,7 +800,21 @@ void ui_layout_pictures(void) {
 	}
 }
 
+static bool oneDisplay; /* (set by layout_screens) */
+static bool menuFull;   /* the pause menu is up: one screen over the whole display */
+
+void ui_menu_full(bool on) {
+	if (on == menuFull) return;
+	menuFull = on;
+	if (oneDisplay && strcmp(cfg->singleLayout, "off")) ui_layout();
+}
+
+bool ui_one_display(void) {
+	return oneDisplay;
+}
+
 static void layout_screens(void) {
+	oneDisplay = false;
 	if (nViews == 2) {
 		nScreens = 2;
 #ifdef __ANDROID__
@@ -873,6 +887,33 @@ static void layout_screens(void) {
 		screens[0] = (Screen) { 0, { 0, 0, w, s } };
 		screens[1] = (Screen) { 0, { 0, s + gap, w, h - s - gap } };
 	} else {
+		/* one display, both screens on it (issue #84): the game and the
+		 * second screen side by side (the long way of the display with
+		 * "auto") or stacked, the second one's share of it 50 / 40 / 30 %.
+		 * Where the game is (swap) is the player's, as with two screens. */
+		oneDisplay = true;
+		const char* sl = cfg->singleLayout;
+		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && !menuFull;
+		if (together) {
+			bool side = !strcmp(sl, "side") || (!strcmp(sl, "auto") && w >= h);
+			int pct = !strcmp(cfg->singleSize, "small") ? 30 : !strcmp(cfg->singleSize, "medium") ? 40 : 50;
+			int total = side ? w : h;
+			int sec = total * pct / 100, gm = total - sec;
+			int a = cfg->swap ? sec : gm; /* screen 0's length, screen 1's the rest */
+			nScreens = 2;
+			if (side) {
+				screens[0] = (Screen) { 0, { 0, 0, a, h } };
+				screens[1] = (Screen) { 0, { a, 0, w - a, h } };
+			} else {
+				screens[0] = (Screen) { 0, { 0, 0, w, a } };
+				screens[1] = (Screen) { 0, { 0, a, w, h - a } };
+			}
+			static char loggedS[64];
+			char ls[64];
+			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d", w, h, side ? "side" : "stacked", pct, cfg->swap);
+			if (strcmp(ls, loggedS)) snprintf(loggedS, sizeof(loggedS), "%s", ls), fprintf(stderr, "screens: both on one display, %s\n", ls);
+			return;
+		}
 		nScreens = 1;
 		screens[0] = (Screen) { 0, { 0, 0, w, h } };
 	}

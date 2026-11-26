@@ -110,6 +110,8 @@ typedef struct Config {
 	char touchScreen[16]; /* first | second: which screen has the touch panel */
 	char topScreen[16];   /* Android: auto | app | second: which display is the top screen */
 	char screenMatch[8];  /* keep | aspect | size: the wider screen's picture area (ui.c ui_layout_pictures) */
+	char singleLayout[8]; /* off | auto | side | stacked: with one display, both screens on it (issue #84; ui.c layout_screens) */
+	char singleSize[8];   /* equal | medium | small: the second screen's share of it (50 / 40 / 30 %) */
 	char screenPlace[8];  /* center | no_gap: two screens' pictures centred, or against the edges nearest each other (issue #46) */
 	char screenPpi[32];   /* "top,bottom": the screens' pixels per inch, instead of what the system says */
 	char touchMap[16];    /* window | screen: how touch coordinates map */
