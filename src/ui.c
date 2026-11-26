@@ -2946,13 +2946,13 @@ void ui_game_prepare(const Config* c, const char* rom) {
 	bool needCrc = !rom_file_crc(c, rom, false);
 	char logoFile[1200] = "";
 	bool needLogo = false;
-	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
 	if (!needCrc && !needLogo) return;
 	ui_notice("Initializing game...", tr("Only the first time for each game"));
 	if (needCrc) {
 		fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
 		rom_file_crc(c, rom, true);
-		if (ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+		if (ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
 	}
 	if (needLogo && logoFile[0]) {
 		char dir[1200];
