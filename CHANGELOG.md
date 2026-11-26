@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.3 (not yet released)
+## v1.6.3 (2026-11-25)
 
 ### New games
 - **Pokémon Mystery Dungeon: Red Rescue Team** (USA and Australia, Europe, and Pokémon Fushigi no Dungeon: Aka no Kyuujotai in Japan; pull request #94 by cmyksoda): in a dungeon, the second screen shows the floor map and the status line (the floor, your level and HP), live, with the status line centred at the top; the game screen shows the field alone. Menus and messages stay on the game screen, while the status line stays on the second screen and keeps up with your HP. Taking the stairs, the old floor's map stays until the new one comes up. Outside a dungeon, the second screen shows the logo. With two screens, SELECT does nothing on a dungeon's field, since all it does there is show the map the second screen already has; in the menus it works as usual. Known: with the game's Map option at Off the second screen has only the status line, and at Shade the map is dithered as the game draws it; a state saved with the game's own map view on has a black game screen until you press SELECT; boss scenes and the end of a dungeon haven't all been tried.
