@@ -483,7 +483,7 @@ typedef struct MapProfile {
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
 		/* `on` turns it on only while a sprite like onWith shows; then `on` alone keeps it on, till
-		 * onLost frames without one (Mario Pinball Land: a room, by its star counter's icon) */
+		 * onLost frames without one (Mario Pinball Land: a room, by its item slot's frame) */
 		SpriteRule onWith;
 		int onLost;
 		/* While every `layout` probe matches (racing, not the results):

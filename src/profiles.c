@@ -12966,14 +12966,16 @@ static const MapProfile profiles[] = {
 		/* START cuts the intro film short: the title's lettering alone on BG3 (PRESS START is sprites) */
 		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 300 } }, .layer = 3 },
 		.hud = {
-			/* a room: not the title (BG3), with the star counter's icon in the top corner, which the ball bonus screens lack */
+			/* a room: not the title (BG3), with the item slot's frame, which the ball bonus screens lack (the star counter's
+			 * icon leaves 4 s into a Time Attack run) */
 			.on = { { 0x04000000, 0x0800, 0, 2 } },
-			.onWith = { -1, 0, -1, 0, 0, 1023, 1, 1u << 2 },
+			.onWith = { 176, 96, 176, 96, 0, 1023, 1, 1u << 3 },
 			.onLost = 30,
-			/* the HUD is priority-1 sprites: 16x16 in palettes 0 and 2 along the top, palettes 0-4 in the bottom left, anything but
-			 * Toad's palette 13 in the bottom right (the held item), and the 64x64 slot; Toad and the item roulette pass the same places */
+			/* the HUD is priority-1 sprites: 16x16 in palettes 0 and 2 along the top, palettes 0-4 in the bottom corners, the item
+			 * falling down the slot's column and in it, and the 64x64 slot; Toad, others running past and the roulette have other places or tiles */
 			.objs = { { -512, -256, 511, 19, 0, 1023, 1, 1u << 0 | 1u << 2, 0, 1u << 1 }, { -512, 112, 60, 255, 0, 1023, 1, 0x1F, 0, 1u << 1 },
-			          { 170, 112, 511, 255, 0, 1023, 1, 0xFFFF & ~(1u << 13) }, { 170, 80, 511, 255, 0, 1023, 1, 0, 0, 1u << 3 } },
+			          { 170, 112, 511, 255, 0, 1023, 1, 0x1F, 0, 1u << 1 }, { 206, -32, 206, 255, 0, 399, 1, 0, 0, 1u << 2 },
+			          { 170, 80, 511, 255, 0, 1023, 1, 0, 0, 1u << 3 } },
 			.logoBelow = true,
 		},
 	},
