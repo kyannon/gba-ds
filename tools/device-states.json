@@ -997,11 +997,11 @@
    "Kirby - Nightmare in Dream Land (Europe) (En,Fr,De,Es,It)": {
     "1": [
      "eu-level.ss",
-     "Europe: Vegetable Valley, no copy ability: the pause page's tip about copying (KND-2, KND-3)"
+     "Europe: vegetable Valley, no copy ability: the pause page's tip about copying (KND-2, KND-3)"
     ],
     "2": [
      "eu-spark.ss",
-     "Europe: Kirby with Spark: the Spark page (KND-2)"
+     "Europe: kirby with Spark: the Spark page (KND-2)"
     ],
     "3": [
      "eu-pause-beam.ss",
@@ -1031,11 +1031,11 @@
    "Hoshi no Kirby - Yume no Izumi Deluxe (Japan)": {
     "1": [
      "jp-level.ss",
-     "Japan: Vegetable Valley, no copy ability: the pause page's tip about copying (KND-2, KND-3)"
+     "Japan: vegetable Valley, no copy ability: the pause page's tip about copying (KND-2, KND-3)"
     ],
     "2": [
      "jp-spark.ss",
-     "Japan: Kirby with Spark: the Spark page (KND-2)"
+     "Japan: kirby with Spark: the Spark page (KND-2)"
     ],
     "3": [
      "jp-pause-beam.ss",
@@ -1150,6 +1150,86 @@
     "2": [
      "jp-story.ss",
      "Japan, the story before the dungeon: the logo (PMD-5). Load slot 1 first, then this: the map goes after about a third of a second"
+    ]
+   }
+  },
+  "mario-pinball-land": {
+   "Mario Pinball Land (USA, Australia)": {
+    "1": [
+     "harness-us-title.ss",
+     "The title: the logo at half strength on dark grey, the game screen as the game draws it (MPL-1, MPL-5)"
+    ],
+    "2": [
+     "harness-us-play.ss",
+     "The Fun Fair, a ball just launched: the star counter, coins, lives and counter, B button and item slot on the second screen, each where the game draws it, on black with the logo in the middle; none of them on the game screen. The lives and counter slide off after a few seconds, there as in the game (MPL-2, MPL-3)"
+    ],
+    "3": [
+     "harness-us-paused.ss",
+     "Paused: PAUSED, CONTINUE and SAVE & QUIT on the game screen over the room, the HUD still on the second screen (MPL-4)"
+    ],
+    "4": [
+     "harness-us-toad.ss",
+     "Toad rides the roller coaster past the bottom left corner, then the bottom right one beside the item slot (about 2 s in): he stays on the game screen, nothing of him on the second (MPL-6)"
+    ],
+    "5": [
+     "harness-us-drain.ss",
+     "About 3 s before the ball drains (leave it): it goes down the blue pipe on the game screen, then the sphere and the ball bonus screen with the logo at half strength on the second screen; the HUD back within half a second of the next ball's room (MPL-5)"
+    ],
+    "6": [
+     "harness-us-bonus.ss",
+     "The ball bonus screen: the logo at half strength. Load slot 2 first, then this one: the HUD leaves the second screen at once rather than staying for half a second (the review's state-load fix)"
+    ]
+   },
+   "Super Mario Ball (Europe)": {
+    "1": [
+     "harness-eu-title.ss",
+     "Europe: the title: the logo at half strength on dark grey, the game screen as the game draws it (MPL-1, MPL-5)"
+    ],
+    "2": [
+     "harness-eu-play.ss",
+     "Europe: the Fun Fair, a ball just launched: the star counter, coins, lives and counter, B button and item slot on the second screen, each where the game draws it, on black with the logo in the middle; none of them on the game screen. The lives and counter slide off after a few seconds, there as in the game (MPL-2, MPL-3)"
+    ],
+    "3": [
+     "harness-eu-paused.ss",
+     "Europe: paused: PAUSED, CONTINUE and SAVE & QUIT on the game screen over the room, the HUD still on the second screen (MPL-4)"
+    ],
+    "4": [
+     "harness-eu-toad.ss",
+     "Europe: Toad rides the roller coaster past the bottom left corner, then the bottom right one beside the item slot (about 2 s in): he stays on the game screen, nothing of him on the second (MPL-6)"
+    ],
+    "5": [
+     "harness-eu-drain.ss",
+     "Europe: about 3 s before the ball drains (leave it): it goes down the blue pipe on the game screen, then the sphere and the ball bonus screen with the logo at half strength on the second screen; the HUD back within half a second of the next ball's room (MPL-5)"
+    ],
+    "6": [
+     "harness-eu-bonus.ss",
+     "Europe: the ball bonus screen: the logo at half strength. Load slot 2 first, then this one: the HUD leaves the second screen at once rather than staying for half a second (the review's state-load fix)"
+    ]
+   },
+   "Super Mario Ball (Japan)": {
+    "1": [
+     "harness-jp-title.ss",
+     "Japan: the title: the logo at half strength on dark grey, the game screen as the game draws it (MPL-1, MPL-5)"
+    ],
+    "2": [
+     "harness-jp-play.ss",
+     "Japan: the Fun Fair, a ball just launched: the star counter, coins, lives and counter, B button and item slot on the second screen, each where the game draws it, on black with the logo in the middle; none of them on the game screen. The lives and counter slide off after a few seconds, there as in the game (MPL-2, MPL-3)"
+    ],
+    "3": [
+     "harness-jp-paused.ss",
+     "Japan: paused: PAUSED, CONTINUE and SAVE & QUIT on the game screen over the room, the HUD still on the second screen (MPL-4)"
+    ],
+    "4": [
+     "harness-jp-toad.ss",
+     "Japan: Toad rides the roller coaster past the bottom left corner, then the bottom right one beside the item slot (about 2 s in): he stays on the game screen, nothing of him on the second (MPL-6)"
+    ],
+    "5": [
+     "harness-jp-drain.ss",
+     "Japan: about 3 s before the ball drains (leave it): it goes down the blue pipe on the game screen, then the sphere and the ball bonus screen with the logo at half strength on the second screen; the HUD back within half a second of the next ball's room (MPL-5)"
+    ],
+    "6": [
+     "harness-jp-bonus.ss",
+     "Japan: the ball bonus screen: the logo at half strength. Load slot 2 first, then this one: the HUD leaves the second screen at once rather than staying for half a second (the review's state-load fix)"
     ]
    }
   }
