@@ -259,8 +259,10 @@ static void code_cache_save(const Config* cfg) {
 /* The 4-letter game code from the ROM header (offset 0xAC). */
 static bool game_code(const char* path, const struct stat* st, char code[5]) {
 	CodeCache* c = code_cache_find(path);
-	/* ("____", no code in its header, is looked at again: a newer build may know the dump) */
-	if (c && c->size == (long long) st->st_size && c->mtime == (long long) st->st_mtime && strcmp(c->code, "____")) {
+	/* ("____", no code in its header, is looked at again if it's the size of a dump known by its
+	 * CRC32 (profile_codeless_size): a newer build may know it. Other sizes are kept.) */
+	if (c && c->size == (long long) st->st_size && c->mtime == (long long) st->st_mtime &&
+	    (strcmp(c->code, "____") || !profile_codeless_size(st->st_size))) {
 		c->used = true;
 		memcpy(code, c->code, 5);
 		return true;

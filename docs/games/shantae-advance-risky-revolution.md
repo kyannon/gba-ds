@@ -35,6 +35,7 @@ WayForward finished the game in 2024, and Limited Run Games released it as a GBA
 - Checked by hand on the desktop build: the first area, the first boss (Risky's airship) and past it into the town, with an item equipped: the item in the held item's circle on the second screen. The cases cover the first area and the airship fight; the town has no case.
 - Dances (the dance indicator lit) and transformations, dungeons, shops and more hearts: not seen yet. The HUD rule (SAR-4) holds as long as the game keeps drawing its HUD with the same sprites.
 - Battle Mode (up to four players over the link cable): the logo, as for any screen without the HUD; not tried.
+- The game list reads a 16 MB ROM with no game code in its header whole at each scan, unless it's this cartridge (which is remembered as `CSAE`): a changed copy of it, or homebrew of that size. A short wait, nothing more.
 
 ## Notes
 

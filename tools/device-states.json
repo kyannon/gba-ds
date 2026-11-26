@@ -1152,6 +1152,26 @@
      "Japan, the story before the dungeon: the logo (PMD-5). Load slot 1 first, then this: the map goes after about a third of a second"
     ]
    }
+  },
+  "shantae-advance-risky-revolution": {
+   "Shantae Advance - Risky Revolution (World) (Limited Run Games)": {
+    "1": [
+     "play.ss",
+     "The first area: the held item's circle with the magic bar and the hearts at the top left, the gems with the dance indicator at the top right of the second screen, on black with the logo in the middle; none of them on the game screen (SAR-3, SAR-4). Then START: the logo on dark grey while the pause screen is open and closing, no fade; START again: the HUD back on black at once (SAR-6)"
+    ],
+    "2": [
+     "sign.ss",
+     "Beside a signpost, its B prompt on the game screen: press B, the HUD slides off the second screen's top and the logo goes to half strength on dark grey; read the talk out with A, the HUD slides back down (SAR-5)"
+    ],
+    "3": [
+     "boss.ss",
+     "Risky's airship: the HUD on the second screen, the airship's top whole on the game screen where the gem counter was (SAR-3, SAR-4)"
+    ],
+    "4": [
+     "title.ss",
+     "The title: the logo at half strength on dark grey (SAR-7); the game list shows the cartridge with the supported games (SAR-2)"
+    ]
+   }
   }
  }
 }
