@@ -32,8 +32,8 @@ The game has no map and no rear-view mirror: its race screen is the road with se
 
 ## Not covered yet
 
-- The finish of a race that places in the cup (1st to 3rd): the cup's podium, the best lap and the pages after a won cup were not reached. Checked: 8th of 8 in the Amateur Cup's first race on Vegas (by hand), which ends on the standings and GAME OVER, and 1st in a Freestyle race on Vegas (the case `crv-finish`), which ends on the standings, RACE ANOTHER TRACK and the track menu.
-- The finish without a misprinted total, in a case: `crv-finish`'s state is the first race's countdown with the lap byte set to the last lap (4) and laps 1 to 3 written in (30:20, 28:15, 27:20), so crossing the start line ends the race with a last lap of 11:45 and a page that misprints the total (01:36:1:0 for 01:37:00). Getting round Vegas four times in the harness didn't work out; a state from a real last lap would be better.
+- The finish of a race that places in the cup (1st to 3rd): the cup's podium, the best lap and the pages after a won cup were not reached. Checked: 8th of 8 in the Amateur Cup's first race on Vegas (`crv-finish`, a race driven to the end), which ends on the standings and GAME OVER, and 1st in a Freestyle race on Vegas (`crv-finish-1st`), which ends on the standings, RACE ANOTHER TRACK and the track menu.
+- `crv-finish-1st` isn't a race driven to the end: its state is the first race's countdown with the lap byte set to the last lap (4) and laps 1 to 3 written in (30:20, 28:15, 27:20), so crossing the start line ends the race in 1st with a last lap of 11:45 and a results page that misprints the total (01:36:1:0 for 01:37:00). It is there for the 1st place and the misprint, which the driven race doesn't reach.
 - Cup mode, the other tracks and Multi Player.
 - The reverse view of "WRONG WAY": it is drawn in the picture, so stays on the game screen.
 
@@ -55,4 +55,4 @@ The game has no map and no rear-view mirror: its race screen is the road with se
 - Supported games table: `| Cruis'n Velocity | `ACFE` | in a race: the time and the lap | |`
 - Supported games section: the one ROM for the USA and Europe, checked on the first track (being filled in).
 - Philosophy (`wiki/Philosophy.md`, rule 6's list of exceptions), after Super Mario Advance's course board: "Cruis'n Velocity's time box after the finish, showing the race's total time (the figure from the results page, added up correctly) in the game's own digits instead of the zeros the game clears it to;"
-- Fixtures: `roms/ACFE.zip` and `states/cruisn-velocity/` are in gba-ds-tests (made in the harness from the owner's ROM, Nov 25, 2026; the states in the pull request's own zip weren't used).
+- Fixtures: `roms/ACFE.zip` and `states/cruisn-velocity/` are in gba-ds-tests: the contributor's six states and goldens (gba-ds-tests-crv.zip), and `race-finish-1st.ss`, made in the harness for `crv-finish-1st`.
