@@ -13063,6 +13063,74 @@ static const MapProfile profiles[] = {
 		                         { 0x0202B07A, 0xF000, 0xE000, 2 }, { 0x0202B43C, 0xF000, 0xE000, 2 } } },
 	},
 	{
+		/* Densetsu no Stafy (docs/games/densetsu-no-stafy.md), and the Starfy
+		 * Translation Team's English patches (Mods row): the same RAM and screens */
+		.codes = { "ASTJ" },
+		.title = "Densetsu no Stafy",
+		.logoOnly = true,
+		.hud = {
+			/* 0x03000EC1: 00 in a stage and its pause screen (which has no HUD sprites of its own: STF-5) */
+			.on = { { 0x03000EC1, 0xFF, 0x00, 1 } },
+			/* the face, hearts, arrow, pearls and counter (rows 140-155); not a signpost's label, at the same priority but higher up */
+			.objs = { { 0, 136, 239, 159, 0, 1023, 0 } },
+			/* along the top: the face at the left, the hearts in the middle, the score at the right, 8 pixels in;
+			 * the hearts' piece has a black row over its art, so its top is row 4 and the art starts on row 5 like the score's */
+			.moves = { { 56, 136, 99, 159, 'L', 8, 'T', 4 }, { 100, 136, 179, 159, 'C', 120, 'T', 4 }, { 180, 136, 239, 159, 'R', 231, 'T', 5 } },
+			.logoBelow = true,
+		},
+		/* the game's own pause screen open: the logo, not the same screen twice (STF-5) */
+		.logoIf = { { 0x03000EB0, 0xFF, 0x02, 1 }, { 0x03000EB1, 0xFF, 0x10, 1 } },
+		.logoIfLast = true,
+		/* START cuts the long opening short: the title ~70 frames later, its
+		 * lettering on BG0 above the PRESS START sprites and the copyright */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
+	},
+	{
+		/* Densetsu no Stafy 2 (docs/games/densetsu-no-stafy-2.md), and the Starfy Translation
+		 * Team's English patch (Mods row): the same RAM and screens */
+		.codes = { "AVFJ" },
+		.title = "Densetsu no Stafy 2",
+		.logoOnly = true,
+		.hud = {
+			/* 0x0200002C: 00 in a stage and its pause screens (which have no HUD sprites of their own: ST2-7) */
+			.on = { { 0x0200002C, 0xFF, 0x00, 1 } },
+			/* the HUD's sprites (priority 1); a stage's other sprites are at priority 2 */
+			.objs = { { 0, 136, 239, 159, 0, 1023, 1 } },
+			.moves = { { 56, 136, 83, 159, 'L', 8, 'T', 4 }, { 84, 136, 167, 159, 'C', 120, 'T', 4 }, { 168, 136, 239, 159, 'R', 231, 'T', 5 } },
+			.logoBelow = true,
+		},
+		/* the game's own pause screen open: the logo, not the same screen twice (ST2-7) */
+		.logoIf = { { 0x04000000, 0xFFFF, 0x7F40, 2 } },
+		.logoIfLast = true,
+		/* the lettering and its (c) line (BG1) above the PRESS START sprites; START cuts the opening short */
+		.logo = { .steps = { { 0, 1600 }, { K_START, 4 }, { 0, 200 } }, .layer = 1, .maxY = 96 },
+	},
+	{
+		/* Densetsu no Stafy 3 (docs/games/densetsu-no-stafy-3.md), and the English patch
+		 * (Mods row): the same RAM and screens */
+		.codes = { "B3DJ" },
+		.title = "Densetsu no Stafy 3",
+		.logoOnly = true,
+		.hud = {
+			/* DISPCNT bit 15 (the sprite window) and BG0CNT 0x0Fxx are a stage's, 0x1Exx its pause screens' */
+			.on = { { 0x04000000, 0x8000, 0x8000, 2 }, { 0x04000008, 0xFF00, 0x0F00, 2 } },
+			/* the black comes with the HUD's face (palette 1), after the opening conversation, and stays through later ones, which hide the HUD */
+			.onWith = { 0, 136, 239, 159, 0, 1023, 0, 0x2 },
+			.onLost = 1 << 30,
+			/* the HUD's palettes (0 and 1) only: a signpost's board has its prompts at the same priority, in palette 15, in rows 145 and up */
+			.objs = { { 0, 136, 239, 159, 0, 1023, 0, 0x3 } },
+			/* the game draws the HUD two rows lower than the other two; along the top all three sit on the same rows */
+			.moves = { { 56, 136, 83, 159, 'L', 8, 'T', 4 }, { 84, 136, 167, 159, 'C', 120, 'T', 4 }, { 168, 136, 239, 159, 'R', 231, 'T', 5 } },
+			.logoBelow = true,
+		},
+		/* the game's own pause screens (BG0CNT 0x1E00; the Stuff page's 0x1E01) */
+		.logoIf = { { 0x04000008, 0xFFFC, 0x1E00, 2 } },
+		.logoIfLast = true,
+		/* the lettering and the (c) line (BG0) above the sprites; START cuts the opening short (a boot's START
+		 * works from about frame 900 to 2000, and is lost at 3000 and later) */
+		.logo = { .steps = { { 0, 1300 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
+	},
+	{
 		/* Cruis'n Velocity (docs/games/cruisn-velocity.md): the HUD is sprites on a mode 4
 		 * bitmap sharing tiles, so the time and the lap box are picked by place. */
 		.codes = { "ACFE" },
