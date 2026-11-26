@@ -160,7 +160,9 @@ app does, and compares it with its golden.
 A **library** case (`"kind": "library"`) starts the app on the game list
 instead of the game, with the case's ROM the only one in it (`--rom_dir`),
 and takes its shots and input as an app case does (GEN-8: what the panel
-says about the ROM). The game list shows the app's version at the top
+says about the ROM). `"rom_files": {"NAME": "FIXTURE"}` puts other ROMs
+from the fixtures' `roms/` in its folder too, each named NAME (the list
+sorts by name), for a list with two versions of a game (GEN-20). The game list shows the app's version at the top
 screen's bottom right, so these cases leave it out of the comparison:
 `"golden_mask": [[700, 720, 1024, 768]]` (rects painted over in both
 pictures before they're compared; any case can use it). A fifth item, a shot's name

@@ -14248,6 +14248,11 @@ DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name) {
 	return listed ? DUMP_MODIFIED : DUMP_UNLISTED;
 }
 
+bool profile_known_mod(const char* gameCode, uint32_t crc) {
+	DumpKind k = crc ? profile_dump(gameCode, crc, NULL) : DUMP_UNLISTED;
+	return k == DUMP_MOD_TESTED || k == DUMP_MOD;
+}
+
 uint32_t doCrc32(const void* buf, size_t size); /* (libmgba's: its header wants zlib.h) */
 const KnownPatch* profile_patch(const uint8_t* file, size_t size, int n) {
 	if (size <= 4) return NULL;

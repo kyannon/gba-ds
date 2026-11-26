@@ -27,11 +27,7 @@ The game came out only in Japan. The English patch (v0.9.9) is supported as full
 
 **ST2-5. Logo elsewhere.** The second screen shows the logo at half strength on dark grey wherever Starfy isn't in a stage: the opening, the title and the file select.
 
-**ST2-6. The English translation.** On the English patch v0.9.9, as the patched ROM or with its `.bps` on the Japanese ROM (GEN-9), ST2-2 to ST2-5 hold as they are: the same screens and RAM as the Japanese game, the HUD's pieces in the translation's own words (TOTAL). Its logo is its own title, THE LEGENDARY STARFY 2, taken the same way.
-
-## Known issues
-
-- With both the Japanese game and the English patch in the game list, both show the logo made first, as GBA DS keeps one logo per game code (ST2-6's own logo shows when it's the only one played); each will show its own once logos are kept per ROM.
+**ST2-6. The English translation.** On the English patch v0.9.9, as the patched ROM or with its `.bps` on the Japanese ROM (GEN-9), ST2-2 to ST2-5 hold as they are: the same screens and RAM as the Japanese game, the HUD's pieces in the translation's own words (TOTAL). Its logo is its own title, THE LEGENDARY STARFY 2, taken the same way. Its logo is kept apart from the Japanese game's (GEN-20), so with both in the game list each shows its own.
 
 ## Not covered yet
 

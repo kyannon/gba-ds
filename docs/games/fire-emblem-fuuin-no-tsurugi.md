@@ -34,7 +34,7 @@ Asked what the game would have put on a second GBA screen: what a player keeps o
 
 **FE6-5. Game screen untouched.** Nothing leaves the game screen: the unit, terrain and goal windows, menus, the battle forecast, conversations and the phase banners stay where the game draws them. (FE-10.)
 
-**FE6-6. The English translation.** On the FE6 Localization fan translation (v1.2.1, as a patched ROM or with its UPS patch on the Japanese ROM, GEN-9) FE6-1 to FE6-5 hold as they are: the same addresses and screens, the status screen in English. Its logo is the translation's own title (FIRE EMBLEM in English, The Binding Blade on the ribbon, ™ for ®), taken the same way. Known issue: GBA DS keeps one logo per game, made from whichever of the two is started first, so with both the Japanese game and the translation on the card, both show that one's title.
+**FE6-6. The English translation.** On the FE6 Localization fan translation (v1.2.1, as a patched ROM or with its UPS patch on the Japanese ROM, GEN-9) FE6-1 to FE6-5 hold as they are: the same addresses and screens, the status screen in English. Its logo is the translation's own title (FIRE EMBLEM in English, The Binding Blade on the ribbon, ™ for ®), taken the same way and kept apart from the Japanese game's (GEN-20), so with both on the card each shows its own. (Until GEN-20 both showed the title of whichever was started first.)
 
 ## Not covered yet
 

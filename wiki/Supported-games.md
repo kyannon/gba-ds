@@ -98,7 +98,7 @@ GBA DS knows a game by its code, which romhacks and patches of a supported game 
 - **Patches GBA DS knows:** besides the tested ones, GBA DS knows a list of colour, voice and translation patches for other games too (some not supported yet), so the Patches menu can name them and say when one is made for another version of the game (a `.ips` file can't say which version it's for, so this is the only warning you'll get).
 - **Patch files:** put the patch (`.ips`, `.ups`, `.bps` or `.xdelta`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
-- A romhack with its own title screen still shows the original game's logo on the second screen.
+- A romhack GBA DS doesn't know shares its game's logo, made from whichever of them is started first; a tested one has its own.
 
 ## How the maps work
 
@@ -201,7 +201,6 @@ The Japanese release (the only one), and the Starfy Translation Team's English t
 - A signpost's label, drawn near the bottom of the game screen, stays there.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; each translation shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and a translation (or two translations) both in your game list, all of them show the logo made first.
 - Checked in the first stage. Not tried yet: the map between stages, boss fights and the minigames.
 
 ## Densetsu no Stafy 2
@@ -212,7 +211,6 @@ The Japanese release (the only one), and the English patch v0.9.9 (*The Legendar
 - **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and the English patch both in your game list, both show the logo made first.
 - Checked in the first stage. Not tried yet: boss fights, the minigames and signposts' boards.
 
 ## Densetsu no Stafy 3
@@ -225,7 +223,6 @@ The Japanese release (the first release and Rev 1), and the English patch v1.0.5
 - **Signposts:** a signpost's board stays whole on the game screen, with its button prompts.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and the English patch both in your game list, both show the logo made first.
 - Checked in the first stage. Not tried yet: the shop, boss fights and the minigames.
 
 ## DK: King of Swing
