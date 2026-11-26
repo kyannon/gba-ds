@@ -3,6 +3,7 @@
 #ifdef GBADS_UPDATES
 
 #include "http.h"
+#include "i18n.h"
 #include "paths.h"
 #include "sha256.h"
 #ifdef __ANDROID__
@@ -15,6 +16,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -152,7 +155,20 @@ static const char* json_find(const char* obj, const char* key) {
 	}
 }
 
-/* A string value, unescaped (UTF-8 kept; \uXXXX as UTF-8). */
+/* the hex digits of a \uXXXX escape at p (exactly four), or -1 */
+static int hex4(const char* p) {
+	int u = 0;
+	for (int i = 0; i < 4; ++i) {
+		char c = p[i];
+		int d = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10 : c >= 'A' && c <= 'F' ? c - 'A' + 10 : -1;
+		if (d < 0) return -1; /* (also the text's end: never read past it) */
+		u = u * 16 + d;
+	}
+	return u;
+}
+
+/* A string value, unescaped (UTF-8 kept; \uXXXX as UTF-8, a surrogate pair as
+ * the one character it is: an emoji in the release notes). */
 static bool json_string(const char* v, char* out, size_t size) {
 	if (!v || *v != '"' || !size) return false;
 	size_t n = 0;
@@ -160,17 +176,25 @@ static bool json_string(const char* v, char* out, size_t size) {
 		unsigned c = (unsigned char) *v;
 		if (c == '\\') {
 			++v;
+			if (!*v) break; /* (cut short) */
 			c = *v == 'n' ? '\n' : *v == 't' ? '\t' : *v == 'r' ? '\r' : *v == 'b' || *v == 'f' ? ' ' : (unsigned char) *v;
 			if (*v == 'u') {
-				unsigned u = 0;
-				sscanf(v + 1, "%4x", &u);
+				int u = hex4(v + 1);
+				if (u < 0) continue; /* (not an escape: left out) */
 				v += 4;
+				unsigned cp = (unsigned) u;
+				if (cp >= 0xD800 && cp < 0xDC00 && v[1] == '\\' && v[2] == 'u') {
+					int lo = hex4(v + 3);
+					if (lo >= 0xDC00 && lo < 0xE000) cp = 0x10000 + ((cp - 0xD800) << 10) + ((unsigned) lo - 0xDC00), v += 6;
+				}
+				if (cp >= 0xD800 && cp < 0xE000) cp = 0xFFFD; /* (half a pair) */
 				char tmp[4];
 				int k = 0;
-				if (u < 0x80) tmp[k++] = (char) u;
-				else if (u < 0x800) tmp[k++] = (char) (0xC0 | u >> 6), tmp[k++] = (char) (0x80 | (u & 63));
-				else tmp[k++] = (char) (0xE0 | u >> 12), tmp[k++] = (char) (0x80 | ((u >> 6) & 63)), tmp[k++] = (char) (0x80 | (u & 63));
-				for (int i = 0; i < k && n + 1 < size; ++i) out[n++] = tmp[i];
+				if (cp < 0x80) tmp[k++] = (char) cp;
+				else if (cp < 0x800) tmp[k++] = (char) (0xC0 | cp >> 6), tmp[k++] = (char) (0x80 | (cp & 63));
+				else if (cp < 0x10000) tmp[k++] = (char) (0xE0 | cp >> 12), tmp[k++] = (char) (0x80 | ((cp >> 6) & 63)), tmp[k++] = (char) (0x80 | (cp & 63));
+				else tmp[k++] = (char) (0xF0 | cp >> 18), tmp[k++] = (char) (0x80 | ((cp >> 12) & 63)), tmp[k++] = (char) (0x80 | ((cp >> 6) & 63)), tmp[k++] = (char) (0x80 | (cp & 63));
+				if (n + (size_t) k < size) memcpy(out + n, tmp, (size_t) k), n += (size_t) k; /* (a character whole or not at all) */
 				continue;
 			}
 		}
@@ -223,14 +247,29 @@ static void notes_text(const char* md, char* out, size_t size) {
 
 /* ------------------------------------------------------------ the worker */
 
-static void set_error(const char* fmt, const char* detail) {
-	SDL_LockMutex(U.lock);
+/* The error Settings > Updates shows, in the player's language (fmt is an N_()
+ * string); the log keeps it in English. Details (curl's, the system's) stay as
+ * they come. Takes U.lock unless the caller holds it. */
+static void error_text(bool locked, const char* fmt, ...) __attribute__((format(printf, 2, 3)));
+static void error_text(bool locked, const char* fmt, ...) {
+	char en[sizeof(U.info.error)];
+	va_list ap, ap2;
+	va_start(ap, fmt);
+	va_copy(ap2, ap);
+	vsnprintf(en, sizeof(en), fmt, ap);
+	va_end(ap);
+	if (!locked) SDL_LockMutex(U.lock);
 	U.info.state = UPD_ERROR;
-	snprintf(U.info.error, sizeof(U.info.error), fmt, detail ? detail : "");
-	U.busy = false;
-	SDL_UnlockMutex(U.lock);
-	fprintf(stderr, "update: %s\n", U.info.error);
+	vsnprintf(U.info.error, sizeof(U.info.error), tr(fmt), ap2);
+	if (!locked) {
+		U.busy = false;
+		SDL_UnlockMutex(U.lock);
+	}
+	va_end(ap2);
+	fprintf(stderr, "update: %s\n", en);
 }
+
+#define set_error(...) error_text(false, __VA_ARGS__)
 
 static int check_thread(void* ud) {
 	bool automatic = ud != NULL;
@@ -242,7 +281,7 @@ static int check_thread(void* ud) {
 	if (code != 200 || !body) {
 		if (code > 0 && !err[0]) snprintf(err, sizeof(err), "the server answered %d", code);
 		free(body);
-		set_error("Couldn't check for updates: %s.", err);
+		set_error(N_("Couldn't check for updates: %s."), err);
 		if (automatic) {
 			SDL_LockMutex(U.lock);
 			U.info.state = UPD_IDLE; /* not worth a word unless asked */
@@ -274,12 +313,14 @@ static int check_thread(void* ud) {
 		}
 	}
 	char* notes = malloc(8192);
-	notes[0] = 0;
-	json_string(json_find(body, "body"), notes, 8192);
+	if (notes) {
+		notes[0] = 0;
+		json_string(json_find(body, "body"), notes, 8192);
+	}
 	free(body);
 	if (!tag[0]) {
 		free(notes);
-		set_error("Couldn't check for updates: %s.", "the answer had no release in it");
+		set_error(N_("Couldn't check for updates: %s."), "the answer had no release in it");
 		return 0;
 	}
 	SDL_LockMutex(U.lock);
@@ -290,7 +331,7 @@ static int check_thread(void* ud) {
 	if (newer) {
 		U.info.state = UPD_AVAILABLE;
 		snprintf(U.info.version, sizeof(U.info.version), "%s", ver);
-		notes_text(notes, U.info.notes, sizeof(U.info.notes));
+		notes_text(notes ? notes : "", U.info.notes, sizeof(U.info.notes));
 		snprintf(U.assetUrl, sizeof(U.assetUrl), "%s", asset);
 		snprintf(U.assetName, sizeof(U.assetName), "%s", assetName);
 		snprintf(U.digest, sizeof(U.digest), "%s", digest);
@@ -321,7 +362,7 @@ static void start_check(bool automatic) {
 	SDL_UnlockMutex(U.lock);
 	SDL_Thread* t = SDL_CreateThread(check_thread, "update-check", automatic ? (void*) 1 : NULL);
 	if (t) SDL_DetachThread(t);
-	else set_error("Couldn't check for updates%s.", "");
+	else set_error(N_("Couldn't check for updates."));
 }
 
 /* ------------------------------------------------------------ installing */
@@ -341,11 +382,6 @@ static bool mkdir_for(const char* path) {
 	*slash = 0;
 	mkdirs(d);
 	return true;
-}
-
-static bool path_exists(const char* p) {
-	struct stat st;
-	return stat(p, &st) == 0;
 }
 
 /* Write vf's contents to dest (0755 if exec). */
@@ -400,10 +436,10 @@ static bool install_zip(const char* zip, char* err, size_t errSize) {
 		bool app = !strncmp(name, "gba-ds/", 7);
 		if (app) {
 			const char* rel = name + 7;
-			if (!strcmp(rel, "gba-ds.cfg") && path_exists(U.installDir)) {
+			if (!strcmp(rel, "gba-ds.cfg") && file_exists(U.installDir)) {
 				char p[1100];
 				snprintf(p, sizeof(p), "%s/gba-ds.cfg", U.installDir);
-				if (path_exists(p)) continue; /* the player's settings */
+				if (file_exists(p)) continue; /* the player's settings */
 			}
 			snprintf(dest, sizeof(dest), "%s/%s", U.installDir, rel);
 		} else {
@@ -413,7 +449,7 @@ static bool install_zip(const char* zip, char* err, size_t errSize) {
 			if (slash) *slash = 0;
 			char p[1100];
 			snprintf(p, sizeof(p), "%s/%s", parent, top);
-			if (!path_exists(p)) continue; /* not part of this install */
+			if (!file_exists(p)) continue; /* not part of this install */
 			snprintf(dest, sizeof(dest), "%s/%s", parent, name);
 		}
 		bool exec = !strcmp(name, "gba-ds/gba-ds") || ends_with(name, ".sh");
@@ -425,8 +461,15 @@ static bool install_zip(const char* zip, char* err, size_t errSize) {
 			break;
 		}
 		if (nMoves == cap) {
-			cap = cap ? cap * 2 : 64;
-			moves = realloc(moves, sizeof(Move) * (size_t) cap);
+			int c2 = cap ? cap * 2 : 64;
+			Move* m2 = realloc(moves, sizeof(Move) * (size_t) c2);
+			if (!m2) {
+				snprintf(err, errSize, "out of memory");
+				vf->close(vf);
+				ok = false;
+				break;
+			}
+			moves = m2, cap = c2;
 		}
 		Move* m = &moves[nMoves++];
 		snprintf(m->to, sizeof(m->to), "%s", dest);
@@ -484,20 +527,20 @@ static int install_thread(void* ud) {
 		return 0;
 	}
 	if (code / 100 != 2) {
-		set_error("Couldn't download the update: %s.", err);
+		set_error(N_("Couldn't download the update: %s."), err);
 		return 0;
 	}
 	struct stat st;
 	if (U.assetSize > 0 && (stat(zip, &st) != 0 || st.st_size != U.assetSize)) {
 		unlink(zip);
-		set_error("The download was incomplete%s. Try again.", "");
+		set_error(N_("The download was incomplete. Try again."));
 		return 0;
 	}
 	if (!strncmp(U.digest, "sha256:", 7)) {
 		char hex[65];
 		if (!sha256_file_hex(zip, hex) || strcasecmp(hex, U.digest + 7) != 0) {
 			unlink(zip);
-			set_error("The download didn't match its checksum%s. Try again.", "");
+			set_error(N_("The download didn't match its checksum. Try again."));
 			return 0;
 		}
 	}
@@ -510,7 +553,7 @@ static int install_thread(void* ud) {
 	bool ok = android_install_apk(zip, err, sizeof(err));
 	unlink(zip);
 	if (!ok) {
-		set_error("Couldn't start installing the update: %s.", err);
+		set_error(N_("Couldn't start installing the update: %s."), err);
 		return 0;
 	}
 	return 0;
@@ -518,7 +561,7 @@ static int install_thread(void* ud) {
 	bool ok = install_zip(zip, err, sizeof(err));
 	unlink(zip);
 	if (!ok) {
-		set_error("Couldn't install the update: %s.", err);
+		set_error(N_("Couldn't install the update: %s."), err);
 		return 0;
 	}
 	SDL_LockMutex(U.lock);
@@ -546,24 +589,23 @@ static void android_poll(void) {
 		U.info.state = UPD_AVAILABLE;
 		return;
 	}
-	U.info.state = UPD_ERROR;
 	if (st == -3) {
-		snprintf(U.info.error, sizeof(U.info.error),
-		         "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). "
+		error_text(true,
+		         N_("Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). "
 		         "Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in "
-		         "the GBA DS folder are kept.", U.info.version);
+		         "the GBA DS folder are kept."), U.info.version);
 	} else if (st == -5) {
-		snprintf(U.info.error, sizeof(U.info.error),
-		         "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and "
+		error_text(true,
+		         N_("Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and "
 		         "Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from "
-		         "github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept).", U.info.version,
+		         "github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."), U.info.version,
 		         U.info.version);
 	} else if (st == -4) {
-		snprintf(U.info.error, sizeof(U.info.error), "There isn't enough storage free to install the update.");
+		error_text(true, N_("There isn't enough storage free to install the update."));
 	} else {
-		snprintf(U.info.error, sizeof(U.info.error), "Android couldn't install the update%s%s.", msg[0] ? ": " : "", msg);
+		if (msg[0]) error_text(true, N_("Android couldn't install the update: %s."), msg);
+		else error_text(true, N_("Android couldn't install the update."));
 	}
-	fprintf(stderr, "update: %s\n", U.info.error);
 }
 #endif
 
@@ -635,7 +677,7 @@ void update_install(void) {
 	SDL_UnlockMutex(U.lock);
 	SDL_Thread* t = SDL_CreateThread(install_thread, "update-install", NULL);
 	if (t) SDL_DetachThread(t);
-	else set_error("Couldn't start the download%s.", "");
+	else set_error(N_("Couldn't start the download."));
 }
 
 void update_cancel(void) {

@@ -339,6 +339,113 @@
     }
    ],
    "patch_on": "Castlevania - AoS (USA) - Symphony of the Colors by Jonata Guitar v1.0.bps"
+  },
+  {
+   "id": "cva-us-single-side",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-play.ss",
+   "desc": "one landscape display, both screens side by side, the second 40%",
+   "rules": [
+    "GEN-19",
+    "CVA-1"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "side",
+    "single_size": "medium"
+   },
+   "env": {
+    "GBADS_WINDOW": "1920x1200"
+   },
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "GEN-19",
+     "what": "both screens cut from the display",
+     "type": "log",
+     "match": "both on one display, 1920x1200 side 40% swap 0"
+    }
+   ]
+  },
+  {
+   "id": "cva-us-single-stacked-swap",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-play.ss",
+   "desc": "one display, auto picks stacked on a tall one, game below, the second 30%",
+   "rules": [
+    "GEN-19",
+    "CVA-1"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "auto",
+    "single_size": "small",
+    "swap": "1"
+   },
+   "env": {
+    "GBADS_WINDOW": "1200x1920"
+   },
+   "shots": {
+    "end": 120
+   },
+   "checks": [
+    {
+     "rule": "GEN-19",
+     "what": "stacked, swapped",
+     "type": "log",
+     "match": "both on one display, 1200x1920 stacked 30% swap 1"
+    }
+   ]
+  },
+  {
+   "id": "cva-us-single-menu",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-play.ss",
+   "desc": "both screens on one display (side by side): the pause menu takes the whole display, and the two screens are back when it closes",
+   "rules": [
+    "GEN-19",
+    "CVA-1"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "side",
+    "single_size": "medium"
+   },
+   "env": {
+    "GBADS_WINDOW": "1920x1200"
+   },
+   "input": [
+    [
+     60,
+     "TAP:0.8,0.5"
+    ],
+    [
+     200,
+     "TAP:0.3,0.16"
+    ]
+   ],
+   "shots": {
+    "touch": 150,
+    "back": 300
+   },
+   "checks": [
+    {
+     "rule": "GEN-19",
+     "what": "both screens cut from the display",
+     "type": "log",
+     "match": "both on one display, 1920x1200 side 40% swap 0"
+    }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     200,
+     70
+    ]
+   ]
   }
  ]
 }
