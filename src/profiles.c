@@ -9247,12 +9247,20 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
 #define SMT2_AREA   0x03004614
 #define SMT2_SCROLL 0x0200DFCC
 
-/* the addresses the automap's code reads, per game of this engine */
+/* the addresses the automap's code reads, per game of this engine, and the
+ * sprites left out of its pictures */
 typedef struct {
 	uint32_t mode, facing, x, y, scroll;
+	SpriteRule hide[1];
+	int nHide;
 } SmtGame;
-static const SmtGame smt1 = { SMT_MODE, SMT_FACING, SMT_X, SMT_Y, SMT_SCROLL };
-static const SmtGame smt2 = { SMT2_MODE, SMT2_FACING, SMT2_X, SMT2_Y, SMT2_SCROLL };
+static const SmtGame smt1 = { .mode = SMT_MODE, .facing = SMT_FACING, .x = SMT_X, .y = SMT_Y, .scroll = SMT_SCROLL };
+/* the second game draws a scroll arrow above and below the compass's column
+ * while the floor is taller than the window (8x8 sprites, tiles 79 and 80, at
+ * (200, 48) and (200, 72)): prompts for the game's own window, put twice and
+ * in the wrong places on a map taller than it, so left out (SMT2-3) */
+static const SmtGame smt2 = { .mode = SMT2_MODE, .facing = SMT2_FACING, .x = SMT2_X, .y = SMT2_Y, .scroll = SMT2_SCROLL,
+                              .hide = { { 196, 40, 204, 80, 79, 80, -1, 0x1, 0, 0 } }, .nHide = 1 };
 
 /* The second screen is the automap taller than the game's window of it: its view
  * (rows 0-87 of the screen, between the side bars) scrolled with the game's
@@ -9366,6 +9374,7 @@ static const char* smt_compose_for(const SmtGame* g, Emu* s, const void* state, 
 	uint32_t *full = fr, *back = fr + n, *views = fr + 2 * n; /* views[k]: shift[k] rows */
 	uint32_t *sa = fr + (3 + 2 * SMT_STEPS) * n, *sb = sa + n; /* spare */
 	int shift[1 + 2 * SMT_STEPS], nv = 0;
+	if (g->nHide) emu_hide_sprites(s, g->hide, g->nHide);
 	const char* err = smt_open(s, g, state, st, sa, sb);
 	if (!err) {
 		int32_t c0 = smt_scroll(s, g);
@@ -9428,6 +9437,7 @@ static const char* smt_compose_for(const SmtGame* g, Emu* s, const void* state, 
 		for (int r = 4; r <= 40; ++r) memcpy(&out[r * w + 183], &full[r * GBA_W + 183], 39 * sizeof(uint32_t)); /* its box, exactly */
 		for (int r = 0; r < SMT_H - SMT_AREA_H; ++r) memcpy(&out[(SMT_AREA_H + r) * w], &full[(SMT_VIEW + 2 + r) * GBA_W], GBA_W * sizeof(uint32_t));
 	}
+	if (g->nHide) emu_hide_sprites(s, NULL, 0);
 	free(st);
 	free(opened);
 	free(fr);
