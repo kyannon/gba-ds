@@ -68,9 +68,6 @@ msgstr "%s %s. Scegline un'altra se RetroArch tiene i suoi stati altrove."
 msgid "%s (beside the ROM)"
 msgstr "%s (accanto alla ROM)"
 
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "%s come tasto scorciatoia, con Start, R1, L1, X, Y e B"
-
 msgid "%s has no button now"
 msgstr "%s non ha più un tasto"
 
@@ -148,9 +145,6 @@ msgstr "Pulsante A (destra)"
 
 msgid "A and B buttons"
 msgstr "Pulsanti A e B"
-
-msgid "A dark line under each row of pixels"
-msgstr "Una linea scura sotto ogni riga di pixel"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "Un salvataggio del gioco già accanto, o dell'altro tipo, viene copiato la prima volta che giochi. .srm è il tipo usato da RetroArch: scegli anche la sua cartella dei salvataggi per condividere quello di ogni gioco con lui."
@@ -250,9 +244,6 @@ msgstr "Come all'avvio del gioco"
 
 msgid "Aug"
 msgstr "ago"
-
-msgid "Auto"
-msgstr "Auto"
 
 msgid "Auto-load"
 msgstr "Caricamento automatico"
@@ -547,9 +538,6 @@ msgstr "Giù"
 
 msgid "Downloading"
 msgstr "Download in corso"
-
-msgid "Each pixel a little darker toward its edges"
-msgstr "Ogni pixel un po' più scuro verso i bordi"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "Ottieni obiettivi in modalità casual con il tuo account retroachievements.org. GBA DS conserva un token di accesso, non la tua password."
@@ -920,14 +908,8 @@ msgstr "Modalità chiara/scura"
 msgid "Like a GBA"
 msgstr "Come un GBA"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "Linee tra i pixel, come sullo schermo di un GBA"
-
 msgid "Load failed"
 msgstr "Caricamento non riuscito"
-
-msgid "Load failed."
-msgstr "Caricamento non riuscito."
 
 msgid "Load State"
 msgstr "Carica stato"
@@ -1319,15 +1301,6 @@ msgstr "Aumentalo se l'audio gracchia."
 msgid "Red"
 msgstr "Rosso"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "Strisce rosse, verdi e blu, leggere: per schermi poco luminosi"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "Strisce rosse, verdi e blu, come lo schermo di un GBA"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "Strisce rosse, verdi e blu, forti: per schermi luminosi"
-
 msgid "Reset"
 msgstr "Reimposta"
 
@@ -1673,9 +1646,6 @@ msgstr "Scalatura morbida"
 msgid "Smoother, one frame more input delay."
 msgstr "Più morbido, un fotogramma in più di ritardo di input."
 
-msgid "SNES"
-msgstr "SNES"
-
 msgid "Soft Cells"
 msgstr "Celle morbide"
 
@@ -1805,9 +1775,6 @@ msgstr "il pulsante che apre il menu di GBA DS (Home, Menu o Function)"
 msgid "the game"
 msgstr "il gioco"
 
-msgid "The game's pixels as they are"
-msgstr "I pixel del gioco così come sono"
-
 msgid "The GBA DS logo in the generated bezel."
 msgstr "Il logo GBA DS nella cornice generata."
 
@@ -1858,6 +1825,9 @@ msgstr "il pulsante in alto"
 
 msgid "This folder can't be opened"
 msgstr "Questa cartella non può essere aperta"
+
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS non può salvare in questa cartella: scegline un'altra"
 
 msgid "This game"
 msgstr "Questo gioco"
@@ -2081,6 +2051,45 @@ msgstr "›"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "Ritardo del suono portato a %d ms: il suono continuava a interrompersi"
+
+msgid "Android couldn't install the update."
+msgstr "Android non è riuscito a installare l'aggiornamento."
+
+msgid "Android couldn't install the update: %s."
+msgstr "Android non è riuscito a installare l'aggiornamento: %s."
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Android non installa la v%s sopra questa copia di GBA DS: è stata firmata con un'altra chiave (una build di prova?). Disinstalla GBA DS, poi installa la nuova versione da github.com/kyannon/gba-ds/releases. I tuoi file nella cartella di GBA DS vengono conservati."
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Android non installa la v%s sopra questa copia di GBA DS: questa copia è una build di prova più recente, e Android non torna a una build precedente. Tieni questa, oppure disinstalla GBA DS e installa la v%s da github.com/kyannon/gba-ds/releases (i tuoi file nella cartella di GBA DS vengono conservati)."
+
+msgid "Couldn't check for updates."
+msgstr "Impossibile cercare aggiornamenti."
+
+msgid "Couldn't check for updates: %s."
+msgstr "Impossibile cercare aggiornamenti: %s."
+
+msgid "Couldn't download the update: %s."
+msgstr "Impossibile scaricare l'aggiornamento: %s."
+
+msgid "Couldn't install the update: %s."
+msgstr "Impossibile installare l'aggiornamento: %s."
+
+msgid "Couldn't start installing the update: %s."
+msgstr "Impossibile avviare l'installazione dell'aggiornamento: %s."
+
+msgid "Couldn't start the download."
+msgstr "Impossibile avviare il download."
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "Il download non corrisponde al suo checksum. Riprova."
+
+msgid "The download was incomplete. Try again."
+msgstr "Il download è incompleto. Riprova."
+
+msgid "There isn't enough storage free to install the update."
+msgstr "Non c'è abbastanza spazio libero per installare l'aggiornamento."
 
 # issue 92: the first-run language screen
 msgid "Choose the language for GBA DS's menus."
