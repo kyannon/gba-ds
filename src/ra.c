@@ -1020,7 +1020,11 @@ static uint32_t read_memory(uint32_t addr, uint8_t* buf, uint32_t n, rc_client_t
 
 static void log_message(const char* msg, const rc_client_t* c) {
 	(void) c;
-	fprintf(stderr, "ra: %s\n", msg);
+	/* (rcheevos ends some lines with its reason, which can be empty: "Login
+	 * failed: " when no answer came; said so rather than left blank) */
+	size_t n = strlen(msg);
+	if (n >= 2 && !strcmp(msg + n - 2, ": ")) fprintf(stderr, "ra: %.*s (no reason given)\n", (int) (n - 2), msg);
+	else fprintf(stderr, "ra: %s\n", msg);
 }
 
 static void save_token(const char* user, const char* token) {
