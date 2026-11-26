@@ -2,6 +2,10 @@
 
 ## v1.6.4 (not yet released)
 
+### New games
+- **Cruis'n Velocity** (USA, Europe; pull request #98 by cmyksoda): in a race, the second screen shows the time and the lap box, where the game draws them, over the logo; the speed, gear, rev bar, your place and the start lights stay on the game screen. Paused, the second screen keeps the time and lap as they were. After the finish, where the game clears its time box to zeros, the box shows the race's total time instead, in the game's own digits (right even where the game's results page misprints it), until you leave the results. Known: the cup's podium after a race won in a cup, the tracks after Vegas and Multi Player haven't been tried.
+- **Densetsu no Stafy**, **Densetsu no Stafy 2** and **Densetsu no Stafy 3** (Japan; pull request #101 by cmyksoda), with their English translations: The Legendary Starfy, Starfy Origins and Densetsu no Starfy for the first game, and the English patches for the second (v0.9.9) and third (v1.0.5), as patched ROMs or as `.bps` patches. In a stage, the second screen shows the HUD (Starfy's face, the hearts, the pearls and the total) along its top over the game's logo, on black, and the game screen has none of it. The game's own pause screen shows the logo on the second screen. Signposts' labels and boards stay whole on the game screen. Known: with the Japanese game and a translation both in your game list, both show the logo of whichever was made first; the map between stages, bosses, minigames and shops haven't been tried.
+
 ### Fixes
 - **RG DS Plus on the Stock Linux OS: the left stick's left and right are no longer swapped** (issue #104). The controls GBA DS ships for that system had the stick's left and right the wrong way round, in the menus and in games. A mapping you made yourself with Map Buttons still comes first.
 
