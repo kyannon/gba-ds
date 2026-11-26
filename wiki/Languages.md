@@ -1,5 +1,7 @@
 GBA DS's menus, game list, messages and (on Android) its permission screen can be shown in your language. Choose it in **Settings > System > Language**, or set `language` in `gba-ds.cfg` ([[Settings]]). **Automatic** follows the system's language and falls back to English.
 
+The first time GBA DS starts after it's installed, it asks: every language is listed by its own name, so you can find yours whatever language the screen opens in. Pick one with A (the screens change to it straight away), then press A again, START or Continue to keep it. If you start a game straight from your frontend, the game starts as usual and the question comes up the first time you open the pause menu. Updating GBA DS doesn't ask again.
+
 ## Languages
 
 | Language | Status |

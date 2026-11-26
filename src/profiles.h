@@ -98,6 +98,11 @@ typedef struct {
 	 * top `under` rows below their lowest (F-Zero: GP Legend's LAST under
 	 * SPARE MACHINE or BEST TIME); with none there, by how / vhow */
 	int under;
+	/* hud.moves: also while the `layout` probes don't match and on the
+	 * other layer (alt.rows too): a piece that always goes (Pokemon Mystery
+	 * Dungeon's black left edge back onto the game screen, its status
+	 * line centred) */
+	bool always;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -433,6 +438,9 @@ typedef struct MapProfile {
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
 	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
 	bool logoIfLast;
+	/* Keys the game doesn't get while every `when` probe matches, with two screens only: a button whose
+	 * only job there is what the second screen already shows (Pokemon Mystery Dungeon's SELECT, the floor map) */
+	struct { uint16_t keys; MemProbe when[4]; } swallow;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
@@ -480,6 +488,11 @@ typedef struct MapProfile {
 			 * picture (a full GBA screen) instead of the logo (Super
 			 * Mario Advance 4: its status bar over the inventory) */
 			bool mapBelow;
+			/* On this layer the HUD is only its top `rows` (0: the whole screen): the game draws the rest, and the
+			 * second screen keeps the main layer's last picture below them, from a frame where every `heldWhen`
+			 * probe matches (Pokemon Mystery Dungeon: its status line live over the kept map) */
+			int rows;
+			MemProbe heldWhen[2];
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
 		/* `on` turns it on only while a sprite like onWith shows; then `on` alone keeps it on, till

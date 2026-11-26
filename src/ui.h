@@ -74,6 +74,8 @@ uint64_t ui_ticks(void);
 /* The two screens' shapes differ (by more than 2%): screen_match can do
  * something. */
 bool ui_screens_differ(void);
+void ui_menu_full(bool on); /* with both screens on one display (GEN-18): the pause menu and its screens take the whole display while on; the two screens come back when off */
+bool ui_one_display(void); /* the screens are cut from one display's window (not two displays, or a window over two panels): both screens on it are an option (issue #84) */
 /* Works out the screens' picture areas again (screen_match or
  * screen_placement changed). */
 void ui_layout_pictures(void);
@@ -180,6 +182,9 @@ SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */
  * align: -1 starts at x, 0 is centred on x, 1 ends at x. */
 void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
 int ui_font_width(int font, int capPx, const char* text);
+/* ui_font_text / ui_font_width without translating the text (a language's own name, a line kept in English) */
+void ui_font_text_as_is(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
+int ui_font_width_as_is(int font, int capPx, const char* text);
 /* the language changed (i18n_set): drop the old text's pictures and widths, set the script's fonts */
 void ui_language_changed(void);
 /* Word-wrapped to width, starting at the top-left x, y; returns the y below. */

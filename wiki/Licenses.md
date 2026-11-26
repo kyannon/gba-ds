@@ -1,6 +1,6 @@
 # Licenses
 
-*Last updated November 22, 2026.*
+*Last updated November 25, 2026.*
 
 GBA DS is free software under the **[GNU General Public License, version 3](https://github.com/kyannon/gba-ds/blob/main/LICENSE)**. Its source is at [github.com/kyannon/gba-ds](https://github.com/kyannon/gba-ds), and every release's source is the repository at that release's tag. GBA DS is free and has no paid features, in-app purchases or advertising.
 
@@ -36,6 +36,13 @@ GBA DS talks to the RetroAchievements service through `curl` (a program already 
 | **Noto Sans JP, KR, SC and TC**, subsets for the Japanese, Korean and Chinese interface (`assets/fonts`) | | SIL Open Font License 1.1 (a copy beside each font) | [notofonts](https://github.com/notofonts) |
 
 The SHA-256 code (`src/sha256.c`) is GBA DS's own.
+
+## Linux on the AYN Thor (Armada)
+
+| Part | Version | License | Source |
+|---|---|---|---|
+| **Wayland**'s client headers and the drm-lease protocol (`third_party/wayland`): only headers and generated protocol code; the Wayland library itself is looked for on the system when the second screen is put on a lent panel, and isn't shipped | wayland 1.26.0, wayland-protocols 1.50 | MIT | [wayland.freedesktop.org](https://wayland.freedesktop.org) |
+| The request for the lent panel (`src/drmlease.c`), a C port of **Azahar-Enhanced**'s DrmLeaseClient and of its connector and panel-orientation code | virtudude/azahar `drm-leasing` (commit `d16299140`), cerroverb/azahar `drm-leasing-link-crtc` (commit `71a132b3b`) | GPL v2 or later (so it fits GBA DS's GPL v3) | [virtudude/azahar](https://github.com/virtudude/azahar), [cerroverb/azahar](https://github.com/cerroverb/azahar) |
 
 ## Android
 
