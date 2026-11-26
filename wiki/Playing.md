@@ -234,7 +234,7 @@ GBA DS applies patches (`.ips`, `.ups`, `.bps` and `.xdelta` files: romhacks, co
 ### Known issues with patches
 
 - An `.ips` patch can't say which version of a game it's made for. GBA DS warns when it knows the patch, but an unknown one made for another version is applied all the same and may break the game.
-- A romhack with its own title screen still shows the original game's logo on the second screen.
+- A romhack or patch GBA DS doesn't know shares the game's logo, made from whichever of them is started first. A tested one has a logo of its own, from its own title screen (a Pokémon romhack only as a ROM of its own).
 - Two patches that change the same part of the game are only warned about (the one lower in the list wins there); whether they really clash can't be known until you play.
 - Metroid: Zero Mission's colour patches work on their own; stacked with another patch, its map may not come up.
 - After switching a colour patch without a restart, colours already on the screen stay until the game draws them again.
@@ -271,7 +271,7 @@ GBA DS earns [RetroAchievements](https://retroachievements.org) in **casual (sof
 
 ## Logos
 
-Until the second screen has something to show (title screen, intro, menus), it shows the game's logo. No logo files are shipped: the first time a game appears in the list, GBA DS boots it silently in the background, runs it to its title screen and renders just the layer that holds the logo, at the game's own resolution with transparency. It's saved as `states/logos/<CODE>.png`. The logo is drawn like a second GBA screen: at its own size, centred on dark grey in a GBA-sized picture (at half strength while it's all there is to show), with the second screen's scaling and the LCD grid, so its pixels match the game beside it. Everything else GBA DS puts on the second screen (maps, status screens, windows) is drawn the same way, at the game's own size.
+Until the second screen has something to show (title screen, intro, menus), it shows the game's logo. No logo files are shipped: the first time a game appears in the list, GBA DS boots it silently in the background, runs it to its title screen and renders just the layer that holds the logo, at the game's own resolution with transparency. It's saved as `states/logos/<CODE>.png` (a tested romhack's or translation's, from its own title screen, as `<CODE>-<CRC32>.png`). The logo is drawn like a second GBA screen: at its own size, centred on dark grey in a GBA-sized picture (at half strength while it's all there is to show), with the second screen's scaling and the LCD grid, so its pixels match the game beside it. Everything else GBA DS puts on the second screen (maps, status screens, windows) is drawn the same way, at the game's own size.
 
 To use your own art instead, put `<CODE>.png` (or `.bmp`, `.jpg` or `.webp`) in `gba-ds/logos/` (Android: `GBA DS/logos/`). `<CODE>` is the game's four-letter code, listed in [[Supported games]].
 

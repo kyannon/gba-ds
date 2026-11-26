@@ -91,7 +91,7 @@ GBA DS knows a game by its code, which romhacks and patches of a supported game 
 - **Patches GBA DS knows:** besides the tested ones, GBA DS knows a list of colour, voice and translation patches for other games too (some not supported yet), so the Patches menu can name them and say when one is made for another version of the game (a `.ips` file can't say which version it's for, so this is the only warning you'll get).
 - **Patch files:** put the patch (`.ips`, `.ups`, `.bps` or `.xdelta`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
-- A romhack with its own title screen still shows the original game's logo on the second screen.
+- A romhack GBA DS doesn't know shares its game's logo, made from whichever of them is started first; a tested one has its own.
 
 ## How the maps work
 
