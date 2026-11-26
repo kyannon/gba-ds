@@ -239,7 +239,7 @@ static const KnownDump knownDumps[] = {
 	{ "B24P", 0xc1d18fe4, true, false, "Pokemon Mystery Dungeon - Red Rescue Team (Europe) (En,Fr,De,Es,It)" },
 	{ "B3DJ", 0x2d6e4c3b, true, false, "Densetsu no Stafy 3 (Japan) (Rev 1)" },
 	{ "B3DJ", 0x59ca95c6, false, false, "Densetsu no Stafy 3 (Japan) (Rev 1) (Virtual Console)" },
-	{ "B3DJ", 0xfcaf1aa8, false, false, "Densetsu no Stafy 3 (Japan)" },
+	{ "B3DJ", 0xfcaf1aa8, true, false, "Densetsu no Stafy 3 (Japan)" },
 	{ "B3SE", 0x49dda5e6, true, false, "Sonic Advance 3 (USA) (En,Ja,Fr,De,Es,It)" },
 	{ "B3SJ", 0x1f36892f, false, false, "Sonic Advance 3 (Japan) (En,Ja,Fr,De,Es,It) (Virtual Console)" },
 	{ "B3SJ", 0x4375f1d6, true, false, "Sonic Advance 3 (Japan) (En,Ja,Fr,De,Es,It)" },

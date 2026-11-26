@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | Releases | `B3DJ` Japan |
-| Dumps | `B3DJ` cartridge `fcaf1aa8`, Rev 1 `2d6e4c3b` (tested), Rev 1, Virtual Console `59ca95c6` |
+| Dumps | `B3DJ` cartridge `fcaf1aa8` (tested), Rev 1 `2d6e4c3b` (tested), Rev 1, Virtual Console `59ca95c6` |
 | Mods | `B3DJ` The Legendary Starfy 3 English v1.0.5 (Starfy translation patches) `7d5ec993` (tested) |
 | Profile | `src/profiles.c`: the `B3DJ` entry |
 | Tests | `tests/regress/densetsu-no-stafy-3.json` (`tools/regress.py densetsu-no-stafy-3`) |
-| Status | supported (the first stage checked, Rev 1; the shop, Moe's House and the minigames not yet) |
+| Status | supported (the first stage checked, on the first release and Rev 1; the shop, Moe's House and the minigames not yet) |
 
 What GBA DS does with this game. Each rule is a promise the profile keeps; the regression tests check them (the cases citing a rule are listed by `tools/regress.py --list densetsu-no-stafy-3`). Change a rule here first when the behaviour is meant to change, then the profile, then the tests and goldens. Rule numbers are never reused: a dropped rule stays, marked *retired*.
 
@@ -35,7 +35,6 @@ The game came out only in Japan. The English patch (v1.0.5) is supported as full
 
 ## Not covered yet
 
-- The first release (before Rev 1): listed with the dumps, not tested.
 - The shop, Moe's House and the minigames: not reached in the emulator yet (the first stage has Moe's conversation, tested from a state after it); the profile needs nothing from them but a stage's registers, and the HUD sprites' own appearance.
 - Signpost screens (a move shown on a board, from a signpost in a stage): the board stays on the game screen whole (ST3-3); the HUD isn't drawn there, so the second screen shows the logo on black.
 
@@ -48,7 +47,7 @@ The game came out only in Japan. The English patch (v1.0.5) is supported as full
 | Fades | by their colours, as Densetsu no Stafy's: the brightest BG colour is 31 unfaded and goes down one a frame (about 33 frames), black for about 18 more (BLDY 16, the pause screen's first frames BLDY 7), then the pause screen fades in 0 to 31; closing mirrors it |
 | Controls | 0x02001630 (EWRAM, a byte): FF in play and 01 through the first stage's opening conversation and the walk-off after it, until the HUD comes in; but it stays 01 after a later conversation in the same stage (talking to Moe), with the controls back, START working and the HUD drawn: so it isn't used, the profile's `hud.onWith` (the HUD's face sprite) says when the HUD is in |
 | Title | BG0 the lettering (rows 2-85), the copyright line (rows ~150-157) and, on the English patch, an ENG V1.0 tag at the bottom right; PRESS START, Starfy, Moe and Starly sprites. START cuts the opening short from about frame 900 to 2000 of a boot (at 3000 and later it was lost on both the Japanese game and the English patch), so the logo is taken from START at frame 1300: about 1500 frames, where waiting for the opening to end took 6200 |
-| Translation | the English patch v1.0.5 in the Starfy translation patches: Starfy.3.Eng.v1.0.5.bps for the Japanese ROM (Rev 1), the same code and screens |
+| Translation | the English patch v1.0.5 in the Starfy translation patches: Starfy.3.Eng.v1.0.5.bps for the Japanese ROM (Rev 1), the same code and screens. The first release (before Rev 1) has its code moved about, but the same screen registers and HUD sprites: the profile works on it as it is (cases `st3-rev0-*`) |
 | Fixtures | the stage states are 240 frames into the stage: a state taken in its first frames has START ignored for a while |
 
 ## For the merge
@@ -56,4 +55,4 @@ The game came out only in Japan. The English patch (v1.0.5) is supported as full
 - Shared code: as in Densetsu no Stafy, `logoIf` for a logo-only game with a `hud`; and `hud.onWith` / `hud.onLost` (game.c update_hud, profiles.h): the HUD split starts only once a sprite like `onWith` shows, then `on` alone keeps it till `onLost` frames without one. `tools/regress.py --changed` to run.
 - Changelog (New games): Densetsu no Stafy 3 (Japan) and its English patch: in a stage, the HUD (Starfy's face, the hearts, the pearls and the total) along the top of the second screen over the game's logo, on black, the face at the left, the hearts in the middle and the pearls at the right.
 - Supported games table: `| Densetsu no Stafy 3 | `B3DJ` | in a stage: the HUD and the logo | The Legendary Starfy 3 English v1.0.5 |`
-- Supported games section: the Japanese release (Rev 1) and the English patch v1.0.5, checked in the first stage.
+- Supported games section: the Japanese release (the first release and Rev 1) and the English patch v1.0.5, checked in the first stage.
