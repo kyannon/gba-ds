@@ -76,6 +76,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Densetsu no Stafy](densetsu-no-stafy.md) | STF | `ASTJ` |
 | [Densetsu no Stafy 2](densetsu-no-stafy-2.md) | ST2 | `AVFJ` |
 | [Densetsu no Stafy 3](densetsu-no-stafy-3.md) | ST3 | `B3DJ` |
+| [Shantae Advance: Risky Revolution](shantae-advance-risky-revolution.md) | SAR | `CSAE` |
 | [Shin Megami Tensei II](shin-megami-tensei-2.md) | SMT2 | `A5TJ` |
 | [Mario Party Advance](mario-party-advance.md) | MPA | `B8ME` + 2 |
 
@@ -137,7 +138,7 @@ A patch file beside the ROM with its name (`Mario & Luigi.ips` beside `Mario & L
 
 ## Releases and dumps
 
-Each game's file starts with a table. Its **Releases** row lists the game codes the profile handles (the 4 letters in the ROM's header). Its **Dumps** row lists, per release, every official dump of it known to No-Intro by CRC32: the cartridge, later revisions, Virtual Console and collection dumps (not prototypes, betas or demos). The one marked *tested* is the fixture the regression tests run on (`roms/CODE.zip`); the others are expected to behave the same but aren't tested. GBA DS checks the ROM a player loads against this list: the tested dump, another official one, or none of them, which means the ROM has been changed (a patch or a hack, or trimmed) or is a bad dump. It says which in its log and in bug reports. The Dumps row and `src/dumps_data.h` are written by `tools/make_dumps.py` from No-Intro's list and the fixtures: re-run it when a Releases row changes or a game is added, never edit them by hand. `tools/regress.py` won't run a case whose fixture ROM isn't the dump marked tested, so a patched ROM can't become a fixture by mistake.
+Each game's file starts with a table. Its **Releases** row lists the game codes the profile handles (the 4 letters in the ROM's header). A cartridge whose header has no code (Shantae Advance: Risky Revolution's) is filed under a code of its own and known by its CRC32 alone (`CODELESS` in `tools/make_dumps.py`). Its **Dumps** row lists, per release, every official dump of it known to No-Intro by CRC32: the cartridge, later revisions, Virtual Console and collection dumps (not prototypes, betas or demos). The one marked *tested* is the fixture the regression tests run on (`roms/CODE.zip`); the others are expected to behave the same but aren't tested. GBA DS checks the ROM a player loads against this list: the tested dump, another official one, or none of them, which means the ROM has been changed (a patch or a hack, or trimmed) or is a bad dump. It says which in its log and in bug reports. The Dumps row and `src/dumps_data.h` are written by `tools/make_dumps.py` from No-Intro's list and the fixtures: re-run it when a Releases row changes or a game is added, never edit them by hand. `tools/regress.py` won't run a case whose fixture ROM isn't the dump marked tested, so a patched ROM can't become a fixture by mistake.
 
 A **Toggle** row says what GEN-14's toggle does in the game: `pages` (which rule's pages turn), `views` (which two views, `HELD` or `ONPRESS`) or `none`; a game whose second screen has pages or views can't leave it out.
 

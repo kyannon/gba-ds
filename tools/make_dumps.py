@@ -42,6 +42,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKIP = re.compile(r"\((?:Proto|Beta|Demo|Sample|Kiosk|Debug|Unl|Pirate)[^)]*\)")
 LANGS = re.compile(r"^[A-Z][a-z](?:,[A-Z][a-z])*$")
 CODE = re.compile(r"`([A-Z0-9]{4})`")
+# No-Intro rows with no serial (a header with no game code), by CRC32, and the
+# code GBA DS files each under (src/dumps_data.h's codelessDumps)
+CODELESS = {
+    "31265c5d": "CSAE",  # Shantae Advance: Risky Revolution, the 2024 cartridge: fans' code for it
+}
 
 
 def kind(name):
@@ -49,6 +54,9 @@ def kind(name):
     groups = re.findall(r"\(([^)]*)\)", name)[1:]  # (the first is the region)
     rest = [g for g in groups if not LANGS.match(g)]
     return ", ".join(rest) or "cartridge"
+
+
+codeless = []  # (crc, size, code): read_dat's rows found for CODELESS
 
 
 def read_dat(path):
@@ -60,6 +68,11 @@ def read_dat(path):
             continue
         for code in re.split(r"[ ,]+", serial):
             by.setdefault(code, []).append((crc.lower(), name[:-4] if name.endswith(".gba") else name))
+    for m in re.finditer(r'rom \( name "([^"]*)" size (\d+) crc ([0-9A-Fa-f]{8})(?:(?!serial)[^)])*\)', text):
+        name, size, crc = m.group(1), int(m.group(2)), m.group(3).lower()
+        if crc in CODELESS:
+            by.setdefault(CODELESS[crc], []).append((crc, name[:-4] if name.endswith(".gba") else name))
+            codeless.append((crc, size, CODELESS[crc]))
     return by
 
 
@@ -254,6 +267,12 @@ def main():
     for code, pid, size, base, result, kind, name, bname, t in sorted(patches, key=lambda e: (e[1], e[3])):
         out.append("\t{ %s, 0x%s, %d, 0x%s, 0x%s, %s, %s, %s, %s },\n" % (
             q(code), pid, size, base or "00000000", result or "00000000", q(kind), q(name), q(bname), "true" if t else "false"))
+    out.append("};\n")
+    out.append("/* Dumps with no game code in their header, and the code they're filed under\n"
+               " * (make_dumps.py's CODELESS): known by their CRC32, for a file this size. */\n")
+    out.append("static const CodelessDump codelessDumps[] = {\n")
+    for crc, size, code in sorted(codeless):
+        out.append('\t{ 0x%s, %d, "%s" },\n' % (crc, size, code))
     out.append("};\n")
     hdr = os.path.join(ROOT, "src", "dumps_data.h")
     old = open(hdr, encoding="utf-8").read() if os.path.exists(hdr) else ""

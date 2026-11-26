@@ -365,6 +365,7 @@ static const KnownDump knownDumps[] = {
 	{ "BZME", 0xabcebbb1, true, false, "Legend of Zelda, The - The Minish Cap (USA)" },
 	{ "BZMJ", 0x6ce771a5, true, false, "Zelda no Densetsu - Fushigi no Boushi (Japan)" },
 	{ "BZMP", 0xe8637292, true, false, "Legend of Zelda, The - The Minish Cap (Europe) (En,Fr,De,Es,It)" },
+	{ "CSAE", 0x31265c5d, true, false, "Shantae Advance - Risky Revolution (World) (Limited Run Games)" },
 	{ "RZWE", 0xcb4e844b, true, false, "WarioWare - Twisted! (USA, Australia)" },
 	{ "RZWJ", 0xe69964f1, true, false, "Mawaru - Made in Wario (Japan)" },
 	{ "U3IE", 0xe715ac45, true, false, "Boktai - The Sun Is in Your Hand (USA)" },
@@ -550,4 +551,9 @@ static const KnownPatch knownPatches[] = {
 	{ "A2CE", 0xf3235cb8, 141702, 0x35536183, 0x00d0fddf, "colour", "Symphony of the Colors v1.0 (JonataGuitar)", "Castlevania - Aria of Sorrow (USA)", true },
 	{ "AVFJ", 0xf9d74e31, 532448, 0xea73eb54, 0xec61d726, "translation", "The Legendary Starfy 2 English v0.9.9 (Starfy translation patches)", "Densetsu no Stafy 2 (Japan)", true },
 	{ "A5TJ", 0xfd05f8c5, 527881, 0xaf40cc99, 0x7e4b4978, "translation", "English (port of the Super Famicom translation)", "Shin Megami Tensei II (Japan)", true },
+};
+/* Dumps with no game code in their header, and the code they're filed under
+ * (make_dumps.py's CODELESS): known by their CRC32, for a file this size. */
+static const CodelessDump codelessDumps[] = {
+	{ 0x31265c5d, 16777216, "CSAE" },
 };

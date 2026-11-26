@@ -61,6 +61,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
+| Shantae Advance: Risky Revolution | `CSAE` (Limited Run Games' 2024 cartridge, which has no code of its own) | in play: the HUD and the logo | |
 | Shin Megami Tensei | `AAUJ` (Japan only; Gymzatan's English translation v1.3b, with or without its font hack) | the game's automap, taller than the game draws it | Gymzatan's English v1.3b iOS Localized translation, with and without the font hack |
 | Shin Megami Tensei II | `A5TJ` (Japan only; the English translation) | the game's automap, taller than the game draws it | the English translation (port of the Super Famicom translation), as a patched ROM or its `.xdelta` |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
@@ -664,6 +665,18 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 - At the Story / Manage Data menu, the title card and through a story's opening conversation, the second screen shows the logo.
 - With one screen (`layout = single`), the top bar stays where the game draws it.
 - Shops, restaurants and two players haven't been tried yet.
+
+## Shantae Advance: Risky Revolution
+
+Limited Run Games' 2024 cartridge (the game's only release). Its header has no game code, so GBA DS knows the ROM by its checksum: a copy changed in the file itself plays as an unsupported game, while a patch switched on in Extras > Patches keeps the game supported. Added by cmyksoda (pull request #103).
+
+- **In play,** the second screen shows the HUD in the same corners as on the game screen, on black, with the game's logo in the middle: the held item's circle with the magic bar below it and the hearts at the top left, the gems with the dance indicator at the top right. The game screen has none of it.
+- **Talks:** for a signpost or a character, the HUD slides off the top of the second screen as the game slides it away, and back down after; while it's gone, the second screen shows the logo.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, at once (no fade), and the HUD again as you go back to play.
+- **During the airship fight** the airship's top, which the game draws under the gem counter, shows whole on the game screen.
+- **Elsewhere** (the title, the file select, the opening and the town's scenes), the second screen shows the logo.
+- Playing on one screen, the HUD stays on the game screen.
+- Checked in the opening, the first area, the first boss and the town after it. Not tried yet: dances, transformations, dungeons, shops and Battle Mode.
 
 ## Shin Megami Tensei
 

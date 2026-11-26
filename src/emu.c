@@ -22,6 +22,7 @@
 #include <mgba-util/vfs.h>
 #include <mgba/core/log.h>
 #include "patch.h"
+#include "profiles.h"
 #include <stdarg.h>
 #include <stddef.h>
 #include <sys/stat.h>
@@ -662,6 +663,8 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->gameCode[4] = 0;
 	e->core->checksum(e->core, &e->romCrc, mCHECKSUM_CRC32); /* (worked out by mGBA as it loaded the ROM) */
 	if (e->patch != PATCH_APPLIED && e->patch != PATCH_PARTIAL) e->fileCrc = e->romCrc;
+	const char* codeless = memcmp(info.code, "\0\0\0\0", 4) ? NULL : profile_codeless(e->fileCrc);
+	if (codeless) memcpy(e->gameCode, codeless, 5);
 	return true;
 }
 
@@ -1259,6 +1262,27 @@ bool emu_rom_code(const uint8_t* h, size_t n, char code[5]) {
 	static const char d[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 	code[0] = h[0x143] & 0x80 ? 'c' : 'g';
 	code[1] = d[x / 1296], code[2] = d[x / 36 % 36], code[3] = d[x % 36], code[4] = 0;
+	return true;
+}
+
+bool emu_rom_file_code(const char* path, char code[5]) {
+	uint8_t h[EMU_HEADER_MAX];
+	if (!emu_rom_header(path, h, sizeof(h)) || !emu_rom_code(h, sizeof(h), code)) return false;
+	if (memcmp(code, "\0\0\0\0", 4)) return true;
+	struct VDir* archive = emu_is_archive_name(path) ? VDirOpenArchive(path) : NULL;
+	struct VFile* vf = archive ? VDirFindFirst(archive, any_rom) : VFileOpen(path, O_RDONLY);
+	if (vf) {
+		/* (only a file the size of a known one is read whole) */
+		ssize_t n = vf->size(vf);
+		uint8_t* rom = n > 0 && profile_codeless_size(n) ? malloc((size_t) n) : NULL;
+		if (rom && vf->seek(vf, 0, SEEK_SET) == 0 && vf->read(vf, rom, (size_t) n) == n) {
+			const char* c = profile_codeless(doCrc32(rom, (size_t) n));
+			if (c) memcpy(code, c, 5);
+		}
+		free(rom);
+		vf->close(vf);
+	}
+	if (archive) archive->close(archive);
 	return true;
 }
 

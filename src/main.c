@@ -91,9 +91,8 @@ int main(int argc, char** argv) {
 		 * game (a profile for its code), 1 if not, 2 if it can't be read
 		 * (BananaOS's banana-play.sh: other games go to RetroArch) */
 		if (!strcmp(argv[i], "--supported") && i + 1 < argc) {
-			uint8_t h[EMU_HEADER_MAX];
 			char code[5];
-			if (!emu_rom_header(argv[i + 1], h, sizeof(h)) || !emu_rom_code(h, sizeof(h), code)) return 2;
+			if (!emu_rom_file_code(argv[i + 1], code)) return 2;
 			bool yes = profile_find(code) != NULL;
 			printf("%s: %s\n", code, yes ? "supported" : "not supported");
 			return yes ? 0 : 1;
