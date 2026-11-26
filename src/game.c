@@ -1,5 +1,6 @@
 /* One play session: the emulator, the second-screen map, and the pause menu. */
 #include "game.h"
+#include "library.h"
 #include "i18n.h"
 #ifdef __wasi__
 extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_name("web_sleep")));
@@ -741,6 +742,7 @@ static void twin_open(const char* rom, const MapProfile* p) {
 
 /* a profile's hideSprites switched by its hideWhen (NULL: none, or always on) */
 static const MapProfile* hideWhenProf;
+static const MapProfile* swallowProf; /* profile swallow */
 static int hideWhenN;
 static bool hideWhenOn;
 
@@ -750,6 +752,7 @@ static void ww_state_loaded(void);
 static float ww_rumble(float level);
 
 static void run_frame(uint32_t keys) {
+	if (swallowProf && (keys & swallowProf->swallow.keys) && memprobes_match(swallowProf->swallow.when, 4, &emu)) keys &= ~(uint32_t) swallowProf->swallow.keys;
 	frameKeys = keys;
 	unsigned bugAt = bugFrame & (BUG_LOG - 1);
 	bugKeys[bugAt] = keys & 0x3FF;
@@ -1076,6 +1079,8 @@ static bool hudOn; /* the frame being emulated is split */
 #define HUD_CW (GBA_W * 2)
 #define HUD_CH (GBA_H * 2)
 static uint32_t hudCanvas[HUD_CW * HUD_CH], hudBack[HUD_CW * HUD_CH], hudGrab[GBA_W * GBA_H];
+static uint32_t hudHeld[HUD_CW * HUD_CH]; /* hud.alt.rows: the picture from before the other layer came on */
+static bool hudHeldOk;
 static bool hudBackValid;
 static int hudFrames; /* split frames since the race (re)started */
 static int mapX0, mapY0, mapX1, mapY1; /* the map's box on the HUD, measured over the first frames */
@@ -3960,6 +3965,8 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
+	if ((!strcmp(key, "single_layout") || !strcmp(key, "single_size")) && !ui_one_display()) return N_("Only for a single display: this device has two");
+	if (!strcmp(key, "single_size") && !strcmp(cfg->singleLayout, "off")) return N_("Choose how to show both screens first");
 	if ((!strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !cfg->toggle) return N_("Turn on the contextual toggle first");
 	return NULL;
 }
@@ -4832,9 +4839,14 @@ static void hud_compose(void) {
 			}
 		}
 	}
+	uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : h->black ? SCREEN_LIVE : 0xFF1A1010;
 	if (hudScene) {
 		if (!hudLogoDone) hud_make_logo_back();
 		memcpy(hudCanvas, hudLogoBack, sizeof(hudCanvas));
+	} else if (hudAlt && h->alt.rows && hudHeldOk) {
+		/* (hud.alt.rows: the last picture below the live rows) */
+		memcpy(hudCanvas, hudHeld, sizeof(hudCanvas));
+		for (int i = 0; i < h->alt.rows * 2 * HUD_CW; ++i) hudCanvas[i] = plain;
 	} else if ((hudAlt ? h->alt.mapBelow : h->mapBelow) && mapShownIdx >= 0 && mapW == GBA_W && mapH == GBA_H && map_px(mapShownIdx)) {
 		/* (hud.mapBelow, hud.alt.mapBelow: the map picture behind, at the game's size) */
 		const uint32_t* mp = map_px(mapShownIdx);
@@ -4893,13 +4905,24 @@ static void hud_compose(void) {
 	} else if (h->card.tile) {
 		memcpy(hudCanvas, card_logo(), sizeof(hudCanvas));
 	} else {
-		uint32_t plain = h->mapCnt ? (hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : h->black ? SCREEN_LIVE : 0xFF1A1010;
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) hudCanvas[i] = plain;
 	}
 	/* moved pieces (the scene's, or racing's): how far each goes this frame */
 	const HudMove* movesIn = hudScene ? h->scene.moves : racing ? h->moves : NULL;
 	/* (hud.alt.moves: its own, on the other layer) */
 	if (movesIn == h->moves && hudAlt && (h->alt.moves[0].how || h->alt.moves[0].vhow || h->alt.moves[0].toGame)) movesIn = h->alt.moves;
+	if (hudAlt && h->alt.rows) movesIn = NULL; /* (hud.alt.rows: the game draws the rest itself) */
+	/* (hud.moves' `always` pieces, where no other moves are) */
+	HudMove movesA[HUD_MOVES];
+	if (!movesIn && !hudScene) {
+		int n = 0;
+		for (int m = 0; m < HUD_MOVES; ++m)
+			if (h->moves[m].always) movesA[n++] = h->moves[m];
+		if (n) {
+			memset(&movesA[n], 0, sizeof(HudMove) * (HUD_MOVES - n));
+			movesIn = movesA;
+		}
+	}
 	/* with a BG mosaic on (fading out through a pipe), the boxes' top and
 	 * bottom go to the blocks' edges: a block across a box's edge is drawn
 	 * from its first row, so it goes with the box above */
@@ -4923,6 +4946,7 @@ static void hud_compose(void) {
 			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = mapTitle[y * GBA_W + x];
 		}
 	}
+	int rowsNow = hudAlt && h->alt.rows ? h->alt.rows : h->rows;
 	int moveDx[HUD_MOVES] = { 0 }, moveDy[HUD_MOVES] = { 0 };
 	bool moving[HUD_MOVES] = { false };
 	int pieceLo[HUD_MOVES] = { 0 }, pieceTop[HUD_MOVES] = { 0 };
@@ -4981,7 +5005,7 @@ static void hud_compose(void) {
 				emu.fb[ny * GBA_W + nx] = c; /* back onto the game picture */
 				continue;
 			}
-			if (h->rows && y >= h->rows) continue; /* (hud.rows: the game draws the rest) */
+			if (rowsNow && y >= rowsNow) continue; /* (hud.rows: the game draws the rest) */
 			if (sign && x >= h->sign.x0 && x <= h->sign.x1 && y >= h->sign.y0 && y <= h->sign.y1) continue;
 			if (bigMap && x >= bx0 && x <= bx1 && y >= by0 && y <= by1) continue;
 			ny += titleDy;
@@ -5308,6 +5332,7 @@ static void update_hud(void) {
 			}
 			if (!hudShown && debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) frameCount);
 			hudShown = true;
+			if (!hudAlt && h->alt.rows && memprobes_match(h->alt.heldWhen, 2, &emu)) memcpy(hudHeld, hudCanvas, sizeof(hudHeld)), hudHeldOk = true;
 		}
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &emu);
@@ -5357,6 +5382,7 @@ static void update_hud(void) {
 		 * renderer) */
 		static bool splitting;
 		bool some = mask || nObjs || h->band;
+		if (alt != hudAlt && h->alt.rows) emu_hud_rows(alt ? h->alt.rows : h->rows);
 		if (some || splitting) emu_hud_split(&emu, race && some, mask, objs, nObjs, hudPx);
 		splitting = race && some;
 		if (race && some) emu_hud_copy(&emu, cardObjs); /* (the card stays on the game screen too) */
@@ -5452,6 +5478,7 @@ static void update_hud(void) {
 	goneFor = gone ? goneFor + 1 : 0;
 	if (goneFor >= 20) {
 		hudShown = false;
+		hudHeldOk = false;
 		goneFor = 0;
 		if (debug) fprintf(stderr, "frame %llu: HUD gone\n", (unsigned long long) frameCount);
 	}
@@ -7895,6 +7922,15 @@ static void overlays_reload(void) {
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 }
 
+/* GEN-19: with both screens on one display the pause menu takes the whole
+ * display (it is drawn on the touch screen, which would be half of it); the
+ * two screens come back when it closes. */
+static void menu_layout_sync(void) {
+	int was = nScreens;
+	ui_menu_full(menuOpen);
+	if (nScreens != was) overlays_reload(), gameTexAll = true;
+}
+
 /* s: the physical screen (0 top, 1 bottom); which: what's on it (0 the game, 1 the second screen) */
 static void load_overlay(int s, int which) {
 	const char* scale = which ? cfg->mapScale : cfg->scale;
@@ -8316,9 +8352,14 @@ static void setting_applied(const Setting* st) {
 	} else if (!strcmp(k, "lcd_ghosting") || !strcmp(k, "gb_ghosting")) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
+		if (ui_one_display() && strcmp(cfg->singleLayout, "off")) ui_layout(); /* (which end the game is at) */
 		if (emu.fb) {
 			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), game_tex_pitch());
 		}
+	} else if (!strcmp(k, "single_layout") || !strcmp(k, "single_size")) {
+		ui_layout(); /* (the screens are cut again from the window) */
+		overlays_reload();
+		gameTexAll = true;
 	} else if (!strcmp(k, "screen_match") || !strcmp(k, "screen_placement")) {
 		ui_layout_pictures();
 		overlays_reload(); /* (overlays can be made for each: overlay files) */
@@ -8731,6 +8772,7 @@ static void ss_setup(const char* rom, const char* code) {
 		}
 		hudOn = false;
 		hudShown = false;
+		hudHeldOk = false;
 		mirrorHave = mirrorOn = false;
 		hudScene = false;
 		hudCard = false, cardScore = -1, sideScore = -1;
@@ -8748,6 +8790,7 @@ static void ss_setup(const char* rom, const char* code) {
 		if (mc) mapcap_set_still(mc, !map_anim());
 		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
 		hideWhenProf = NULL;
+		swallowProf = lp && lp->swallow.keys && nScreens > 1 ? lp : NULL;
 		if (mc) {
 			fprintf(stderr, "map profile: %s\n", mapcap_title(mc));
 			mapcap_size(mc, &mapW, &mapH);
@@ -8815,7 +8858,7 @@ static void ss_switch(const char* rom, const char* code) {
 	snprintf(subCode, sizeof(subCode), "%.4s", code);
 	if (hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(&emu, NULL, 0);
-	hideWhenProf = NULL;
+	hideWhenProf = NULL, swallowProf = NULL;
 	mapcap_destroy(mc);
 	mc = NULL;
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
@@ -9182,6 +9225,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_DISPLAY, "lcd_ghosting");
 	if (ui_logo_custom(cfg, romPath, emu.gameCode)) ROW(PG_DISPLAY, "custom_logos"); /* the game has the player's own or a scraped logo (GEN-11) */
 	if (nScreens >= 2) ROW(PG_SCREENS, "swap");
+	ROW(PG_SCREENS, "single_layout");
+	ROW(PG_SCREENS, "single_size");
 	ROW(PG_SCREENS, "screen_match");
 	ROW(PG_SCREENS, "screen_placement");
 	ROW(PG_SCREENS, "overlays");
@@ -9364,6 +9409,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			lastLoop = SDL_GetTicks();
 		}
 		ui_stick_dpad(cfg->leftStickDpad || menuOpen || barShown > 0); /* (#57: off for the game only) */
+		menu_layout_sync();
 		if (!ui_events()) {
 			exitTo = GAME_QUIT_APP;
 			break;
@@ -9980,7 +10026,17 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			forceMap = true;
 			hl.quietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
 		}
+		if (menuOpen && !wasMenu && !cfg->languageAsked) {
+			/* launched straight into a game on a first install: the first pause asks the language, then the menu opens (issue #92) */
+			if (audio) {
+				SDL_PauseAudioDevice(audio, 1);
+				SDL_ClearQueuedAudio(audio);
+			}
+			library_language_ask(cfg);
+			suppress_held();
+		}
 		wasMenu = menuOpen;
+		menu_layout_sync();
 
 		if (menuOpen) {
 			ra_idle();

@@ -348,7 +348,10 @@ def run_app(case, args, workdir):
                # time zone, so a game that draws its clock (Boktai's, BT-8) read 12:00 on
                # a session's container (New York) and 17:00 on GitHub's UTC runners: the
                # zone is pinned (POSIX "EST5": five hours behind, no DST, no tzdata needed)
-               TZ="EST5")
+               TZ="EST5",
+               # the first-run language question (issue #92, GEN-18) is never asked unless a case
+               # asks for it (a release version's build would ask it in every fresh state folder)
+               GBADS_LANG_ASK="0")
     if not args.paced:
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)

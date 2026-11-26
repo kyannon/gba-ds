@@ -10075,6 +10075,9 @@ static uint32_t crv_virt(Emu* e, uint32_t addr) {
 	return paused || results;
 }
 
+/* Pokemon Mystery Dungeon: Red Rescue Team (USA; pmd_moved for the others): gDungeon, the pointer to the floor being played (0 elsewhere) */
+#define PMD_DUNGEON 0x0203B418u
+
 static const MapProfile profiles[] = {
 	/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md. One entry per engine (the USA and Europe releases) */
 #define PK_PROFILE(ENGINE_LOGO, TITLE, ...) \
@@ -13022,6 +13025,44 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 1500 } }, .layers = 0x10, .maxY = 120 },
 	},
 	{
+		/* Pokemon Mystery Dungeon: Red Rescue Team (docs/games/pokemon-mystery-dungeon-red-rescue-team.md) */
+		.codes = { "B24E" },
+		.title = "Pokemon Mystery Dungeon: Red Rescue Team",
+		.logoOnly = true,
+		/* the health screen takes a press; the title (lettering alone on BG2) is up by ~2000 frames after it */
+		.logo = { .steps = { { 0, 300 }, { K_A, 8 }, { 0, 2000 } }, .layer = 2 },
+		/* BG0 is the status line (row 0), the minimap's tile canvas (palette 14, rows 1-16) and the windows: the canvas
+		 * up at its top left means no menu or dialogue (PMD-2) */
+		.hud = {
+			.on = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x0100, 0x0100, 2 }, { 0x0202B07A, 0xF000, 0xE000, 2 } },
+			.keep = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 } },
+			/* a menu's close puts the canvas back in the game's copy a frame or two before VRAM, which still has the
+			 * menu's window tile or a blank one (the main menu of some games leaves row 1, column 1 blank): not a
+			 * picture to keep (PMD-3) */
+			.freeze = { { 0x06006042, 0xF000, 0x0000, 2, true, 0xF000 }, { 0x0202B07A, 0xF000, 0xE000, 2 } },
+			.bgMask = 1,
+			/* the player's dot on the map: a blinking 8x8 sprite, tile 533, palette 15 */
+			.objs = { { -16, -16, 255, 175, 533, 533, 0, 1u << 15 } },
+			.black = true,
+			/* the message box (rows 15-19) clears only the canvas's bottom rows: while its window is in VRAM it goes back onto the game screen, the map stays live (PMD-3) */
+			.layout = { { 0x06006404, 0xF000, 0xF000, 2 } },
+			.moves = {
+				/* the game's black line down column 0, over the field's first column: stays on the game screen (PMD-2) */
+				{ .x0 = 0, .y0 = 0, .x1 = 0, .y1 = 159, .toGame = true, .always = true },
+				/* the status line (x 8 to 174) centred across the top of the second screen (PMD-2) */
+				{ .x0 = 1, .y0 = 0, .x1 = 239, .y1 = 7, .how = 'L', .x = 37, .always = true },
+				{ 0, 120, 239, 159, 0, 0, 0, 0, true },
+			},
+			/* menus, dialogue, the stairs prompt and the floor banner clear the canvas: the game draws BG0 below its
+			 * status line, which stays on the second screen, live, over the map as it was (PMD-3) */
+			.alt = { .on = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x0100, 0x0100, 2 } }, .bgMask = 1, .rows = 8,
+			         .heldWhen = { { 0x06006042, 0xF000, 0xE000, 2 } } },
+		},
+		/* SELECT hides the field to show the floor map, which the second screen has; with the field hidden it still turns it back (PMD-4) */
+		.swallow = { K_SELECT, { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x1F00, 0x1F00, 2 },
+		                         { 0x0202B07A, 0xF000, 0xE000, 2 }, { 0x0202B43C, 0xF000, 0xE000, 2 } } },
+	},
+	{
 		/* Cruis'n Velocity (docs/games/cruisn-velocity.md): the HUD is sprites on a mode 4
 		 * bitmap sharing tiles, so the time and the lap box are picked by place. */
 		.codes = { "ACFE" },
@@ -13568,7 +13609,36 @@ static void kdl_jpn(MapProfile* p) {
 	p->logoIfOr[0].addr = 0x030023B8;
 }
 
+/* Pokemon Mystery Dungeon: Red Rescue Team in Europe and Japan: gDungeon and the game's copy of BG0's
+ * tile map (0x0202B038 in the USA) moved, found with tools/romxref.py; VRAM, the dot and the screens as the USA's */
+static void pmd_shift(MemProbe* list, int n, int dungeon, int canvas) {
+	for (int i = 0; i < n && list[i].addr; ++i) {
+		if (list[i].addr == PMD_DUNGEON) list[i].addr += dungeon;
+		else if (list[i].addr >= 0x0202B038 && list[i].addr < 0x0202B838) list[i].addr += canvas;
+	}
+}
+static void pmd_moved(MapProfile* p, int dungeon, int canvas) {
+#define PMD_SHIFT(list) pmd_shift(list, sizeof(list) / sizeof(*list), dungeon, canvas)
+	PMD_SHIFT(p->hud.on);
+	PMD_SHIFT(p->hud.keep);
+	PMD_SHIFT(p->hud.freeze);
+	PMD_SHIFT(p->hud.alt.on);
+	PMD_SHIFT(p->swallow.when);
+#undef PMD_SHIFT
+}
+/* Europe: the language menu (A: English) comes before the health screen */
+static void pmd_eur(MapProfile* p) {
+	static const MacroStep language[] = { { 0, 300 }, { K_A, 8 } };
+	insert_steps(p->logo.steps, 24, 0, language, 2);
+	pmd_moved(p, 0x2168, 0x2010);
+}
+static void pmd_jpn(MapProfile* p) {
+	pmd_moved(p, -0x790, 0);
+}
+
 static const Variant variants[] = {
+	{ "B24P", "B24E", 0, pmd_eur },
+	{ "B24J", "B24E", 0, pmd_jpn },
 	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
 	{ "B8KP", "B8KE", 0, NULL },
 	{ "B8KJ", "B8KE", 0, NULL },

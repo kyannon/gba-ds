@@ -78,6 +78,7 @@ What this means in practice:
   - Super Mario Advance's course board, shown before each level, kept under the status bar through the level: trimmed at the top and bottom to fit, with its Ace Coin percentage taken from the pause screen;
   - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it;
   - Game Boy and Game Boy Color games on one screen with the other idle (a real GBA played those cartridges too), with the option of showing the Game Boy's own 160×144 picture as the whole screen instead of centred in the GBA's frame ([[Game Boy games]]);
+  - Pokémon Mystery Dungeon: Red Rescue Team's SELECT kept from the game on a dungeon's field, where all it does is hide the field to show the floor map the second screen already shows (with two screens only), and its status line centred on the second screen;
   - WarioWare: Twisted!'s Touch mode, where the touchscreen is a dial that stands in for the cartridge's gyro (the game plays by turning the console) and the second screen shows the game's menu wheel turning with it, with buttons and a slider of GBA DS's own;
   - Dragon Ball Z: The Legacy of Goku's logo, whose Z is drawn again in the game's own colours where the title screen paints Goku's hair over it;
   - Dragon Ball Z: Buu's Fury's logo, each letter's black outline closed where the title screen leaves a gap;
