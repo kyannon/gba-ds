@@ -2,6 +2,9 @@
 
 ## v1.6.4 (not yet released)
 
+### Fixes
+- **RG DS Plus on the Stock Linux OS: the left stick's left and right are no longer swapped** (issue #104). The controls GBA DS ships for that system had the stick's left and right the wrong way round, in the menus and in games. A mapping you made yourself with Map Buttons still comes first.
+
 ## v1.6.3 (2026-11-25)
 
 ### New games
