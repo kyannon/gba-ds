@@ -1161,7 +1161,7 @@
     ],
     "2": [
      "play.ss",
-     "The Fun Fair, a ball just started: the stars, coins, lives, counter, B button and item slot on the second screen, each where the game draws it, on black with the logo in the middle, none of them on the game screen; the lives and counter slide off after a few seconds, there as in the game (MPL-2, MPL-3). Leave it about 30 s: the ball drains down the blue pipe on the game screen, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
+     "The Fun Fair, a ball just started: the whole HUD on the second screen as when paused (stars, score, lives, coins, blue coins, B button, item slot) on black with the logo in the middle, none of it on the game screen. After a few seconds the game slides the score, lives and blue coins off: they stay on the second screen (MPL-2, MPL-3). Leave it about 30 s: the ball drains down the blue pipe on the game screen, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
     ],
     "3": [
      "paused.ss",
@@ -1181,7 +1181,7 @@
     ],
     "7": [
      "time-attack.ss",
-     "Time Attack: the HUD on the second screen with the timer at the top right; after about 4 s the star counter and coins slide off and the HUD stays there (MPL-7)"
+     "Time Attack: the HUD on the second screen with the timer at the top right, the stars, coins and blue coins with it, no lives; after about 4 s the game slides the stars and coins off, and they stay on the second screen (MPL-7)"
     ],
     "8": [
      "shop.ss",
@@ -1199,7 +1199,7 @@
     ],
     "2": [
      "eu-play.ss",
-     "Europe's Fun Fair, a ball just started: the HUD on the second screen over the logo, the lives and counter sliding off after a few seconds (MPL-2, MPL-3). Leave it about 30 s: the ball drains, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
+     "Europe's Fun Fair, a ball just started: the whole HUD on the second screen over the logo as when paused; after a few seconds the game slides the score, lives and blue coins off, and they stay on the second screen (MPL-2, MPL-3). Leave it about 30 s: the ball drains, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
     ],
     "3": [
      "eu-paused.ss",
@@ -1237,7 +1237,7 @@
     ],
     "2": [
      "jp-play.ss",
-     "Japan's Fun Fair, a ball just started: the HUD on the second screen over the logo, the lives and counter sliding off after a few seconds (MPL-2, MPL-3). Leave it about 30 s: the ball drains, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
+     "Japan's Fun Fair, a ball just started: the whole HUD on the second screen over the logo as when paused; after a few seconds the game slides the score, lives and blue coins off, and they stay on the second screen (MPL-2, MPL-3). Leave it about 30 s: the ball drains, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
     ],
     "3": [
      "jp-paused.ss",

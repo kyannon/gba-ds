@@ -500,6 +500,11 @@ typedef struct MapProfile {
 		 * from a state load) (Mario Pinball Land: a room, by its item slot's frame) */
 		SpriteRule onWith;
 		int onLost;
+		/* Every frame, on the main thread, with whether the split is on (false also at a state
+		 * load): the profile may draw the HUD's sprites elsewhere in its picture
+		 * (emu_hud_place). rom: the game's file, for a copy of its own (Mario Pinball Land:
+		 * the counters where the game puts them paused, from a paused copy: MPL-3) */
+		void (*place)(Emu* live, const char* rom, bool on);
 		/* While every `layout` probe matches (racing, not the results):
 		 * HUD pixels in `sign` stay on the game screen when the HUD has
 		 * nothing else on those rows within 40 pixels either side (Mario

@@ -5435,6 +5435,9 @@ static void update_hud(void) {
 		mapFound = false;
 		mapHeldOk = false, nMapDots = 0, mapUndrawn = 0; /* (hud.mapAt.holdTile: none held yet) */
 	}
+	/* hud.place: the profile's own places for the HUD's sprites, worked out
+	 * each frame (Mario Pinball Land: where the game has them paused) */
+	if (h->place) h->place(&emu, romPath, hudOn && !hudAlt);
 	/* a spell or other animation: its effects are on the text box layers,
 	 * in other palettes than the text boxes; those layers stay (from the
 	 * next frame) */
@@ -6422,6 +6425,7 @@ static bool state_load(const char* path) {
 	if (ok) mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
 	if (ok) hudOffLatch = false; /* (hud.offAfter: found again from the loaded game) */
 	if (ok) onWithAt = 0; /* (hud.onWith: a sprite seen before the load doesn't hold the HUD on after it) */
+	if (ok && hudProf && hudProf->hud.place) hudProf->hud.place(&emu, romPath, false); /* (hud.place: worked out again from the loaded game) */
 	return ok;
 }
 

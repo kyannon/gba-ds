@@ -289,6 +289,12 @@ void emu_hud_rows(int rows);
 /* The HUD split also draws the sprites with exactly these attributes 0-2
  * (the game's picture keeps them); n = 0: none. */
 void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n);
+/* The HUD's sprites drawn elsewhere in its picture (only there: the game's sprite table
+ * and screen are left as they are), by their number in the sprite table: how[i] 0 as the
+ * game has it, 1 with attributes 0 and 1 (place, shape, size) ab[i] (its picture and
+ * palette still the game's), 2 left out. NULL: as the game has them. Mario Pinball Land:
+ * the counters where the game puts them when paused (MPL-3). */
+void emu_hud_place(const uint8_t how[128], const uint16_t ab[128][2]);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */
