@@ -259,13 +259,13 @@ static void code_cache_save(const Config* cfg) {
 /* The 4-letter game code from the ROM header (offset 0xAC). */
 static bool game_code(const char* path, const struct stat* st, char code[5]) {
 	CodeCache* c = code_cache_find(path);
-	if (c && c->size == (long long) st->st_size && c->mtime == (long long) st->st_mtime) {
+	/* ("____", no code in its header, is looked at again: a newer build may know the dump) */
+	if (c && c->size == (long long) st->st_size && c->mtime == (long long) st->st_mtime && strcmp(c->code, "____")) {
 		c->used = true;
 		memcpy(code, c->code, 5);
 		return true;
 	}
-	uint8_t hdr[EMU_HEADER_MAX];
-	if (!emu_rom_header(path, hdr, sizeof(hdr)) || !emu_rom_code(hdr, sizeof(hdr), code)) {
+	if (!emu_rom_file_code(path, code)) {
 		if (emu_is_archive_name(path)) fprintf(stderr, "library: no GBA or Game Boy ROM in %s\n", path);
 		return false;
 	}

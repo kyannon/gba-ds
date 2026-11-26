@@ -522,3 +522,8 @@ static const KnownPatch knownPatches[] = {
 	{ "A3UJ", 0xf02e4122, 2336, 0x42ac9cb9, 0xb7faa37d, "audio", "HQ audio mix alternative (MusicTheorist)", "Mother 3 (Japan)", true },
 	{ "A2CE", 0xf3235cb8, 141702, 0x35536183, 0x00d0fddf, "colour", "Symphony of the Colors v1.0 (JonataGuitar)", "Castlevania - Aria of Sorrow (USA)", true },
 };
+/* Dumps with no game code in their header, and the code they're filed under
+ * (make_dumps.py's CODELESS): known by their CRC32, for a file this size. */
+static const CodelessDump codelessDumps[] = {
+	{ 0x31265c5d, 16777216, "CSAE" },
+};

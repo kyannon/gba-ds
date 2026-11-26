@@ -909,6 +909,10 @@ bool profile_gb_dump_known(uint32_t crc);
 /* The release's No-Intro name, without a revision's or reissue's mark
  * ("Mario & Luigi - Superstar Saga (USA)"); false if it has no list of dumps */
 bool profile_release_name(const char* gameCode, char* out, size_t size);
+/* A dump with no game code in its header: the code it's filed under, if its
+ * CRC32 is a known one (NULL if not); _size: a file that size might be one */
+const char* profile_codeless(uint32_t crc);
+bool profile_codeless_size(long long size);
 /* The ROM being played (its code and CRC32; NULL: none): a known colour
  * patch's result gets its profile with the colours it changes swapped */
 void profile_set_rom(const char* gameCode, uint32_t crc);

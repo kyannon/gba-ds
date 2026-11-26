@@ -13808,8 +13808,26 @@ typedef struct {
 	bool mod; /* a romhack or patch (a Mods row), not one of No-Intro's dumps */
 	const char* name;
 } KnownDump;
+typedef struct {
+	uint32_t crc, size;
+	char code[5];
+} CodelessDump;
 #include "dumps_data.h"
 #include "dumps_gb_data.h"
+
+const char* profile_codeless(uint32_t crc) {
+	for (size_t i = 0; i < sizeof(codelessDumps) / sizeof(codelessDumps[0]); ++i) {
+		if (codelessDumps[i].crc == crc) return codelessDumps[i].code;
+	}
+	return NULL;
+}
+
+bool profile_codeless_size(long long size) {
+	for (size_t i = 0; i < sizeof(codelessDumps) / sizeof(codelessDumps[0]); ++i) {
+		if (codelessDumps[i].size == size) return true;
+	}
+	return false;
+}
 
 /* (a GBA game's code is capitals and digits: a Game Boy game's is g or c and lower case) */
 bool profile_code_is_gb(const char* gameCode) {

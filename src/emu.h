@@ -108,6 +108,9 @@ void emu_gb_border_wanted(bool on); /* before emu_open: Display > Game Boy borde
 bool emu_gb_border(const Emu* e);   /* the game runs with its border (Emu.gbBorder) */
 const uint32_t* emu_gb_border_px(const Emu* e); /* SGB_W x SGB_H, or NULL */
 bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
+/* emu_rom_code for the ROM file at path; a GBA header with no code (4 zero bytes) gets the code
+ * its dump is filed under, if the whole file's CRC32 is a known one (profile_codeless) */
+bool emu_rom_file_code(const char* path, char code[5]);
 void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
 void emu_frame(Emu* e, uint32_t keys);
