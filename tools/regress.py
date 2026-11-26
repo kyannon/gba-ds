@@ -192,6 +192,16 @@ def run_app(case, args, workdir):
     romdir = os.path.join(workdir, "rom")
     os.makedirs(romdir)
     os.symlink(rom, os.path.join(romdir, case["rom"] + ".zip"))
+    # "rom_files" {a file name in the game list's folder: a ROM fixture's name}: other ROMs listed beside it
+    for name, other in case.get("rom_files", {}).items():
+        src = os.path.join(args.fixtures, "roms", other + ".zip")
+        if not os.path.exists(src):
+            r.error = "missing ROM fixture roms/%s.zip" % other
+            return r
+        r.error = dump_error(dict(case, rom=other), src)
+        if r.error:
+            return r
+        os.symlink(src, os.path.join(romdir, name))
     if case.get("patch"):  # a patch file beside the ROM (GEN-9), from the fixtures' patches/
         pf = os.path.join(args.fixtures, "patches", case["patch"])
         if not os.path.exists(pf):
@@ -718,6 +728,8 @@ def main():
         need = set()
         for c in cases:
             need.add("roms/%s.zip" % c["rom"])
+            for other in c.get("rom_files", {}).values():
+                need.add("roms/%s.zip" % other)
             need.add("golden/%s/%s/" % (c["slug"], c["id"]))
             if c.get("state"):
                 need.add("states/" + c["state"])
