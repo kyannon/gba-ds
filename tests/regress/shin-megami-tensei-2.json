@@ -30,6 +30,73 @@
    ]
   },
   {
+   "id": "smt2-en-library",
+   "kind": "library",
+   "rom": "A5TJ+smt2-en",
+   "desc": "the game list with the English patched ROM: \"Romhack: English (port of the Super Famicom translation)\" under the game's logo",
+   "rules": [
+    "GEN-8",
+    "SMT2-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ]
+  },
+  {
+   "id": "smt2-patch-library",
+   "kind": "library",
+   "rom": "A5TJ",
+   "desc": "the game list with the Japanese ROM and the English xdelta beside it: \"Romhack: English (port of the Super Famicom translation) (patch)\"",
+   "rules": [
+    "GEN-8",
+    "GEN-9",
+    "SMT2-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch": "smt2gbaengfontfix.xdelta"
+  },
+  {
+   "id": "smt2-patches-library",
+   "kind": "library",
+   "rom": "A5TJ",
+   "desc": "the game list with the Japanese ROM and the English xdelta switched on in its patches folder: \"Romhack: English (port of the Super Famicom translation) (patch)\"",
+   "rules": [
+    "GEN-8",
+    "GEN-9",
+    "SMT2-9"
+   ],
+   "shots": {
+    "list": 40
+   },
+   "golden_mask": [
+    [
+     700,
+     720,
+     1024,
+     768
+    ]
+   ],
+   "patch_on": "smt2gbaengfontfix.xdelta"
+  },
+  {
    "id": "smt2-jp-title",
    "rom": "A5TJ",
    "desc": "the title and its menu: the logo on the second screen, no map",
