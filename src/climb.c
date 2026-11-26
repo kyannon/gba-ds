@@ -23,6 +23,8 @@
 #define WEB_BROKEN false
 #endif
 
+static bool paceFresh; /* set by climb_open: a new game starts the copy at every frame, not at the last one's pace (climb_pace) */
+
 /* A picture the copy drew, with the game's frame it is of and the scroll it was drawn from */
 typedef struct {
 	uint32_t px[GBA_W * GBA_H];
@@ -358,6 +360,7 @@ bool climb_open(const char* rom, const MapProfile* p, Emu* game, bool worker) {
 	}
 	C.held = C.ready = -1;
 	C.seq = C.epoch = 0;
+	paceFresh = true;
 #ifdef __wasi__
 	C.debug = getenv("GBADS_DEBUG") != NULL;
 	snprintf(C.romPath, sizeof(C.romPath), "%s", rom);
@@ -385,6 +388,7 @@ static int climb_pace(void) {
 	static int level, wait = 120, calm;
 	const char* hold = getenv("GBADS_CLIMB_PACE");
 	if (hold) return atoi(hold);
+	if (paceFresh) last = 0, avg = 16.7, level = 0, wait = 120, calm = 0, paceFresh = false;
 	struct timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
 	double now = t.tv_sec * 1000.0 + t.tv_nsec / 1e6, dt = now - last;
@@ -441,9 +445,10 @@ static void begin_async(Emu* game, uint32_t keys) {
 		posted = true;
 		pthread_cond_broadcast(&C.cond);
 	}
+	bool slow = C.slow; /* (the worker sets it under the lock) */
 	pthread_mutex_unlock(&C.lock);
 	C.have = false;
-	if (free && !(posted && C.slow) && emu_state_save(game, C.st[next])) C.keys[next] = keys, C.last = next, C.have = true, ++C.saved;
+	if (free && !(posted && slow) && emu_state_save(game, C.st[next])) C.keys[next] = keys, C.last = next, C.have = true, ++C.saved;
 }
 
 /* After the game's frame: its scroll noted; the newest picture the copy has finished, if it drew the scroll the game

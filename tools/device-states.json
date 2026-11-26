@@ -1152,6 +1152,35 @@
      "Japan, the story before the dungeon: the logo (PMD-5). Load slot 1 first, then this: the map goes after about a third of a second"
     ]
    }
+  },
+  "dk-king-of-swing": {
+   "DK - King of Swing (USA)": {
+    "1": ["us-level.ss", "The first real level: the game with its hearts on the bottom screen, the trees and pegs above it on the top one, one tall view moving with the camera (DKKS-3). Press START: the pause menu on the bottom screen, the level stays on the top one with no black frame. Then Return to Map: the world map on the top screen and the logo on the bottom (DKKS-2)"],
+    "2": ["us-tutorial-climb.ss", "Partway up the tutorial's pegboard: the pegs and bananas above the game's screen go on, on the top screen; climb up and down and they move with the game's camera, no tearing or jumps (DKKS-3)"],
+    "3": ["us-tutorial-cross.ss", "Watch the moment it loads: DK climbs past the top of the game's screen with the camera stopped, split between the two screens for a moment, then on the top screen climbing on (DKKS-4)"],
+    "4": ["us-level-above.ss", "A level whose top is less than a screen up: DK above the camera's top stop, on the top screen in the sky, not vanished (DKKS-4)"],
+    "5": ["us-room-change.ss", "The tutorial moving to its next room: both screens go black and the room fades in on the bottom screen, the level above coming back on the top; the logo never flashes up in between (DKKS-3)"],
+    "6": ["us-tutorial.ss", "The tutorial's ground: the hearts and bananas only on the bottom screen, and when Cranky speaks (A moves him on), his speech bubble only there too, never twice (DKKS-3)"],
+    "7": ["us-bug-wide.ss", "A level wider than the screen: climb right and up; the top screen's right edge always shows the level, never a black bar. A good one for the speed check: Show FPS on, 60 with no stutter (DKKS-3, by hand)"],
+    "8": ["us-level-ice.ss", "An ice level whose backgrounds the game loads once: the icy waterfall goes on above the game's screen, not black (DKKS-3)"],
+    "9": ["us-jungle-jam.ss", "A Jungle Jam scene: the game on the top screen and the logo on the bottom, no tall view (DKKS-2)"]
+   },
+   "DK - King of Swing (Europe) (En,Fr,De,Es,It)": {
+    "1": ["eu-level.ss", "Europe (English): the first level, the level above on the top screen as in the USA's slot 1 (DKKS-3)"],
+    "2": ["eu-level-above.ss", "Europe: DK above the camera's top stop, on the top screen in the sky (DKKS-4)"],
+    "3": ["eu-room-change.ss", "Europe: the tutorial's next room, black and fading in, the logo never in between (DKKS-3)"],
+    "4": ["eu-map.ss", "Europe: the world map on the top screen, the logo (the USA's lettering) on the bottom (DKKS-1, DKKS-2)"],
+    "5": ["eu-title.ss", "Europe: the title, the logo on the second screen (DKKS-2)"],
+    "6": ["eu-file.ss", "Europe: the file select, the logo (DKKS-2)"]
+   },
+   "Bura Bura Donkey (Japan)": {
+    "1": ["jp-level.ss", "Japan: the first level, the level above on the top screen (DKKS-3)"],
+    "2": ["jp-level-above.ss", "Japan: DK above the camera's top stop, on the top screen in the sky (DKKS-4)"],
+    "3": ["jp-room-change.ss", "Japan: the tutorial's next room, black and fading in, the logo never in between (DKKS-3)"],
+    "4": ["jp-map.ss", "Japan: the world map on the top screen, the logo (ぶらぶらドンキー on its plank, no monkey) on the bottom (DKKS-1, DKKS-2)"],
+    "5": ["jp-title.ss", "Japan: the title, the logo on the second screen (DKKS-2)"],
+    "6": ["jp-file.ss", "Japan: the file select, the logo (DKKS-2)"]
+   }
   }
  }
 }
