@@ -15,6 +15,14 @@
  * screen higher, so the sprites the game builds one frame ahead are its own.
  * Its maps are filled for those rows at once: the game streams one a frame. */
 
+#ifdef __wasi__
+#define WEB_COPY C.web
+#define WEB_BROKEN C.broken
+#else
+#define WEB_COPY false
+#define WEB_BROKEN false
+#endif
+
 /* A picture the copy drew, with the game's frame it is of and the scroll it was drawn from */
 typedef struct {
 	uint32_t px[GBA_W * GBA_H];
@@ -55,6 +63,11 @@ static struct {
 	 * they're done, and the last one is moved with the camera to this frame. */
 	bool async, syncStep;
 	size_t stateSize;
+#ifdef __wasi__
+	bool web, broken; /* the copy is in the web player's climb worker: jobs leave for the page (web_climb_job) and pictures come back (web_climb_deliver) */
+	bool debug;
+	char romPath[512], code[8];
+#endif
 	Job req;
 	bool reqPending;
 	bool slotBusy[3]; /* a state the worker hasn't loaded yet */
@@ -274,9 +287,12 @@ void climb_close(void) {
 	C.started = false;
 	if (C.async && C.taken && getenv("GBADS_DEBUG"))
 		fprintf(stderr, "climb worker: %u of %u frames asked for (%u states handed over), %u pictures used, a picture %.2f frames behind on average (at most %u)\n", C.posted, C.seq, C.saved, C.taken, (double) C.lagSum / C.taken, C.lagMax);
-	if (C.open) emu_close(&C.e);
+	if (C.open && !WEB_COPY) emu_close(&C.e);
 	for (int i = 0; i < 3; ++i) free(C.st[i]), C.st[i] = NULL;
 	C.open = C.have = C.up = C.havePic = C.async = C.baseOk = false;
+#ifdef __wasi__
+	C.web = C.broken = false;
+#endif
 }
 
 bool climb_is_open(void) { return C.open; }
@@ -323,16 +339,32 @@ bool climb_open(const char* rom, const MapProfile* p, Emu* game, bool worker) {
 	if (!p || !p->climb.on[0].addr) return false;
 	size_t sz = emu_state_size(game);
 	C.stateSize = sz;
+	bool web = false;
+#ifdef __wasi__
+	web = worker && getenv("GBADS_CLIMB_OFFLOAD"); /* (the web player has a climb worker: another copy of the app) */
+#endif
 	for (int i = 0; i < (worker ? 3 : 2); ++i) C.st[i] = malloc(sz);
 	bool ok = C.st[0] && C.st[1] && (!worker || C.st[2]);
-	if (ok) ok = open_copy(rom, p);
+	if (ok && web) {
+		ok = patches_match(p, game); /* (this machine has no copy of its own to try) */
+		if (!ok) fprintf(stderr, "climb: not this ROM's camera code, no copy\n");
+		C.p = p;
+	} else if (ok) {
+		ok = open_copy(rom, p);
+	}
 	if (!ok) {
 		for (int i = 0; i < 3; ++i) free(C.st[i]), C.st[i] = NULL;
 		return false;
 	}
 	C.held = C.ready = -1;
 	C.seq = C.epoch = 0;
-	if (worker && second_core()) { /* (else, or if the thread can't start, the copy runs in step) */
+#ifdef __wasi__
+	C.debug = getenv("GBADS_DEBUG") != NULL;
+	snprintf(C.romPath, sizeof(C.romPath), "%s", rom);
+	snprintf(C.code, sizeof(C.code), "%s", game->gameCode);
+	C.web = C.async = web;
+#endif
+	if (worker && !web && second_core()) { /* (else, or if the thread can't start, the copy runs in step) */
 		pthread_mutex_lock(&C.lock);
 		C.quit = false;
 		C.started = pthread_create(&C.thread, NULL, worker_async, NULL) == 0;
@@ -396,14 +428,14 @@ static bool move_picture(Emu* game, const uint32_t* base) {
 static void begin_async(Emu* game, uint32_t keys) {
 	int next = (C.last + 1) % 3;
 	pthread_mutex_lock(&C.lock);
-	while (C.slotBusy[next]) pthread_cond_wait(&C.cond, &C.lock);
+	while (C.slotBusy[next] && !WEB_COPY) pthread_cond_wait(&C.cond, &C.lock);
 	bool free = !C.busy && !C.reqPending, posted = false;
 	if (C.have && free) {
 		Job* j = &C.req;
 		j->seq = C.seq, j->epoch = C.epoch, j->slot = C.last, j->keysPrev = C.keys[C.last], j->keysNow = keys;
 		j->cam = (int32_t) emu_read32(game, C.p->climb.shift[0]);
 		for (int i = 0; i < 512; ++i) j->oam[i] = emu_read16(game, C.p->climb.oam + i * 2);
-		C.slotBusy[C.last] = true;
+		C.slotBusy[C.last] = !WEB_COPY;
 		C.reqPending = true;
 		++C.posted;
 		posted = true;
@@ -419,6 +451,10 @@ static void begin_async(Emu* game, uint32_t keys) {
  * by the frames the copy took) */
 static void end_async(Emu* game) {
 	unsigned n = C.seq++;
+#ifdef __wasi__
+	if (C.debug && n % 600 == 599) /* (a thread's are told at the end; a page's worker has no end) */
+		fprintf(stderr, "climb worker: %u of %u frames asked for (%u states handed over), %u pictures used, a picture %.2f frames behind on average (at most %u)\n", C.posted, C.seq, C.saved, C.taken, C.taken ? (double) C.lagSum / C.taken : 0.0, C.lagMax);
+#endif
 	uint16_t* r = C.gameRegs[n & 31];
 	for (int i = 0; i < 3; ++i) r[2 * i] = emu_io16(game, 0x14 + 4 * i) & 0x1FF, r[2 * i + 1] = emu_io16(game, 0x16 + 4 * i) & 0x1FF;
 	pthread_mutex_lock(&C.lock);
@@ -448,7 +484,7 @@ static void end_async(Emu* game) {
 }
 
 void climb_begin(Emu* game, uint32_t keys, bool run) {
-	if (!C.open) return;
+	if (!C.open || WEB_BROKEN) return;
 	C.up = false;
 	if (!run) {
 		C.have = false;
@@ -499,7 +535,7 @@ static bool scroll_as_game_has(Emu* game) {
 }
 
 void climb_end(Emu* game) {
-	if (!C.open) return;
+	if (!C.open || WEB_BROKEN) return;
 	if (C.async) {
 		end_async(game);
 		return;
@@ -516,10 +552,10 @@ void climb_end(Emu* game) {
 }
 
 /* the copy is on its own and has drawn nothing for this level yet: a picture is on its way */
-bool climb_waiting(void) { return C.open && C.async && !C.baseOk; }
+bool climb_waiting(void) { return C.open && C.async && !C.baseOk && !WEB_BROKEN; }
 
 const uint32_t* climb_picture(void) {
-	if (!C.open || !C.havePic) return NULL;
+	if (!C.open || !C.havePic || WEB_BROKEN) return NULL;
 	return C.gap || C.async ? C.moved : C.pic;
 }
 
@@ -531,3 +567,97 @@ void climb_reset(void) {
 	C.baseOk = false;
 	pthread_mutex_unlock(&C.lock);
 }
+
+#ifdef __wasi__
+/* ---- the web player's climb worker: a second copy of the app (GBADS_CLIMB_SERVE=CODE, the ROM last) that does
+ * the copy's frames while the game goes on, as a thread does elsewhere. The page carries the jobs and the pictures
+ * (web/player/worker.js, player.js). */
+extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_name("web_sleep")));
+
+/* The game's side: a job to hand over (0: none), and in info the state (pointer, size), the frame, the epoch, the
+ * keys before and now, the camera, the sprite table (pointer), and what the worker starts with: the ROM's path
+ * and the game's code. */
+__attribute__((export_name("web_climb_job"))) uint32_t web_climb_job(uint32_t* info) {
+	if (!C.web || !C.reqPending) return 0;
+	Job* j = &C.req;
+	C.reqPending = false;
+	C.busy = true;
+	info[0] = (uint32_t) (uintptr_t) C.st[j->slot], info[1] = (uint32_t) C.stateSize;
+	info[2] = j->seq, info[3] = j->epoch, info[4] = j->keysPrev, info[5] = j->keysNow, info[6] = (uint32_t) j->cam;
+	info[7] = (uint32_t) (uintptr_t) j->oam;
+	info[8] = (uint32_t) (uintptr_t) C.romPath, info[9] = (uint32_t) (uintptr_t) C.code;
+	return j->seq + 1;
+}
+
+/* Where a picture goes (the pixels, GBA_W x GBA_H words), for web_climb_deliver */
+__attribute__((export_name("web_climb_inbox"))) void* web_climb_inbox(void) {
+	if (!C.web) return NULL;
+	C.wr = free_pic();
+	return C.pics[C.wr].px;
+}
+
+/* The picture of frame `seq` is in the inbox: ok if the worker drew one, and the scroll it was drawn from, the six
+ * numbers two to a word. A job the game has since dropped (a reset, the epoch) is let go. */
+__attribute__((export_name("web_climb_deliver"))) void web_climb_deliver(uint32_t seq, uint32_t epoch, int ok, uint32_t r01, uint32_t r23, uint32_t r45) {
+	if (!C.web) return;
+	Pic* p = &C.pics[C.wr];
+	p->seq = seq, p->epoch = epoch, p->ok = ok;
+	p->regs[0] = (uint16_t) r01, p->regs[1] = (uint16_t) (r01 >> 16), p->regs[2] = (uint16_t) r23, p->regs[3] = (uint16_t) (r23 >> 16);
+	p->regs[4] = (uint16_t) r45, p->regs[5] = (uint16_t) (r45 >> 16);
+	C.ready = C.wr;
+	C.busy = false;
+}
+
+/* The worker failed or the page has none: the game on one screen from here on */
+__attribute__((export_name("web_climb_offload"))) void web_climb_offload(int on) {
+	if (!on && C.web) C.broken = true, C.busy = C.reqPending = C.havePic = false;
+}
+
+/* The worker's side */
+static Job serveJob;
+static bool servePending, serveDone;
+static int serveOk;
+
+__attribute__((export_name("web_serve_climb_snapshot"))) void* web_serve_climb_snapshot(void) { return C.st[0]; }
+__attribute__((export_name("web_serve_climb_snapshot_size"))) uint32_t web_serve_climb_snapshot_size(void) { return C.st[0] ? (uint32_t) C.stateSize : 0; }
+/* where the page puts the job's fields (a Job: seq, epoch, slot, keys before, keys now, camera, the sprite table) */
+__attribute__((export_name("web_serve_climb_info"))) void* web_serve_climb_info(void) { return &serveJob; }
+__attribute__((export_name("web_serve_climb_go"))) void web_serve_climb_go(void) { servePending = true; }
+/* The job finished since the last call (0: none); in info the picture's pointer, the frame, the epoch, ok and the
+ * scroll as web_climb_deliver has it */
+__attribute__((export_name("web_serve_climb_result"))) uint32_t web_serve_climb_result(uint32_t* info) {
+	if (!serveDone) return 0;
+	serveDone = false;
+	const Pic* p = &C.pics[0];
+	info[0] = (uint32_t) (uintptr_t) p->px, info[1] = p->seq, info[2] = p->epoch, info[3] = (uint32_t) p->ok;
+	info[4] = p->regs[0] | (uint32_t) p->regs[1] << 16, info[5] = p->regs[2] | (uint32_t) p->regs[3] << 16, info[6] = p->regs[4] | (uint32_t) p->regs[5] << 16;
+	return 1;
+}
+
+int climb_web_serve(const char* rom, const char* code) {
+	const MapProfile* p = profile_find(code);
+	if (!p || !p->climb.on[0].addr || !open_copy(rom, p)) {
+		fprintf(stderr, "climb worker: no copy for %s (%s)\n", code, rom);
+		return 1;
+	}
+	C.stateSize = emu_state_size(&C.e);
+	C.st[0] = malloc(C.stateSize);
+	if (!C.st[0]) return 1;
+	C.async = C.open = true; /* (climb_frames: the picture into pics[wr], the keys from the job) */
+	C.wr = 0;
+	fprintf(stderr, "climb worker: %s\n", p->title);
+	for (;;) {
+		if (servePending) {
+			servePending = false;
+			C.job = 0, C.prevKeys = serveJob.keysPrev, C.nowKeys = serveJob.keysNow, C.gameCam = serveJob.cam;
+			memcpy(C.gameOam, serveJob.oam, sizeof(C.gameOam));
+			bool up = climb_frames();
+			Pic* pic = &C.pics[0];
+			pic->seq = serveJob.seq, pic->epoch = serveJob.epoch, pic->ok = up;
+			if (up) copy_regs(pic->regs);
+			serveDone = true;
+		}
+		web_sleep(servePending ? 0 : 2);
+	}
+}
+#endif

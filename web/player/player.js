@@ -407,7 +407,7 @@ const onKey = (ev, l) => { KEY_LISTENERS[ev].push(l); window.addEventListener(ev
 // what a build's web version can do, from what it exports
 function buildCaps(module) {
   const names = new Set(WebAssembly.Module.exports(module).map((e) => e.name));
-  return { hasAudio: names.has("web_audio_pull"), hasButtons: names.has("web_buttons"), hasCaptureWorker: names.has("web_capture_job") };
+  return { hasAudio: names.has("web_audio_pull"), hasButtons: names.has("web_buttons"), hasCaptureWorker: names.has("web_capture_job"), hasClimbWorker: names.has("web_climb_job") };
 }
 const NO_SOUND = "No sound: this build's web version was made without it.";
 const NO_BUTTONS = "Keyboard only: X and Y can't be pressed with this build.";
@@ -902,6 +902,7 @@ function addLog(line) {
 }
 async function stopRun() {
   stopCapture();
+  stopClimb();
   if (!P.worker) return;
   await request({ t: "stop" });
   P.worker.terminate();
@@ -964,6 +965,10 @@ async function boot(opts) {
   // map captures in a worker of their own, from the start (?nocapw: in the game, to compare)
   const capWorker = !!P.build.caps.hasCaptureWorker && !/[?&]nocapw\b/.test(location.search);
   if (capWorker) env.GBADS_CAPTURE_OFFLOAD = "1";
+  // DK: King of Swing's level above in a worker of its own where there's a second core (?noclimbw: in step in the game, to compare)
+  const climbWorker = !!P.build.caps.hasClimbWorker && (navigator.hardwareConcurrency || 2) > 1 && !/[?&]noclimbw\b/.test(location.search);
+  if (climbWorker) env.GBADS_CLIMB_OFFLOAD = "1";
+  else env.GBADS_CLIMB_INSTEP = "1";
   P.capFiles = files.filter(([p]) => p.startsWith("/gba-ds/") || p.startsWith("/roms/"));
   P.capEnv = { GBADS_CONFIG: env.GBADS_CONFIG, HOME: "/home", ...(debug ? { GBADS_DEBUG: "1" } : {}) };
   P.log.length = 0;
@@ -983,7 +988,7 @@ async function boot(opts) {
   showNow(opts.library);
   relayout();
   const stage = $("stage"), dpr = window.devicePixelRatio || 1;
-  worker.postMessage({ t: "boot", wasm: P.build.module, files, args, env, canvas, captureWorker: capWorker, debug, canvas2,
+  worker.postMessage({ t: "boot", wasm: P.build.module, files, args, env, canvas, captureWorker: capWorker, climbWorker, debug, canvas2,
     layout: { cw: Math.round(stage.clientWidth * dpr), ch: Math.round(stage.clientHeight * dpr), smooth: !!S.smooth, rects: [] } }, canvas2 ? [canvas, canvas2] : [canvas]);
   relayout();
   if (A.node) linkSound();
@@ -996,6 +1001,54 @@ function workerError(e) {
   if (e && e.error) return String(e.error.stack || e.error);
   return "the browser gave no reason (its worker may not have been allowed to start" + (location.protocol === "file:" ? " from a file on disk: try the player on its website" : "") + ")";
 }
+/* ---- DK's level above in a worker of its own (a second copy of the app, the captures' way) */
+const CLB = { w: null, key: "", busy: false, next: null, dead: false };
+function stopClimb() {
+  if (CLB.w) CLB.w.terminate();
+  Object.assign(CLB, { w: null, key: "", busy: false, next: null, dead: false });
+}
+function climbJob(m) {
+  if (CLB.dead) return;
+  const key = m.rom + "|" + m.code;
+  if (!CLB.w || CLB.key !== key) {
+    if (CLB.w) CLB.w.terminate();
+    let w;
+    try { w = new Worker(sourceURL("worker", ["runtime"])); }
+    catch (e) { climbFailed("the climb worker didn't start: " + e.message); return; }
+    Object.assign(CLB, { w, key, busy: false, next: null });
+    w.onmessage = (e) => onClimb(w, e.data);
+    w.onerror = (e) => { if (CLB.w === w) climbFailed(workerError(e)); };
+    const env = Object.assign({}, P.capEnv, { GBADS_CLIMB_SERVE: m.code });
+    const mine = P.capFiles.some(([p]) => p === m.rom);
+    const files = P.capFiles.filter(([p]) => !p.startsWith("/roms/") || !mine || p === m.rom);
+    w.postMessage({ t: "bootClimb", wasm: P.build.module, files, args: ["/gba-ds/gba-ds", "--asset-dir=/gba-ds", m.rom], env });
+  }
+  // (one at a time: the game asks for a newer frame only when it has the last one's picture)
+  if (CLB.busy) { CLB.next = m; return; }
+  CLB.busy = true;
+  CLB.w.postMessage(m, [m.state, m.oam]);
+}
+function onClimb(w, m) {
+  if (w !== CLB.w) return;
+  switch (m.t) {
+    case "log": addLog("[climb] " + m.line); break;
+    case "climbresult":
+      CLB.results = (CLB.results || 0) + 1;
+      if (P.worker) P.worker.postMessage(m, m.state ? [m.buf, m.state] : [m.buf]);
+      CLB.busy = false;
+      if (CLB.next) { const n = CLB.next; CLB.next = null; climbJob(n); }
+      break;
+    case "exit": climbFailed(m.error || "it closed (" + m.code + ")"); break;
+  }
+}
+// the copy is lost: the game goes on one screen with the logo
+function climbFailed(why) {
+  addLog("climb worker stopped: " + why + "; the level above is gone from here on");
+  if (CLB.w) CLB.w.terminate();
+  Object.assign(CLB, { w: null, busy: false, next: null, dead: true });
+  if (P.worker) P.worker.postMessage({ t: "climboff" });
+}
+
 /* ---- map captures in a worker of their own (a second copy of the app) */
 const CAP = { w: null, key: "", busy: false, next: null, dead: false };
 function stopCapture() {
@@ -1048,6 +1101,9 @@ function onWorker(worker, m) {
   if (worker !== P.worker) return;
   switch (m.t) {
     case "capjob": CAP.jobs = (CAP.jobs || 0) + 1; captureJob(m); break;
+    case "climbjob": CLB.jobs = (CLB.jobs || 0) + 1; climbJob(m); break;
+    // (the pictures' buffer, back to the climb worker to be used again)
+    case "climbreturn": if (CLB.w) CLB.w.postMessage(m, [m.buf]); break;
     // (the pictures' buffer, back to the capture worker to be used again)
     case "capreturn": if (CAP.w) CAP.w.postMessage(m, [m.buf]); break;
     case "log": addLog(m.line); break;
@@ -1066,6 +1122,7 @@ function onWorker(worker, m) {
 function endRun(worker) {
   if (worker !== P.worker) return;
   stopCapture();
+  stopClimb();
   setTimeout(() => worker.terminate(), 200);
   P.worker = null;
   showStopped();
@@ -1579,7 +1636,7 @@ $("logBtn").onclick = () => { $("logText").textContent = P.log.join("\n") || "(n
 $("logCopy").onclick = () => navigator.clipboard.writeText(P.log.join("\n")).then(() => toast("Log copied."), () => toast("Couldn't copy.", true));
 
 // for tests and the console: what's loaded and running (read it, don't change it)
-window.gbadsPlayer = { P, S, F, sound: A, capture: CAP, currentMask: () => currentMask(), rotation: () => rotation() };
+window.gbadsPlayer = { P, S, F, sound: A, capture: CAP, climb: CLB, currentMask: () => currentMask(), rotation: () => rotation() };
 
 /* ================================================================ phones */
 // on their side, the bar hides while playing; the pill at the top brings it back

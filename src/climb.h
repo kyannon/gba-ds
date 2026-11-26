@@ -27,4 +27,9 @@ bool climb_waiting(void);
 /* The game jumped (a state loaded, a rewind): what the copy kept is from another moment */
 void climb_reset(void);
 
+#ifdef __wasi__
+/* The web player's climb worker (main, with GBADS_CLIMB_SERVE=CODE, the ROM last): the copy's frames as jobs come */
+int climb_web_serve(const char* rom, const char* code);
+#endif
+
 #endif
