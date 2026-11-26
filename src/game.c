@@ -4910,6 +4910,17 @@ static void hud_compose(void) {
 	/* (hud.alt.moves: its own, on the other layer) */
 	if (movesIn == h->moves && hudAlt && (h->alt.moves[0].how || h->alt.moves[0].vhow || h->alt.moves[0].toGame)) movesIn = h->alt.moves;
 	if (hudAlt && h->alt.rows) movesIn = NULL; /* (hud.alt.rows: the game draws the rest itself) */
+	/* (hud.moves' `always` pieces, where no other moves are) */
+	HudMove movesA[HUD_MOVES];
+	if (!movesIn && !hudScene) {
+		int n = 0;
+		for (int m = 0; m < HUD_MOVES; ++m)
+			if (h->moves[m].always) movesA[n++] = h->moves[m];
+		if (n) {
+			memset(&movesA[n], 0, sizeof(HudMove) * (HUD_MOVES - n));
+			movesIn = movesA;
+		}
+	}
 	/* with a BG mosaic on (fading out through a pipe), the boxes' top and
 	 * bottom go to the blocks' edges: a block across a box's edge is drawn
 	 * from its first row, so it goes with the box above */

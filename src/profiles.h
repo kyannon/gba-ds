@@ -98,6 +98,11 @@ typedef struct {
 	 * top `under` rows below their lowest (F-Zero: GP Legend's LAST under
 	 * SPARE MACHINE or BEST TIME); with none there, by how / vhow */
 	int under;
+	/* hud.moves: also while the `layout` probes don't match and on the
+	 * other layer (alt.rows too): a piece that always goes (Pokemon Mystery
+	 * Dungeon's black left edge back onto the game screen, its status
+	 * line centred) */
+	bool always;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`

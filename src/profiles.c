@@ -12973,16 +12973,23 @@ static const MapProfile profiles[] = {
 		.hud = {
 			.on = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x0100, 0x0100, 2 }, { 0x0202B07A, 0xF000, 0xE000, 2 } },
 			.keep = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 } },
-			/* the stairs menu's close puts the canvas back in the game's copy for a frame while a window tile is still
-			 * in VRAM: not a picture to keep */
-			.freeze = { { 0x06006042, 0xF000, 0xF000, 2 }, { 0x0202B07A, 0xF000, 0xE000, 2 } },
+			/* a menu's close puts the canvas back in the game's copy a frame or two before VRAM, which still has the
+			 * menu's window tile or a blank one (the main menu of some games leaves row 1, column 1 blank): not a
+			 * picture to keep (PMD-3) */
+			.freeze = { { 0x06006042, 0xF000, 0x0000, 2, true, 0xF000 }, { 0x0202B07A, 0xF000, 0xE000, 2 } },
 			.bgMask = 1,
 			/* the player's dot on the map: a blinking 8x8 sprite, tile 533, palette 15 */
 			.objs = { { -16, -16, 255, 175, 533, 533, 0, 1u << 15 } },
 			.black = true,
 			/* the message box (rows 15-19) clears only the canvas's bottom rows: while its window is in VRAM it goes back onto the game screen, the map stays live (PMD-3) */
 			.layout = { { 0x06006404, 0xF000, 0xF000, 2 } },
-			.moves = { { 0, 120, 239, 159, 0, 0, 0, 0, true } },
+			.moves = {
+				/* the game's black line down column 0, over the field's first column: stays on the game screen (PMD-2) */
+				{ .x0 = 0, .y0 = 0, .x1 = 0, .y1 = 159, .toGame = true, .always = true },
+				/* the status line (x 8 to 174) centred across the top of the second screen (PMD-2) */
+				{ .x0 = 1, .y0 = 0, .x1 = 239, .y1 = 7, .how = 'L', .x = 37, .always = true },
+				{ 0, 120, 239, 159, 0, 0, 0, 0, true },
+			},
 			/* menus, dialogue, the stairs prompt and the floor banner clear the canvas: the game draws BG0 below its
 			 * status line, which stays on the second screen, live, over the map as it was (PMD-3) */
 			.alt = { .on = { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x0100, 0x0100, 2 } }, .bgMask = 1, .rows = 8,
