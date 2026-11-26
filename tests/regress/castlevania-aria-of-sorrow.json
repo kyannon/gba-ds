@@ -346,7 +346,7 @@
    "state": "castlevania-aria-of-sorrow/us-play.ss",
    "desc": "one landscape display, both screens side by side, the second 40%",
    "rules": [
-    "GEN-18",
+    "GEN-19",
     "CVA-1"
    ],
    "config": {
@@ -362,7 +362,7 @@
    },
    "checks": [
     {
-     "rule": "GEN-18",
+     "rule": "GEN-19",
      "what": "both screens cut from the display",
      "type": "log",
      "match": "both on one display, 1920x1200 side 40% swap 0"
@@ -375,7 +375,7 @@
    "state": "castlevania-aria-of-sorrow/us-play.ss",
    "desc": "one display, auto picks stacked on a tall one, game below, the second 30%",
    "rules": [
-    "GEN-18",
+    "GEN-19",
     "CVA-1"
    ],
    "config": {
@@ -392,7 +392,7 @@
    },
    "checks": [
     {
-     "rule": "GEN-18",
+     "rule": "GEN-19",
      "what": "stacked, swapped",
      "type": "log",
      "match": "both on one display, 1200x1920 stacked 30% swap 1"
@@ -405,7 +405,7 @@
    "state": "castlevania-aria-of-sorrow/us-play.ss",
    "desc": "both screens on one display (side by side): the pause menu takes the whole display, and the two screens are back when it closes",
    "rules": [
-    "GEN-18",
+    "GEN-19",
     "CVA-1"
    ],
    "config": {
@@ -432,11 +432,19 @@
    },
    "checks": [
     {
-     "rule": "GEN-18",
+     "rule": "GEN-19",
      "what": "both screens cut from the display",
      "type": "log",
      "match": "both on one display, 1920x1200 side 40% swap 0"
     }
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     200,
+     70
+    ]
    ]
   }
  ]

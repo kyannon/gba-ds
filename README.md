@@ -45,6 +45,7 @@ Download the latest release from the [Releases page](https://github.com/kyannon/
 
 - **[ROCKNIX](https://github.com/kyannon/gba-ds/wiki/Install-on-ROCKNIX)** (stock ROCKNIX or ROCKNIXDS): unzip `gba-ds-v…-linux-aarch64.zip` into `/storage/roms/ports/` and start **GBA DS** from Ports. The guide also covers the Ports icon, starting games from EmulationStation's Game Boy Advance list, and upgrading.
 - **[BananaOS](https://github.com/kyannon/gba-ds/wiki/Install-on-BananaOS)**: the same zip, unzipped into the card's `roms/ports`; games in `roms/gba`.
+- **[Armada OS](https://github.com/kyannon/gba-ds/wiki/Install-on-Armada-OS)** (the AYN Thor's own system, experimental): in Game Mode the second screen goes on the bottom panel, with its touchscreen.
 - **[Stock Linux OS](https://github.com/kyannon/gba-ds/wiki/Install-on-Stock-Linux-OS)** (the RG DS Plus's own system, experimental): the same zip, unzipped into the card's `Ports` folder; games in `Roms/GBA`.
 - **[Android](https://github.com/kyannon/gba-ds/wiki/Install-on-Android)** (GammaOS): install `gba-ds-v…-android.apk`, allow All files access, and put your ROMs in `ROMs/gba`. To start games from GammaOS, Daijisho, ES-DE or another frontend, see [Launching from Android frontends](https://github.com/kyannon/gba-ds/wiki/Launching-from-Android-frontends).
 - **[In your web browser](https://kyannon.github.io/gba-ds/)** (beta): choose a GBA game and play it with its second screen on a computer, a tablet or a phone, with nothing to install. Your games and saves stay on your device.

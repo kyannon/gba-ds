@@ -1,5 +1,6 @@
 /* One play session: the emulator, the second-screen map, and the pause menu. */
 #include "game.h"
+#include "library.h"
 #include "i18n.h"
 #ifdef __wasi__
 extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_name("web_sleep")));
@@ -7892,7 +7893,7 @@ static void overlays_reload(void) {
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 }
 
-/* GEN-18: with both screens on one display the pause menu takes the whole
+/* GEN-19: with both screens on one display the pause menu takes the whole
  * display (it is drawn on the touch screen, which would be half of it); the
  * two screens come back when it closes. */
 static void menu_layout_sync(void) {
@@ -9993,6 +9994,15 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			pacedMisses = pacedMissSecs = 0; /* (the menu's time isn't the game's) */
 			forceMap = true;
 			hl.quietUntil = frameCount + 150; /* (the queue was cleared for the menu: refilling) */
+		}
+		if (menuOpen && !wasMenu && !cfg->languageAsked) {
+			/* launched straight into a game on a first install: the first pause asks the language, then the menu opens (issue #92) */
+			if (audio) {
+				SDL_PauseAudioDevice(audio, 1);
+				SDL_ClearQueuedAudio(audio);
+			}
+			library_language_ask(cfg);
+			suppress_held();
 		}
 		wasMenu = menuOpen;
 		menu_layout_sync();

@@ -182,6 +182,9 @@ SDL_Color ui_key_mid(int state);    /* about the key's colour (for cut-outs) */
  * align: -1 starts at x, 0 is centred on x, 1 ends at x. */
 void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
 int ui_font_width(int font, int capPx, const char* text);
+/* ui_font_text / ui_font_width without translating the text (a language's own name, a line kept in English) */
+void ui_font_text_as_is(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align);
+int ui_font_width_as_is(int font, int capPx, const char* text);
 /* the language changed (i18n_set): drop the old text's pictures and widths, set the script's fonts */
 void ui_language_changed(void);
 /* Word-wrapped to width, starting at the top-left x, y; returns the y below. */
