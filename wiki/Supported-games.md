@@ -13,6 +13,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
 | Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings | |
+| Cruis'n Velocity | `ACFE` (USA and Europe) | in a race: the time and the lap | |
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
@@ -173,6 +174,17 @@ The HUD is moved off the game screen rather than copied, as in Mario Kart: Super
 - The game's **pause menu** stays on the game screen, with the last HUD on the second screen. TRY AGAIN, the title and the menus show the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - Not tried yet: Adventure's boss races, CNK challenges, relic races and crystal arenas, Time Trial's results, and link play.
+
+## Cruis'n Velocity
+
+The one release, for the USA and Europe. Added by cmyksoda (pull request #98).
+
+- **In a race,** the second screen shows the time and the lap box, each where the game draws it, over the logo; they slide in with the game's own as the course's intro ends. The game screen keeps the rest: your place, the speed and turbos, the gear and rev bar, the start lights, WRONG WAY and the checkpoint signs.
+- **Paused,** the PAUSED page is on the game screen and the second screen keeps the time and lap as they were; they go live again when the race carries on. Quitting the race brings the logo back.
+- **The finish:** the game clears its time box to 00 00 00 just after the line. Instead, from the line to the end of the results page, the box shows the race's total time (the results page's total, added up right even where the page misprints it) and the lap box stays on the last lap.
+- **Elsewhere** (the title, the menus, the race's intro page, the standings, GAME OVER), the second screen shows the logo.
+- Playing on one screen, the time and the lap box stay on the game screen.
+- Not tried yet: the cup's podium after a race won in a cup, the tracks after Vegas, and Multi Player.
 
 ## Dragon Ball Z: Buu's Fury
 

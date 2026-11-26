@@ -45,5 +45,7 @@ extern const LogoMask logoMaskMVDK, logoMaskMVDKJ;
 extern const LogoMask logoMaskBGD;
 /* Rebelstar: Tactical Command (USA, Europe) */
 extern const LogoMask logoMaskRS;
+/* Cruis'n Velocity (USA, Europe) */
+extern const LogoMask logoMaskCRV;
 
 #endif

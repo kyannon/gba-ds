@@ -76,6 +76,7 @@ What this means in practice:
   - Final Fantasy VI Advance's world map minimap, the game's own corner map taken off the game screen and drawn twice as big on the second;
   - Super Mario Advance 2's level name moved above its status bar;
   - Super Mario Advance's course board, shown before each level, kept under the status bar through the level: trimmed at the top and bottom to fit, with its Ace Coin percentage taken from the pause screen;
+  - Cruis'n Velocity's time box after the finish, showing the race's total time (the figure from the results page, added up correctly) in the game's own digits instead of the zeros the game clears it to;
   - River City Ransom EX's Status screen on a plain blue background (one of the game's own pause colours) instead of the tinted street behind it;
   - Game Boy and Game Boy Color games on one screen with the other idle (a real GBA played those cartridges too), with the option of showing the Game Boy's own 160×144 picture as the whole screen instead of centred in the GBA's frame ([[Game Boy games]]);
   - Pokémon Mystery Dungeon: Red Rescue Team's SELECT kept from the game on a dungeon's field, where all it does is hide the field to show the floor map the second screen already shows (with two screens only), and its status line centred on the second screen;
