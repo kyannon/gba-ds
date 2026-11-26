@@ -64,9 +64,6 @@ msgstr "%s%s。如果 RetroArch 把状态存在别处，请另选。"
 msgid "%s (beside the ROM)"
 msgstr "%s（在 ROM 旁边）"
 
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "用 %s 当热键键，配合 Start、R1、L1、X、Y 和 B"
-
 msgid "%s has no button now"
 msgstr "%s 现在没有按键"
 
@@ -144,9 +141,6 @@ msgstr "A（右）键"
 
 msgid "A and B buttons"
 msgstr "A 和 B 键"
-
-msgid "A dark line under each row of pixels"
-msgstr "每行像素下面有一条暗线"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "游戏旁边已有的存档，或是另一种格式的存档，会在第一次玩时复制过来。.srm 是 RetroArch 用的格式：把它的存档文件夹也选上，就能和它共享每个游戏的存档。"
@@ -246,9 +240,6 @@ msgstr "与游戏开始时相同"
 
 msgid "Aug"
 msgstr "8月"
-
-msgid "Auto"
-msgstr "自动"
 
 msgid "Auto-load"
 msgstr "自动读取"
@@ -543,9 +534,6 @@ msgstr "下"
 
 msgid "Downloading"
 msgstr "正在下载"
-
-msgid "Each pixel a little darker toward its edges"
-msgstr "每个像素越靠边越暗一点"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "用你的 retroachievements.org 账号在休闲模式下获得成就。GBA DS 只保存登录令牌，不保存密码。"
@@ -916,14 +904,8 @@ msgstr "浅色/深色模式"
 msgid "Like a GBA"
 msgstr "像 GBA"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "像素之间有线条，像 GBA 的屏幕"
-
 msgid "Load failed"
 msgstr "读取失败"
-
-msgid "Load failed."
-msgstr "读取失败。"
 
 msgid "Load State"
 msgstr "读取状态"
@@ -1312,15 +1294,6 @@ msgstr "声音有杂音就调高。"
 msgid "Red"
 msgstr "红"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "红绿蓝条纹，轻微：适合暗的屏幕"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "红绿蓝条纹，像 GBA 的屏幕"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "红绿蓝条纹，明显：适合亮的屏幕"
-
 msgid "Reset"
 msgstr "重置"
 
@@ -1666,9 +1639,6 @@ msgstr "平滑缩放"
 msgid "Smoother, one frame more input delay."
 msgstr "更平滑，但多一帧输入延迟。"
 
-msgid "SNES"
-msgstr "SNES"
-
 msgid "Soft Cells"
 msgstr "柔化格子"
 
@@ -1798,9 +1768,6 @@ msgstr "打开 GBA DS 菜单的键（Home、Menu 或 Function）"
 msgid "the game"
 msgstr "游戏"
 
-msgid "The game's pixels as they are"
-msgstr "游戏画面原样显示"
-
 msgid "The GBA DS logo in the generated bezel."
 msgstr "生成的边框里的 GBA DS 徽标。"
 
@@ -1851,6 +1818,9 @@ msgstr "上面的主按键"
 
 msgid "This folder can't be opened"
 msgstr "无法打开这个文件夹"
+
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS 无法保存到这个文件夹：请选择其他文件夹"
 
 msgid "This game"
 msgstr "本游戏"
@@ -2077,6 +2047,45 @@ msgstr "机器翻译"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "声音延迟已提高到 %d 毫秒：声音一直断断续续"
+
+msgid "Android couldn't install the update."
+msgstr "Android 无法安装更新。"
+
+msgid "Android couldn't install the update: %s."
+msgstr "Android 无法安装更新：%s。"
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Android 不会在这份 GBA DS 上安装 v%s：它是用另一个密钥签名的（测试版？）。请卸载 GBA DS，然后从 github.com/kyannon/gba-ds/releases 安装新版本。GBA DS 文件夹中的文件会保留。"
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Android 不会在这份 GBA DS 上安装 v%s：这份是之后的测试版，而 Android 不会退回到更早的版本。请继续使用这份，或卸载 GBA DS 并从 github.com/kyannon/gba-ds/releases 安装 v%s（GBA DS 文件夹中的文件会保留）。"
+
+msgid "Couldn't check for updates."
+msgstr "无法检查更新。"
+
+msgid "Couldn't check for updates: %s."
+msgstr "无法检查更新：%s。"
+
+msgid "Couldn't download the update: %s."
+msgstr "无法下载更新：%s。"
+
+msgid "Couldn't install the update: %s."
+msgstr "无法安装更新：%s。"
+
+msgid "Couldn't start installing the update: %s."
+msgstr "无法开始安装更新：%s。"
+
+msgid "Couldn't start the download."
+msgstr "无法开始下载。"
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "下载的文件与校验和不符。请重试。"
+
+msgid "The download was incomplete. Try again."
+msgstr "下载不完整。请重试。"
+
+msgid "There isn't enough storage free to install the update."
+msgstr "可用存储空间不足，无法安装更新。"
 
 # issue 92: the first-run language screen
 msgid "Choose the language for GBA DS's menus."

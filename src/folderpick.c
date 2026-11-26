@@ -79,7 +79,8 @@ static void load(View_* v, const char* path, const char* count, const char* sele
 		if (e->d_name[0] == '.') continue; /* (., .. and hidden folders) */
 		snprintf(full, sizeof(full), "%s/%s", strcmp(path, "/") ? path : "", e->d_name);
 		if (is_dir(full)) {
-			if (v->n < MAX_DIRS) v->names[v->n++] = strdup(e->d_name);
+			char* name = v->n < MAX_DIRS ? strdup(e->d_name) : NULL;
+			if (name) v->names[v->n++] = name;
 		} else if (count && strstr(e->d_name, count)) {
 			size_t l = strlen(e->d_name);
 			if (l < 4 || strcasecmp(e->d_name + l - 4, ".png")) ++v->counted;
@@ -315,7 +316,7 @@ FolderPick folder_pick(const char* title, const char* start, const char* count, 
 			result = FOLDER_AUTO, finished = true;
 		} else if (act == -10 - BTN_USE) {
 			if (access(v->path, W_OK) != 0) {
-				snprintf(v->note, sizeof(v->note), "GBA DS can't save in this folder: choose another");
+				snprintf(v->note, sizeof(v->note), "%s", tr("GBA DS can't save in this folder: choose another"));
 			} else {
 				snprintf(out, n, "%s", v->path);
 				result = FOLDER_CHOSEN, finished = true;

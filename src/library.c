@@ -52,6 +52,16 @@ typedef struct {
 static GameEntry* games;
 static int nGames, capGames;
 
+/* An array grown to hold n + 1 elements (doubling from `first`): the array,
+ * or NULL (the old one, still there, left as it was) when there's no memory. */
+static void* grow(void* p, int* cap, int n, size_t elem, int first) {
+	if (n < *cap) return p;
+	int c = *cap ? *cap * 2 : first;
+	void* q = realloc(p, elem * (size_t) c);
+	if (q) *cap = c;
+	return q;
+}
+
 /* (the accent's colours: Settings > Display > Color) */
 #define C_BG ui_accent_color(AC_BG)
 #define C_HEADER ui_accent_color(AC_HEADER)
@@ -82,10 +92,13 @@ static Mark* mark_find(const char* path, bool create) {
 	for (int i = 0; i < nMarks; ++i)
 		if (!strcmp(marks[i].path, path)) return &marks[i];
 	if (!create) return NULL;
-	if (nMarks == capMarks) {
-		capMarks = capMarks ? capMarks * 2 : 64;
-		marks = realloc(marks, sizeof(*marks) * capMarks);
+	Mark* grown = grow(marks, &capMarks, nMarks, sizeof(*marks), 64);
+	if (!grown) {
+		static Mark spare; /* (no memory: the mark isn't kept) */
+		memset(&spare, 0, sizeof(spare));
+		return &spare;
 	}
+	marks = grown;
 	Mark* m = &marks[nMarks++];
 	memset(m, 0, sizeof(*m));
 	snprintf(m->path, sizeof(m->path), "%s", path);
@@ -184,20 +197,24 @@ static void code_index_put(int i) {
 	codeIndex[k] = i;
 }
 
+/* (no memory for it: not remembered, read again next time) */
 static void code_cache_add(const CodeCache* c) {
-	if (nCodeCache == capCodeCache) {
-		capCodeCache = capCodeCache ? capCodeCache * 2 : 256;
-		codeCache = realloc(codeCache, sizeof(*codeCache) * capCodeCache);
-	}
-	codeCache[nCodeCache++] = *c;
-	if (nCodeCache * 2 > nCodeIndex) {
-		nCodeIndex = nCodeIndex ? nCodeIndex * 2 : 512;
-		while (nCodeCache * 2 > nCodeIndex) nCodeIndex *= 2;
+	CodeCache* grown = grow(codeCache, &capCodeCache, nCodeCache, sizeof(*codeCache), 256);
+	if (!grown) return;
+	codeCache = grown;
+	if ((nCodeCache + 1) * 2 > nCodeIndex) {
+		/* (the index made again, twice as big, before anything is let go) */
+		int n = nCodeIndex ? nCodeIndex * 2 : 512;
+		while ((nCodeCache + 1) * 2 > n) n *= 2;
+		int* index = malloc(sizeof(*index) * (size_t) n);
+		if (!index) return;
 		free(codeIndex);
-		codeIndex = malloc(sizeof(*codeIndex) * nCodeIndex);
+		codeIndex = index, nCodeIndex = n;
+		codeCache[nCodeCache++] = *c;
 		for (int i = 0; i < nCodeIndex; ++i) codeIndex[i] = -1;
 		for (int i = 0; i < nCodeCache; ++i) code_index_put(i);
 	} else {
+		codeCache[nCodeCache++] = *c;
 		code_index_put(nCodeCache - 1);
 	}
 }
@@ -485,10 +502,9 @@ static void scan_dir(Config* cfg, const char* d, int depth) {
 		const MapProfile* prof = profile_find(g.code);
 		if (prof && prof->listName) snprintf(g.name, sizeof(g.name), "%s", prof->listName);
 		if (!cfg->nameTags) strip_tags(g.name);
-		if (nGames == capGames) {
-			capGames = capGames ? capGames * 2 : 64;
-			games = realloc(games, sizeof(*games) * capGames);
-		}
+		GameEntry* grown = grow(games, &capGames, nGames, sizeof(*games), 64);
+		if (!grown) continue; /* (no memory: not listed) */
+		games = grown;
 		games[nGames++] = g;
 	}
 	closedir(dir);
@@ -501,7 +517,7 @@ static int region_flag(char c) {
 	if (c == 'J') return BRAND_FLAG_JP;
 	if (c == 'F') return BRAND_FLAG_FR;
 	if (c == 'D') return BRAND_FLAG_DE;
-	if (strchr("PDFSIHXYZU", c) && c) return BRAND_FLAG_EU;
+	if (c && strchr("PSIHXYZU", c)) return BRAND_FLAG_EU; /* (D and F: above) */
 	return -1;
 }
 
@@ -521,7 +537,7 @@ typedef struct {
 	char path[1024];
 } RomCrc;
 static RomCrc* romCrcs;
-static int nRomCrcs;
+static int nRomCrcs, capRomCrcs;
 static bool romCrcsDirty;
 static pthread_mutex_t crcLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t crcWake = PTHREAD_COND_INITIALIZER;
@@ -547,7 +563,9 @@ static void rom_crc_put(const RomCrc* c) {
 	if (old) {
 		*old = *c;
 	} else {
-		romCrcs = realloc(romCrcs, sizeof(*romCrcs) * (nRomCrcs + 1));
+		RomCrc* grown = grow(romCrcs, &capRomCrcs, nRomCrcs, sizeof(*romCrcs), 64);
+		if (!grown) return; /* (no memory: worked out again next time) */
+		romCrcs = grown;
 		romCrcs[nRomCrcs++] = *c;
 	}
 	romCrcsDirty = true;
@@ -601,7 +619,9 @@ static void rom_crc_load(const Config* cfg) {
 		FILE* f = fopen(path, "r");
 		RomCrc c;
 		while (f && fscanf(f, "%lld %lld %x %d %1023[^\n]", &c.size, &c.mtime, &c.crc, &c.patch, c.path) == 5) {
-			romCrcs = realloc(romCrcs, sizeof(*romCrcs) * (nRomCrcs + 1));
+			RomCrc* grown = grow(romCrcs, &capRomCrcs, nRomCrcs, sizeof(*romCrcs), 64);
+			if (!grown) break;
+			romCrcs = grown;
 			romCrcs[nRomCrcs++] = c;
 		}
 		if (f) fclose(f);
