@@ -776,6 +776,18 @@ size_t emu_state_size(Emu* e) {
 	return e->core->stateSize(e->core);
 }
 
+bool emu_state_patch32(Emu* e, void* state, uint32_t addr, uint32_t orig, uint32_t word) {
+	(void) e;
+	struct GBASerializedState* st = state;
+	uint8_t* p = addr >= 0x03000000 && addr < 0x03008000 ? st->iwram + (addr & 0x7FFC) : addr >= 0x02000000 && addr < 0x02040000 ? st->wram + (addr & 0x3FFFC) : NULL;
+	uint32_t was;
+	if (!p) return false;
+	memcpy(&was, p, 4);
+	if (was != orig) return false;
+	memcpy(p, &word, 4);
+	return true;
+}
+
 bool emu_state_save(Emu* e, void* buf) {
 	return e->core->saveState(e->core, buf);
 }

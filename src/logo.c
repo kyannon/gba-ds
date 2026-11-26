@@ -277,7 +277,7 @@ static bool extract(const char* romPath, const char* gameCode, const char* outPn
 				uint32_t c = fg[i];
 				int r = c & 0xFF, g = (c >> 8) & 0xFF, b = (c >> 16) & 0xFF;
 				bool clearIt = false;
-				for (int k = 0; k < 4 && L->edgeClear[k] && !clearIt; ++k) {
+				for (int k = 0; k < 8 && L->edgeClear[k] && !clearIt; ++k) {
 					uint32_t e = L->edgeClear[k];
 					clearIt = abs(r - (int) (e >> 16 & 0xFF)) + abs(g - (int) (e >> 8 & 0xFF)) + abs(b - (int) (e & 0xFF)) < 20;
 				}

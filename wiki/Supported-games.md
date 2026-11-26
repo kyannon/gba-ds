@@ -17,6 +17,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Densetsu no Stafy | `ASTJ` (Japan only) | in a stage: the HUD and the logo | The Starfy Translation Team's The Legendary Starfy v1.1, Starfy Origins v1.1 and Densetsu no Starfy v1.1 |
 | Densetsu no Stafy 2 | `AVFJ` (Japan only) | in a stage: the HUD and the logo | The Legendary Starfy 2 English v0.9.9 |
 | Densetsu no Stafy 3 | `B3DJ` (Japan only) | in a stage: the HUD and the logo | The Legendary Starfy 3 English v1.0.5 |
+| DK: King of Swing (Bura Bura Donkey in Japan) | `BBKE` `BBKP` `BBKJ` | in a level: the level above the game's screen | |
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
@@ -223,6 +224,17 @@ The Japanese release (the first release and Rev 1), and the English patch v1.0.5
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
 - Checked in the first stage. Not tried yet: the shop, boss fights and the minigames.
+
+## DK: King of Swing
+
+All three releases: the USA, Europe (in each of its five languages) and Japan's Bura Bura Donkey. Added by cmyksoda (pull request #105).
+
+- **In a level** (the tutorial's rooms and the world map's levels), the two screens are one tall screen: the game, hearts and bananas included, on the bottom screen, and the 160 rows of the level above it on the top, moving with the game's camera: the pegs and bananas coming up, the sky above them. A second copy of the game, kept in step with yours every frame, draws them.
+- **At the top of a level,** where the camera stops, DK climbs on across the gap: for a moment he's split between the two screens, then he's on the top screen with the pegs he left on the bottom one.
+- **Elsewhere** (the title, the file select, the menus, the world map, the Jungle Jam scenes, King K. Rool's fights, the cutscenes), the game is on the top screen and the second screen shows the logo.
+- The in-game settings' Pinball two-screen view (Off) turns the tall view off for this game too: the game on the top screen, the logo on the other. Playing on one screen, the game plays as it is.
+- While you hold rewind, the top screen holds still; after a second and a half the game goes back to the top screen and the logo to the other until you let go.
+- Not tried yet: the end of a level and its score screen, a death by damage, Time Attack and Jungle Jam played from their menus, and multiplayer.
 
 ## Dragon Ball Z: Buu's Fury
 

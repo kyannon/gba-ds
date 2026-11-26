@@ -128,7 +128,7 @@ typedef struct {
 	 * the lettering's dithered or translucent edge (Mario & Luigi's
 	 * sky, its shadow's specks), or a layer's own background
 	 * (Battle Network Rockman EXE's blue) */
-	uint32_t edgeClear[4];
+	uint32_t edgeClear[8];
 	/* a drop shadow of this colour (0xRRGGBB; either of a game's two
 	 * colour sets) stays only below and right of the lettering:
 	 * where there's lettering (or shadow kept) up to shadowReach rows
@@ -357,6 +357,24 @@ typedef struct MapProfile {
 			} carry;
 		} live;
 	} tall;
+	/* Logo-only games whose levels are climbs (climb.c, game.c update_climb): in a
+	 * level (`on`) the game is on the bottom screen and a copy of it, its camera a
+	 * screen higher, draws the level above it on the top one. `shift`: the 16.16
+	 * camera rows lowered in the copy before each frame (the camera's y first, its
+	 * picture used only while it's a screen above the game's). `patch`: ARM words
+	 * for the copy's ROM, each only if `orig` is there, so the code that moves the
+	 * camera with the player works on the real row. `layer`: each layer's table of
+	 * map blocks (pointer word), x and y words (16.16) and 32x32 map in VRAM, filled
+	 * for the lowered rows. */
+	struct {
+		MemProbe on[3];
+		/* the shadow sprite table: the copy's sprites alike the game's in the same slot
+		 * and place are fixed to the screen (a speech bubble) and left out */
+		uint32_t oam;
+		uint32_t shift[8];
+		struct { uint32_t addr, orig, word; } patch[24];
+		struct { uint32_t table, x, y, map; } layer[3];
+	} climb;
 	/* A second button layout for games ported from four-face-button
 	 * consoles (Tony Hawk's: GBA L / R stand in for two face buttons). The
 	 * four-face layout puts GBA A on the top face button, B on the bottom,

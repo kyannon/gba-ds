@@ -13190,6 +13190,48 @@ static const MapProfile profiles[] = {
 		                         { 0x0202B07A, 0xF000, 0xE000, 2 }, { 0x0202B43C, 0xF000, 0xE000, 2 } } },
 	},
 	{
+		/* DK: King of Swing (docs/games/dk-king-of-swing.md) */
+		.codes = { "BBKE" },
+		.title = "DK: King of Swing",
+		.logoOnly = true,
+		.climb = {
+			/* the three backgrounds and sprites on (the pause turns the HUD's layer off for a frame), a
+			 * table of map blocks loaded, and DK's object (0x02022000, a ROM pointer; 0 on the menus
+			 * and Jungle Jam scenes, which load tables too) */
+			.on = { { 0x04000000, 0x1E00, 0x1E00, 2 }, { 0x030001B0, 0xFF000000, 0x08000000, 4 },
+			        { 0x02022000, 0xFF000000, 0x08000000, 4 } },
+			.oam = 0x03000600,
+			/* the camera's y (16.16; 0x94 this frame's, 0x9C last frame's), BG2's and BG3's, and the
+			 * row they move from (0x4FC) */
+			.shift = { 0x03000094, 0x0300009C, 0x030000A4, 0x030000AC, 0x030000B4, 0x030000BC, 0x030004FC },
+			/* the code that moves the camera with DK (0x084E67BC) adds the shift back to its start row
+			 * (0x84E67C0) and takes it off the two stores of its new row (0x84E6B70, 0x84E6B98): caves
+			 * at 0x087B2000 in unused ROM */
+			.patch = { { 0x084E67C0, 0xE59A7094, 0xEA0B2E0E }, { 0x084E6B70, 0xE58A9094, 0xEA0B2D25 },
+			           { 0x084E6B98, 0xE58A9094, 0xEA0B2D1E },
+			           { 0x087B2000, 0xFFFFFFFF, 0xE59A7094 }, { 0x087B2004, 0xFFFFFFFF, 0xE287760A },
+			           { 0x087B2008, 0xFFFFFFFF, 0xEAF4D1ED }, { 0x087B200C, 0xFFFFFFFF, 0xE249860A },
+			           { 0x087B2010, 0xFFFFFFFF, 0xE58A8094 }, { 0x087B2014, 0xFFFFFFFF, 0xEAF4D2D6 },
+			           { 0x087B2018, 0xFFFFFFFF, 0xE249860A }, { 0x087B201C, 0xFFFFFFFF, 0xE58A8094 },
+			           { 0x087B2020, 0xFFFFFFFF, 0xE12FFF1E },
+			           /* the map row streamer (0x08327438) skips rows above the level's top: a cave at
+			            * 0x087B2024 (addgt r1,r1,#240; cmp r1,#0; bxlt lr; b 0x0832744C) */
+			           { 0x08327448, 0xC28110F0, 0xEA122AF5 }, { 0x087B2024, 0xFFFFFFFF, 0xC28110F0 },
+			           { 0x087B2028, 0xFFFFFFFF, 0xE3510000 }, { 0x087B202C, 0xFFFFFFFF, 0xB12FFF1E },
+			           { 0x087B2030, 0xFFFFFFFF, 0xEAEDD505 },
+			           /* the sprite builder runs from IWRAM (copied there at a level's start): it reads the camera's row
+			            * unsigned, so DK and the other sprites vanish above row 0 (ldrh r5,[sl,#150] -> ldrsh) */
+			           { 0x03002510, 0xE1DA59B6, 0xE1DA59F6 } },
+			/* BG1, BG2, BG3: the pointer to the table of map blocks, x, y (16.16), the map in VRAM */
+			.layer = { { 0x030001B0, 0x03000090, 0x03000094, 0xE800 }, { 0x030001B4, 0x030000A0, 0x030000A4, 0xF000 },
+			           { 0x030001B8, 0x030000B0, 0x030000B4, 0xF800 } },
+		},
+		/* the title's lettering is sprites: START past the health warning and the Nintendo and
+		 * Paon screens, then the name alone above the monkey, whose browns show between the letters */
+		.logo = { .steps = { { 0, 500 }, { K_START, 8 }, { 0, 600 } }, .layers = 0x10, .maxY = 82,
+		          .edgeClear = { 0xD67318, 0x6B3918, 0xBD6318, 0xA55218, 0x845A18, 0xB57B63, 0xE7A584 } },
+	},
+	{
 		/* Densetsu no Stafy (docs/games/densetsu-no-stafy.md), and the Starfy
 		 * Translation Team's English patches (Mods row): the same RAM and screens */
 		.codes = { "ASTJ" },
@@ -13872,6 +13914,41 @@ static void pmd_jpn(MapProfile* p) {
 	pmd_moved(p, -0x790, 0);
 }
 
+/* DK: King of Swing in Europe and Japan: the USA's RAM and code, the code moved in the ROM as blocks (the camera's by
+ * `cam`, the row streamer's by `rows`): the patches' branches aimed again, the caves after each ROM's last data */
+static uint32_t dkks_at(uint32_t a, int cam, int rows, uint32_t cave) {
+	if (a >= 0x087B2000 && a < 0x087B2100) return a - 0x087B2000 + cave;
+	if (a >= 0x084E6000 && a < 0x084E8800) return a + cam;
+	if (a >= 0x08327000 && a < 0x083274B0) return a + rows;
+	return a;
+}
+static void dkks_moved(MapProfile* p, int cam, int rows, uint32_t cave) {
+	for (int i = 0; i < 24 && p->climb.patch[i].addr; ++i) {
+		uint32_t a = p->climb.patch[i].addr, *w = &p->climb.patch[i].word;
+		if (*w >> 24 == 0xEA) {
+			uint32_t to = dkks_at(a + 8 + (uint32_t) ((int32_t) (*w << 8) >> 6), cam, rows, cave);
+			*w = 0xEA000000 | ((to - dkks_at(a, cam, rows, cave) - 8) >> 2 & 0xFFFFFF);
+		}
+		p->climb.patch[i].addr = dkks_at(a, cam, rows, cave);
+	}
+}
+/* Europe: the language menu first (A: English), then the title with no health warning to pass (DKKS-1) */
+static void dkks_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 8 }, { 0, 700 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	dkks_moved(p, 0x1D2F28, 0xF5880, 0x08AC5000);
+}
+/* Japan: the title by itself (no health warning), its lettering on a plank, the monkey below it (DKKS-1) */
+static void dkks_jpn(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 700 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+	p->logo.maxY = 58;
+	memset(p->logo.edgeClear, 0, sizeof(p->logo.edgeClear));
+	dkks_moved(p, -0x400C, -0x2C60, 0x087B3000);
+}
+
 static const Variant variants[] = {
 	{ "B24P", "B24E", 0, pmd_eur },
 	{ "B24J", "B24E", 0, pmd_jpn },
@@ -13997,6 +14074,8 @@ static const Variant variants[] = {
 	 * for profile_ram_moved; the profile reads nothing at the shifted addresses) */
 	{ "BPPJ", "BPPE", -0x10A0, pp_jpn },
 	{ "BPPP", "BPPE", 0x120, pp_eur },
+	{ "BBKP", "BBKE", 0, dkks_eur },
+	{ "BBKJ", "BBKE", 0, dkks_jpn },
 };
 #define N_VARIANTS (sizeof(variants) / sizeof(*variants))
 static MapProfile variantProfiles[N_VARIANTS];

@@ -136,6 +136,8 @@ bool emu_cancelled(const Emu* e);
 void emu_reset(Emu* e);
 
 size_t emu_state_size(Emu* e);
+/* a word of EWRAM or IWRAM in a saved state set to `word`, only if it holds `orig` */
+bool emu_state_patch32(Emu* e, void* state, uint32_t addr, uint32_t orig, uint32_t word);
 bool emu_state_save(Emu* e, void* buf);
 bool emu_state_load(Emu* e, const void* buf);
 /* Rewind (mGBA's, one buffer of `entries` states for one core): append a
