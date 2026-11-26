@@ -7,4 +7,7 @@
 # The RG DS Plus's Stock Linux OS (ANBERNIC-rk3568-keys), from Map Buttons on the
 # device (Oct 23, 2026): face buttons by position as GBA DS reads them (a bottom,
 # b right, x top, y left). guide is raw 8; launch.sh makes raw 13 a HOME button too.
-1900b655010000000100000000010000,ANBERNIC-rk3568-keys,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,b:b0,a:b1,x:b3,y:b2,leftshoulder:b4,rightshoulder:b5,lefttrigger:b10,righttrigger:b11,back:b6,start:b7,guide:b8,leftstick:b9,lefty:a1,leftx:a0~,crc:55b6,platform:Linux,
+# leftx is a0 as it is: the Oct 23 mapping had a0~, which swapped the stick's left
+# and right in every menu and game (issue #104; the language question's grid
+# can't show it, any left or right goes to the other column).
+1900b655010000000100000000010000,ANBERNIC-rk3568-keys,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,b:b0,a:b1,x:b3,y:b2,leftshoulder:b4,rightshoulder:b5,lefttrigger:b10,righttrigger:b11,back:b6,start:b7,guide:b8,leftstick:b9,lefty:a1,leftx:a0,crc:55b6,platform:Linux,
