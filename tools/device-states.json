@@ -1152,6 +1152,16 @@
      "Japan, the story before the dungeon: the logo (PMD-5). Load slot 1 first, then this: the map goes after about a third of a second"
     ]
    }
+  },
+  "cruisn-velocity": {
+   "Cruis'n Velocity (USA, Europe)": {
+    "1": ["title.ss", "The title: the logo alone, at half strength on dark grey (CRV-1, CRV-5)"],
+    "2": ["main-menu.ss", "The main menu: the logo (CRV-5)"],
+    "3": ["race-intro.ss", "The race intro page: the logo. Press A: still the logo over VEGAS / FREESTYLE, then the time box and the lap box slide in on the second screen as the lights come up (CRV-2, CRV-5)"],
+    "4": ["race-countdown-red.ss", "The start lights: time 00 00 00 and LAP 1/4 on the second screen over the logo on black; the lights, speed, turbos, gear and rev bar stay on the game screen, and there's no time or lap box there (CRV-2, CRV-3)"],
+    "5": ["race-lap1-driving.ss", "Driving on lap 1, time running on the second screen. START: PAUSED on the game screen, the time held on the second; CONTINUE carries on with it live. Again with QUIT and YES: the logo once the main menu is up (CRV-4, CRV-5). Also try layout single: the boxes back on the game screen (CRV-6)"],
+    "6": ["race-finish.ss", "The countdown of a race set up so that its last lap ends at the start line (laps 1-3 written into the state: 30:20, 28:15, 27:20). Hold A from the load: as you cross the line the time box shows the four laps added up (01 37 00 when A is held at once; the results page then misprints it as 01:36:1:0) and LAP 4/4, and keeps them through the flag and the results page, never 00 00 00. Press A: the standings and RACE ANOTHER TRACK show the logo; YES and the next race's time comes back live from its lights (CRV-7, CRV-5, CRV-2)"]
+   }
   }
  }
 }

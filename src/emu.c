@@ -1407,7 +1407,7 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 	struct GBAVideoSoftwareRenderer* sw = (struct GBAVideoSoftwareRenderer*) renderer;
 	HideSlot* s = slot_for(renderer);
 	if (!s) return;
-	if ((s->n || s->keepOnly || s->nExact) && sw->oamDirty) {
+	if ((s->n || s->keepOnly || s->nExact || s->nRetile) && sw->oamDirty) {
 		int n = GBAVideoRendererCleanOAM(sw->d.oam->obj, sw->sprites, sw->objOffsetY);
 		int kept = 0;
 		if (s->grouped && !s->keepOnly) {
@@ -1420,6 +1420,7 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 				if (!hidden(s, &sw->sprites[i].obj)) sw->sprites[kept++] = sw->sprites[i];
 			}
 		}
+		/* emu_hud_retile: this renderer's copy of the sprite list only (OAM itself is the game's) */
 		for (int i = 0; i < kept && s->nRetile; ++i) {
 			for (int k = 0; k < s->nRetile; ++k) {
 				if (sw->sprites[i].index == s->retileIdx[k]) sw->sprites[i].obj.c = (sw->sprites[i].obj.c & ~0x3FF) | s->retileTile[k];
