@@ -13016,8 +13016,9 @@ static const MapProfile profiles[] = {
 			.objs = { { 0, -64, 239, 63, 0, 43, 0, 0x1 } },
 			.logoBelow = true,
 		},
-		/* 0x03000F34, the pause screen: 3 open, 4 its closing (a wipe); the logo then, not the same
-		 * screen twice */
+		/* 0x03000F34, the pause screen: 2 its opening (a fade to black by the colours), 3 open, 4 its
+		 * closing (a wipe); the logo while it's open or closing, not the same screen twice */
+		.fade = { .when = { { 0x03000F34, 0xFF, 0x02, 1 } }, .bright = 31 },
 		.logoIf = { { 0x03000F34, 0xFF, 0x03, 1, true, 0x04 } },
 		.logoIfLast = true,
 		/* the title's lettering, painted into one picture with its gradient: a mask */

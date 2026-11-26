@@ -26,7 +26,7 @@ WayForward finished the game in 2024, and Limited Run Games released it as a GBA
 
 **SAR-5. Talks.** For a talk (a signpost, a character) the game slides its HUD up off the top of the screen, a piece at a time over 8 frames, and back down when the talk ends. On the second screen the pieces slide off its top and back the same way. While none of them shows, the second screen shows the logo at half strength on dark grey (nothing live to show), as in the opening and other scenes.
 
-**SAR-6. The game's own pause screen.** While the pause screen is open (Dance List, Key Items and Magic Items) and while it wipes away, the second screen shows the logo at half strength on dark grey, so the same screen is never on both (as Muppet Pinball Mayhem's pause, MPM-4). It changes at once, without fading with the game (as KND-5 and KAM-6): as the pause screen opens, the game fades to black by its colours and the HUD's pieces, the game's own, dim with it while the logo stays as it is; the logo on dark grey comes in as the pause screen starts wiping in, once the game has faded to black. The HUD and the logo come back on black the frame the game screen does.
+**SAR-6. The game's own pause screen.** While the pause screen is open (Dance List, Key Items and Magic Items) and while it wipes away, the second screen shows the logo at half strength on dark grey, so the same screen is never on both (as Muppet Pinball Mayhem's pause, MPM-4). The second screen fades with the game: as the pause screen opens, the game fades to black by its colours, and the second screen, the HUD and the logo, fades with it; the logo on dark grey comes in as the pause screen starts wiping in. The HUD and the logo come back on black the frame the game screen does.
 
 **SAR-7. Title, opening and scenes.** On the title, the file select, the opening and any scene without the HUD (Scuttle Town's, the game over screen), the second screen shows the logo at half strength on dark grey.
 
@@ -42,7 +42,7 @@ WayForward finished the game in 2024, and Limited Run Games released it as a GBA
 |---|---|
 | Header | title and code all blank (12 and 4 zero bytes), maker `01`, version 0, checksum F0; EEPROM save (`EEPROM_V122`) |
 | HUD | sprites only, OAM 0-12 at priority 0 in palette 0, tiles 0-43: the held item's circle (x 2, rows 2-25) and the magic bar below it (x 5, rows 22-53), three hearts (x 25-48, rows 2-9), the gem box and counter (x 204-237, rows 2-17), the dance indicator (x 214, rows 18-33). It slides up 8 rows a frame for a talk (to row -62) and down again after |
-| Pause screen | 0x03000F34: 0 in play, 2 opening (a fade to black by the colours over frames 1-8 after START, black 2 frames), 3 open (from frame 11, the page wiping in), 4 closing (a wipe), 5 for the first frames back |
+| Pause screen | 0x03000F34: 0 in play, 2 opening (a fade to black by the colours over frames 1-8 after START, black 2 frames; the second screen's picture fades with it: profile `fade`), 3 open (from frame 11, the page wiping in), 4 closing (a wipe), 5 for the first frames back |
 | Play | DISPCNT 0x1F40 (mode 0): BG0 the back plane, BG1 the front plane, BG2 the sky; the pause screen 0x7F40 |
 | Hearts | 0x03003066 (halfword, half hearts: 6 is three hearts) |
 | Gems | 0x030062C4 (halfword; a copy at 0x0300631C) |
@@ -51,8 +51,9 @@ WayForward finished the game in 2024, and Limited Run Games released it as a GBA
 
 ## For the merge
 
-- Shared code: a dump with no game code in its header is known by its CRC32 (`tools/make_dumps.py` `CODELESS`, `src/dumps_data.h` `codelessDumps`, profiles.c `profile_codeless`, emu.c `emu_rom_file_code` and `emu_open`; library.c, main.c `--supported` and game.c's patches folder read the code through it). `logoIf` also works for a logo-only game with a `hud` (SAR-6), and `hud.onWith` / `hud.onLost` start the split only once one of the HUD's sprites shows (SAR-5, SAR-7): the same two changes as Densetsu no Stafy's. `tools/regress.py --changed` to run.
+- Shared code: a dump with no game code in its header is known by its CRC32 (`tools/make_dumps.py` `CODELESS`, `src/dumps_data.h` `codelessDumps`, profiles.c `profile_codeless`, emu.c `emu_rom_file_code` and `emu_open`; library.c, main.c `--supported` and game.c's patches folder read the code through it). `logoIf` also works for a logo-only game with a `hud` (SAR-6), and `hud.onWith` / `hud.onLost` start the split only once one of the HUD's sprites shows (SAR-5, SAR-7): the same two changes as Densetsu no Stafy's. Optional, in its own commit: the profile `fade` again, by the game's colours (`fade.bright`), for the second screen's fade with SAR-6, the same as Densetsu no Stafy's optional commit. `tools/regress.py --changed` to run.
 - Changelog (New games): Shantae Advance: Risky Revolution (Limited Run Games' 2024 cartridge, which has no game code: GBA DS knows it by its checksum): in play, the HUD (the held item's circle and the magic bar, the hearts, the gems and the dance indicator) on the second screen in its own corners, over the game's logo on black.
 - Supported games table: `| Shantae Advance: Risky Revolution | `CSAE` | in play: the HUD and the logo | |`
 - Supported games section: the Limited Run Games cartridge, checked in the opening, the first area, the first boss and the town after it, with an item equipped.
 - For the owner: SAR-6 shows the logo while the game's own pause screen is open, as MPM-4 does, where WL4-6, LS-4 and BK-5 keep the last picture, so the same screen is never on both.
+- For the owner: the fade with the game (SAR-6) is its own commit and can be left out: without it the second screen changes at once, as KND-5 and KAM-6 do since the profile `fade` was taken out, and the rules and pause case say so.
