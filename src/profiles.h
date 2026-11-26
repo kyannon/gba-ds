@@ -441,11 +441,6 @@ typedef struct MapProfile {
 	/* Keys the game doesn't get while every `when` probe matches, with two screens only: a button whose
 	 * only job there is what the second screen already shows (Pokemon Mystery Dungeon's SELECT, the floor map) */
 	struct { uint16_t keys; MemProbe when[4]; } swallow;
-	/* While `when` matches, the second screen's picture fades with the game's own fade
-	 * through black, which is by its colours: how far its brightest BG colour is below
-	 * `bright` (all the way with no layer on, or a blank screen), or its BLDY darkening
-	 * where that's further (Densetsu no Stafy 1 to 3) */
-	struct { MemProbe when[2]; int bright; } fade;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */

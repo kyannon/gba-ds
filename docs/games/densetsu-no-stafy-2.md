@@ -19,11 +19,11 @@ The game came out only in Japan. The English patch (v0.9.9) is supported as full
 
 **ST2-1. Logo.** The logo is the title's lettering: 伝説のスタフィー2 with its ® (BG1 above row 96, without the reef behind it, the characters and PRESS START, or the copyright line), taken from power-on with START pressed through the opening.
 
-**ST2-2. In a stage: the HUD and the logo.** While Starfy is in a stage, the HUD leaves the game screen and is drawn along the top of the second screen, on black (a live screen, GEN-1), with the game's logo in the middle at its own size, where the idle logo sits (ST2-5): Starfy's face at the left edge, the hearts in the middle, and the pearls with the TOTAL counter at the right edge, the left and right pieces 8 pixels in, on the same rows as in Densetsu no Stafy (STF-2, rows 4 to 19). Each piece is the game's own, drawn as it changes. The HUD and the logo fade with the game as a stage fades out and in (ST2-4).
+**ST2-2. In a stage: the HUD and the logo.** While Starfy is in a stage, the HUD leaves the game screen and is drawn along the top of the second screen, on black (a live screen, GEN-1), with the game's logo in the middle at its own size, where the idle logo sits (ST2-5): Starfy's face at the left edge, the hearts in the middle, and the pearls with the TOTAL counter at the right edge, the left and right pieces 8 pixels in, on the same rows as in Densetsu no Stafy (STF-2, rows 4 to 19). Each piece is the game's own, drawn as it changes, so it dims with the game as a stage fades out and in; the logo under it stays as it is.
 
 **ST2-3. What stays on the game screen.** Everything but the HUD stays where the game draws it. The HUD is the sprites at its priority (1) whose top is in rows 136 to 159; nothing else was seen at that priority in the stage. With the one-screen layout nothing moves: the HUD stays on the game screen.
 
-**ST2-4. The game's own pause screen.** While the game's pause screen is open on the game screen (its Hints tab or any other), the second screen shows the logo at half strength on dark grey, with no HUD on it (the game draws none on its pause screens), so the same screen is never on both (as Densetsu no Stafy's, STF-4). The second screen fades with the game: as the stage fades to black, the HUD and the logo fade with it, and the logo comes in from black as the pause screen does; closing, the logo fades to black with it, and the HUD and the logo come back from black as the stage does. The screen the game leaves blank for a moment after its pause screen (its palette already back) counts as black.
+**ST2-4. The game's own pause screen.** While the game's pause screen is open on the game screen (its Hints tab or any other), the second screen shows the logo at half strength on dark grey, with no HUD on it (the game draws none on its pause screens), so the same screen is never on both (as Densetsu no Stafy's, STF-4). It changes at once, without fading with the game (as KND-5 and KAM-6): to the logo on dark grey as the pause screen is set up, and back to the logo on black once the pause screen has faded out, the HUD coming in as the stage does.
 
 **ST2-5. Logo elsewhere.** The second screen shows the logo at half strength on dark grey wherever Starfy isn't in a stage: the opening, the title and the file select.
 
@@ -45,7 +45,7 @@ The game came out only in Japan. The English patch (v0.9.9) is supported as full
 | HUD | sprites only: OAM 0-16 at priority 1, tiles 256 to 282 in palettes 0 and 1: the face (x 64, row 140), five hearts (x 84 to 148), an arrow (x 172) and the pearl ring and TOTAL counter (x 188 to 235, rows 140 and 148); a stage's other sprites are at priority 2 |
 | Screen registers | DISPCNT 0x04000000: 0x7D40 in a stage, 0x7F40 on every pause screen (also while it fades in and out); BG0CNT 0x04000008: 0x0F42 in a stage, 0x1C00 on the Hints tab and the lists, 0x1F03 on the Stuff page |
 | In a stage | 0x0200002C: 00 in a stage and its pause screens, FF on the title and the file select |
-| Fades | the stage's and the pause screen's fades are by their colours, as Densetsu no Stafy's: the brightest BG colour is 31 unfaded and goes down one a frame, with BLDY at 16 (black) while the layers are off; the profile's `fade` moves the second screen's picture with it while 0x0200002C is 00 (a stage and its pause screens). A stage whose brightest colour is below 31 would dim the second screen a little all the time (the first stage and the stages of the attract demo, all of them 31, were seen) |
+| Fades | the stage's and the pause screen's fades are by their colours, as Densetsu no Stafy's: the brightest BG colour is 31 unfaded and goes down one a frame, with BLDY at 16 (black) while the layers are off |
 | Pause timing | START: the stage fades to black by its colours over about 34 frames, the pause screen is drawn from frame 58 and fades in to frame 94; closing, it fades out over 34 frames, the screen is blank (DISPCNT 0x7D40 already, the palette still full) for about 13 frames, and the stage fades in from frame 52 to 82 |
 | Title | BG1 the lettering (rows 5-85) and the copyright line (rows 145-157), PRESS START and the characters sprites, the reef BG2 and BG3; START cuts the opening short from about frame 1600 |
 | Translation | the Starfy translation patches: Starfy.2.Eng.v0.9.9.bps for the Japanese ROM, the same code and screens |
@@ -53,7 +53,7 @@ The game came out only in Japan. The English patch (v0.9.9) is supported as full
 
 ## For the merge
 
-- Shared code: as in Densetsu no Stafy: `logoIf` for a logo-only game with a `hud`, and, optional, the profile `fade` by the game's colours. `tools/regress.py --changed` to run.
+- Shared code: as in Densetsu no Stafy: `logoIf` for a logo-only game with a `hud`. `tools/regress.py --changed` to run.
 - Changelog (New games): Densetsu no Stafy 2 (Japan) and its English patch: in a stage, the HUD (Starfy's face, the hearts, the pearls and the total) along the top of the second screen over the game's logo, on black, the face at the left, the hearts in the middle and the pearls at the right.
 - Supported games table: `| Densetsu no Stafy 2 | `AVFJ` | in a stage: the HUD and the logo | The Legendary Starfy 2 English v0.9.9 |`
 - Supported games section: the Japanese release and the English patch v0.9.9, checked in the first stage.

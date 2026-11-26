@@ -13018,10 +13018,6 @@ static const MapProfile profiles[] = {
 		/* the game's own pause screen open: the logo, not the same screen twice (STF-5) */
 		.logoIf = { { 0x03000EB0, 0xFF, 0x02, 1 }, { 0x03000EB1, 0xFF, 0x10, 1 } },
 		.logoIfLast = true,
-		/* the pause screen's fades to black and back, by its colours (its brightest is 30 unfaded, the stage's
-		 * and the pause screen's), and BLDY's black while the pause screen's colours go in: the second screen
-		 * fading with them (0x03000EB0 is 0x0A for a frame of the closing) */
-		.fade = { .when = { { 0x03000EB0, 0xFF, 0x02, 1, true, 0x0A } }, .bright = 30 },
 		/* START cuts the long opening short: the title ~70 frames later, its
 		 * lettering on BG0 above the PRESS START sprites and the copyright */
 		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
@@ -13043,8 +13039,6 @@ static const MapProfile profiles[] = {
 		/* the game's own pause screen open: the logo, not the same screen twice (ST2-7) */
 		.logoIf = { { 0x04000000, 0xFFFF, 0x7F40, 2 } },
 		.logoIfLast = true,
-		/* the game's fades through black (palette colours from 31 down, then BLDY) in a stage and its pause screens */
-		.fade = { .when = { { 0x0200002C, 0xFF, 0x00, 1 } }, .bright = 31 },
 		/* the lettering and its (c) line (BG1) above the PRESS START sprites; START cuts the opening short */
 		.logo = { .steps = { { 0, 1600 }, { K_START, 4 }, { 0, 200 } }, .layer = 1, .maxY = 96 },
 	},
@@ -13069,8 +13063,6 @@ static const MapProfile profiles[] = {
 		/* the game's own pause screens (BG0CNT 0x1E00; the Stuff page's 0x1E01) */
 		.logoIf = { { 0x04000008, 0xFFFC, 0x1E00, 2 } },
 		.logoIfLast = true,
-		/* the game's fades through black as in Starfy 2, while BG0CNT is a stage's or a pause screen's */
-		.fade = { .when = { { 0x04000008, 0xFF00, 0x0F00, 2, true, 0x1E00 } }, .bright = 31 },
 		/* the lettering and the (c) line (BG0) above the sprites; START cuts the opening short (a boot's START
 		 * works from about frame 900 to 2000, and is lost at 3000 and later) */
 		.logo = { .steps = { { 0, 1300 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
