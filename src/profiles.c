@@ -10043,6 +10043,69 @@ static void tmc_jpn(MapProfile* p) {
 	p->logo.maxY = 122;
 }
 
+/* ------------------------------------------------------ Cruis'n Velocity
+ *
+ * After the last line the game's time box reads 0 and its results page adds up the laps' times
+ * (0x03003565: three bytes a lap, minutes, seconds, hundredths); the HUD box shows that total. */
+enum { CRV_KEEP = 0xF0000002u };
+
+/* the lap box's second digit (the sprite at x 125: tile 512 + 2 * the laps), 0 when it isn't drawn */
+static int crv_laps(Emu* e) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a1 = emu_read16(e, 0x07000002 + i * 8);
+		int tile = emu_read16(e, 0x07000004 + i * 8) & 0x3FF;
+		if ((a0 & 0x300) != 0x200 && (a1 & 0x1FF) >= 118 && (a1 & 0x1FF) <= 135 && tile >= 512 && tile <= 530) return (tile - 512) / 2;
+	}
+	return 0;
+}
+
+/* The lap the car is on (0x0300355A) is past the laps: the last line is crossed. The lap box's
+ * sprites stay in OAM through the results, parked off screen. */
+static bool crv_finished(Emu* e) {
+	int laps = crv_laps(e);
+	return laps > 0 && emu_read8(e, 0x0300355A) > laps;
+}
+
+/* the time box's six digit sprites by OAM slot, left to right */
+static bool crv_digit_sprites(Emu* e, int* slots) {
+	int n = 0, xs[6];
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(e, 0x07000000 + i * 8), a1 = emu_read16(e, 0x07000002 + i * 8);
+		int tile = emu_read16(e, 0x07000004 + i * 8) & 0x3FF;
+		if ((a0 & 0x300) == 0x200 || (a0 & 0xFF) > 12 || (a1 & 0x1FF) >= 64 || tile < 512 || tile > 530) continue;
+		if (n == 6) return false;
+		int k = n++;
+		for (; k > 0 && xs[k - 1] > (a1 & 0x1FF); --k) xs[k] = xs[k - 1], slots[k] = slots[k - 1];
+		xs[k] = a1 & 0x1FF, slots[k] = i;
+	}
+	return n == 6;
+}
+
+static int crv_retile(Emu* e, int* oamIndex, uint16_t* tile) {
+	int laps = crv_laps(e);
+	if (laps <= 0 || emu_read8(e, 0x0300355A) <= laps || !crv_digit_sprites(e, oamIndex)) return 0;
+	unsigned total = 0;
+	for (int i = 0; i < laps; ++i) {
+		unsigned m = emu_read8(e, 0x03003565 + 3 * i), s = emu_read8(e, 0x03003566 + 3 * i), c = emu_read8(e, 0x03003567 + 3 * i);
+		if (s >= 60 || c >= 100) return 0;
+		total += (m * 60 + s) * 100 + c;
+	}
+	/* (the page's own adding misprints a total whose hundredths come to exactly 100, or seconds to 60) */
+	unsigned t[3] = { total / 6000, total / 100 % 60, total % 100 };
+	if (t[0] > 99) return 0;
+	for (int i = 0; i < 3; ++i) tile[2 * i] = 512 + 2 * (t[i] / 10), tile[2 * i + 1] = 512 + 2 * (t[i] % 10);
+	return 6;
+}
+
+/* hud.keep: the PAUSED page and its questions (0x03002448 is 0 once the race is unloaded), and the
+ * race's results page (0x03002054 is the page: 0x10, then 0x11 for the standings) */
+static uint32_t crv_virt(Emu* e, uint32_t addr) {
+	if (addr != CRV_KEEP) return 0;
+	bool paused = emu_read8(e, 0x03000020) == 1 && emu_read8(e, 0x03000002) == 0x10 && emu_read32(e, 0x03002448) != 0;
+	bool results = emu_read8(e, 0x03000020) == 1 && emu_read32(e, 0x03002054) == 0x10 && crv_finished(e);
+	return paused || results;
+}
+
 /* Pokemon Mystery Dungeon: Red Rescue Team (USA; pmd_moved for the others): gDungeon, the pointer to the floor being played (0 elsewhere) */
 #define PMD_DUNGEON 0x0203B418u
 
@@ -13029,6 +13092,95 @@ static const MapProfile profiles[] = {
 		/* SELECT hides the field to show the floor map, which the second screen has; with the field hidden it still turns it back (PMD-4) */
 		.swallow = { K_SELECT, { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x1F00, 0x1F00, 2 },
 		                         { 0x0202B07A, 0xF000, 0xE000, 2 }, { 0x0202B43C, 0xF000, 0xE000, 2 } } },
+	},
+	{
+		/* Densetsu no Stafy (docs/games/densetsu-no-stafy.md), and the Starfy
+		 * Translation Team's English patches (Mods row): the same RAM and screens */
+		.codes = { "ASTJ" },
+		.title = "Densetsu no Stafy",
+		.logoOnly = true,
+		.hud = {
+			/* 0x03000EC1: 00 in a stage and its pause screen (which has no HUD sprites of its own: STF-5) */
+			.on = { { 0x03000EC1, 0xFF, 0x00, 1 } },
+			/* the face, hearts, arrow, pearls and counter (rows 140-155); not a signpost's label, at the same priority but higher up */
+			.objs = { { 0, 136, 239, 159, 0, 1023, 0 } },
+			/* along the top: the face at the left, the hearts in the middle, the score at the right, 8 pixels in;
+			 * the hearts' piece has a black row over its art, so its top is row 4 and the art starts on row 5 like the score's */
+			.moves = { { 56, 136, 99, 159, 'L', 8, 'T', 4 }, { 100, 136, 179, 159, 'C', 120, 'T', 4 }, { 180, 136, 239, 159, 'R', 231, 'T', 5 } },
+			.logoBelow = true,
+		},
+		/* the game's own pause screen open: the logo, not the same screen twice (STF-5) */
+		.logoIf = { { 0x03000EB0, 0xFF, 0x02, 1 }, { 0x03000EB1, 0xFF, 0x10, 1 } },
+		.logoIfLast = true,
+		/* START cuts the long opening short: the title ~70 frames later, its
+		 * lettering on BG0 above the PRESS START sprites and the copyright */
+		.logo = { .steps = { { 0, 600 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
+	},
+	{
+		/* Densetsu no Stafy 2 (docs/games/densetsu-no-stafy-2.md), and the Starfy Translation
+		 * Team's English patch (Mods row): the same RAM and screens */
+		.codes = { "AVFJ" },
+		.title = "Densetsu no Stafy 2",
+		.logoOnly = true,
+		.hud = {
+			/* 0x0200002C: 00 in a stage and its pause screens (which have no HUD sprites of their own: ST2-7) */
+			.on = { { 0x0200002C, 0xFF, 0x00, 1 } },
+			/* the HUD's sprites (priority 1); a stage's other sprites are at priority 2 */
+			.objs = { { 0, 136, 239, 159, 0, 1023, 1 } },
+			.moves = { { 56, 136, 83, 159, 'L', 8, 'T', 4 }, { 84, 136, 167, 159, 'C', 120, 'T', 4 }, { 168, 136, 239, 159, 'R', 231, 'T', 5 } },
+			.logoBelow = true,
+		},
+		/* the game's own pause screen open: the logo, not the same screen twice (ST2-7) */
+		.logoIf = { { 0x04000000, 0xFFFF, 0x7F40, 2 } },
+		.logoIfLast = true,
+		/* the lettering and its (c) line (BG1) above the PRESS START sprites; START cuts the opening short */
+		.logo = { .steps = { { 0, 1600 }, { K_START, 4 }, { 0, 200 } }, .layer = 1, .maxY = 96 },
+	},
+	{
+		/* Densetsu no Stafy 3 (docs/games/densetsu-no-stafy-3.md), and the English patch
+		 * (Mods row): the same RAM and screens */
+		.codes = { "B3DJ" },
+		.title = "Densetsu no Stafy 3",
+		.logoOnly = true,
+		.hud = {
+			/* DISPCNT bit 15 (the sprite window) and BG0CNT 0x0Fxx are a stage's, 0x1Exx its pause screens' */
+			.on = { { 0x04000000, 0x8000, 0x8000, 2 }, { 0x04000008, 0xFF00, 0x0F00, 2 } },
+			/* the black comes with the HUD's face (palette 1), after the opening conversation, and stays through later ones, which hide the HUD */
+			.onWith = { 0, 136, 239, 159, 0, 1023, 0, 0x2 },
+			.onLost = 1 << 30,
+			/* the HUD's palettes (0 and 1) only: a signpost's board has its prompts at the same priority, in palette 15, in rows 145 and up */
+			.objs = { { 0, 136, 239, 159, 0, 1023, 0, 0x3 } },
+			/* the game draws the HUD two rows lower than the other two; along the top all three sit on the same rows */
+			.moves = { { 56, 136, 83, 159, 'L', 8, 'T', 4 }, { 84, 136, 167, 159, 'C', 120, 'T', 4 }, { 168, 136, 239, 159, 'R', 231, 'T', 5 } },
+			.logoBelow = true,
+		},
+		/* the game's own pause screens (BG0CNT 0x1E00; the Stuff page's 0x1E01) */
+		.logoIf = { { 0x04000008, 0xFFFC, 0x1E00, 2 } },
+		.logoIfLast = true,
+		/* the lettering and the (c) line (BG0) above the sprites; START cuts the opening short (a boot's START
+		 * works from about frame 900 to 2000, and is lost at 3000 and later) */
+		.logo = { .steps = { { 0, 1300 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
+	},
+	{
+		/* Cruis'n Velocity (docs/games/cruisn-velocity.md): the HUD is sprites on a mode 4
+		 * bitmap sharing tiles, so the time and the lap box are picked by place. */
+		.codes = { "ACFE" },
+		.title = "Cruis'n Velocity",
+		.logoOnly = true,
+		/* the title's lettering, cut out of its one picture (CRV-1) */
+		.logo = { .wait = 900, .mask = &logoMaskCRV },
+		.virt = crv_virt,
+		.hud = {
+			.on = { { 0x04000000, 0x0007, 4, 2 }, { 0x03000020, 0xFF, 3, 1 } },
+			.keep = { { CRV_KEEP, 0xFF, 1, 1 } },
+			/* the game fades its palettes, the HUD's too, to the PAUSED page, the results and back (counter 1-16) */
+			.freeze = { { 0x03000000, 0xFF, 1, 1, true, 16, true } },
+			.retile = crv_retile,
+			.emptyIsOff = true,
+			.logoBelow = true,
+			/* (from off screen: the boxes slide in as the race starts) */
+			.objs = { { -64, -48, 60, 8, 512, 1023, 0 }, { 100, -48, 130, 16, 512, 1023, 0 } },
+		},
 	},
 	{
 		/* Shin Megami Tensei II (Japan; played in English with a patch, the

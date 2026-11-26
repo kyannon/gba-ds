@@ -495,6 +495,11 @@ typedef struct MapProfile {
 			MemProbe heldWhen[2];
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
+		/* `on` turns it on only while a sprite like onWith shows; then `on` alone keeps it
+		 * on, till onLost frames without one (Densetsu no Stafy 3: the HUD's face, which
+		 * a stage's opening conversation doesn't have and a later one hides) */
+		SpriteRule onWith;
+		int onLost;
 		/* While every `layout` probe matches (racing, not the results):
 		 * HUD pixels in `sign` stay on the game screen when the HUD has
 		 * nothing else on those rows within 40 pixels either side (Mario
@@ -609,6 +614,9 @@ typedef struct MapProfile {
 		 * Advance 4: World-e's status bar sliding off and back as the
 		 * inventory opens and closes, SM4-8) */
 		MemProbe freeze[2];
+		/* The HUD split draws some of its sprites with other tiles each frame (Cruis'n Velocity's time
+		 * box, the race's total once it's over): fills oamIndex / tile (up to 8), returns how many. */
+		int (*retile)(Emu* e, int* oamIndex, uint16_t* tile);
 		/* The top rows of the last map picture (the world map's level
 		 * list: its title row with the level's name) kept above the HUD,
 		 * which moves down that far (Super Mario Advance 2, SMA-7) */
