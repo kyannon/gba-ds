@@ -36,6 +36,9 @@ bool logo_busy(const char* gameCode);
 /* While a game's played: only urgent jobs run (the game's own, asked for
  * while paused), the rest wait for the game list. */
 void logo_pause(bool on);
+/* A game is starting: another game's logo being made is called off and
+ * made later (the queue's paused meanwhile), so the start doesn't wait. */
+void logo_yield(const char* gameCode);
 void logo_shutdown(void);
 
 #endif

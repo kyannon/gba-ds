@@ -28,6 +28,18 @@
 
 enum { NLAYERS = 5 }; /* bg0-3, obj */
 static volatile bool cancelAll;
+/* The queue's job running is called off (logo_yield: a game is starting
+ * whose own logo is ready): only the worker's extraction stops, not one a
+ * game's start runs itself (ui_game_prepare). */
+static volatile bool cancelJob;
+#ifdef __wasi__
+static bool onWorker; /* (no threads there) */
+#else
+static __thread bool onWorker;
+#endif
+static bool stopped(void) {
+	return cancelAll || (onWorker && cancelJob);
+}
 
 static void layers(Emu* e, int only) {
 	for (int i = 0; i < NLAYERS; ++i) e->core->enableVideoLayer(e->core, i, only == -2 || i == only);
@@ -104,15 +116,15 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		for (int i = 0; i < r->len; ++i) e.core->rawWrite8(e.core, r->addr + i, -1, r->bytes[i]);
 	}
 
-	for (int i = 0; i < 24 && L->steps[i].frames && !cancelAll; ++i) {
-		for (int f = 0; f < L->steps[i].frames && !cancelAll; ++f) emu_frame(&e, L->steps[i].keys);
+	for (int i = 0; i < 24 && L->steps[i].frames && !stopped(); ++i) {
+		for (int f = 0; f < L->steps[i].frames && !stopped(); ++f) emu_frame(&e, L->steps[i].keys);
 	}
-	for (int f = 0; f < L->wait && !cancelAll; ++f) emu_frame(&e, 0);
+	for (int f = 0; f < L->wait && !stopped(); ++f) emu_frame(&e, 0);
 	if (L->pressStart) {
 		for (int f = 0; f < 4; ++f) emu_frame(&e, K_START);
-		for (int f = 0; f < L->wait2 && !cancelAll; ++f) emu_frame(&e, 0);
+		for (int f = 0; f < L->wait2 && !stopped(); ++f) emu_frame(&e, 0);
 	}
-	if (cancelAll) {
+	if (stopped()) {
 		emu_close(&e);
 		return false;
 	}
@@ -399,12 +411,15 @@ static bool exists(const char* p) {
 	return stat(p, &st) == 0;
 }
 
-static void do_job(Job* j) {
+/* False: called off (logo_yield), the job kept for later. */
+static bool do_job(Job* j) {
 	if (!exists(j->out)) {
 		logo_extract(j->rom, j->code, j->out);
+		if (onWorker && cancelJob && !exists(j->out)) return false;
 	}
 	free(j);
 	__atomic_add_fetch(&generation, 1, __ATOMIC_SEQ_CST);
+	return true;
 }
 
 static void* worker(void* arg) {
@@ -416,6 +431,7 @@ static void* worker(void* arg) {
 #ifdef __ANDROID__
 	android_pin_worker_thread("logo extraction");
 #endif
+	onWorker = true;
 	pthread_mutex_lock(&qlock);
 	while (!stopping) {
 		/* the first job, or while paused the first urgent one */
@@ -428,12 +444,25 @@ static void* worker(void* arg) {
 		}
 		*at = j->next;
 		snprintf(current, sizeof(current), "%s", j->code);
+		cancelJob = false;
 		pthread_mutex_unlock(&qlock);
-		do_job(j);
+		bool done = do_job(j);
 		pthread_mutex_lock(&qlock);
 		current[0] = 0;
-		--pending;
-		++finished;
+		cancelJob = false;
+		if (done) {
+			--pending;
+			++finished;
+		} else {
+			/* (called off for a game starting: back in the queue, after the
+			 * urgent ones, to be made once the game list is back) */
+			fprintf(stderr, "logo: %s put off (a game is starting)\n", j->code);
+			j->urgent = false;
+			Job** tail = &queue;
+			while (*tail && (*tail)->urgent) tail = &(*tail)->next;
+			j->next = *tail;
+			*tail = j;
+		}
 		pthread_cond_broadcast(&qcond);
 	}
 	pthread_mutex_unlock(&qlock);
@@ -589,6 +618,11 @@ bool logo_busy(const char* gameCode) {
 	return busy;
 }
 
+void logo_yield(const char* gameCode) {
+	pthread_mutex_lock(&qlock);
+	if (current[0] && strncmp(current, gameCode, 4)) cancelJob = true;
+	pthread_mutex_unlock(&qlock);
+}
 void logo_pause(bool on) {
 	pthread_mutex_lock(&qlock);
 	paused = on;
