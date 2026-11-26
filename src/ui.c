@@ -15,6 +15,7 @@ void ui_stick_dpad(bool on) {
 #include "fonts_data.h"
 #include "logo.h"
 #include "paths.h"
+#include "upscale.h"
 #include "profiles.h"
 #include "emu.h"
 #include "i18n.h"
@@ -519,7 +520,7 @@ bool ui_init(Config* c, bool wantDual) {
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
 	SDL_SetHint(SDL_HINT_APP_NAME, "GBA DS");
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->smooth ? "linear" : "nearest");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->filter == FILTER_SMOOTH ? "linear" : "nearest");
 #ifdef __ANDROID__
 	SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft");
 	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"); /* BACK opens the menu instead of closing the app */
@@ -672,7 +673,7 @@ void ui_shutdown(void) {
 	drmlease_close();
 #endif
 	for (int i = 0; i < nViews; ++i) {
-		if (i == 0 || views[i].ren != views[0].ren) SDL_DestroyRenderer(views[i].ren);
+		if (i == 0 || views[i].ren != views[0].ren) upscale_forget(views[i].ren), SDL_DestroyRenderer(views[i].ren);
 		if (views[i].win) SDL_DestroyWindow(views[i].win);
 		if (views[i].surf) SDL_FreeSurface(views[i].surf);
 		views[i] = (View) { 0 };
@@ -1678,7 +1679,7 @@ static uint64_t ops_sig(const Retained* rv) {
 	h = (h ^ (uint64_t) rv->nOps) * 1099511628211ull;
 	h = (h ^ (uint64_t) cfg->lcdStrength) * 1099511628211ull;
 	h = (h ^ (uint64_t) shader_choice()) * 1099511628211ull;
-	return h ^ (cfg->smooth ? 0x9e3779b97f4a7c15ull : 0);
+	return h ^ ((uint64_t) cfg->filter * 0x9e3779b97f4a7c15ull);
 }
 
 /* a screenshot wants a view's pixels (only readable while it's being drawn) */
@@ -2274,12 +2275,29 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 /* ui_image_pixels' drawing, into dst on the current (screen) target. */
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd) {
 	SDL_Rect dst = *dstp;
+	bool game = lcd & UI_PIX_GAME;
+	lcd &= ~UI_PIX_GAME;
+	int up = game ? upscale_factor(cfg->filter) : 0;
+	if (up) {
+		/* the scaling filter's upscaler (issue #89): the game's picture made
+		 * 2x / 4x on the GPU, then scaled to its place (linear unless it is
+		 * already the size), without the grid. Where the renderer can't
+		 * (not OpenGL ES 2), the picture is drawn as with Sharp. */
+		SDL_Texture* big = upscale_run(ren, src, w, h, cfg->filter);
+		if (big) {
+			bool same = dst.w == w * up && dst.h == h * up;
+			SDL_SetTextureScaleMode(big, same ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
+			SDL_RenderCopy(ren, big, NULL, &dst);
+			return;
+		}
+	}
+	bool smooth = cfg->filter == FILTER_SMOOTH;
 	int k = SDL_max(1, SDL_min(dst.w / w, dst.h / h));
 	bool exact = dst.w == w * k && dst.h == h * k;
 	int c = lcd > 1 ? lcd : 1; /* source pixels per grid cell, each way */
 	int gw = w / c, gh = h / c;
-	if (!lcd && (exact || cfg->smooth)) {
-		SDL_SetTextureScaleMode(src, cfg->smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+	if (!lcd && (exact || smooth)) {
+		SDL_SetTextureScaleMode(src, smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
 		SDL_RenderCopy(ren, src, NULL, &dst);
 		return;
 	}

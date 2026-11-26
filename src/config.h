@@ -17,6 +17,10 @@ enum { OVL_TOP = 1, OVL_BOTTOM = 2, OVL_BOTH = 3 };
  * LCD grid; the subpixel presets also brighten the colours to make up for
  * their stripes (the colour table, ui.c). */
 enum { SH_OFF, SH_GRID, SH_SCANLINES, SH_SOFT, SH_SUB_LIGHT, SH_SUB, SH_SUB_STRONG, SH_COUNT };
+/* Display > Scaling filter (gba-ds.cfg's "smooth"; issue #89): the upscalers
+ * run on the GPU (upscale.c) */
+enum { FILTER_SHARP, FILTER_SMOOTH, FILTER_SCALE2X, FILTER_SCALE4X, FILTER_COUNT };
+extern const char* const filterNames[FILTER_COUNT];
 extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid, ... */
 /* the fast-forward speeds the pause menu goes through (ff_speed) */
 #define FF_SPEED_MIN 2
@@ -51,7 +55,7 @@ typedef struct Config {
 	char gbBorder[8];  /* GB-12: none | sgb: a Super Game Boy game with its own border (from the next start) */
 	char gbDual[8];    /* GB-7: colour | mono: a dual-mode game in colour, or as on a plain Game Boy (from the next start) */
 	char gbScale[16];  /* ...and how that frame fills the screen (GB-2a): integer | fit | stretch */
-	bool smooth;       /* plain linear filtering when scaling (blurry) */
+	int filter;        /* FILTER_* (upscale.h): sharp, smooth (linear) or an upscaler; gba-ds.cfg's "smooth" */
 	char borderColor[16]; /* RRGGBB behind the map screen (outside the map image) */
 	int overlayMode;   /* OVM_*: overlays */
 	int overlays;      /* OVL_TOP | OVL_BOTTOM: overlay_screens, the screens that have them */

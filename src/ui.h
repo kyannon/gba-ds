@@ -132,7 +132,10 @@ void ui_image(int screen, SDL_Texture* const* texPerView, int w, int h, const ch
 /* Pixel-art drawing for the game and map: whole-number prescale (sharp at any
  * size), optional LCD grid, then filtered to the final size on the GPU.
  * lcd: 0 no grid, 1 a cell per pixel, n a cell per n x n pixels (a picture
- * made at n times the GBA's resolution, like Mario Kart's HUD screen). */
+ * made at n times the GBA's resolution, like Mario Kart's HUD screen).
+ * | UI_PIX_GAME: the game's own picture, which the scaling filter's
+ * upscalers (Scale2x, Scale4x: upscale.c) enlarge, without the grid. */
+#define UI_PIX_GAME 0x100
 void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, int lcd);
 /* Where ui_image_pixels puts a w x h image on a screen (screen-local coords). */
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode);
