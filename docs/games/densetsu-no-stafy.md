@@ -29,14 +29,10 @@ The game has no map. In a stage the second screen shows the HUD along its top, o
 
 **STF-5. Logo elsewhere.** The second screen shows the logo at half strength on dark grey wherever Starfy isn't in a stage: the opening, the title, the file select and the story scenes.
 
-**STF-6. The English translations.** On the Starfy Translation Team's three patches, as patched ROMs or with their `.bps` on the Japanese ROM (GEN-9), STF-2 to STF-5 hold as they are: the same screens, RAM and timing as the Japanese game, the HUD's pieces in the translation's own words (TOTAL). Each one's logo is its own title, taken the same way:
+**STF-6. The English translations.** On the Starfy Translation Team's three patches, as patched ROMs or with their `.bps` on the Japanese ROM (GEN-9), STF-2 to STF-5 hold as they are: the same screens, RAM and timing as the Japanese game, the HUD's pieces in the translation's own words (TOTAL). Each one's logo is its own title, taken the same way: Each translation's logo is kept apart from the Japanese game's and the other translations' (GEN-20), so with more than one in the game list each shows its own.
 - *The Legendary Starfy*: THE LEGENDARY STARFY.
 - *Starfy Origins* (the same text): THE LEGENDARY STARFY above ORIGINS.
 - *Densetsu no Starfy* (the characters keep their Japanese names, Rob-jiisan for Old Man Lobber): THE LEGENDARY STARFY, the same lettering as *The Legendary Starfy*.
-
-## Known issues
-
-- With more than one of the four in the game list (the Japanese game and a translation, or two translations), all show the logo made first, as GBA DS keeps one logo per game code (STF-6's own logo shows when it's the only one played); each will show its own once logos are kept per ROM.
 
 ## Not covered yet
 

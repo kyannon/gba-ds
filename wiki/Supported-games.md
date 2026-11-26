@@ -17,6 +17,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Densetsu no Stafy | `ASTJ` (Japan only) | in a stage: the HUD and the logo | The Starfy Translation Team's The Legendary Starfy v1.1, Starfy Origins v1.1 and Densetsu no Starfy v1.1 |
 | Densetsu no Stafy 2 | `AVFJ` (Japan only) | in a stage: the HUD and the logo | The Legendary Starfy 2 English v0.9.9 |
 | Densetsu no Stafy 3 | `B3DJ` (Japan only) | in a stage: the HUD and the logo | The Legendary Starfy 3 English v1.0.5 |
+| DK: King of Swing (Bura Bura Donkey in Japan) | `BBKE` `BBKP` `BBKJ` | in a level: the level above the game's screen | |
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
@@ -97,7 +98,7 @@ GBA DS knows a game by its code, which romhacks and patches of a supported game 
 - **Patches GBA DS knows:** besides the tested ones, GBA DS knows a list of colour, voice and translation patches for other games too (some not supported yet), so the Patches menu can name them and say when one is made for another version of the game (a `.ips` file can't say which version it's for, so this is the only warning you'll get).
 - **Patch files:** put the patch (`.ips`, `.ups`, `.bps` or `.xdelta`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
-- A romhack with its own title screen still shows the original game's logo on the second screen.
+- A romhack GBA DS doesn't know shares its game's logo, made from whichever of them is started first; a tested one has its own.
 
 ## How the maps work
 
@@ -200,7 +201,6 @@ The Japanese release (the only one), and the Starfy Translation Team's English t
 - A signpost's label, drawn near the bottom of the game screen, stays there.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; each translation shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and a translation (or two translations) both in your game list, all of them show the logo made first.
 - Checked in the first stage. Not tried yet: the map between stages, boss fights and the minigames.
 
 ## Densetsu no Stafy 2
@@ -211,7 +211,6 @@ The Japanese release (the only one), and the English patch v0.9.9 (*The Legendar
 - **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and the English patch both in your game list, both show the logo made first.
 - Checked in the first stage. Not tried yet: boss fights, the minigames and signposts' boards.
 
 ## Densetsu no Stafy 3
@@ -224,8 +223,18 @@ The Japanese release (the first release and Rev 1), and the English patch v1.0.5
 - **Signposts:** a signpost's board stays whole on the game screen, with its button prompts.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and the English patch both in your game list, both show the logo made first.
 - Checked in the first stage. Not tried yet: the shop, boss fights and the minigames.
+
+## DK: King of Swing
+
+All three releases: the USA, Europe (in each of its five languages) and Japan's Bura Bura Donkey. Added by cmyksoda (pull request #105).
+
+- **In a level** (the tutorial's rooms and the world map's levels), the two screens are one tall screen: the game, hearts and bananas included, on the bottom screen, and the 160 rows of the level above it on the top, moving with the game's camera: the pegs and bananas coming up, the sky above them. A second copy of the game, kept in step with yours every frame, draws them.
+- **At the top of a level,** where the camera stops, DK climbs on across the gap: for a moment he's split between the two screens, then he's on the top screen with the pegs he left on the bottom one.
+- **Elsewhere** (the title, the file select, the menus, the world map, the Jungle Jam scenes, King K. Rool's fights, the cutscenes), the game is on the top screen and the second screen shows the logo.
+- The in-game settings' Pinball two-screen view (Off) turns the tall view off for this game too: the game on the top screen, the logo on the other. Playing on one screen, the game plays as it is.
+- While you hold rewind, the top screen holds still; after a second and a half the game goes back to the top screen and the logo to the other until you let go.
+- Not tried yet: the end of a level and its score screen, a death by damage, Time Attack and Jungle Jam played from their menus, and multiplayer.
 
 ## Dragon Ball Z: Buu's Fury
 

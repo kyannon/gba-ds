@@ -691,6 +691,21 @@ static bool game_crc(const GameEntry* g, uint32_t* crc, int* patch) {
 	return have && *crc;
 }
 
+/* The game's ROM checksum if it's already known, without asking for it (0: not yet) */
+static uint32_t known_crc(const GameEntry* g) {
+	pthread_mutex_lock(&crcLock);
+	RomCrc* c = rom_crc_find(g->path, g->size, g->mtime);
+	uint32_t crc = c ? c->crc : 0;
+	pthread_mutex_unlock(&crcLock);
+	return crc;
+}
+
+/* The known mod the game is, or 0: its logo is its own (GEN-20) */
+static uint32_t logo_mod_of(const GameEntry* g) {
+	uint32_t crc = known_crc(g);
+	return profile_known_mod(g->code, crc) ? crc : 0;
+}
+
 static unsigned rom_crc_generation(void) {
 	pthread_mutex_lock(&crcLock);
 	unsigned g = crcGen;
@@ -783,7 +798,7 @@ static void scan(Config* cfg) {
 			}
 		}
 	}
-	for (int i = 0; i < nGames; ++i) ui_logo_queue(cfg, games[i].path, games[i].code);
+	for (int i = 0; i < nGames; ++i) ui_logo_queue(cfg, games[i].path, games[i].code, known_crc(&games[i]));
 	scanned = true;
 	snprintf(scannedRomDir, sizeof(scannedRomDir), "%s", cfg->romDir);
 	scannedShowAll = cfg->showAll;
@@ -797,6 +812,7 @@ static void scan(Config* cfg) {
 static SDL_Texture* thumbTex[2]; /* resume screenshot, per view */
 static int thumbW = GBA_W, thumbH = GBA_H; /* its size (a Game Boy game's is its own, GB-13) */
 static int thumbFor = -2;
+static uint32_t thumbMod; /* the known mod its logo was loaded for (GEN-20) */
 static SDL_Texture* logoTex[2];
 static int logoW, logoH;
 static bool logoPixel;
@@ -849,7 +865,9 @@ static void load_thumbs(Config* cfg, int idx) {
 	if (idx < 0 || idx >= nGames) return;
 	GamePaths gp;
 	game_paths(cfg, games[idx].path, &gp);
-	if (ui_load_logo(cfg, games[idx].path, games[idx].code, logoTex, &logoW, &logoH, &logoPixel)) {
+	thumbMod = logo_mod_of(&games[idx]);
+	if (ui_load_logo(cfg, games[idx].path, games[idx].code, known_crc(&games[idx]), logoTex, &logoW, &logoH,
+	                 &logoPixel)) {
 		/* drawn at a fixed height rather than a whole-number scale, so filter it */
 		for (int v = 0; v < 2; ++v) {
 			if (logoTex[v]) SDL_SetTextureScaleMode(logoTex[v], SDL_ScaleModeLinear);
@@ -1014,6 +1032,7 @@ static SDL_Rect tile_rect(ListGeom* g, int i, int scroll) {
 static SDL_Texture* tileLogo[256][2];
 static int tileLogoW[256], tileLogoH[256];
 static bool tileTried[256];
+static uint32_t tileMod[256]; /* the known mod each was loaded for (GEN-20) */
 
 static void free_tiles(void) {
 	for (int i = 0; i < 256; ++i) {
@@ -1027,6 +1046,17 @@ static void retry_tiles_without_logo(void) {
 	for (int i = 0; i < 256; ++i)
 		if (!tileLogo[i][0] && !tileLogo[i][1]) tileTried[i] = false;
 	if (!logoTex[0] && !logoTex[1]) thumbFor = -2;
+}
+
+/* (a ROM's checksum was worked out, GEN-8: a game now known to be a known
+ * mod has a logo of its own, GEN-20) */
+static void retry_logos_of_mods(void) {
+	for (int i = 0; i < nGames && i < 256; ++i) {
+		if (!tileTried[i] || tileMod[i] == logo_mod_of(&games[i])) continue;
+		ui_free_image(tileLogo[i]);
+		tileTried[i] = false;
+	}
+	if (thumbFor >= 0 && thumbFor < nGames && thumbMod != logo_mod_of(&games[thumbFor])) thumbFor = -2;
 }
 
 /* The sort bar: the top row of the list itself, not of the header, so it
@@ -1356,8 +1386,10 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		}
 		if (!tileTried[i]) {
 			tileTried[i] = true;
+			tileMod[i] = logo_mod_of(&games[i]);
 			bool pixelArt;
-			if (ui_load_logo(cfg, games[i].path, games[i].code, tileLogo[i], &tileLogoW[i], &tileLogoH[i], &pixelArt)) {
+			if (ui_load_logo(cfg, games[i].path, games[i].code, known_crc(&games[i]), tileLogo[i], &tileLogoW[i],
+			                 &tileLogoH[i], &pixelArt)) {
 				for (int v = 0; v < 2; ++v) {
 					if (tileLogo[i][v]) SDL_SetTextureScaleMode(tileLogo[i][v], SDL_ScaleModeLinear);
 				}
@@ -3172,6 +3204,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			if (cg != crcSeen) { /* a ROM's checksum worked out (GEN-8) */
 				crcSeen = cg;
 				rom_crc_save(cfg);
+				retry_logos_of_mods();
 			}
 		}
 		static unsigned fileCrcSeen;
