@@ -11,6 +11,9 @@
 ### Web player
 - **A screen in a second window, for another monitor** (issue #93). On a computer, the new two-windows button in the web player's toolbar opens the bottom screen (the touchscreen) in a window of its own, to drag to another monitor; the player's window then shows the top screen alone, as large as it fits. Settings > Screens > Second window puts the top screen there instead. Keys, controllers and clicks on the touchscreen work in either window. The second window has its own Full screen button, at its top right when you move the mouse (with the top screen in it, a double-click works too). Pressing the two-windows button again, or closing the window, brings the screen back. In Chrome and Edge with more than one monitor, the window opens on the other monitor once you allow the player to place windows. The game keeps running when either window is hidden, so long as the other can be seen.
 
+### Single displays
+- **Both screens on one display** (issue #84). On a tablet, a phone or any single display, Settings > Screens > **One display** can now show the game and the second screen together, side by side or stacked (or automatically, by the shape of the display), instead of one at a time. **Second screen size** gives the second screen half, 40 % or 30 % of the display. The pause menu still fills the whole display. Game only stays the default, so nothing changes unless you turn it on. Tried on a Lenovo Legion Y700 (Gen 5).
+
 ## v1.6.2 (2026-11-24)
 
 ### New games
