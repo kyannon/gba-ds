@@ -1328,6 +1328,9 @@ typedef struct {
 	bool exactKeep; /* the exact ones are kept instead (emu_hud_keep_exact) */
 	bool grouped; /* a matching sprite is hidden only as part of a group
 	               * (emu_hide_grouped) */
+	int nRetile; /* the HUD's sprites drawn with other tiles (emu_hud_retile) */
+	int8_t retileIdx[8];
+	uint16_t retileTile[8];
 } HideSlot;
 static HideSlot hideSlots[8];
 static pthread_mutex_t hideLock = PTHREAD_MUTEX_INITIALIZER;
@@ -1416,7 +1419,7 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 	struct GBAVideoSoftwareRenderer* sw = (struct GBAVideoSoftwareRenderer*) renderer;
 	HideSlot* s = slot_for(renderer);
 	if (!s) return;
-	if ((s->n || s->keepOnly || s->nExact) && sw->oamDirty) {
+	if ((s->n || s->keepOnly || s->nExact || s->nRetile) && sw->oamDirty) {
 		int n = GBAVideoRendererCleanOAM(sw->d.oam->obj, sw->sprites, sw->objOffsetY);
 		int kept = 0;
 		if (s->grouped && !s->keepOnly) {
@@ -1427,6 +1430,12 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 		} else {
 			for (int i = 0; i < n; ++i) {
 				if (!hidden(s, &sw->sprites[i].obj)) sw->sprites[kept++] = sw->sprites[i];
+			}
+		}
+		/* emu_hud_retile: this renderer's copy of the sprite list only (OAM itself is the game's) */
+		for (int i = 0; i < kept && s->nRetile; ++i) {
+			for (int k = 0; k < s->nRetile; ++k) {
+				if (sw->sprites[i].index == s->retileIdx[k]) sw->sprites[i].obj.c = (sw->sprites[i].obj.c & ~0x3FF) | s->retileTile[k];
 			}
 		}
 		sw->oamMax = kept;
@@ -1848,7 +1857,7 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 		if (s) {
 			s->renderer = h;
 			s->orig = h->drawScanline;
-			s->n = 0;
+			s->n = 0, s->nRetile = 0;
 		}
 		pthread_mutex_unlock(&hideLock);
 		split.installed = true;
@@ -1907,6 +1916,22 @@ void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n) {
 	split.nKeep = hs ? n : 0;
 	if (!split.grabbing) split_layers(split.bgMask, split.nObjs > 0 || split.nKeep > 0);
 	split.hud.oamDirty = true;
+}
+
+void emu_hud_retile(const int* oamIndex, const uint16_t* tile, int n) {
+	if (!split.installed) return;
+	n = n > 8 ? 8 : n;
+	pthread_mutex_lock(&hideLock);
+	HideSlot* hs = slot_for(&split.hud.d);
+	bool changed = false;
+	if (hs) {
+		changed = hs->nRetile != n;
+		for (int i = 0; i < n; ++i) changed = changed || hs->retileIdx[i] != oamIndex[i] || hs->retileTile[i] != tile[i];
+		hs->nRetile = n;
+		for (int i = 0; i < n; ++i) hs->retileIdx[i] = (int8_t) oamIndex[i], hs->retileTile[i] = tile[i];
+	}
+	pthread_mutex_unlock(&hideLock);
+	if (changed) split.hud.oamDirty = true;
 }
 
 void emu_hud_copy_above(int row) {

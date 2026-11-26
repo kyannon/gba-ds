@@ -71,6 +71,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Shin Megami Tensei](shin-megami-tensei.md) | SMT | `AAUJ` |
 | [Breath of Fire](breath-of-fire.md) | BOF | `ABFE` + 3 |
 | [Breath of Fire II (Shimei no Ko in Japan)](breath-of-fire-ii.md) | BOF2 | `AB2E` + 2 |
+| [Cruis'n Velocity](cruisn-velocity.md) | CRV | `ACFE` |
 | [DK: King of Swing (Bura Bura Donkey in Japan)](dk-king-of-swing.md) | DKKS | `BBKE` + 2 |
 
 ## General rules
