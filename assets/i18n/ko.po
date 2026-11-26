@@ -64,9 +64,6 @@ msgstr "%s %s. RetroArch가 상태를 다른 곳에 보관한다면 다른 폴�
 msgid "%s (beside the ROM)"
 msgstr "%s (ROM 옆)"
 
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "%s을(를) 핫키 버튼으로 사용 (Start, R1, L1, X, Y, B와 함께)"
-
 msgid "%s has no button now"
 msgstr "%s에 할당된 버튼이 없습니다"
 
@@ -144,9 +141,6 @@ msgstr "A 버튼 (오른쪽)"
 
 msgid "A and B buttons"
 msgstr "A 및 B 버튼"
-
-msgid "A dark line under each row of pixels"
-msgstr "각 픽셀 줄 아래에 어두운 선"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "옆에 이미 있거나 다른 형식인 게임 저장 데이터는 처음 플레이할 때 복사됩니다. .srm은 RetroArch가 쓰는 형식입니다. RetroArch의 저장 폴더도 선택하면 각 게임의 저장 데이터를 공유할 수 있습니다."
@@ -246,9 +240,6 @@ msgstr "게임을 시작했을 때 그대로"
 
 msgid "Aug"
 msgstr "8월"
-
-msgid "Auto"
-msgstr "자동"
 
 msgid "Auto-load"
 msgstr "자동 불러오기"
@@ -543,9 +534,6 @@ msgstr "아래"
 
 msgid "Downloading"
 msgstr "다운로드 중"
-
-msgid "Each pixel a little darker toward its edges"
-msgstr "가장자리로 갈수록 각 픽셀이 약간 어두워짐"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "retroachievements.org 계정으로 캐주얼 모드에서 업적을 달성하세요. GBA DS는 비밀번호가 아닌 로그인 토큰을 보관합니다."
@@ -916,14 +904,8 @@ msgstr "밝은/어두운 모드"
 msgid "Like a GBA"
 msgstr "GBA처럼"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "GBA 화면처럼 픽셀 사이에 선"
-
 msgid "Load failed"
 msgstr "불러오기 실패"
-
-msgid "Load failed."
-msgstr "불러오기에 실패했습니다."
 
 msgid "Load State"
 msgstr "상태 불러오기"
@@ -1315,15 +1297,6 @@ msgstr "소리가 갈라지면 올리세요."
 msgid "Red"
 msgstr "빨강"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "빨강, 초록, 파랑 줄무늬, 부드럽게: 어두운 화면용"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "GBA 화면처럼 빨강, 초록, 파랑 줄무늬"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "빨강, 초록, 파랑 줄무늬, 강하게: 밝은 화면용"
-
 msgid "Reset"
 msgstr "초기화"
 
@@ -1669,9 +1642,6 @@ msgstr "부드러운 배율"
 msgid "Smoother, one frame more input delay."
 msgstr "더 부드럽지만 입력 지연이 한 프레임 늘어납니다."
 
-msgid "SNES"
-msgstr "SNES"
-
 msgid "Soft Cells"
 msgstr "부드러운 셀"
 
@@ -1801,9 +1771,6 @@ msgstr "GBA DS 메뉴를 여는 버튼 (Home, Menu 또는 Function)"
 msgid "the game"
 msgstr "게임"
 
-msgid "The game's pixels as they are"
-msgstr "게임의 픽셀을 있는 그대로"
-
 msgid "The GBA DS logo in the generated bezel."
 msgstr "생성된 베젤의 GBA DS 로고."
 
@@ -1854,6 +1821,9 @@ msgstr "위 버튼"
 
 msgid "This folder can't be opened"
 msgstr "이 폴더를 열 수 없습니다"
+
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS가 이 폴더에 저장할 수 없습니다: 다른 폴더를 선택하세요"
 
 msgid "This game"
 msgstr "이 게임"
@@ -2077,6 +2047,45 @@ msgstr "›"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "소리 지연을 %d ms로 올렸습니다: 소리가 계속 끊겼습니다"
+
+msgid "Android couldn't install the update."
+msgstr "Android가 업데이트를 설치하지 못했습니다."
+
+msgid "Android couldn't install the update: %s."
+msgstr "Android가 업데이트를 설치하지 못했습니다: %s."
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Android는 이 GBA DS 위에 v%s를 설치하지 않습니다: 다른 키로 서명되었습니다(테스트 빌드?). GBA DS를 제거한 다음 github.com/kyannon/gba-ds/releases에서 새 버전을 설치하세요. GBA DS 폴더의 파일은 유지됩니다."
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Android는 이 GBA DS 위에 v%s를 설치하지 않습니다: 이 사본은 그 이후의 테스트 빌드이고, Android는 이전 빌드로 되돌리지 않습니다. 이대로 쓰거나, GBA DS를 제거하고 github.com/kyannon/gba-ds/releases에서 v%s를 설치하세요(GBA DS 폴더의 파일은 유지됩니다)."
+
+msgid "Couldn't check for updates."
+msgstr "업데이트를 확인하지 못했습니다."
+
+msgid "Couldn't check for updates: %s."
+msgstr "업데이트를 확인하지 못했습니다: %s."
+
+msgid "Couldn't download the update: %s."
+msgstr "업데이트를 다운로드하지 못했습니다: %s."
+
+msgid "Couldn't install the update: %s."
+msgstr "업데이트를 설치하지 못했습니다: %s."
+
+msgid "Couldn't start installing the update: %s."
+msgstr "업데이트 설치를 시작하지 못했습니다: %s."
+
+msgid "Couldn't start the download."
+msgstr "다운로드를 시작하지 못했습니다."
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "다운로드가 체크섬과 일치하지 않습니다. 다시 시도하세요."
+
+msgid "The download was incomplete. Try again."
+msgstr "다운로드가 완료되지 않았습니다. 다시 시도하세요."
+
+msgid "There isn't enough storage free to install the update."
+msgstr "업데이트를 설치할 저장 공간이 부족합니다."
 
 # issue 92: the first-run language screen
 msgid "Choose the language for GBA DS's menus."
