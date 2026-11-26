@@ -28,6 +28,18 @@
 
 enum { NLAYERS = 5 }; /* bg0-3, obj */
 static volatile bool cancelAll;
+/* The queue's job running is called off (logo_yield: a game is starting
+ * whose own logo is ready): only the worker's extraction stops, not one a
+ * game's start runs itself (ui_game_prepare). */
+static volatile bool cancelJob;
+#ifdef __wasi__
+static bool onWorker; /* (no threads there) */
+#else
+static __thread bool onWorker;
+#endif
+static bool stopped(void) {
+	return cancelAll || (onWorker && cancelJob);
+}
 
 static void layers(Emu* e, int only) {
 	for (int i = 0; i < NLAYERS; ++i) e->core->enableVideoLayer(e->core, i, only == -2 || i == only);
@@ -45,11 +57,45 @@ static void logo_hide(Emu* e, const LogoSpec* L) {
 	emu_hide_sprites(e, n ? L->hide : NULL, n);
 }
 
+#ifndef GBADS_VERSION
+#define GBADS_VERSION "dev"
+#endif
+static void failed_path(const char* outPng, char* path, size_t n) {
+	snprintf(path, n, "%s.none", outPng);
+}
+bool logo_failed(const char* outPng) {
+	char path[1100], line[64] = "";
+	failed_path(outPng, path, sizeof(path));
+	FILE* f = fopen(path, "r");
+	if (!f) return false;
+	if (!fgets(line, sizeof(line), f)) line[0] = 0;
+	fclose(f);
+	line[strcspn(line, "\r\n")] = 0;
+	return !strcmp(line, GBADS_VERSION);
+}
+static void failed_mark(const char* outPng, bool failed) {
+	char path[1100];
+	failed_path(outPng, path, sizeof(path));
+	if (!failed) {
+		unlink(path);
+		return;
+	}
+	FILE* f = fopen(path, "w");
+	if (!f) return;
+	fprintf(f, "%s\n", GBADS_VERSION);
+	fclose(f);
+}
+
 bool logo_extract(const char* romPath, const char* gameCode, const char* outPng) {
 	const MapProfile* p = profile_find(gameCode);
 	if (!p) return false;
 	Emu e;
-	if (!emu_open(&e, romPath, NULL, false)) return false;
+	/* a game whose logos are per ROM file: the file's own logo, whatever
+	 * patch is beside it or switched on (a patched game shows its base's) */
+	if (p->logoPerRom) emu_open_unpatched(true);
+	bool opened = emu_open(&e, romPath, NULL, false);
+	if (p->logoPerRom) emu_open_unpatched(false);
+	if (!opened) return false;
 	/* this ROM file's recipe (a romhack's own, by its CRC32), and for a game
 	 * whose logos are per ROM file, never a patched copy's (a patched game
 	 * is the base game: it uses the base's logo, from the unpatched file) */
@@ -70,15 +116,15 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		for (int i = 0; i < r->len; ++i) e.core->rawWrite8(e.core, r->addr + i, -1, r->bytes[i]);
 	}
 
-	for (int i = 0; i < 24 && L->steps[i].frames && !cancelAll; ++i) {
-		for (int f = 0; f < L->steps[i].frames && !cancelAll; ++f) emu_frame(&e, L->steps[i].keys);
+	for (int i = 0; i < 24 && L->steps[i].frames && !stopped(); ++i) {
+		for (int f = 0; f < L->steps[i].frames && !stopped(); ++f) emu_frame(&e, L->steps[i].keys);
 	}
-	for (int f = 0; f < L->wait && !cancelAll; ++f) emu_frame(&e, 0);
+	for (int f = 0; f < L->wait && !stopped(); ++f) emu_frame(&e, 0);
 	if (L->pressStart) {
 		for (int f = 0; f < 4; ++f) emu_frame(&e, K_START);
-		for (int f = 0; f < L->wait2 && !cancelAll; ++f) emu_frame(&e, 0);
+		for (int f = 0; f < L->wait2 && !stopped(); ++f) emu_frame(&e, 0);
 	}
-	if (cancelAll) {
+	if (stopped()) {
 		emu_close(&e);
 		return false;
 	}
@@ -335,8 +381,10 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		ok = rgba && stbi_write_png(tmp, w, h, 4, rgba, w * 4) && rename(tmp, outPng) == 0;
 		free(rgba);
 		fprintf(stderr, "logo: %s %dx%d -> %s\n", gameCode, w, h, ok ? outPng : "write failed");
+		if (ok) failed_mark(outPng, false);
 	} else {
 		fprintf(stderr, "logo: %s not found on the title screen (%d px)\n", gameCode, count);
+		failed_mark(outPng, true); /* (not again at every start: logo_failed) */
 	}
 	free(back);
 	free(fg);
@@ -368,12 +416,15 @@ static bool exists(const char* p) {
 	return stat(p, &st) == 0;
 }
 
-static void do_job(Job* j) {
+/* False: called off (logo_yield), the job kept for later. */
+static bool do_job(Job* j) {
 	if (!exists(j->out)) {
 		logo_extract(j->rom, j->code, j->out);
+		if (onWorker && cancelJob && !exists(j->out)) return false;
 	}
 	free(j);
 	__atomic_add_fetch(&generation, 1, __ATOMIC_SEQ_CST);
+	return true;
 }
 
 /* (qlock held) the first job, or while paused the first urgent one; NULL if none */
@@ -385,15 +436,28 @@ static Job* take_job(void) {
 	return j;
 }
 
-/* (qlock held) a job taken from the queue, done with the lock let go meanwhile */
+/* (qlock held) a job taken from the queue, done with the lock let go meanwhile.
+ * One called off for a game starting (only on the worker: logo_request) goes
+ * back in the queue, after the urgent ones, to be made once the list is back. */
 static void run_job(Job* j) {
 	snprintf(current, sizeof(current), "%s", j->code);
+	cancelJob = false;
 	pthread_mutex_unlock(&qlock);
-	do_job(j);
+	bool done = do_job(j);
 	pthread_mutex_lock(&qlock);
 	current[0] = 0;
-	--pending;
-	++finished;
+	cancelJob = false;
+	if (done) {
+		--pending;
+		++finished;
+	} else {
+		fprintf(stderr, "logo: %s put off (a game is starting)\n", j->code);
+		j->urgent = false;
+		Job** tail = &queue;
+		while (*tail && (*tail)->urgent) tail = &(*tail)->next;
+		j->next = *tail;
+		*tail = j;
+	}
 }
 
 static void* worker(void* arg) {
@@ -405,6 +469,7 @@ static void* worker(void* arg) {
 #ifdef __ANDROID__
 	android_pin_worker_thread("logo extraction");
 #endif
+	onWorker = true;
 	pthread_mutex_lock(&qlock);
 	while (!stopping) {
 		Job* j = take_job();
@@ -450,7 +515,7 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 			return;
 		}
 	}
-	if (tried_before(outPng)) {
+	if (logo_failed(outPng) || tried_before(outPng)) {
 		pthread_mutex_unlock(&qlock);
 		return;
 	}
@@ -561,6 +626,11 @@ bool logo_busy(const char* gameCode) {
 	return busy;
 }
 
+void logo_yield(const char* gameCode) {
+	pthread_mutex_lock(&qlock);
+	if (current[0] && strncmp(current, gameCode, 4)) cancelJob = true;
+	pthread_mutex_unlock(&qlock);
+}
 void logo_pause(bool on) {
 	pthread_mutex_lock(&qlock);
 	paused = on;

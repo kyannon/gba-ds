@@ -2761,9 +2761,9 @@ static bool updates_input(int ls) {
 #endif
 
 /* "Preparing games" over a dimmed screen, with a progress bar. */
-/* Starting a game whose logo (or map border) isn't ready yet: only its
- * own are made first (and the one already under way finished), the rest
- * wait until the game list is back. */
+/* Starting a game whose logo isn't ready yet: only its own is made first
+ * (another game's under way is called off, logo_yield), the rest wait until
+ * the game list is back. */
 static void draw_wait(int scr, const char* name) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
@@ -3203,7 +3203,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			prioSel = sel, prioScroll = scroll;
 		}
 		if (waiting >= 0) {
-			if (!logo_busy(games[waiting].code) && !logo_busy(NULL)) {
+			if (!logo_busy(games[waiting].code)) {
 				chosen = waiting;
 				break;
 			}
@@ -3488,7 +3488,8 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			/* (its own jobs first, and nothing else started meanwhile) */
 			logo_pause(true);
 			logo_front(games[chosen].code, true);
-			if (logo_busy(games[chosen].code) || logo_busy(NULL)) waiting = chosen, chosen = -1;
+			logo_yield(games[chosen].code); /* (another game's logo under way: made later) */
+			if (logo_busy(games[chosen].code)) waiting = chosen, chosen = -1;
 		}
 
 		ui_clear();
