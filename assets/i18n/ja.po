@@ -2086,3 +2086,24 @@ msgstr "ダウンロードが不完全でした。もう一度お試しくださ
 
 msgid "There isn't enough storage free to install the update."
 msgstr "アップデートをインストールするための空き容量が足りません。"
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "GBA DS のメニューの言語を選んでください。"
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "あとで 設定 > システム で変更できます。"
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "選ぶ"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "続ける"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "システム: %s"

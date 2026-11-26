@@ -2089,3 +2089,24 @@ msgstr "Der Download war unvollständig. Versuche es erneut."
 
 msgid "There isn't enough storage free to install the update."
 msgstr "Es ist nicht genug Speicher frei, um das Update zu installieren."
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "Wähle die Sprache für die Menüs von GBA DS."
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "Du kannst sie später unter Einstellungen > System ändern."
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "Wählen"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "Weiter"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "System: %s"

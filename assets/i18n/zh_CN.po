@@ -2086,3 +2086,24 @@ msgstr "下载不完整。请重试。"
 
 msgid "There isn't enough storage free to install the update."
 msgstr "可用存储空间不足，无法安装更新。"
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "选择 GBA DS 菜单的语言。"
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "以后可以在 设置 > 系统 中更改。"
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "选择"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "继续"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "系统：%s"

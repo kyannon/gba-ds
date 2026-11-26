@@ -71,6 +71,12 @@ const char* trnc(const char* ctx, const char* one, const char* other, long n);
 #define N_(s) (s)
 #define NC_(ctx, s) (s)
 
+/* the system's language as one of the build's (i18nLangs[]; -1: none, which is English) */
+int i18n_system_index(void);
+/* en as a given language says it (the first form), whatever language is in use: the first-run
+ * language screen writes each language's name and note in that language. code: "en" or a code. */
+const char* i18n_tr_in(const char* code, const char* en);
+
 /* the system's language as one of the build's (-1: none), from its locale
  * name ("de_DE.UTF-8", "zh-Hant-TW"); for the tests and `auto` */
 int i18n_match_locale(const char* locale);

@@ -1652,7 +1652,7 @@ typedef struct {
 static const SetPage setPages[SP_SYSTEM] = {
 	{ N_("Games"), N_("Which games, names, saving"), { "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
 	{ N_("Display"), N_("Scale, shader, theme, color"), { "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_border", "gb_correction", "gb_ghosting", "gb_shader", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth", "theme", "accent" } },
-	{ "Screens", N_("Placement, overlays"), { "swap", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
+	{ "Screens", N_("Placement, overlays"), { "swap", "single_layout", "single_size", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
 	{ "Controls", N_("Stick, buttons, hotkeys"), { "@map", "@hotkeys", "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right", "turbo_rate", "rumble_strength" } },
 	{ N_("Speed and sound"), N_("Rewind, fast forward"), { "show_fps", "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
 	{ "Second screen", N_("The map and the logo"), { "map", "map_interval", "toggle", "auto_rotate", "toggle_button", "pinball_live" } },
@@ -1837,6 +1837,7 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	if (!strcmp(st->key, "rumble_strength")) ui_rumble_pulse(cfg->rumbleStrength / 100.0f, 250); /* a buzz to feel it by */
 	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
 	if (!strcmp(st->key, "screen_match") || !strcmp(st->key, "screen_placement")) ui_layout_pictures();
+	if (!strcmp(st->key, "single_layout") || !strcmp(st->key, "single_size")) ui_layout();
 	fprintf(stderr, "setting: %s = %s (all games)\n", lines[0][0], lines[0][1]);
 }
 
@@ -2784,7 +2785,299 @@ static int keep_visible(int scr, int sel, int scroll) {
 	return clamp_scroll(scr, scroll);
 }
 
+/* ---- the first-run language question (issue #92) ----
+ * A first install asks which language the menus are in before the game list
+ * (or, launched straight into a game, before the first pause menu): a
+ * system can report a language its player doesn't read (the RG DS Plus's
+ * stock OS says Chinese), and then the Language row is in that language too.
+ * The top screen says "Language" in every language; the touch screen lists
+ * Automatic (with the system's language), English and every catalogue by its
+ * own name. A picks (both screens redraw in it at once); A on the language
+ * already picked, START or Continue keeps it; B puts back the one it opened
+ * with. language_asked = 1 in prefs.cfg once kept.
+ * Which builds ask (the owner's rule, Nov 25, 2026): releases (a version
+ * without -dev, the APK included) and builds made with GBADS_LANG_ASK=1 (the
+ * main session's final dev build); never other test builds, nor the web
+ * build (the web player and State Saver keep no settings for a visitor who
+ * doesn't allow storage, so they'd ask every time). GBADS_LANG_ASK=1 in the
+ * environment turns it on for a test (regress.py's cases). */
+bool library_language_ask_built(void) {
+#if defined(__wasi__)
+	return false;
+#else
+	const char* env = getenv("GBADS_LANG_ASK");
+	if (env && env[0]) return env[0] == '1';
+#ifdef GBADS_LANG_ASK
+	return GBADS_LANG_ASK != 0;
+#else
+	return !strstr(GBADS_VERSION, "-dev");
+#endif
+#endif
+}
+
+#define LA_MAX 24
+typedef struct {
+	int n;                    /* items: 0 Automatic, then English and the catalogues; n is Continue */
+	const char* code[LA_MAX];
+	int lang[LA_MAX];         /* index into i18nLangs (-1: Automatic, English) */
+	int chosen, sel;
+} LangAsk;
+
+static SDL_Rect la_rect(int scr, const LangAsk* a, int i) {
+	int px = (int) ui_px(scr);
+	SDL_Rect p = set_panel(scr);
+	int top = p.y + px * 22, gap = px * 2;
+	int backW = px * 40, backH = px * 14;
+	if (i >= a->n) return (SDL_Rect) { p.x + p.w - px * 6 - backW, p.y + p.h - px * 5 - backH, backW, backH };
+	int rows = 1 + (a->n - 1 + 1) / 2;
+	int avail = p.y + p.h - px * 5 - backH - px * 4 - top;
+	int h = SDL_min((int) (ui_px(scr) * 19), avail / rows - gap); /* (the unit unrounded: the RG DS's 640x480 screens have 2.67) */
+	int w = p.w - px * 12, half = (w - px * 3) / 2;
+	if (i == 0) return (SDL_Rect) { p.x + px * 6, top, w, h };
+	int row = 1 + (i - 1) / 2, col = (i - 1) % 2;
+	return (SDL_Rect) { p.x + px * 6 + col * (half + px * 3), top + row * (h + gap), half, h };
+}
+
+/* the language a choice puts in use, as a code ("en" for Automatic on a system none of them matches) */
+static const char* la_code_in_use(const LangAsk* a, int i) {
+	if (i != 0) return a->code[i];
+	int s = i18n_system_index();
+	return s >= 0 ? i18nLangs[s].code : "en";
+}
+
+static void la_apply(const LangAsk* a) {
+	i18n_set(a->code[a->chosen]);
+	ui_language_changed();
+}
+
+/* "Language" in every language, a line at a time across the screen; the one in use brighter */
+static int la_words(int scr, int y, int cap, int maxW, bool draw) {
+	const char* words[LA_MAX];
+	int nw = 0;
+	words[nw++] = "Language";
+	for (int i = 0; i < i18nLangCount && nw < LA_MAX; ++i) {
+		if (i18nLangs[i].status == I18N_TEST) continue;
+		const char* w = i18n_tr_in(i18nLangs[i].code, "Language");
+		bool dup = false;
+		for (int k = 0; k < nw; ++k) dup |= !strcmp(words[k], w);
+		if (!dup) words[nw++] = w;
+	}
+	SDL_Rect r = screens[scr].rect;
+	int px = (int) ui_px(scr), gap = px * 8, lineH = cap * 2;
+	const char* here = tr("Language");
+	int k = 0;
+	while (k < nw) {
+		int end = k, lw = 0;
+		while (end < nw) {
+			int w = ui_font_width_as_is(TF_BOLD, cap, words[end]) + (end > k ? gap : 0);
+			if (end > k && lw + w > maxW) break;
+			lw += w, ++end;
+		}
+		if (draw) {
+			int x = r.w / 2 - lw / 2;
+			for (int j = k; j < end; ++j) {
+				bool on = !strcmp(words[j], here);
+				ui_font_text_as_is(scr, TF_BOLD, x, y + lineH / 2, cap, words[j], on ? C_TEXT : (SDL_Color) { 93, 90, 114, 255 }, -1);
+				x += ui_font_width_as_is(TF_BOLD, cap, words[j]) + gap;
+			}
+		}
+		y += lineH, k = end;
+	}
+	return y;
+}
+
+/* a line set smaller until it fits maxW, centred */
+static void la_line(int scr, int font, int cx, int cy, int cap, int maxW, const char* text, SDL_Color c, bool asIs) {
+	int w = asIs ? ui_font_width_as_is(font, cap, text) : ui_font_width(font, cap, text);
+	if (w > maxW && w > 0) cap = cap * maxW / w;
+	if (asIs) ui_font_text_as_is(scr, font, cx, cy, cap, text, c, 0);
+	else ui_font_text(scr, font, cx, cy, cap, text, c, 0);
+}
+
+static void la_draw_top(int scr) {
+	SDL_Rect r = screens[scr].rect;
+	int px = (int) ui_px(scr), m = px * 6;
+	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 0, 0, 0, 255 });
+	load_brand();
+	draw_brand(scr, BRAND_LOGO, m, m, px * 21);
+	int maxW = r.w - px * 32;
+	/* the words and the lines, centred between the logo and the buttons */
+	bool en = !strcmp(i18n_code(), "en");
+	int blockH = la_words(scr, 0, px * 9, maxW, false) + px * 8 + px * (en ? 14 : 36);
+	int y0 = px * 30 + (r.h - px * 16 - px * 30 - blockH) / 2;
+	int y = la_words(scr, y0, px * 9, maxW, true) + px * 8;
+	la_line(scr, TF_BOLD, r.w / 2, y, px * 6, r.w - px * 16, N_("Choose the language for GBA DS's menus."), C_TEXT, false);
+	la_line(scr, TF_BODY, r.w / 2, y + px * 11, px * 4, r.w - px * 16, N_("You can change it later in Settings > System."), C_DIM, false);
+	if (!en) {
+		/* and in English, which most players read some of */
+		la_line(scr, TF_BODY, r.w / 2, y + px * 25, px * 4, r.w - px * 16, "Choose the language for GBA DS's menus.", (SDL_Color) { 120, 117, 142, 255 }, true);
+		la_line(scr, TF_BODY, r.w / 2, y + px * 33, px * 4, r.w - px * 16, "You can change it later in Settings > System.", (SDL_Color) { 96, 94, 116, 255 }, true);
+	}
+	/* the buttons: A picks, START keeps it */
+	int ty = r.h - px * 11, d = px * 10, bx = m;
+	int gy = ty + px * 7 / 2 - d / 2, cap = px * 5, cy = gy + d / 2, wordW = px * 18;
+	bx += draw_brand(scr, BRAND_BTN_A, bx, gy, d) + px * 2;
+	int ww = SDL_max(wordW, ui_label_width(scr, cap, "Choose"));
+	ui_label(scr, bx + ww / 2, cy, cap, "Choose", C_TEXT);
+	bx += ww + px * 8;
+	int pw = ui_font_width_as_is(TF_BOLD, px * 3, "START") + px * 5;
+	ui_fill_round(scr, (SDL_Rect) { bx, cy - px * 4, pw, px * 8 }, C_TEXT, px * 4);
+	ui_font_text_as_is(scr, TF_BOLD, bx + pw / 2, cy, px * 3, "START", (SDL_Color) { 16, 16, 26, 255 }, 0);
+	bx += pw + px * 2;
+	ww = SDL_max(wordW, ui_label_width(scr, cap, "Continue"));
+	ui_label(scr, bx + ww / 2, cy, cap, "Continue", C_TEXT);
+	int vpx = SDL_max(1, px / 2);
+	const char* v = "V" GBADS_VERSION;
+	ui_text(scr, r.w - m - ui_text_width(v, vpx), cy - vpx * 7 / 2, vpx, v, C_DIM);
+}
+
+static void la_draw_list(int scr, const LangAsk* a, bool oneScreen) {
+	int px = (int) ui_px(scr);
+	SDL_Rect r = screens[scr].rect;
+	SDL_Rect p = set_panel(scr);
+	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 7, 6, 12, 255 });
+	ui_fill_round(scr, p, C_HEADER, px * 4);
+	if (oneScreen) {
+		/* (no other screen for "Language" in every language: it goes in the heading's strip, smaller) */
+		la_words(scr, p.y + px * 2, px * 4, p.w - px * 12, true);
+	} else {
+		draw_set_heading(scr, p, "Language", -1);
+	}
+	for (int i = 0; i <= a->n; ++i) {
+		SDL_Rect b = la_rect(scr, a, i);
+		bool sel = i == a->sel, lit = i == a->chosen;
+		ui_key(scr, b, px * 3, sel ? KEY_SEL : lit ? KEY_LIT : KEY_PLAIN);
+		int cy = b.y + b.h / 2;
+		if (i == a->n) {
+			ui_label(scr, b.x + b.w / 2, cy, px * 5, "Continue", C_TEXT);
+		} else if (i == 0) {
+			int s = i18n_system_index();
+			char sys[120];
+			snprintf(sys, sizeof(sys), tr("System: %s"), s >= 0 ? i18nLangs[s].autonym : "English");
+			ui_font_text(scr, TF_BOLD, b.x + px * 6, cy, px * 5, "Automatic", C_TEXT, -1);
+			ui_font_text_as_is(scr, TF_BODY, b.x + b.w - px * 6, cy, px * 4, sys, sel || lit ? C_TEXT : C_DIM, 1);
+		} else {
+			const I18nLang* L = a->lang[i] >= 0 ? &i18nLangs[a->lang[i]] : NULL;
+			const char* name = L ? L->autonym : "English";
+			int room = b.w - px * 12, cap = px * 5;
+			if (L && L->status == I18N_MACHINE) {
+				const char* note = i18n_tr_in(L->code, "machine translated");
+				ui_font_text_as_is(scr, TF_BOLD, b.x + px * 6, b.y + b.h * 35 / 100, cap, name, C_TEXT, -1);
+				int nc = px * 7 / 2, nw = ui_font_width_as_is(TF_BOLD, nc, note);
+				if (nw > room) nc = nc * room / nw;
+				ui_font_text_as_is(scr, TF_BOLD, b.x + px * 6, b.y + b.h * 72 / 100, nc, note, sel || lit ? C_TEXT : C_DIM, -1);
+			} else {
+				ui_font_text_as_is(scr, TF_BOLD, b.x + px * 6, cy, cap, name, C_TEXT, -1);
+			}
+		}
+	}
+	set_notes(scr, p, la_rect(scr, a, a->n), "Automatic follows the system. Text that isn't translated yet stays in English.", C_DIM, TF_BODY, NULL, C_DIM, TF_BODY);
+}
+
+static void la_move(LangAsk* a, int dx, int dy) {
+	int i = a->sel, n = a->n;
+	if (dy) {
+		if (i == n) i = dy < 0 ? n - 1 : 0;
+		else if (i == 0) i = dy > 0 ? 1 : n;
+		else {
+			int j = i + dy * 2;
+			if (j < 1) j = 0;
+			else if (j >= n) j = dy > 0 ? n : n - 1;
+			i = j;
+		}
+	} else if (dx && i >= 1 && i < n) {
+		int j = (i - 1) % 2 == 0 ? i + 1 : i - 1;
+		if (j >= 1 && j < n) i = j;
+	} else if (dx && i == n && dx < 0) {
+		i = n - 1;
+	}
+	a->sel = i;
+}
+
+/* Asks, until the player keeps a language (prefs.cfg: language, language_asked = 1). */
+void library_language_ask(Config* cfg) {
+	LangAsk a;
+	memset(&a, 0, sizeof(a));
+	a.code[a.n] = "auto", a.lang[a.n++] = -1;
+	a.code[a.n] = "en", a.lang[a.n++] = -1;
+	for (int i = 0; i < i18nLangCount && a.n < LA_MAX - 1; ++i) {
+		if (i18nLangs[i].status == I18N_TEST) continue;
+		a.code[a.n] = i18nLangs[i].code, a.lang[a.n++] = i;
+	}
+	int start = 0;
+	for (int i = 0; i < a.n; ++i)
+		if (!strcmp(a.code[i], cfg->language)) start = i;
+	a.chosen = a.sel = start;
+	fprintf(stderr, "language: asking (first run), now %s (%s)\n", cfg->language, i18n_code());
+
+	bool done = false, waitRelease = true;
+	Uint32 releasedAt = 0;
+	while (!done) {
+		if (!ui_events()) break;
+		ui_tick();
+		ui_read_buttons();
+		Uint32 now = SDL_GetTicks();
+		int scr = ui_touch_screen(), top = ui_other_screen();
+		bool oneScreen = top == scr;
+		int act = -1; /* an item pressed (n: Continue) */
+		Pointer pt;
+		while (ui_next_pointer(&pt)) {
+			if (pt.screen != scr || pt.kind != 1) continue;
+			SDL_Point q = { pt.x, pt.y };
+			for (int i = 0; i <= a.n; ++i) {
+				SDL_Rect b = la_rect(scr, &a, i);
+				if (SDL_PointInRect(&q, &b)) a.sel = i, act = i;
+			}
+		}
+		if (waitRelease) {
+			bool any = false;
+			for (int b = 0; b < B_COUNT; ++b) any |= btnNow[b];
+			if (any) releasedAt = 0;
+			else if (!releasedAt) releasedAt = now;
+			if (releasedAt && now - releasedAt > 150) waitRelease = false;
+		} else {
+			if (btn_pressed(B_UP)) la_move(&a, 0, -1);
+			if (btn_pressed(B_DOWN)) la_move(&a, 0, 1);
+			if (btn_pressed(B_LEFT)) la_move(&a, -1, 0);
+			if (btn_pressed(B_RIGHT)) la_move(&a, 1, 0);
+			if (btn_pressed(B_A)) act = a.sel;
+			if (btn_pressed(B_START)) act = a.n;
+			if (btn_pressed(B_B) && a.chosen != start) a.chosen = a.sel = start, la_apply(&a);
+		}
+		if (act >= 0) {
+			if (act == a.n || act == a.chosen) {
+				done = true;
+			} else {
+				a.chosen = act;
+				la_apply(&a);
+			}
+		}
+		ui_clear();
+		if (!oneScreen) la_draw_top(top);
+		la_draw_list(scr, &a, oneScreen);
+		ui_present();
+		SDL_Delay(15);
+	}
+	if (!done) { /* (the app closed: asked again next time) */
+		i18n_set(cfg->language);
+		ui_language_changed();
+		return;
+	}
+	snprintf(cfg->language, sizeof(cfg->language), "%s", a.code[a.chosen]);
+	cfg->languageAsked = true;
+	char path[1100];
+	mkdirs(cfg->stateDir);
+	snprintf(path, sizeof(path), "%s/prefs.cfg", cfg->stateDir);
+	const char* kv[2][2] = { { "language", cfg->language }, { "language_asked", "1" } };
+	config_kv_update(path, "# written by gba-ds's menus; overrides gba-ds.cfg", 2, kv);
+	fprintf(stderr, "language: kept %s (%s)\n", cfg->language, la_code_in_use(&a, a.chosen));
+	/* the press that kept it shouldn't do anything after */
+	ui_read_buttons();
+	ui_read_buttons();
+}
+
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
+	if (!cfg->languageAsked) library_language_ask(cfg); /* (a first install, issue #92) */
 	storage_check(cfg);
 	sortMode = !strcmp(cfg->librarySort, "recent") ? 1 : 0;
 	barFocus = false;

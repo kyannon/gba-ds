@@ -71,6 +71,8 @@ button { cursor: pointer; }
   border-color: var(--s-bd); box-shadow: inset 0 0 0 1px var(--s-bd), 0 var(--lift) 0 var(--s-edge), 0 0 0 3px var(--s-ring);
 }
 .primary:active:not(:disabled), .slot.have:active { box-shadow: inset 0 0 0 1px var(--s-bd), 0 1px 0 var(--s-edge), 0 0 0 3px var(--s-ring); }
+/* the second window's key while that window is open (issue #93) */
+#win2Btn.on { background: linear-gradient(var(--s-top), var(--s-lo)); color: #fff; border-color: var(--s-bd); box-shadow: inset 0 0 0 1px var(--s-bd), 0 var(--lift) 0 var(--s-edge), 0 0 0 3px var(--s-ring); }
 .primary:disabled { opacity: 0.4; cursor: default; box-shadow: inset 0 0 0 1px var(--s-bd), 0 var(--lift) 0 var(--s-edge); }
 
 /* ================================================================ the bar (the app's header) */
