@@ -1,0 +1,499 @@
+{
+  "game": "Cruis'n Velocity",
+  "rules": "docs/games/cruisn-velocity.md",
+  "cases": [
+    {
+      "id": "crv-logo-acfe",
+      "kind": "logo",
+      "rom": "ACFE",
+      "desc": "ACFE logo extraction",
+      "rules": [
+        "GEN-1",
+        "CRV-1"
+      ],
+      "golden": [
+        "logo"
+      ]
+    },
+    {
+      "id": "crv-title",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/title.ss",
+      "desc": "the title: the logo",
+      "rules": [
+        "CRV-5"
+      ],
+      "shots": {
+        "title": 60
+      },
+      "golden": [
+        "title"
+      ]
+    },
+    {
+      "id": "crv-menu",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/main-menu.ss",
+      "desc": "the main menu: the logo",
+      "rules": [
+        "CRV-5"
+      ],
+      "shots": {
+        "menu": 60
+      },
+      "golden": [
+        "menu"
+      ]
+    },
+    {
+      "id": "crv-start",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/race-intro.ss",
+      "desc": "the race's intro page, then the course name over the fading-in track: the logo until the HUD is drawn",
+      "rules": [
+        "CRV-2",
+        "CRV-3",
+        "CRV-5"
+      ],
+      "input": [
+        [
+          0,
+          "A"
+        ],
+        [
+          4,
+          "-"
+        ]
+      ],
+      "shots": {
+        "blinds": 20,
+        "bars": 110,
+        "slide": 470,
+        "lights": 560
+      },
+      "golden": [
+        "blinds",
+        "bars",
+        "slide",
+        "lights"
+      ]
+    },
+    {
+      "id": "crv-countdown",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/race-countdown-red.ss",
+      "desc": "the start lights stay on the game screen with the speed, gear and place",
+      "rules": [
+        "CRV-2",
+        "CRV-3"
+      ],
+      "shots": {
+        "lights": 60
+      },
+      "golden": [
+        "lights"
+      ]
+    },
+    {
+      "id": "crv-race",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/race-lap1-driving.ss",
+      "desc": "driving: the time and lap boxes over the logo, the rest on the game screen",
+      "rules": [
+        "CRV-2",
+        "CRV-3"
+      ],
+      "shots": {
+        "racing": 60
+      },
+      "golden": [
+        "racing"
+      ]
+    },
+    {
+      "id": "crv-pause",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/race-lap1-driving.ss",
+      "desc": "START: the race fades to the PAUSED page on the game screen, the time and lap stay on the second; CONTINUE: the race and the live time and lap come back",
+      "rules": [
+        "CRV-2",
+        "CRV-4"
+      ],
+      "input": [
+        [
+          0,
+          "START"
+        ],
+        [
+          8,
+          "-"
+        ],
+        [
+          130,
+          "A"
+        ],
+        [
+          134,
+          "-"
+        ]
+      ],
+      "shots": {
+        "fading": 20,
+        "paused": 100,
+        "resuming": 150,
+        "racing": 300
+      }
+    },
+    {
+      "id": "crv-single",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/race-lap1-driving.ss",
+      "desc": "racing with layout = single: the time and lap where the game draws them",
+      "rules": [
+        "CRV-6"
+      ],
+      "config": {
+        "layout": "single"
+      },
+      "shots": {
+        "racing": 60
+      },
+      "golden": [
+        "racing"
+      ]
+    },
+    {
+      "id": "crv-quit",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/race-lap1-driving.ss",
+      "desc": "QUIT from the pause page: its question keeps the time and lap, the menu after it has the logo",
+      "rules": [
+        "CRV-4",
+        "CRV-5"
+      ],
+      "input": [
+        [
+          0,
+          "START"
+        ],
+        [
+          8,
+          "-"
+        ],
+        [
+          130,
+          "DOWN"
+        ],
+        [
+          134,
+          "-"
+        ],
+        [
+          150,
+          "DOWN"
+        ],
+        [
+          154,
+          "-"
+        ],
+        [
+          180,
+          "A"
+        ],
+        [
+          184,
+          "-"
+        ],
+        [
+          280,
+          "A"
+        ],
+        [
+          284,
+          "-"
+        ]
+      ],
+      "shots": {
+        "question": 250,
+        "menu": 460
+      },
+      "golden": [
+        "question",
+        "menu"
+      ],
+      "config": {
+        "audio_auto": 0
+      }
+    },
+    {
+      "id": "crv-finish",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/race-finish.ss",
+      "desc": "a bug report from a race finish: the last lap's line (the game clears its time box a frame later): the second screen's time box shows the race's total (02 05 45) and the lap box stays on the last lap through the flag and the results page, the logo on the standings, the live time again in the next race",
+      "rules": [
+        "CRV-2",
+        "CRV-5",
+        "CRV-7"
+      ],
+      "input": [
+        [
+          0,
+          "A"
+        ],
+        [
+          18,
+          "A+LEFT"
+        ],
+        [
+          48,
+          "A"
+        ],
+        [
+          150,
+          "A+LEFT"
+        ],
+        [
+          180,
+          "A"
+        ],
+        [
+          207,
+          "A+RIGHT"
+        ],
+        [
+          258,
+          "A"
+        ],
+        [
+          303,
+          "A+LEFT"
+        ],
+        [
+          321,
+          "A"
+        ],
+        [
+          438,
+          "A+RIGHT"
+        ],
+        [
+          492,
+          "A"
+        ],
+        [
+          618,
+          "-"
+        ],
+        [
+          1100,
+          "A"
+        ],
+        [
+          1104,
+          "-"
+        ],
+        [
+          1200,
+          "A"
+        ],
+        [
+          1204,
+          "-"
+        ],
+        [
+          1300,
+          "A"
+        ],
+        [
+          1304,
+          "-"
+        ],
+        [
+          1400,
+          "A"
+        ],
+        [
+          1404,
+          "-"
+        ],
+        [
+          1500,
+          "A"
+        ],
+        [
+          1504,
+          "-"
+        ],
+        [
+          1600,
+          "A"
+        ],
+        [
+          1604,
+          "-"
+        ],
+        [
+          1700,
+          "A"
+        ],
+        [
+          1704,
+          "-"
+        ],
+        [
+          1800,
+          "A"
+        ],
+        [
+          1804,
+          "-"
+        ],
+        [
+          1900,
+          "A"
+        ],
+        [
+          1904,
+          "-"
+        ],
+        [
+          2000,
+          "A"
+        ],
+        [
+          2004,
+          "-"
+        ],
+        [
+          2100,
+          "A"
+        ],
+        [
+          2104,
+          "-"
+        ],
+        [
+          2200,
+          "A"
+        ],
+        [
+          2204,
+          "-"
+        ],
+        [
+          2300,
+          "A"
+        ],
+        [
+          2304,
+          "-"
+        ]
+      ],
+      "shots": {
+        "flag": 700,
+        "results": 1090,
+        "standings": 1190,
+        "next": 2480
+      },
+      "golden": [
+        "flag",
+        "results",
+        "standings",
+        "next"
+      ],
+      "config": {
+        "audio_auto": 0
+      }
+    },
+    {
+      "id": "crv-finish-1st",
+      "rom": "ACFE",
+      "state": "cruisn-velocity/race-finish-1st.ss",
+      "desc": "1st in a Freestyle race, a total the game misprints: the state is the first race's countdown with the lap byte set to the last lap and laps 1-3 written in (30:20, 28:15, 27:20), so the start line ends the race with a last lap of 11:45 and a results page that prints 01:36:1:0; the time box shows 01:37:00 through the flag and the results, then the logo on the standings and RACE ANOTHER TRACK, and the next race's own time",
+      "rules": [
+        "CRV-2",
+        "CRV-5",
+        "CRV-7"
+      ],
+      "input": [
+        [
+          0,
+          "A"
+        ],
+        [
+          620,
+          "-"
+        ],
+        [
+          1100,
+          "A"
+        ],
+        [
+          1104,
+          "-"
+        ],
+        [
+          1200,
+          "A"
+        ],
+        [
+          1204,
+          "-"
+        ],
+        [
+          1300,
+          "A"
+        ],
+        [
+          1304,
+          "-"
+        ],
+        [
+          1400,
+          "A"
+        ],
+        [
+          1404,
+          "-"
+        ],
+        [
+          1500,
+          "A"
+        ],
+        [
+          1504,
+          "-"
+        ],
+        [
+          1600,
+          "A"
+        ],
+        [
+          1604,
+          "-"
+        ]
+      ],
+      "shots": {
+        "before": 200,
+        "line": 300,
+        "flag": 500,
+        "results": 1000,
+        "standings": 1190,
+        "another": 1290,
+        "next": 2300
+      },
+      "golden": [
+        "before",
+        "line",
+        "flag",
+        "results",
+        "standings",
+        "another",
+        "next"
+      ],
+      "config": {
+        "audio_auto": 0
+      }
+    }
+  ]
+}

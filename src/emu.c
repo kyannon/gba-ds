@@ -216,8 +216,20 @@ static uint8_t* read_file(const char* path, size_t* n) {
  * between. */
 static uint8_t* patched_with(const char* romPath, char files[][1024], int n, size_t* size, int* result, char* patchName,
                              uint32_t* fileCrc, char* skipped);
+#ifdef __wasi__
+static bool openUnpatched; /* (no threads there) */
+#else
+static __thread bool openUnpatched;
+#endif
+void emu_open_unpatched(bool on) {
+	openUnpatched = on;
+}
 static uint8_t* patched_rom(const char* romPath, size_t* size, int* result, char* patchName, uint32_t* fileCrc,
                             char* skipped) {
+	if (openUnpatched) {
+		*result = PATCH_NONE;
+		return NULL;
+	}
 	char files[PLAN_MAX][1024];
 	int n = 0;
 	bool planned = false;
@@ -764,6 +776,18 @@ size_t emu_state_size(Emu* e) {
 	return e->core->stateSize(e->core);
 }
 
+bool emu_state_patch32(Emu* e, void* state, uint32_t addr, uint32_t orig, uint32_t word) {
+	(void) e;
+	struct GBASerializedState* st = state;
+	uint8_t* p = addr >= 0x03000000 && addr < 0x03008000 ? st->iwram + (addr & 0x7FFC) : addr >= 0x02000000 && addr < 0x02040000 ? st->wram + (addr & 0x3FFFC) : NULL;
+	uint32_t was;
+	if (!p) return false;
+	memcpy(&was, p, 4);
+	if (was != orig) return false;
+	memcpy(p, &word, 4);
+	return true;
+}
+
 bool emu_state_save(Emu* e, void* buf) {
 	return e->core->saveState(e->core, buf);
 }
@@ -1304,6 +1328,9 @@ typedef struct {
 	bool exactKeep; /* the exact ones are kept instead (emu_hud_keep_exact) */
 	bool grouped; /* a matching sprite is hidden only as part of a group
 	               * (emu_hide_grouped) */
+	int nRetile; /* the HUD's sprites drawn with other tiles (emu_hud_retile) */
+	int8_t retileIdx[8];
+	uint16_t retileTile[8];
 } HideSlot;
 static HideSlot hideSlots[8];
 static pthread_mutex_t hideLock = PTHREAD_MUTEX_INITIALIZER;
@@ -1392,7 +1419,7 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 	struct GBAVideoSoftwareRenderer* sw = (struct GBAVideoSoftwareRenderer*) renderer;
 	HideSlot* s = slot_for(renderer);
 	if (!s) return;
-	if ((s->n || s->keepOnly || s->nExact) && sw->oamDirty) {
+	if ((s->n || s->keepOnly || s->nExact || s->nRetile) && sw->oamDirty) {
 		int n = GBAVideoRendererCleanOAM(sw->d.oam->obj, sw->sprites, sw->objOffsetY);
 		int kept = 0;
 		if (s->grouped && !s->keepOnly) {
@@ -1403,6 +1430,12 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 		} else {
 			for (int i = 0; i < n; ++i) {
 				if (!hidden(s, &sw->sprites[i].obj)) sw->sprites[kept++] = sw->sprites[i];
+			}
+		}
+		/* emu_hud_retile: this renderer's copy of the sprite list only (OAM itself is the game's) */
+		for (int i = 0; i < kept && s->nRetile; ++i) {
+			for (int k = 0; k < s->nRetile; ++k) {
+				if (sw->sprites[i].index == s->retileIdx[k]) sw->sprites[i].obj.c = (sw->sprites[i].obj.c & ~0x3FF) | s->retileTile[k];
 			}
 		}
 		sw->oamMax = kept;
@@ -1824,7 +1857,7 @@ bool emu_hud_split(Emu* e, bool on, unsigned bgMask, const SpriteRule* objs, int
 		if (s) {
 			s->renderer = h;
 			s->orig = h->drawScanline;
-			s->n = 0;
+			s->n = 0, s->nRetile = 0;
 		}
 		pthread_mutex_unlock(&hideLock);
 		split.installed = true;
@@ -1883,6 +1916,22 @@ void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n) {
 	split.nKeep = hs ? n : 0;
 	if (!split.grabbing) split_layers(split.bgMask, split.nObjs > 0 || split.nKeep > 0);
 	split.hud.oamDirty = true;
+}
+
+void emu_hud_retile(const int* oamIndex, const uint16_t* tile, int n) {
+	if (!split.installed) return;
+	n = n > 8 ? 8 : n;
+	pthread_mutex_lock(&hideLock);
+	HideSlot* hs = slot_for(&split.hud.d);
+	bool changed = false;
+	if (hs) {
+		changed = hs->nRetile != n;
+		for (int i = 0; i < n; ++i) changed = changed || hs->retileIdx[i] != oamIndex[i] || hs->retileTile[i] != tile[i];
+		hs->nRetile = n;
+		for (int i = 0; i < n; ++i) hs->retileIdx[i] = (int8_t) oamIndex[i], hs->retileTile[i] = tile[i];
+	}
+	pthread_mutex_unlock(&hideLock);
+	if (changed) split.hud.oamDirty = true;
 }
 
 void emu_hud_copy_above(int row) {

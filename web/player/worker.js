@@ -305,6 +305,86 @@ async function bootCapture(m) {
   }
 }
 
+/* ------------------------------------------------------------ DK's level above, in a worker of its own */
+// The game hands each frame's state to the page (which runs the copy in the climb worker, a second copy of the
+// app) and takes the picture back between frames, a frame behind. The buffers go round as the captures' do.
+const clb = { want: false, info: 0, spare: null, inbox: [], off: false };
+const PIC_BYTES = 240 * 160 * 4;
+function pumpClimb() {
+  if (!h || !clb.want || !h.has("web_climb_job") || !h.idle) return;
+  if (clb.off) { h.call("web_climb_offload", 0); clb.want = clb.off = false; clb.inbox.length = 0; return; }
+  if (!clb.info) clb.info = h.call("web_alloc", 64);
+  while (clb.inbox.length) {
+    const r = clb.inbox.shift();
+    if (r.state) clb.spare = r.state;
+    const ptr = h.call("web_climb_inbox");
+    if (ptr && r.buf.byteLength === PIC_BYTES) {
+      new Uint8Array(h.memory.buffer, ptr, PIC_BYTES).set(new Uint8Array(r.buf));
+      h.call("web_climb_deliver", r.seq, r.epoch, r.ok, r.regs[0], r.regs[1], r.regs[2]);
+    }
+    post({ t: "climbreturn", buf: r.buf }, [r.buf]);
+  }
+  const job = h.call("web_climb_job", clb.info);
+  if (!job) return;
+  const i = new Uint32Array(h.memory.buffer, clb.info, 10);
+  let state = clb.spare;
+  clb.spare = null;
+  if (!state || state.byteLength !== i[1]) state = new ArrayBuffer(i[1]);
+  new Uint8Array(state).set(new Uint8Array(h.memory.buffer, i[0], i[1]));
+  const oam = new Uint16Array(512);
+  oam.set(new Uint16Array(h.memory.buffer, i[7], 512));
+  post({ t: "climbjob", seq: job - 1, epoch: i[3], keysPrev: i[4], keysNow: i[5], cam: i[6] | 0, state, oam: oam.buffer, rom: cstr(h.memory, i[8]), code: cstr(h.memory, i[9]) }, [state, oam.buffer]);
+}
+
+// The climb worker: a job's state in, the copy's two frames run, its picture out.
+const cserve = { h: null, job: null, info: 0, timer: 0, outSpare: null, stateBack: null };
+function climbServeTick() {
+  const sh = cserve.h;
+  if (!sh || !sh.idle) return;
+  if (!cserve.info) cserve.info = sh.call("web_alloc", 64);
+  const j = cserve.job;
+  if (j) {
+    const ptr = sh.call("web_serve_climb_snapshot"), size = sh.call("web_serve_climb_snapshot_size");
+    if (ptr && size === j.state.byteLength) {
+      new Uint8Array(sh.memory.buffer, ptr, size).set(new Uint8Array(j.state));
+      const ip = sh.call("web_serve_climb_info"), dv = new DataView(sh.memory.buffer, ip, 24);
+      dv.setUint32(0, j.seq, true); dv.setUint32(4, j.epoch, true); dv.setInt32(8, 0, true);
+      dv.setUint32(12, j.keysPrev, true); dv.setUint32(16, j.keysNow, true); dv.setInt32(20, j.cam, true);
+      new Uint8Array(sh.memory.buffer, ip + 24, 1024).set(new Uint8Array(j.oam));
+      sh.call("web_serve_climb_go");
+      cserve.stateBack = j.state;
+      cserve.job = null;
+    } else if (ptr && size) {
+      // (not this game's state: no picture for it)
+      post({ t: "climbresult", seq: j.seq, epoch: j.epoch, ok: 0, regs: [0, 0, 0], buf: new ArrayBuffer(PIC_BYTES), state: j.state }, [j.state]);
+      cserve.job = null;
+    }
+  }
+  if (!sh.call("web_serve_climb_result", cserve.info)) return;
+  const mem = sh.memory.buffer, i = new Uint32Array(mem, cserve.info, 8);
+  let out = cserve.outSpare;
+  cserve.outSpare = null;
+  if (!out || out.byteLength !== PIC_BYTES) out = new ArrayBuffer(PIC_BYTES);
+  new Uint8Array(out).set(new Uint8Array(mem, i[0], PIC_BYTES));
+  const state = cserve.stateBack;
+  cserve.stateBack = null;
+  post({ t: "climbresult", seq: i[1], epoch: i[2], ok: i[3], regs: [i[4], i[5], i[6]], buf: out, state }, state ? [out, state] : [out]);
+}
+async function bootClimb(m) {
+  const fs = new GBADS.MemFS();
+  for (const [p, b, t] of m.files) fs.write(p, b, t);
+  log("$ GBADS_CLIMB_SERVE=" + m.env.GBADS_CLIMB_SERVE + " " + m.args.join(" "));
+  try {
+    cserve.h = await GBADS.start({
+      wasm: m.wasm, fs, args: m.args, env: m.env, log, onFrame: () => {}, schedule,
+      onExit: (code, err) => { post({ t: "exit", code, error: err ? String(err.stack || err) : null }); cserve.h = null; },
+    });
+    cserve.timer = setInterval(climbServeTick, 2);
+  } catch (e) {
+    post({ t: "exit", code: -1, error: "The climb worker didn't start: " + (e.message || e) });
+  }
+}
+
 /* ------------------------------------------------------------ the run */
 // waits shorter than a millisecond go through a message, not setTimeout (which
 // browsers stretch to 4 ms once timeouts nest)
@@ -323,6 +403,7 @@ async function boot(m) {
   for (const d of ["/states", "/saves", "/shots", "/home", "/roms"]) fs.mkdirs(d);
   log("$ " + m.args.join(" "));
   cap.want = !!m.captureWorker;
+  clb.want = !!m.climbWorker;
   dbg.on = !!m.debug;
   fpsT = performance.now(); snd.wall = fpsT;
   try {
@@ -340,6 +421,7 @@ async function boot(m) {
         // (the sound is pulled once the app has handed control back: not from inside its frame)
         queueMicrotask(pumpAudio);
         if (cap.want) queueMicrotask(pumpCaptures);
+        if (clb.want) queueMicrotask(pumpClimb);
         const now = performance.now();
         if (now - fpsT >= 1000) { post({ t: "fps", fps: fpsN * 1000 / (now - fpsT), frames }); fpsN = 0; fpsT = now; }
       },
@@ -364,6 +446,12 @@ onmessage = async (e) => {
   switch (m.t) {
     case "boot": await boot(m); break;
     case "bootCapture": await bootCapture(m); break;
+    case "bootClimb": await bootClimb(m); break;
+    case "climbjob": cserve.job = m; climbServeTick(); break;
+    // (a picture is put in as soon as the game is between frames: it is used the frame after)
+    case "climbresult": clb.inbox.push(m); pumpClimb(); break;
+    case "climboff": clb.off = true; pumpClimb(); break;
+    case "climbreturn": cserve.outSpare = m.buf; break;
     case "capjob": serve.job = m; serveTick(); break;
     case "capresult": cap.inbox.push(m); if (paused) pumpCaptures(); break;
     case "capoff": cap.off = true; pumpCaptures(); break;

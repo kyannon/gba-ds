@@ -1,12 +1,6 @@
 #include <limits.h>
 #include "ui.h"
 
-/* the left stick presses the D-pad (issue #57): game.c turns it off for a game
- * with left_stick_dpad = 0, and on again for its menus and the game list */
-static bool stickDpad = true;
-void ui_stick_dpad(bool on) {
-	stickDpad = on;
-}
 #include "android.h"
 #include "brand.h"
 #include "drmlease.h"
@@ -33,6 +27,13 @@ void ui_stick_dpad(bool on) {
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <time.h>
+
+/* the left stick presses the D-pad (issue #57): game.c turns it off for a game
+ * with left_stick_dpad = 0, and on again for its menus and the game list */
+static bool stickDpad = true;
+void ui_stick_dpad(bool on) {
+	stickDpad = on;
+}
 
 /* Retained views (below): Android's, and a leased panel's on Linux */
 #if defined(__ANDROID__) || defined(GBADS_DRM_LEASE)
@@ -153,7 +154,9 @@ void ui_load_script(const char* path) {
 		long t;
 		char what[160];
 		if (line[0] == '#' || sscanf(line, "%ld %159s", &t, what) != 2) continue;
-		script = realloc(script, sizeof(*script) * (scriptLen + 1));
+		ScriptLine* grown = realloc(script, sizeof(*script) * (scriptLen + 1));
+		if (!grown) break;
+		script = grown;
 		ScriptLine* s = &script[scriptLen++];
 		s->tick = t;
 		s->btns = 0;
@@ -647,7 +650,8 @@ static void disc_drop(void);
 /* After a wake (or a renderer reset): the textures ui.c keeps for itself
  * (the scaling pipeline's, the text images, the disc) are let go, to be
  * made again as they're next needed. */
-void ui_textures_reset(void) {
+/* the scaling pipeline's cached textures (render targets, shader masks) let go */
+static void pipe_drop(void) {
 	for (int v = 0; v < 2; ++v) {
 		for (int i = 0; i < PIPE_CACHE; ++i) {
 			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
@@ -656,6 +660,10 @@ void ui_textures_reset(void) {
 			memset(&pipeGrids[v][i], 0, sizeof(pipeGrids[v][i]));
 		}
 	}
+}
+
+void ui_textures_reset(void) {
+	pipe_drop();
 	text_cache_drop();
 	disc_drop();
 }
@@ -663,12 +671,7 @@ void ui_textures_reset(void) {
 void ui_shutdown(void) {
 	ui_rumble(0);
 	if (rumbleHaptic) SDL_HapticClose(rumbleHaptic), rumbleHaptic = NULL;
-	for (int v = 0; v < 2; ++v) {
-		for (int i = 0; i < PIPE_CACHE; ++i) {
-			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
-			if (pipeGrids[v][i].tex) SDL_DestroyTexture(pipeGrids[v][i].tex);
-		}
-	}
+	pipe_drop();
 #ifdef GBADS_DRM_LEASE
 	drmlease_close();
 #endif
@@ -1557,10 +1560,13 @@ static int shader_choice(void) {
 void ui_shader_setting(void) {
 	uiShaderGame = false;
 }
+/* a pixel's entry in ccLut: the 5-bit colour each 8-bit channel came from */
+static inline unsigned cc_key(uint32_t p) {
+	return (p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10;
+}
 uint32_t ui_color_correct(uint32_t p) {
 	if (!ccOn) return p;
-	unsigned key = (p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10;
-	return ccLut[key] | (p & 0xFF000000u);
+	return ccLut[cc_key(p)] | (p & 0xFF000000u);
 }
 
 static void update_texture(SDL_Texture* t, const void* px, int pitch, bool correct);
@@ -1588,7 +1594,7 @@ static void update_texture(SDL_Texture* t, const void* px, int pitch, bool corre
 				const uint32_t* src = px;
 				for (size_t i = 0; i < n; ++i) {
 					uint32_t p = src[i];
-					buf[i] = ccLut[(p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10] | (p & 0xFF000000u);
+					buf[i] = ccLut[cc_key(p)] | (p & 0xFF000000u);
 				}
 				px = buf;
 			}
@@ -1657,8 +1663,13 @@ static DrawOp* rec(int screen, int kind) {
 	if (replaying || screen < 0 || screen >= nScreens || !views[screens[screen].view].retained) return NULL;
 	Retained* rv = &ret[screens[screen].view];
 	if (rv->nOps == rv->capOps) {
-		rv->capOps = rv->capOps ? rv->capOps * 2 : 64;
-		rv->ops = realloc(rv->ops, sizeof(*rv->ops) * rv->capOps);
+		int cap = rv->capOps ? rv->capOps * 2 : 64;
+		DrawOp* ops = realloc(rv->ops, sizeof(*rv->ops) * cap);
+		if (!ops) {
+			static DrawOp dropped; /* (no room: the call is left out of this frame, not drawn past the recording) */
+			return &dropped;
+		}
+		rv->ops = ops, rv->capOps = cap;
 	}
 	DrawOp* o = &rv->ops[rv->nOps++];
 	memset(o, 0, sizeof(*o)); /* zeroed padding: ops are hashed bytewise */
@@ -1809,8 +1820,6 @@ double ui_last_present_ms(int view) {
 
 #ifdef __ANDROID__
 static int syncWant = -1, syncApplied = -2;
-#endif
-#ifdef __ANDROID__
 static int budgetFirst = -1, deferred;
 static Uint64 budgetStart;
 static double budgetMs;
@@ -2747,7 +2756,8 @@ static void logo_dir_list(const char* dir) {
 			if (!nn) break;
 			logoDir.names = nn;
 		}
-		logoDir.names[logoDir.n++] = strdup(e->d_name);
+		char* name = strdup(e->d_name);
+		if (name) logoDir.names[logoDir.n++] = name;
 	}
 	closedir(d);
 }
@@ -2857,18 +2867,28 @@ SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h) {
 	return o;
 }
 
-/* What the last logo choice was, for the log (once per change) and bug
- * reports: which file, or why a custom one wasn't used. */
+/* What the last logo choice was, for bug reports (which file, or why a custom
+ * one wasn't used), and for the log: each game's once, and again when it
+ * changes. The game list asks for the games around the selection too, so the
+ * notes alternate: the last 64 logged are remembered (by a hash), not only
+ * the one before, or every move of the selection logged them all again. */
 static char logoNote[1400];
 static char logoBad[1200]; /* the last custom logo that couldn't be read */
+static uint64_t logoLogged[64];
+static unsigned logoLoggedNext;
 static void logo_note(const char* fmt, ...) {
 	char s[sizeof(logoNote)];
 	va_list ap;
 	va_start(ap, fmt);
 	vsnprintf(s, sizeof(s), fmt, ap);
 	va_end(ap);
-	if (!strcmp(s, logoNote)) return;
 	snprintf(logoNote, sizeof(logoNote), "%s", s);
+	uint64_t h = 14695981039346656037ull; /* (FNV-1a) */
+	for (const char* p = s; *p; ++p) h = (h ^ (unsigned char) *p) * 1099511628211ull;
+	h |= 1; /* (never 0, the empty slot) */
+	for (size_t i = 0; i < sizeof(logoLogged) / sizeof(logoLogged[0]); ++i)
+		if (logoLogged[i] == h) return;
+	logoLogged[logoLoggedNext++ % (sizeof(logoLogged) / sizeof(logoLogged[0]))] = h;
 	fprintf(stderr, "logo: %s\n", s);
 }
 
@@ -2967,13 +2987,13 @@ void ui_game_prepare(const Config* c, const char* rom) {
 	bool needCrc = !rom_file_crc(c, rom, false);
 	char logoFile[1200] = "";
 	bool needLogo = false;
-	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
 	if (!needCrc && !needLogo) return;
 	ui_notice("Initializing game...", tr("Only the first time for each game"));
 	if (needCrc) {
 		fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
 		rom_file_crc(c, rom, true);
-		if (ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+		if (ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
 	}
 	if (needLogo && logoFile[0]) {
 		char dir[1200];
@@ -3086,6 +3106,10 @@ void ui_screenshot(const char* path) {
 	int w, h;
 	SDL_GetRendererOutputSize(v->ren, &w, &h);
 	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+	if (!s) {
+		fprintf(stderr, "screenshot failed: %s\n", SDL_GetError());
+		return;
+	}
 	if (SDL_RenderReadPixels(v->ren, NULL, SDL_PIXELFORMAT_ARGB8888, s->pixels, s->pitch) == 0) {
 		SDL_SaveBMP(s, path);
 		fprintf(stderr, "screenshot %dx%d -> %s\n", w, h, path);

@@ -84,6 +84,10 @@ typedef struct Emu {
 
 /* savePath may be NULL (no battery save attached). */
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio);
+/* While on, this thread's emu_open loads the ROM file as it is: no patch
+ * beside it, none planned (the logo of a game whose logos are per ROM file
+ * is its unpatched file's). */
+void emu_open_unpatched(bool on);
 /* ROMs may also be in a .zip or .7z (the first GBA ROM inside is used). */
 bool emu_is_rom_name(const char* name);   /* .gba, .gb, .gbc (.sgb .dmg .cgb), .zip, .7z */
 bool emu_is_archive_name(const char* name); /* .zip, .7z */
@@ -132,6 +136,8 @@ bool emu_cancelled(const Emu* e);
 void emu_reset(Emu* e);
 
 size_t emu_state_size(Emu* e);
+/* a word of EWRAM or IWRAM in a saved state set to `word`, only if it holds `orig` */
+bool emu_state_patch32(Emu* e, void* state, uint32_t addr, uint32_t orig, uint32_t word);
 bool emu_state_save(Emu* e, void* buf);
 bool emu_state_load(Emu* e, const void* buf);
 /* Rewind (mGBA's, one buffer of `entries` states for one core): append a
@@ -285,6 +291,9 @@ void emu_hud_rows(int rows);
 /* The HUD split also draws the sprites with exactly these attributes 0-2
  * (the game's picture keeps them); n = 0: none. */
 void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n);
+/* The HUD split draws the sprites in OAM slots oamIndex[i] with tile tile[i] instead of their own
+ * (the game's picture and its memory are untouched); n = 0: none. */
+void emu_hud_retile(const int* oamIndex, const uint16_t* tile, int n);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */

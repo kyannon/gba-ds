@@ -29,6 +29,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Game Boy Wars Advance 1+2](game-boy-wars-advance-1-2.md) | GBW | `BGWJ` |
 | [Summon Night: Swordcraft Story](summon-night-swordcraft-story.md) | SN | `AB4E` + 1 |
 | [Pokémon Pinball: Ruby & Sapphire](pokemon-pinball.md) | PP | `BPPE` `BPPJ` `BPPP` |
+| [Pokémon Mystery Dungeon: Red Rescue Team](pokemon-mystery-dungeon-red-rescue-team.md) | PMD | `B24E` + 2 |
 | [Fire Emblem (Rekka no Ken in Japan)](fire-emblem.md) | FE | `AE7E` + 3 |
 | [Fire Emblem: The Sacred Stones (Seima no Kouseki in Japan)](fire-emblem-sacred-stones.md) | FE8 | `BE8E` + 2 |
 | [Sword of Mana (Shinyaku Seiken Densetsu in Japan)](sword-of-mana.md) | SOM | `AVSE` + 2 |
@@ -70,6 +71,13 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Shin Megami Tensei](shin-megami-tensei.md) | SMT | `AAUJ` |
 | [Breath of Fire](breath-of-fire.md) | BOF | `ABFE` + 3 |
 | [Breath of Fire II (Shimei no Ko in Japan)](breath-of-fire-ii.md) | BOF2 | `AB2E` + 2 |
+| [Cruis'n Velocity](cruisn-velocity.md) | CRV | `ACFE` |
+| [DK: King of Swing (Bura Bura Donkey in Japan)](dk-king-of-swing.md) | DKKS | `BBKE` + 2 |
+| [Densetsu no Stafy](densetsu-no-stafy.md) | STF | `ASTJ` |
+| [Densetsu no Stafy 2](densetsu-no-stafy-2.md) | ST2 | `AVFJ` |
+| [Densetsu no Stafy 3](densetsu-no-stafy-3.md) | ST3 | `B3DJ` |
+| [Shin Megami Tensei II](shin-megami-tensei-2.md) | SMT2 | `A5TJ` |
+| [Mario Party Advance](mario-party-advance.md) | MPA | `B8ME` + 2 |
 
 ## General rules
 

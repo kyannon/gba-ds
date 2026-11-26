@@ -53,7 +53,7 @@ LIBS       := $(MGBA_BUILD)/libmgba.a $(ZLIB_A) -lSDL2 -lpthread -lm
 # headers and the drm-lease protocol, vendored in third_party/wayland
 WL_DIR     := third_party/wayland
 WL_SRC     := $(WL_DIR)/drm-lease-v1-protocol.c
-CORE_SRC   := src/emu.c src/patch.c src/mapcap.c src/profiles.c src/logo_masks.c
+CORE_SRC   := src/emu.c src/patch.c src/mapcap.c src/profiles.c src/logo_masks.c src/climb.c
 # RetroAchievements: rcheevos (MIT), vendored in third_party/rcheevos
 RC_DIR     := third_party/rcheevos
 RC_SRC     := $(wildcard $(RC_DIR)/src/*.c $(RC_DIR)/src/rapi/*.c $(RC_DIR)/src/rcheevos/*.c) $(RC_DIR)/src/rhash/md5.c

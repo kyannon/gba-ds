@@ -98,6 +98,11 @@ typedef struct {
 	 * top `under` rows below their lowest (F-Zero: GP Legend's LAST under
 	 * SPARE MACHINE or BEST TIME); with none there, by how / vhow */
 	int under;
+	/* hud.moves: also while the `layout` probes don't match and on the
+	 * other layer (alt.rows too): a piece that always goes (Pokemon Mystery
+	 * Dungeon's black left edge back onto the game screen, its status
+	 * line centred) */
+	bool always;
 } HudMove;
 
 /* Bytes written into the ROM when the game starts, if the ROM holds `orig`
@@ -123,7 +128,7 @@ typedef struct {
 	 * the lettering's dithered or translucent edge (Mario & Luigi's
 	 * sky, its shadow's specks), or a layer's own background
 	 * (Battle Network Rockman EXE's blue) */
-	uint32_t edgeClear[4];
+	uint32_t edgeClear[8];
 	/* a drop shadow of this colour (0xRRGGBB; either of a game's two
 	 * colour sets) stays only below and right of the lettering:
 	 * where there's lettering (or shadow kept) up to shadowReach rows
@@ -352,6 +357,24 @@ typedef struct MapProfile {
 			} carry;
 		} live;
 	} tall;
+	/* Logo-only games whose levels are climbs (climb.c, game.c update_climb): in a
+	 * level (`on`) the game is on the bottom screen and a copy of it, its camera a
+	 * screen higher, draws the level above it on the top one. `shift`: the 16.16
+	 * camera rows lowered in the copy before each frame (the camera's y first, its
+	 * picture used only while it's a screen above the game's). `patch`: ARM words
+	 * for the copy's ROM, each only if `orig` is there, so the code that moves the
+	 * camera with the player works on the real row. `layer`: each layer's table of
+	 * map blocks (pointer word), x and y words (16.16) and 32x32 map in VRAM, filled
+	 * for the lowered rows. */
+	struct {
+		MemProbe on[3];
+		/* the shadow sprite table: the copy's sprites alike the game's in the same slot
+		 * and place are fixed to the screen (a speech bubble) and left out */
+		uint32_t oam;
+		uint32_t shift[8];
+		struct { uint32_t addr, orig, word; } patch[24];
+		struct { uint32_t table, x, y, map; } layer[3];
+	} climb;
 	/* A second button layout for games ported from four-face-button
 	 * consoles (Tony Hawk's: GBA L / R stand in for two face buttons). The
 	 * four-face layout puts GBA A on the top face button, B on the bottom,
@@ -433,6 +456,9 @@ typedef struct MapProfile {
 	MemProbe logoIfOr[2]; /* or while every one of these matches */
 	/* when they stop, the last picture at once (a pause screen closing), not the logo till a new one */
 	bool logoIfLast;
+	/* Keys the game doesn't get while every `when` probe matches, with two screens only: a button whose
+	 * only job there is what the second screen already shows (Pokemon Mystery Dungeon's SELECT, the floor map) */
+	struct { uint16_t keys; MemProbe when[4]; } swallow;
 
 	/* Values that change when the player enters a new room; a change
 	 * triggers an early capture. Only addr/size are used. */
@@ -480,8 +506,18 @@ typedef struct MapProfile {
 			 * picture (a full GBA screen) instead of the logo (Super
 			 * Mario Advance 4: its status bar over the inventory) */
 			bool mapBelow;
+			/* On this layer the HUD is only its top `rows` (0: the whole screen): the game draws the rest, and the
+			 * second screen keeps the main layer's last picture below them, from a frame where every `heldWhen`
+			 * probe matches (Pokemon Mystery Dungeon: its status line live over the kept map) */
+			int rows;
+			MemProbe heldWhen[2];
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
+		/* `on` turns it on only while a sprite like onWith shows; then `on` alone keeps it
+		 * on, till onLost frames without one (Densetsu no Stafy 3: the HUD's face, which
+		 * a stage's opening conversation doesn't have and a later one hides) */
+		SpriteRule onWith;
+		int onLost;
 		/* While every `layout` probe matches (racing, not the results):
 		 * HUD pixels in `sign` stay on the game screen when the HUD has
 		 * nothing else on those rows within 40 pixels either side (Mario
@@ -596,6 +632,9 @@ typedef struct MapProfile {
 		 * Advance 4: World-e's status bar sliding off and back as the
 		 * inventory opens and closes, SM4-8) */
 		MemProbe freeze[2];
+		/* The HUD split draws some of its sprites with other tiles each frame (Cruis'n Velocity's time
+		 * box, the race's total once it's over): fills oamIndex / tile (up to 8), returns how many. */
+		int (*retile)(Emu* e, int* oamIndex, uint16_t* tile);
 		/* The top rows of the last map picture (the world map's level
 		 * list: its title row with the level's name) kept above the HUD,
 		 * which moves down that far (Super Mario Advance 2, SMA-7) */

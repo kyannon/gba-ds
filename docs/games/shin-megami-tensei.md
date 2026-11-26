@@ -5,7 +5,7 @@
 | Releases | `AAUJ` Japan (the only release; played in English with the iOS version's translation ported by Gymzatan, a mod of it: with or without its font hack) |
 | Dumps | `AAUJ` cartridge `b857c3c5` (tested) |
 | Mods | `AAUJ` English v1.3b iOS Localized (Gymzatan) `f74db49f` (tested), English v1.3b iOS Localized with the font hack (Gymzatan) `2050b471` (tested) |
-| Profile | `src/profiles.c`: the `AAUJ` entry (`smt_*`) |
+| Profile | `src/profiles.c`: the `AAUJ` entry (`smt_*`, shared with [Shin Megami Tensei II](shin-megami-tensei-2.md): this game's addresses are `smt1`) |
 | Tests | `tests/regress/shin-megami-tensei.json` (`tools/regress.py shin-megami-tensei`) |
 | Status | supported (merged into dev Nov 18, 2026, for v1.5.6; tested on the device) |
 
