@@ -9238,12 +9238,21 @@ static const char* rs_compose_eur(Emu* s, const void* state, uint32_t* const* ou
 /* the automap's scroll: steps from where it opened (UP +1, DOWN -1, 8 rows
  * each; signed, 32 bits) */
 #define SMT_SCROLL 0x0200BFCC
+/* Shin Megami Tensei II: the same engine, its state 0xE0 bytes further on
+ * (the area 0x128) and the scroll 0x2000 */
+#define SMT2_MODE   0x03004550
+#define SMT2_FACING 0x03004552
+#define SMT2_X      0x03004562
+#define SMT2_Y      0x03004564
+#define SMT2_AREA   0x03004614
+#define SMT2_SCROLL 0x0200DFCC
 
 /* the addresses the automap's code reads, per game of this engine */
 typedef struct {
 	uint32_t mode, facing, x, y, scroll;
 } SmtGame;
 static const SmtGame smt1 = { SMT_MODE, SMT_FACING, SMT_X, SMT_Y, SMT_SCROLL };
+static const SmtGame smt2 = { SMT2_MODE, SMT2_FACING, SMT2_X, SMT2_Y, SMT2_SCROLL };
 
 /* The second screen is the automap taller than the game's window of it: its view
  * (rows 0-87 of the screen, between the side bars) scrolled with the game's
@@ -9426,6 +9435,9 @@ static const char* smt_compose_for(const SmtGame* g, Emu* s, const void* state, 
 }
 static const char* smt_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
 	return smt_compose_for(&smt1, s, state, out, w, h);
+}
+static const char* smt2_compose(Emu* s, const void* state, uint32_t* out, int w, int h) {
+	return smt_compose_for(&smt2, s, state, out, w, h);
 }
 
 /* ---------------------------------------------------------------- Breath of Fire
@@ -13007,6 +13019,27 @@ static const MapProfile profiles[] = {
 		/* SELECT hides the field to show the floor map, which the second screen has; with the field hidden it still turns it back (PMD-4) */
 		.swallow = { K_SELECT, { { PMD_DUNGEON, 0xFF000000, 0x02000000, 4 }, { 0x04000000, 0x1F00, 0x1F00, 2 },
 		                         { 0x0202B07A, 0xF000, 0xE000, 2 }, { 0x0202B43C, 0xF000, 0xE000, 2 } } },
+	},
+	{
+		/* Shin Megami Tensei II (Japan; played in English with a patch, the
+		 * same addresses): the automap as Shin Megami Tensei's, from the
+		 * same engine (docs/games/shin-megami-tensei-2.md) */
+		.codes = { "A5TJ" },
+		.title = "Shin Megami Tensei II",
+		.open = { { K_L, 4 } },
+		.settleMax = 200, .openWithin = 140, .stableFrames = 4, .maxDiff = 700,
+		.crop_x = 0, .crop_y = 0, .crop_w = 240, .crop_h = SMT_H,
+		.compose = smt2_compose,
+		.probes = { { 10, 3, 0x31316B }, { 10, 60, 0x42429C }, { 212, 6, 0x492BE7 }, { 205, 10, 0xE74200 },
+		            { 216, 98, 0x73738C }, { 232, 60, 0x292929 } },
+		.tolerance = 8,
+		.mem = { { SMT2_MODE, 0xFF, 0x10, 1 } },
+		.live = { { SMT2_MODE, 0xFF, 0x01, 1 } },
+		.menu = { { SMT2_MODE, 0xFF, 0x00, 1 } },
+		.room = { { SMT2_X, 0, 0, 1 }, { SMT2_Y, 0, 0, 1 }, { SMT2_FACING, 0, 0, 1 }, { SMT2_AREA, 0, 0, 1 } },
+		/* the title's lettering is sprites here (a background layer in the
+		 * first game), on rows 24 to 65, 転 the lowest */
+		.logo = { .steps = { { 0, 300 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 200 } }, .layers = 0x10, .maxY = 80 },
 	},
 };
 
