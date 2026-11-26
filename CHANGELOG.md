@@ -17,6 +17,10 @@
 ### Single displays
 - **Both screens on one display** (issue #84). On a tablet, a phone or any single display, Settings > Screens > **One display** can now show the game and the second screen together, side by side or stacked (or automatically, by the shape of the display), instead of one at a time. **Second screen size** gives the second screen half, 40 % or 30 % of the display. The pause menu still fills the whole display. Game only stays the default, so nothing changes unless you turn it on. Tried on a Lenovo Legion Y700 (Gen 5).
 
+### Fixes
+- **Starting a game from the game list no longer shows "Preparing the game..." while other games' logos are still being made.** With a large collection the list makes logos in the background, and starting a game waited for whichever one was under way, so the "First run only" screen came up on almost every start until they were all done. Now the other game's logo is put off until you're back in the list, and the screen only shows the first time a game's own logo is made.
+- **Pokémon games and romhacks with a patch file beside them no longer show "Initializing game..." every time they start.** Their logo couldn't be made from the patched game, so it was tried again at each start; it now comes from the unpatched ROM file, the base game's logo. A logo that can't be found on a game's title screen is no longer tried again at every start either (a new version of GBA DS tries once more).
+
 ## v1.6.2 (2026-11-24)
 
 ### New games

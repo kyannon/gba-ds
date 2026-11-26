@@ -217,8 +217,20 @@ static uint8_t* read_file(const char* path, size_t* n) {
  * between. */
 static uint8_t* patched_with(const char* romPath, char files[][1024], int n, size_t* size, int* result, char* patchName,
                              uint32_t* fileCrc, char* skipped);
+#ifdef __wasi__
+static bool openUnpatched; /* (no threads there) */
+#else
+static __thread bool openUnpatched;
+#endif
+void emu_open_unpatched(bool on) {
+	openUnpatched = on;
+}
 static uint8_t* patched_rom(const char* romPath, size_t* size, int* result, char* patchName, uint32_t* fileCrc,
                             char* skipped) {
+	if (openUnpatched) {
+		*result = PATCH_NONE;
+		return NULL;
+	}
 	char files[PLAN_MAX][1024];
 	int n = 0;
 	bool planned = false;
