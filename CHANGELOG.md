@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.6.4 (not yet released)
+
 ## v1.6.3 (2026-11-25)
 
 ### New games
