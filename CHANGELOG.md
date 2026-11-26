@@ -17,6 +17,11 @@
 ### Single displays
 - **Both screens on one display** (issue #84). On a tablet, a phone or any single display, Settings > Screens > **One display** can now show the game and the second screen together, side by side or stacked (or automatically, by the shape of the display), instead of one at a time. **Second screen size** gives the second screen half, 40 % or 30 % of the display. The pause menu still fills the whole display. Game only stays the default, so nothing changes unless you turn it on. Tried on a Lenovo Legion Y700 (Gen 5).
 
+### Fixes
+- **Settings > Updates' messages are in your language.** When checking for, downloading or installing an update failed, the message was in English whatever the menus' language; it now follows it (the technical detail after it, such as the server's answer, stays as it comes). The note in RetroArch's state folder picker when GBA DS can't save in a folder is translated too.
+- **A battery save copied over on a full card is no longer left cut short.** On BananaOS, GBA DS copies a game's older save into the GBA list's saves folder; if the card filled up partway, the cut-off copy was kept as if it were whole. Now a copy that doesn't finish is removed, and the save it came from is untouched.
+- **Emoji in a new version's release notes show properly** in the update notice, instead of as stray characters.
+
 ## v1.6.2 (2026-11-24)
 
 ### New games
