@@ -556,7 +556,7 @@ static const Setting settingsTable[] = {
 	{ "lcd_strength", "Pattern strength", SF_INT, OFFB(lcdStrength), NULL, 0, 0, 100, 5, "%", "How dark the grid, scanlines and soft cells are." },
 	{ "color_correction", "Color correction", SF_BOOL, OFFB(colorCorrection), ARR(chOnOff), 0, 0, 0, NULL, "Colors as a Game Boy Advance's screen showed them." },
 	{ "lcd_ghosting", "LCD ghosting", SF_BOOL, OFFB(ghosting), ARR(chOnOff), 0, 0, 0, NULL, "Moving things leave a short trail, as on a GBA." },
-	{ "smooth", "Scaling filter", SF_INT, OFFB(filter), ARR(chFilter), 0, 0, 0, NULL, "How the game's pixels are enlarged: sharp, blurry, or rounded by Scale2x or Scale4x. Scale2x and Scale4x turn the shader off on the game." },
+	{ "smooth", "Scaling filter", SF_INT, OFFB(filter), ARR(chFilter), 0, 0, 0, NULL, "How the game's pixels are enlarged: sharp, blurry, or rounded by Scale2x or Scale4x. Scale2x and Scale4x turn every shader off." },
 
 	{ "swap", "Screens", SF_BOOL, OFFB(swap), ARR(chSwap), 0, 0, 0, NULL, "Which screen the game is on." },
 	{ "screen_match", "Screen shapes", SF_STR, OFFB(screenMatch), ARR(chMatch), 0, 0, 0, NULL, "Only when your two screens differ in shape. Experimental." },

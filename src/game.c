@@ -3294,6 +3294,7 @@ static int item_at(int scr, int x, int y) {
 /* the pattern a Game Boy game has (GB-10): its own choice, else the GBA's; Dot matrix is the grid (and
  * dots_filter's shadows) */
 static int shader_now(void) {
+	if (ui_upscaling()) return SH_OFF; /* (an upscaler turns every shader off: issue #89) */
 	if (emu_is_gb(&emu) && strcmp(cfg->gbShader, "same")) {
 		static const struct { const char* key; int sh; } m[] = { { "grid", SH_GRID }, { "scanlines", SH_SCANLINES }, { "soft", SH_SOFT }, { "dots", SH_GRID } };
 		for (size_t i = 0; i < sizeof(m) / sizeof(m[0]); ++i)
@@ -3303,7 +3304,7 @@ static int shader_now(void) {
 	return cfg->shader;
 }
 static bool dots_on(void) {
-	return emu_is_gb(&emu) && !strcmp(cfg->gbShader, "dots");
+	return emu_is_gb(&emu) && !strcmp(cfg->gbShader, "dots") && !ui_upscaling();
 }
 #define SHADER_ON (shader_now() != SH_OFF)
 static const char* const shaderLabels[SH_COUNT] = {
@@ -3958,6 +3959,8 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "gb_palette") && emu_gb_border(&emu)) return N_("Not available with the Super Game Boy border: the colors are the Super Game Boy's");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 2) return N_("Not available in this game: it is made for the Game Boy Color, with colors of its own");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
+	if ((!strcmp(key, "shader") || !strcmp(key, "lcd_strength") || !strcmp(key, "gb_shader")) && ui_upscaling())
+		return N_("Off while the scaling filter is Scale2x or Scale4x");
 	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
@@ -4002,6 +4005,7 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		if (off && (!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
 			snprintf(val, sizeof(val), tr("Not available"));
 		if (off && !strcmp(key, "pinball_live") && !tallSupported) snprintf(val, sizeof(val), tr("Not available"));
+		if (off && (!strcmp(key, "shader") || !strcmp(key, "gb_shader")) && ui_upscaling()) snprintf(val, sizeof(val), tr("Off"));
 		bool has = game_has(st);
 		SDL_Color vc = off ? C_DIS : C_GOLD;
 		ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, st->label, off ? C_DIS : C_TEXT, -1);
@@ -4257,7 +4261,7 @@ static void draw_menu(void) {
 		bool en = item_enabled(menuItems[i]);
 		const char* label = menuLabels[menuItems[i]];
 		if (menuItems[i] == M_SCALE) label = scale_label(cfg->scale);
-		if (menuItems[i] == M_LCD) label = shader_label(cfg->shader);
+		if (menuItems[i] == M_LCD) label = shader_label(ui_upscaling() ? SH_OFF : cfg->shader);
 		if (menuItems[i] == M_COLOR) label = cfg->colorCorrection ? N_("Color Correction: On"): N_("Color Correction: Off");
 		if (menuItems[i] == M_GHOST) label = cfg->ghosting ? N_("LCD Ghosting: On"): N_("LCD Ghosting: Off");
 		if (menuItems[i] == M_AUTOSAVE) label = cfg->autoSave ? N_("Save on Quit: On"): N_("Save on Quit: Off");
@@ -8324,7 +8328,8 @@ static void setting_applied(const Setting* st) {
 		/* the scaling filter: the game's picture reads it as it's drawn; the
 		 * other pictures take Smooth from the hint when they're made */
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->filter == FILTER_SMOOTH ? "linear" : "nearest");
-		rebuild_textures();
+		ui_shader(shader_now()); /* (an upscaler turns every shader off; Sharp and Smooth give it back) */
+		rebuild_textures(); /* (and the subpixels' brightening and the dot matrix with it) */
 	} else if (!strcmp(k, "lcd_ghosting") || !strcmp(k, "gb_ghosting")) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
@@ -9821,6 +9826,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					else ffOn = !ffOn, rewindOn = false;
 					break;
 				case HK_SHADER:
+					if (ui_upscaling()) { /* (every shader is off while an upscaler is the scaling filter) */
+						ui_osd("%s", tr("Shader: Off (scaling filter)"));
+						break;
+					}
 					if (emu_is_gb(&emu) && strcmp(cfg->gbShader, "same")) { /* (this game has its own pattern: the hotkey turns that off and on) */
 						snprintf(cfg->gbShader, sizeof(cfg->gbShader), "%s", shader_now() != SH_OFF ? "off" : "dots");
 						ui_shader(shader_now());

@@ -63,7 +63,7 @@ In the game list's Settings > System, **Reset settings to defaults** puts every 
 | `gb_correction` | `same` | Colour correction for Game Boy games: `same` (as `color_correction`), `off`, `gbc` or `gba`. |
 | `gb_ghosting` | `same` | Ghosting for Game Boy games: `same` (as `lcd_ghosting`), `off`, `light`, `smart` or `strong`. |
 | `gb_shader` | `same` | The pattern over Game Boy games: `same` (as `shader`), `off`, `grid`, `scanlines`, `soft` or `dots` (grid with the Game Boy's shadow). |
-| `smooth` | `0` | Scaling filter: how the game's pixels are enlarged. `0` sharp, `1` plain bilinear filtering (blurry), `scale2x` or `scale4x` (rounds pixel-art edges on the GPU, then scales smoothly to the screen; the shader is off on the game's picture while one is on). Scale2x and Scale4x need OpenGL ES (the device, Android); elsewhere they draw as `0`. |
+| `smooth` | `0` | Scaling filter: how the game's pixels are enlarged. `0` sharp, `1` plain bilinear filtering (blurry), `scale2x` or `scale4x` (rounds pixel-art edges on the GPU, then scales smoothly to the screen; every shader counts as Off while one is on, on both screens, and the pause menu greys the Shader rows). Scale2x and Scale4x need OpenGL ES (the device, Android); elsewhere they draw as `0`. |
 | `vsync` | `0` | Present frames in step with the display. Off is smoother on these devices. |
 | `overlays` | `generated` | `off`, `generated` (GBA DS's bezel round the picture) or `custom` (your own PNGs in `overlays/`). See [[Overlays]]. |
 | `overlay_screens` | `both` | Which screens have them: `both`, `top` or `bottom`. |

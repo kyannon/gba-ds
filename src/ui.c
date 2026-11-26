@@ -1546,6 +1546,9 @@ void ui_shader(int sh) {
 	ccGain = uiShader >= SH_SUB_LIGHT ? subPresets[uiShader - SH_SUB_LIGHT].gain : 100;
 	cc_refresh();
 }
+bool ui_upscaling(void) {
+	return upscale_factor(cfg->filter) && nViews > 0 && views[0].ren && upscale_ready(views[0].ren);
+}
 /* the pattern the pictures are drawn with: the session's (ui_shader), else Display > Shader's */
 static int shader_choice(void) {
 	return uiShaderGame ? uiShader : cfg->shader;

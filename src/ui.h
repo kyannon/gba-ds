@@ -136,6 +136,9 @@ void ui_image(int screen, SDL_Texture* const* texPerView, int w, int h, const ch
  * | UI_PIX_GAME: the game's own picture, which the scaling filter's
  * upscalers (Scale2x, Scale4x: upscale.c) enlarge, without the grid. */
 #define UI_PIX_GAME 0x100
+/* Whether the scaling filter is an upscaler that runs here (an OpenGL ES 2
+ * renderer): then every shader counts as Off (issue #89). */
+bool ui_upscaling(void);
 void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, int lcd);
 /* Where ui_image_pixels puts a w x h image on a screen (screen-local coords). */
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode);
