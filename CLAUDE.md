@@ -161,9 +161,12 @@ it lives here:
      fixtures have; say in the checklist where a region has none.
      `tools/make_device_states.py [--games a,b]` makes `build/device-states/`
      (`<name>.slotN.state` and `TEST-STATES.txt`, stopping on a missing
-     fixture or a name that isn't a dump); `GBADS_DEVICE_STATES=build/device-states
+     fixture or a name that isn't a dump); `GBADS_DEVICE_STATES=build/device-states GBADS_LANG_ASK=1
      GBADS_WEB_WORK=<scratch>/wasm scripts/build-rocknix.sh` puts them in the
-     zip's `states/` folder (dev versions only). They replace those slot
+     zip's `states/` folder (dev versions only); `GBADS_LANG_ASK=1` makes it
+     ask the language on a first install, as the release will (GEN-18: the
+     owner's rule, Nov 25, 2026, is that only builds a main session makes for
+     a release ask; other test builds don't). They replace those slot
      files on the owner's install; say so, and that a state shows only when
      the ROM file is named as the game is.
   4. **Tests**: as for any test build, the cases the changes can affect
@@ -285,6 +288,8 @@ release zip, which replaces the main install.
   `X.Y.Z-dev+<slug>`, there are no updates and no EmulationStation / BananaOS
   integration. Say in the note that it is a side build, and that it can be
   deleted (folder and Ports entry) once the issue or branch is merged.
+- **It doesn't ask the language on a first install** (GEN-18): only releases
+  and builds with `GBADS_LANG_ASK=1` (the final dev build) do, so leave it out.
 - **Unzipping it can't touch the main install**, so the test note doesn't need
   "back up your settings" for it. The final dev build, built from `dev`, still
   replaces the install (and its test states replace slot files: say so).
@@ -624,13 +629,20 @@ release zip, which replaces the main install.
   unlock and leaderboard entry rc_client sends is kept (without the token) until the server
   answers, then replayed at the next sign-in before the game loads
   (`pending_track` / `pending_replay`; `replayBusy` holds `begin_load`).
+- `drmlease.c` (Linux; issue #86): the second screen on a panel leased from gamescope. ui.c opens it when there's one display and `GBADS_DRM_LEASE` is set (`drmlease_open`: the lease through libwayland-client opened at run time, headers and drm-lease protocol code in `third_party/wayland`, MIT; the panel lit by one atomic commit; two dumb buffers flipped on the leased plane, turned by the panel's orientation; kernel ioctls, no libdrm), makes views[1] a software view (`create_software_view`, retained: drawn only when it changes, `UI_RETAINED`) and `drmlease_present` puts its surface on the panel each frame. The touchscreen's turn comes from the panel's orientation (`touch_rotate`), and `evdev_touch_poll` opens its device with the `openat` system call (Steam's preloaded overlay made `open` fail on it). Test without a panel: docs/TESTING.md, "The leased panel's second screen". Licence: the lease request is a port of Azahar-Enhanced's (GPLv2 or later), noted in the file, `wiki/Licenses.md` and the zip's licenses folder.
 - `mapper.c` Settings > Map Buttons (Linux): asks for each button, builds an SDL mapping for that controller, kept in `<state_dir>/controllers.txt` and logged (bake device ones into `dist/gamecontrollerdb.txt`). Input scripts drive it with a virtual pad: `JOYBTN:n`, `JOYHAT:v`, `JOYAXIS:n,v`, `JOYBTN:-`.
 - `update.c` updates (Linux): GitHub's latest release, the notice and
   Settings > Updates (library.c), download through `http.c` (curl, or
   libcurl), SHA-256 check (`sha256.c`), install over the app's folder via
   `.new` files and rename (gba-ds.cfg kept), then main() execs the new
   binary. Test offline with `tools/update_mock.py` (docs/TESTING.md).
-- `library.c` the game list and its Settings screen (and the selected
+- `library.c` the first-run language question (GEN-18, issue #92:
+  `library_language_ask`, before the game list and from game.c at the first
+  pause; `library_language_ask_built` says which builds ask: a version
+  without `-dev`, or `GBADS_LANG_ASK` (Makefile `LANG_ASK`, build-rocknix.sh
+  and the environment), never `__wasi__`; main.c marks a first install,
+  an empty states folder, with `language_asked = 0`; regress.py sets
+  `GBADS_LANG_ASK=0` unless a case asks), the game list and its Settings screen (and the selected
   game's ROM checksum, read once per file on a worker thread and kept in
   `<state_dir>/roms.cache`: "Romhack: ..." / "Modified ROM" under its logo,
   GEN-8; regress.py's `"kind": "library"` cases). The scan (issue #49):
@@ -699,6 +711,7 @@ release zip, which replaces the main install.
   with each launcher's `run-` written `run''-` (the same to the shell), and
   the games GBA DS doesn't support play without Banana's panel (a known
   issue; a per-game hook was asked of Banana's developers).
+- **Armada** (github.com/armada-os/armada, the AYN Thor's own system; issue #86, PR #96 by cerroverb): in **Game Mode** gamescope shows only the top panel and leases the bottom one (DSI-1) to a program that asks through the Wayland protocol `wp_drm_lease_device_v1`; on the desktop both panels are KDE's and GBA DS makes a window on each. `dist/launch.sh` (its "another system" branch) reads `/usr/libexec/armada/device-env` for `ARMADA_SECONDARY_CONNECTOR` / `ARMADA_SECONDARY_TOUCHSCREEN`, passes the touchscreen as `--touch-device` and, when Game Mode's `gamescope-primary` socket exists, sets `GBADS_DRM_LEASE` (the connector) and `GAMESCOPE_WAYLAND_DISPLAY=gamescope-primary`; its first log lines say what it found ("Armada: bottom panel ..."). `src/drmlease.c` does the rest (below). Tried by the contributor on a Thor in Game Mode from a Steam shortcut; the owner's own device is the RG DS Plus.
 - **The Stock Linux OS** (Anbernic's own) on the RG DS Plus (Buildroot, weston, two
   windows): launch.sh's "another system" branch. Ports in `/mnt/mmc/Ports`,
   ROMs `/mnt/mmc/Roms/GBA`. Touch: `anbernic_misc/tpctrl` 0 (on) for the run

@@ -103,6 +103,56 @@ Games are never published: players bring their own.
   with CDP `Input.dispatchTouchEvent` (one finger, two, a slide, a
   diagonal). Not yet tried on a real phone.
 
+## A second window (two monitors)
+
+Issue #93 (Nov 25, 2026): one of the two screens in a window of its own, to
+put on another monitor. The toolbar's two-windows button (computers only:
+hidden on touchscreens, `w2Possible`) opens it while a game plays; it shows
+the bottom screen (the touchscreen) or the top one (Settings > Screens >
+Second window, `win2Screen`), and the page then shows only the other screen,
+as large as it fits (`placeOne`). Pressed again, or the window closed, the
+screen comes back. The page closes it when it goes (`pagehide`).
+
+- **Drawing**: the window is an `about:blank` pop-up the page writes into
+  with the DOM (no file of its own: the one-file player has none to give,
+  and its packer rewrites a literal `</body>`, so no `document.write`). Its
+  canvas goes to the worker (`view2`, or `canvas2` in `boot`) as a second
+  OffscreenCanvas with a WebGL2 context of its own (worker.js `VIEWS[1]`):
+  each frame is uploaded to both. Opening or closing it doesn't restart the
+  game; a restart (device, resolution, build) gives it a new canvas, as it
+  does the page.
+- **Where it opens**: the screen's shape, about 60 % of the monitor's height.
+  Where the browser has Window Management (Chrome and Edge on computers) and
+  `screen.isExtended`, it opens centred on another monitor: placed at once
+  when the permission is already given, else the browser asks after it opens
+  and it is moved there (a prompt first would use up the click that may open
+  a pop-up).
+- **Input**: the page's key listeners are added to the window too
+  (`KEY_LISTENERS`); controllers are read through both windows'
+  `getGamepads()` (`pads()`: some browsers give a controller's buttons only
+  to the focused window), and the window's frames run the input loop too
+  (`tickOnce`), as a page that can't be seen gets none. Touches: the bottom
+  screen in whichever window has it (`bindTouch(canvas, rect)`).
+- **Full screen**: a Full screen button at the window's top right, shown
+  while the mouse moves (a hint says so for 5 s), and a double-click when
+  the window has the top screen (on the bottom one the clicks are touches:
+  `gbadsDblclick`); the page's own Full screen button as before. Both are a
+  script of the window's own (`W2_FULL_SCREEN`, put in as a `<script>`
+  element): Firefox on macOS refused full screen from a double-click
+  listener of the page's attached to the window (the owner's test, Nov 25,
+  2026). Headless Chromium refuses full screen in every pop-up, so this is
+  tested with Chromium under `xvfb-run` (`headless=False`): the button and
+  the top screen's double-click both work there. Firefox isn't in sessions.
+- **Pause when hidden** pauses only when both the page and the window are
+  hidden (`allHidden`).
+
+Tested headless (Playwright, one file and folder, Nov 25, 2026): the window
+opens with the bottom screen, keys pressed in it and a click on it reach the
+game (the click as a touch at the screen's middle), the top screen there
+instead, a restart with it open, closing it, a phone (no button) and a reload
+(it closes). Headless Chromium has one screen, so placing it on another
+monitor is checked in a real browser.
+
 ## How it works
 
 - `player.js` (the page): files dropped or chosen (`takeFiles`: a dev zip,

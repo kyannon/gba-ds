@@ -65,7 +65,6 @@ void patch_title(const char* file, char* out, size_t size);
 void game_paths_patched(const Config* cfg, GamePaths* o, const PatchChoice* c);
 bool file_exists(const char* path);
 void mkdirs(const char* path);
-bool copy_file(const char* from, const char* to);
 
 /* key = value files (gba-ds.cfg's form): one key's value (the last line
  * with it), and setting one key, the file's other lines kept (header: the

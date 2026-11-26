@@ -7,8 +7,7 @@
 if (typeof GBADS === "undefined") importScripts("gbads-runtime.js");
 
 let h = null;            // the run (GBADS.start's handle)
-let gl = null, glState = null;
-let layout = null;       // { cw, ch, rects: [{ src: [x, y, w, h], dst: [x, y, w, h] }], smooth }
+// a layout: { cw, ch, rects: [{ src: [x, y, w, h], dst: [x, y, w, h] }], smooth }
 let frame = null;        // the last frame: { ptr, w, h, pitch } (pitch in pixels)
 let frames = 0, fpsN = 0, fpsT = 0;
 let paused = false;
@@ -30,10 +29,14 @@ let syncTimer = 0;
 function syncSoon() { if (!syncTimer) syncTimer = setTimeout(() => { syncTimer = 0; if (h) syncFiles(); }, 150); }
 
 /* ------------------------------------------------------------ video */
+// Where the app's window is drawn: the page's canvas (VIEWS[0]) and, with the
+// second window open (issue #93), that window's canvas (VIEWS[1]). Each has
+// its own WebGL2 context and layout; each frame is uploaded to each.
+const VIEWS = [null, null];
 function glInit(canvas) {
-  gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false,
+  const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false,
     preserveDrawingBuffer: false, powerPreference: "high-performance" });
-  if (!gl) return false;
+  if (!gl) return null;
   const sh = (type, src) => {
     const s = gl.createShader(type);
     gl.shaderSource(s, src); gl.compileShader(s);
@@ -60,14 +63,14 @@ function glInit(canvas) {
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  glState = { tex, texW: 0, texH: 0, verts: 0, quadsFor: null, smooth: null };
   gl.clearColor(0, 0, 0, 0);
-  return true;
+  return { gl, tex, texW: 0, texH: 0, verts: 0, quadsFor: null, smooth: null, layout: null };
 }
 
-function glQuads() {
-  if (!layout || !glState.texW) return;
-  const { cw, ch, rects } = layout, W = glState.texW, H = glState.texH;
+function glQuads(v_) {
+  const { gl, layout } = v_;
+  if (!layout || !v_.texW) return;
+  const { cw, ch, rects } = layout, W = v_.texW, H = v_.texH;
   const v = [];
   for (const r of rects) {
     const [sx, sy, sw, sh] = r.src, [dx, dy, dw, dh] = r.dst;
@@ -77,39 +80,54 @@ function glQuads() {
     v.push(x0, y0, u0, v0, x1, y0, u1, v0, x0, y1, u0, v1, x0, y1, u0, v1, x1, y0, u1, v0, x1, y1, u1, v1);
   }
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
-  glState.verts = v.length / 4;
-  glState.quadsFor = layout;
+  v_.verts = v.length / 4;
+  v_.quadsFor = layout;
 }
 
-function glDraw(upload) {
-  if (!gl) return;
+function glDrawView(v_, upload) {
+  const { gl, layout } = v_;
   if (upload && frame) {
     const { ptr, w, h: fh, pitch, buf } = frame;
-    if (w !== glState.texW || fh !== glState.texH) {
+    if (w !== v_.texW || fh !== v_.texH) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, fh, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-      glState.texW = w; glState.texH = fh; glState.quadsFor = null;
+      v_.texW = w; v_.texH = fh; v_.quadsFor = null;
     }
     gl.pixelStorei(gl.UNPACK_ROW_LENGTH, pitch);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, fh, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(buf, ptr, pitch * 4 * fh));
   }
-  if (!layout || !glState.texW) return;
-  if (glState.smooth !== layout.smooth) {
+  if (!layout || !v_.texW) return;
+  if (v_.smooth !== layout.smooth) {
     const f = layout.smooth ? gl.LINEAR : gl.NEAREST;
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, f);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, f);
-    glState.smooth = layout.smooth;
+    v_.smooth = layout.smooth;
   }
-  if (glState.quadsFor !== layout) glQuads();
+  if (v_.quadsFor !== layout) glQuads(v_);
   gl.viewport(0, 0, layout.cw, layout.ch);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.drawArrays(gl.TRIANGLES, 0, glState.verts);
+  gl.drawArrays(gl.TRIANGLES, 0, v_.verts);
 }
+function glDraw(upload) { for (const v of VIEWS) if (v) glDrawView(v, upload); }
 
-function setLayout(l, canvas) {
-  layout = l;
-  canvas = canvas || (gl && gl.canvas);
-  if (canvas && (canvas.width !== l.cw || canvas.height !== l.ch)) { canvas.width = l.cw; canvas.height = l.ch; }
-  glDraw(false);
+function setLayout(l, i) {
+  const v = VIEWS[i || 0];
+  if (!v) return;
+  v.layout = l;
+  const canvas = v.gl.canvas;
+  if (canvas.width !== l.cw || canvas.height !== l.ch) { canvas.width = l.cw; canvas.height = l.ch; }
+  // (no new frame while paused: draw the last one again, uploaded if this view hasn't had it)
+  glDrawView(v, !v.texW && !!frame && !!h);
+}
+// the second window's canvas (or none: it closed)
+function setView2(canvas, l) {
+  const old = VIEWS[1];
+  VIEWS[1] = null;
+  if (old) { const x = old.gl.getExtension("WEBGL_lose_context"); if (x) x.loseContext(); }
+  if (!canvas) return;
+  const v = glInit(canvas);
+  if (!v) { post({ t: "log", line: "the second window has no WebGL2" }); return; }
+  VIEWS[1] = v;
+  if (l) setLayout(l, 1);
 }
 
 /* ------------------------------------------------------------ sound */
@@ -295,8 +313,9 @@ zero.port1.onmessage = () => { const f = zeroQ.shift(); if (f) f(); };
 const schedule = (fn, ms) => { if (ms <= 0) { zeroQ.push(fn); zero.port2.postMessage(0); } else setTimeout(fn, ms); };
 
 async function boot(m) {
-  if (m.canvas && !glInit(m.canvas)) { post({ t: "exit", code: -1, error: "This browser has no WebGL2, which the player draws with." }); return; }
-  if (m.layout) setLayout(m.layout, m.canvas);
+  if (m.canvas && !(VIEWS[0] = glInit(m.canvas))) { post({ t: "exit", code: -1, error: "This browser has no WebGL2, which the player draws with." }); return; }
+  if (m.layout) setLayout(m.layout, 0);
+  if (m.canvas2) setView2(m.canvas2, m.layout2);
   attachAudio(m.audioPort || null);
   const fs = new GBADS.MemFS();
   for (const [p, b, t] of m.files) fs.write(p, b, t);
@@ -349,7 +368,8 @@ onmessage = async (e) => {
     case "capresult": cap.inbox.push(m); if (paused) pumpCaptures(); break;
     case "capoff": cap.off = true; pumpCaptures(); break;
     case "capreturn": serve.outSpare = m.buf; break;
-    case "layout": setLayout(m.layout); break;
+    case "layout": setLayout(m.layout, 0); if (m.layout2) setLayout(m.layout2, 1); break;
+    case "view2": setView2(m.canvas || null, m.layout || null); break;
     case "buttons": if (!paused) setButtons(m.mask); break;
     case "touch": if (h && !paused) h.touch(m.type, m.x, m.y); break;
     case "pause":

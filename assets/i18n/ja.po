@@ -64,9 +64,6 @@ msgstr "%s %s。RetroArch がステートを別の場所に保存している場
 msgid "%s (beside the ROM)"
 msgstr "%s (ROM の隣)"
 
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "%s をホットキーボタンにする (Start、R1、L1、X、Y、B と組み合わせ)"
-
 msgid "%s has no button now"
 msgstr "%s にボタンが割り当てられていません"
 
@@ -144,9 +141,6 @@ msgstr "A ボタン (右)"
 
 msgid "A and B buttons"
 msgstr "A ボタンと B ボタン"
-
-msgid "A dark line under each row of pixels"
-msgstr "ピクセルの各行の下に暗い線"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "ゲームのセーブがすでに隣にある場合や別の形式の場合は、初回プレイ時にコピーされます。.srm は RetroArch の形式です。RetroArch のセーブフォルダも選ぶと、各ゲームのセーブを共有できます。"
@@ -246,9 +240,6 @@ msgstr "ゲーム開始時のまま"
 
 msgid "Aug"
 msgstr "8月"
-
-msgid "Auto"
-msgstr "自動"
 
 msgid "Auto-load"
 msgstr "自動ロード"
@@ -543,9 +534,6 @@ msgstr "下"
 
 msgid "Downloading"
 msgstr "ダウンロード中"
-
-msgid "Each pixel a little darker toward its edges"
-msgstr "縁に向かって各ピクセルを少し暗く"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "retroachievements.org のアカウントでカジュアルモードの実績を獲得できます。GBA DS が保持するのはサインイン用トークンで、パスワードではありません。"
@@ -916,14 +904,8 @@ msgstr "ライト / ダークモード"
 msgid "Like a GBA"
 msgstr "GBA 風"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "ピクセルの間に線を入れ、GBA の画面のように"
-
 msgid "Load failed"
 msgstr "ロード失敗"
-
-msgid "Load failed."
-msgstr "ロードに失敗しました。"
 
 msgid "Load State"
 msgstr "ステートをロード"
@@ -1315,15 +1297,6 @@ msgstr "音が途切れる場合は上げてください。"
 msgid "Red"
 msgstr "赤"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "赤・緑・青のストライプ (弱め): 暗い画面向け"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "赤・緑・青のストライプ: GBA の画面のように"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "赤・緑・青のストライプ (強め): 明るい画面向け"
-
 msgid "Reset"
 msgstr "リセット"
 
@@ -1669,9 +1642,6 @@ msgstr "スムーズな拡大"
 msgid "Smoother, one frame more input delay."
 msgstr "よりなめらかになりますが、入力遅延が 1 フレーム増えます。"
 
-msgid "SNES"
-msgstr "SNES"
-
 msgid "Soft Cells"
 msgstr "ソフトセル"
 
@@ -1801,9 +1771,6 @@ msgstr "GBA DS のメニューを開くボタン (Home、Menu、Function)"
 msgid "the game"
 msgstr "ゲーム"
 
-msgid "The game's pixels as they are"
-msgstr "ゲームのピクセルをそのまま"
-
 msgid "The GBA DS logo in the generated bezel."
 msgstr "生成されたベゼルに GBA DS ロゴを入れます。"
 
@@ -1854,6 +1821,9 @@ msgstr "上のフェイスボタン"
 
 msgid "This folder can't be opened"
 msgstr "このフォルダは開けません"
+
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DSはこのフォルダに保存できません: 別のフォルダを選んでください"
 
 msgid "This game"
 msgstr "このゲーム"
@@ -2077,3 +2047,63 @@ msgstr "›"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "音の遅延を %d ms に上げました：音が途切れ続けたためです"
+
+msgid "Android couldn't install the update."
+msgstr "Androidはアップデートをインストールできませんでした。"
+
+msgid "Android couldn't install the update: %s."
+msgstr "Androidはアップデートをインストールできませんでした: %s。"
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Androidはこのコピーの上にv%sをインストールしません: 別のキーで署名されています (テストビルド?)。GBA DSをアンインストールしてから、github.com/kyannon/gba-ds/releases から新しいバージョンをインストールしてください。GBA DSフォルダ内のファイルは残ります。"
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Androidはこのコピーの上にv%sをインストールしません: このコピーはそれより後のテストビルドで、Androidは以前のビルドに戻せません。このまま使うか、GBA DSをアンインストールして github.com/kyannon/gba-ds/releases からv%sをインストールしてください (GBA DSフォルダ内のファイルは残ります)。"
+
+msgid "Couldn't check for updates."
+msgstr "アップデートを確認できませんでした。"
+
+msgid "Couldn't check for updates: %s."
+msgstr "アップデートを確認できませんでした: %s。"
+
+msgid "Couldn't download the update: %s."
+msgstr "アップデートをダウンロードできませんでした: %s。"
+
+msgid "Couldn't install the update: %s."
+msgstr "アップデートをインストールできませんでした: %s。"
+
+msgid "Couldn't start installing the update: %s."
+msgstr "アップデートのインストールを開始できませんでした: %s。"
+
+msgid "Couldn't start the download."
+msgstr "ダウンロードを開始できませんでした。"
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "ダウンロードがチェックサムと一致しません。もう一度お試しください。"
+
+msgid "The download was incomplete. Try again."
+msgstr "ダウンロードが不完全でした。もう一度お試しください。"
+
+msgid "There isn't enough storage free to install the update."
+msgstr "アップデートをインストールするための空き容量が足りません。"
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "GBA DS のメニューの言語を選んでください。"
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "あとで 設定 > システム で変更できます。"
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "選ぶ"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "続ける"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "システム: %s"
