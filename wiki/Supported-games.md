@@ -46,6 +46,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | The Legend of Zelda: The Minish Cap | `BZME` `BZMP` `BZMJ` | the map of Hyrule and dungeon maps (Quest Status before you have the map) | |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
+| Mario Party Advance | `B8ME` `B8MP` `B8MJ` | on the board: the Map and Quest Data in turn | |
 | Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
 | Mega Man Battle Network 2 (Battle Network Rockman EXE 2 in Japan) | `AE2E` `AM2P` `AE2J` | MegaMan's status (level, HP, style, buster) with your money, in battles too; on the net, a map of the area | |
@@ -498,6 +499,15 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - On the title, the second screen shows the logo; in scenes, conversations and the game's own menus it keeps its picture.
 - Not tried yet: the European and Japanese releases beyond the Koopa Cruiser (walking about and its battles were tried in both).
 - **Superstar Saga+** (the romhack, v1.5, its 100% patch for the USA release; its 80% and 60% versions haven't been tried) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
+
+## Mario Party Advance
+
+The USA, European and Japanese releases.
+
+- **On the board,** the second screen shows two of the game's own pages, five seconds each: the **Map** (R, then A), with the area the car is in and the quest places, and **Quest Data** (L's menu), with the quest being asked and the ones you've met. Their button hints, the Map's cursor and the scroll arrows are left out. They're opened in the background in a silent copy of the game about once a second, so the car on the Map trails yours by a second or two while it moves; your game is never paused. On a new file they're there from the first turn, while the game screen still shows its first-time boxes for R and L.
+- In dialogs, the dice, the L menu and scenes, the last pages stay. While you have the game's own Map or Quest Data open, the second screen shows the logo, so the same page isn't on both screens.
+- On the title, the name entry and the main menu, the second screen shows the logo.
+- Tried in Shroom City's Town area (Europe and Japan at a new file's first turn; Europe in English and French). Not tried yet: the minigames, Party Land, Challenge Land and the other areas' boards, a Map with a flag placed.
 
 ## Mario vs. Donkey Kong
 
