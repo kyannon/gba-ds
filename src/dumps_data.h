@@ -67,6 +67,7 @@ static const KnownDump knownDumps[] = {
 	{ "ABFJ", 0x66e96b35, true, false, "Breath of Fire - Ryuu no Senshi (Japan)" },
 	{ "ABFP", 0xa1c3165d, true, false, "Breath of Fire (Europe)" },
 	{ "ABFX", 0xd3660549, true, false, "Breath of Fire (Europe) (En,Fr,De)" },
+	{ "ACFE", 0xadf14db5, true, false, "Cruis'n Velocity (USA, Europe)" },
 	{ "ACHE", 0x3a1e789a, false, false, "Castlevania - Harmony of Dissonance (USA) (Castlevania Advance Collection)" },
 	{ "ACHE", 0x88c1b562, true, false, "Castlevania - Harmony of Dissonance (USA)" },
 	{ "ACHJ", 0x247eeb20, false, false, "Castlevania - Byakuya no Concerto (Japan) (Castlevania Advance Collection)" },

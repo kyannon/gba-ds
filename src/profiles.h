@@ -609,6 +609,9 @@ typedef struct MapProfile {
 		 * Advance 4: World-e's status bar sliding off and back as the
 		 * inventory opens and closes, SM4-8) */
 		MemProbe freeze[2];
+		/* The HUD split draws some of its sprites with other tiles each frame (Cruis'n Velocity's time
+		 * box, the race's total once it's over): fills oamIndex / tile (up to 8), returns how many. */
+		int (*retile)(Emu* e, int* oamIndex, uint16_t* tile);
 		/* The top rows of the last map picture (the world map's level
 		 * list: its title row with the level's name) kept above the HUD,
 		 * which moves down that far (Super Mario Advance 2, SMA-7) */
