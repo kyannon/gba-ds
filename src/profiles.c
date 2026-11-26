@@ -10043,9 +10043,13 @@ static bool mpa_page_up(Emu* s, unsigned layers, unsigned bg0) {
 }
 
 static const char* mpa_page(Emu* s, const void* state, bool quest, uint32_t* out, int w, int h) {
-	/* the hints, the cursor and the scroll arrows (prompts and a cursor are left off the second screen) */
-	static const SpriteRule mapHide[] = { { 0, 112, 255, 112, 32, 152, 3, 1u << 3 }, { -16, -16, 255, 175, 336, 336, 3, 1u << 1 },
-	                                      { -16, -16, 255, 175, 372, 374, 3, 1u << 0 } };
+	/* the hints, the cursor and the scroll arrows (prompts and a cursor are left off the second screen). The
+	 * Map's tiles move with the area label's text (Japan's are 22 lower), so its rules name the palette, the
+	 * shape and the place: the hints' row, the cursor ring (the only 32x32 sprite in palette 1) and the
+	 * arrows (palette 0, 8x16 or 16x8, on the bar below the parchment, where the car never goes) */
+	static const SpriteRule mapHide[] = { { 0, 112, 255, 112, 0, 1023, 3, 1u << 3, 0, 0 },
+	                                      { -32, -32, 255, 175, 0, 1023, 3, 1u << 1, 0, 1u << 2 },
+	                                      { -16, 124, 255, 175, 0, 1023, 3, 1u << 0, 0, (1u << 4) | (1u << 8) } };
 	static const SpriteRule questHide[] = { { 0, 142, 255, 142, 16, 168, 1, 1u << 2 }, { -16, -16, 255, 175, 312, 312, 1, 1u << 0 } };
 	emu_layers(s, quest ? 0x1F : 0x1B); /* (the Map without BG2: the name of what the cursor is on) */
 	emu_hide_sprites(s, quest ? questHide : mapHide, quest ? 2 : 3);
@@ -10093,6 +10097,15 @@ static const char* mpa_compose(Emu* s, const void* state, uint32_t* const* out, 
 		if (!mpa_page(s, state, true, out[1], w, h)) *nOut = 2;
 	}
 	return NULL;
+}
+
+/* Mario Party Advance in Europe: with no battery save, the language screen first (A, LEFT to its Yes, A: English,
+ * which the game saves), then the USA release's health warning, Toad intro and START (MPA-1) */
+static void mpa_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 60 }, { K_LEFT, 4 }, { 0, 20 }, { K_A, 4 }, { 0, 600 },
+	                                   { K_A, 30 }, { 0, 900 }, { K_START, 4 }, { 0, 100 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
 }
 
 /* Pokemon Mystery Dungeon: Red Rescue Team (USA; pmd_moved for the others): gDungeon, the pointer to the floor being played (0 elsewhere) */
@@ -13658,6 +13671,9 @@ static void pmd_jpn(MapProfile* p) {
 static const Variant variants[] = {
 	{ "B24P", "B24E", 0, pmd_eur },
 	{ "B24J", "B24E", 0, pmd_jpn },
+	/* Mario Party Advance: Europe and Japan, the USA release's addresses */
+	{ "B8MP", "B8ME", 0, mpa_eur },
+	{ "B8MJ", "B8ME", 0, NULL },
 	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
 	{ "B8KP", "B8KE", 0, NULL },
 	{ "B8KJ", "B8KE", 0, NULL },

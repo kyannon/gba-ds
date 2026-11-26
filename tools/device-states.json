@@ -1152,6 +1152,31 @@
      "Japan, the story before the dungeon: the logo (PMD-5). Load slot 1 first, then this: the map goes after about a third of a second"
     ]
    }
+  },
+  "mario-party-advance": {
+   "Mario Party Advance (USA)": {
+    "1": ["board.ss", "A turn's start on the board: the Map, then Quest Data five seconds later, in turn; no hints, cursor ring, arrows or name on the bar; the HUD stays on the game screen (MPA-2, MPA-3, MPA-4). Then R, A: the game's own Map, the logo; B, B: the logo a second more, then the pages (MPA-6)"],
+    "2": ["board-first-use.ss", "A board where R and L haven't been pressed yet: the pages come anyway; press R or L: the game screen shows its first-use boxes (MPA-8)"],
+    "3": ["walking.ss", "The car walking: the pages; the car on the Map a second or two behind (MPA-2)"],
+    "4": ["stop-prompt.ss", "A 'stop here?' prompt loaded straight in: logo (MPA-7). Load slot 1 first, wait for the pages, then this: the pages stay (MPA-5)"],
+    "5": ["menu.ss", "The L menu open. Load slot 1 first, wait for the pages, then this: the pages stay, still taking turns (MPA-5)"],
+    "6": ["scene.ss", "A story scene in a house. Load slot 1 first, then this: the pages stay (MPA-5)"],
+    "7": ["own-quest.ss", "The game's own Quest Data open: logo, not the same page twice (MPA-6); B to close it: the logo a second more, then the pages"],
+    "8": ["main-menu.ss", "The main menu: logo (MPA-7); Shroom City again: new pages once the board is free"],
+    "9": ["title.ss", "The title: logo (MPA-7)"]
+   },
+   "Mario Party Advance (Europe) (En,Fr,De,Es,It)": {
+    "1": ["eur-board-first-use.ss", "English, a new file's first turn: the Map and Quest Data in turn, without hints, cursor or arrows (MPA-2, MPA-3, MPA-8)"],
+    "2": ["eur-fr-board-first-use.ss", "French, a new file's first turn: the same in French (MPA-2, MPA-3)"],
+    "3": ["eur-own-quest.ss", "The game's own Quest Data open: logo, with its TM (MPA-6, MPA-1)"],
+    "4": ["eur-title.ss", "The title: logo (MPA-7)"]
+   },
+   "Mario Party Advance (Japan)": {
+    "1": ["jpn-board-first-use.ss", "A new file's first turn: the Map and Quest Data in turn, without hints, cursor or arrows (MPA-2, MPA-3, MPA-8)"],
+    "2": ["jpn-own-map.ss", "The game's own Map open: logo in Japanese lettering (MPA-6, MPA-1)"],
+    "3": ["jpn-own-quest.ss", "The game's own Quest Data open: logo (MPA-6)"],
+    "4": ["jpn-title.ss", "The title: logo (MPA-7)"]
+   }
   }
  }
 }
