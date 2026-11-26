@@ -10043,6 +10043,102 @@ static void tmc_jpn(MapProfile* p) {
 	p->logo.maxY = 122;
 }
 
+/* ---------------------------------------- Mario Party Advance
+ *
+ * Shroom City's board (docs/games/mario-party-advance.md): the second screen takes turns
+ * between the game's own Map (R opens a look-around, A the Map) and its Quest Data page
+ * (L's menu, A on its first line), each opened on the hidden copy from the board as it is.
+ *   MPA_MODE   0x03002D74: 4 at a turn's start, 2 walking, 0x80 in a dialog, a menu or the
+ *              look-around, 0 on the title, the main menu and the Map
+ *   MPA_SCENE  0x030029CD: 0 on the board, 1 in the look-around and Map, 2 on Quest Data,
+ *              5 on the main menu
+ */
+#define MPA_MODE 0x03002D74
+#define MPA_SCENE 0x030029CD
+#define MPA_MAP_STEP 300 /* 5 seconds a page */
+
+static bool mpa_free(Emu* s) {
+	uint8_t mode = emu_read8(s, MPA_MODE);
+	return (mode == 2 || mode == 4) && (emu_read16(s, 0x04000000) & 0x1F07) == 0x1D00;
+}
+
+/* (BLDY is left at 0x10 with the blend off through a dialog: only a blend on fades) */
+static bool mpa_fading(Emu* s) {
+	unsigned blend = emu_io16(s, 0x50);
+	return (blend & 0xC0) >= 0x80 && (blend & 0x3F) && emu_io16(s, 0x54);
+}
+
+/* One of the game's own pages, its fade done: DISPCNT (layers on) and BG0CNT tell them apart */
+static bool mpa_page_up(Emu* s, unsigned layers, unsigned bg0) {
+	return (emu_read16(s, 0x04000000) & 0x1F07) == layers && emu_read16(s, 0x04000008) == bg0 && !mpa_fading(s);
+}
+
+static const char* mpa_page(Emu* s, const void* state, bool quest, uint32_t* out, int w, int h) {
+	/* the hints, the cursor and the scroll arrows (prompts and a cursor are left off the second screen). The
+	 * Map's tiles move with the area label's text (Japan's are 22 lower), so its rules name the palette, the
+	 * shape and the place: the hints' row, the cursor ring (the only 32x32 sprite in palette 1) and the
+	 * arrows (palette 0, 8x16 or 16x8, on the bar below the parchment, where the car never goes) */
+	static const SpriteRule mapHide[] = { { 0, 112, 255, 112, 0, 1023, 3, 1u << 3, 0, 0 },
+	                                      { -32, -32, 255, 175, 0, 1023, 3, 1u << 1, 0, 1u << 2 },
+	                                      { -16, 124, 255, 175, 0, 1023, 3, 1u << 0, 0, (1u << 4) | (1u << 8) } };
+	static const SpriteRule questHide[] = { { 0, 142, 255, 142, 16, 168, 1, 1u << 2 }, { -16, -16, 255, 175, 312, 312, 1, 1u << 0 } };
+	emu_layers(s, quest ? 0x1F : 0x1B); /* (the Map without BG2: the name of what the cursor is on) */
+	emu_hide_sprites(s, quest ? questHide : mapHide, quest ? 2 : 3);
+	const char* err = NULL;
+	if (!emu_state_load(s, state)) err = "state load failed";
+	if (!err) emu_frame(s, 0);
+	if (!err && !mpa_free(s)) err = "not on the board";
+	if (!err) {
+		aw_run(s, quest ? K_L : K_R, 3);
+		/* A is pressed as the game takes it: in the look-around or the menu, not mid-fade, and again
+		 * through a first-use dialog's boxes (never on the Map, where it would plant a flag) */
+		bool up = false;
+		for (int f = 0; f < 400 && !up && !err; ++f) {
+			up = quest ? mpa_page_up(s, 0x1F00, 0x1A08) : mpa_page_up(s, 0x1C00, 0);
+			if (up) break;
+			bool board = (emu_read16(s, 0x04000000) & 0x1F07) == 0x1D00 && !mpa_fading(s);
+			bool ready = board && emu_read8(s, MPA_MODE) == 0x80 && (quest || emu_read8(s, MPA_SCENE) == 1);
+			if (f >= 20 && f % 20 == 0 && ready) aw_run(s, K_A, 3), f += 2;
+			else emu_frame_blind(s, 0);
+			if (emu_cancelled(s)) err = "called off";
+		}
+		if (!err && !up) err = quest ? "Quest Data didn't open" : "the Map didn't open";
+	}
+	if (!err) {
+		aw_run(s, 0, 3);
+		if (emu_cancelled(s)) err = "called off";
+		else if (w >= GBA_W && h >= GBA_H) {
+			for (int y = 0; y < GBA_H; ++y) memcpy(&out[y * w], &s->fb[y * GBA_W], GBA_W * sizeof(uint32_t));
+		}
+	}
+	emu_layers(s, 0x1F);
+	emu_hide_sprites(s, NULL, 0);
+	return err;
+}
+
+static const char* mpa_compose(Emu* s, const void* state, uint32_t* const* out, int* nOut, int* step, int w, int h) {
+	*step = MPA_MAP_STEP;
+	int max = *nOut;
+	*nOut = 0;
+	const char* err = mpa_page(s, state, false, out[0], w, h);
+	if (err) return err;
+	*nOut = 1;
+	if (max > 1) {
+		/* a page that doesn't open leaves the other alone */
+		if (!mpa_page(s, state, true, out[1], w, h)) *nOut = 2;
+	}
+	return NULL;
+}
+
+/* Mario Party Advance in Europe: with no battery save, the language screen first (A, LEFT to its Yes, A: English,
+ * which the game saves), then the USA release's health warning, Toad intro and START (MPA-1) */
+static void mpa_eur(MapProfile* p) {
+	static const MacroStep steps[] = { { 0, 300 }, { K_A, 4 }, { 0, 60 }, { K_LEFT, 4 }, { 0, 20 }, { K_A, 4 }, { 0, 600 },
+	                                   { K_A, 30 }, { 0, 900 }, { K_START, 4 }, { 0, 100 } };
+	memset(p->logo.steps, 0, sizeof(p->logo.steps));
+	memcpy(p->logo.steps, steps, sizeof(steps));
+}
+
 /* ------------------------------------------------------ Cruis'n Velocity
  *
  * After the last line the game's time box reads 0 and its results page adds up the laps' times
@@ -13204,6 +13300,26 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 300 }, { K_START, 4 }, { 0, 120 }, { K_START, 4 }, { 0, 200 } }, .layers = 0x10, .maxY = 80 },
 	},
 	{
+		/* Mario Party Advance (docs/games/mario-party-advance.md): Shroom City's board, the
+		 * game's own Map and Quest Data page in turn; see mpa_compose */
+		.codes = { "B8ME" },
+		.title = "Mario Party Advance",
+		.composePages = mpa_compose,
+		.pages = true, /* (its pages turn: Toggle `pages`) */
+		.crop_w = GBA_W, /* a GBA screen, scaled as the game is */
+		.crop_h = GBA_H,
+		/* the board with its turn's choices open or the car walking (not a dialog, a menu or a page) */
+		.live = { { MPA_MODE, 0xFF, 2, 1, true, 4 }, { 0x04000000, 0x1F07, 0x1D00, 2 } },
+		/* back at the main menu: the logo, the old board's pages dropped (MPA-7) */
+		.menu = { { MPA_SCENE, 0xFF, 5, 1 } },
+		/* the game's own Map or Quest Data page open: the logo, not the same page twice (MPA-6); held a second
+		 * after, since the game's screen is blank for a few frames between a page's fade out and its fade in */
+		.logoIf = { { 0x04000000, 0x1F07, 0x1C00, 2 }, { 0x04000008, 0xFFFF, 0x0000, 2 } },
+		.logoIfOr = { { 0x04000000, 0x1F07, 0x1F00, 2 }, { 0x04000008, 0xFFFF, 0x1A08, 2 } },
+		/* the title's lettering and copyright line (BG0): START cuts the Toad intro short */
+		.logo = { .steps = { { 0, 300 }, { K_A, 30 }, { 0, 900 }, { K_START, 4 }, { 0, 100 } }, .layer = 0, .maxY = 100 },
+	},
+	{
 		/* Shantae Advance: Risky Revolution (docs/games/shantae-advance-risky-revolution.md): the 2024
 		 * cartridge's header has no game code, so it's known by its CRC32 (codelessDumps) */
 		.codes = { "CSAE" },
@@ -13783,6 +13899,9 @@ static void pmd_jpn(MapProfile* p) {
 static const Variant variants[] = {
 	{ "B24P", "B24E", 0, pmd_eur },
 	{ "B24J", "B24E", 0, pmd_jpn },
+	/* Mario Party Advance: Europe and Japan, the USA release's addresses */
+	{ "B8MP", "B8ME", 0, mpa_eur },
+	{ "B8MJ", "B8ME", 0, NULL },
 	/* Kirby & The Amazing Mirror: Europe and Japan (Rev 1): the USA release's addresses */
 	{ "B8KP", "B8KE", 0, NULL },
 	{ "B8KJ", "B8KE", 0, NULL },

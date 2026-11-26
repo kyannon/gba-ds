@@ -77,6 +77,7 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Densetsu no Stafy 3](densetsu-no-stafy-3.md) | ST3 | `B3DJ` |
 | [Shantae Advance: Risky Revolution](shantae-advance-risky-revolution.md) | SAR | `CSAE` |
 | [Shin Megami Tensei II](shin-megami-tensei-2.md) | SMT2 | `A5TJ` |
+| [Mario Party Advance](mario-party-advance.md) | MPA | `B8ME` + 2 |
 
 ## General rules
 
