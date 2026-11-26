@@ -1096,6 +1096,62 @@
      "its mode select: the translation's own logo (FZC-9)"
     ]
    }
+  },
+  "pokemon-mystery-dungeon-red-rescue-team": {
+   "Pokemon Mystery Dungeon - Red Rescue Team (USA, Australia)": {
+    "1": [
+     "walk.ss",
+     "Tiny Woods B1F: the status line centred at the top of the second screen, the map below it, the dot blinking; the field alone on the game screen with a black line down its left edge (PMD-2). Walk about: the map stays live"
+    ],
+    "2": [
+     "menu-blue.ss",
+     "Your bug report (Tiny Woods B2F, blue windows): open and close the menu with B over and over: its windows only ever on the game screen, never a flash of them on the second (PMD-3)"
+    ],
+    "3": [
+     "menuhp.ss",
+     "A menu open with HP down. Load slot 1 first, then this: the status line on the second screen shows the lower HP over the map kept from slot 1 (PMD-3). Loaded on its own: the status line alone on black until the menu closes (known issue)"
+    ],
+    "4": [
+     "stairs.ss",
+     "Beside the stairs: step left onto them and take them (A on Proceed): the floor's map stays through the fade and the new floor's banner, no windows of the stairs menu on the second screen (PMD-3)"
+    ],
+    "5": [
+     "map.ss",
+     "The game's own floor-map view on (game screen black): SELECT turns it off and the field comes back (PMD-4). Then SELECT on the field does nothing"
+    ],
+    "6": [
+     "mapoff.ss",
+     "The game's Map setting at Off: the status line alone on the second screen (known issue)"
+    ],
+    "7": [
+     "mapshade.ss",
+     "The game's Map setting at Shade: the map dithered as the game draws it (known issue)"
+    ],
+    "8": [
+     "town.ss",
+     "The guild, outside a dungeon: the logo at half strength on dark grey (PMD-5)"
+    ]
+   },
+   "Pokemon Mystery Dungeon - Red Rescue Team (Europe) (En,Fr,De,Es,It)": {
+    "1": [
+     "eu-walk.ss",
+     "Europe, Tiny Woods B1F (in English): the status line centred and the map on the second screen, the field alone with its black left edge; B opens and closes the menu with no flash (PMD-2, PMD-3)"
+    ],
+    "2": [
+     "eu-story.ss",
+     "Europe, the story before the dungeon: the logo (PMD-5). Load slot 1 first, then this: the map goes after about a third of a second"
+    ]
+   },
+   "Pokemon Fushigi no Dungeon - Aka no Kyuujotai (Japan)": {
+    "1": [
+     "jp-walk.ss",
+     "Japan, Tiny Woods B1F: the status line centred and the map on the second screen, the field alone with its black left edge; B opens and closes the menu with no flash (PMD-2, PMD-3)"
+    ],
+    "2": [
+     "jp-story.ss",
+     "Japan, the story before the dungeon: the logo (PMD-5). Load slot 1 first, then this: the map goes after about a third of a second"
+    ]
+   }
   }
  }
 }

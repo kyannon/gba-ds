@@ -51,6 +51,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
 | Pokémon FireRed, LeafGreen, Ruby, Sapphire and Emerald (every language) | `BPRE` `BPGE` `BPRJ` `BPGJ` `BPRD` `BPGD` `BPRF` `BPGF` `BPRI` `BPGI` `BPRS` `BPGS` (FireRed, LeafGreen) · `AXVE` `AXPE` `AXVJ` `AXPJ` `AXVD` `AXPD` `AXVF` `AXPF` `AXVI` `AXPI` `AXVS` `AXPS` (Ruby, Sapphire) · `BPEE` `BPEJ` `BPED` `BPEF` `BPEI` `BPES` (Emerald) | the Party and the region map, in turn; only the Party in a battle | Radical Red 4.1, Unbound 2.1.1.1, Gaia, Saiph, Fuligin, FRLG+ 1.5.1, Light Platinum, Flora Sky, Glazed 9.1.0, Theta Emerald EX 1; Super MarioMon 1.5.1 and Emerald Rogue EX 2.1.1 (their own ROMs, not patches) |
+| Pokémon Mystery Dungeon: Red Rescue Team (Pokémon Fushigi no Dungeon: Aka no Kyuujotai in Japan) | `B24E` (USA and Australia) `B24P` `B24J` | in a dungeon: the floor map and the status line, live | |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
@@ -548,6 +549,17 @@ Every release in every language (English, Japanese, German, French, Italian and 
 - Known issues: **Saiph and Super MarioMon show only the Party, no map.** Gaia's Party screen has black bars of its own (seen on a PC, not re-checked on the device). The map's marker can lag a few seconds. A battle's own party screen isn't shown (the Party stays as it was before the battle).
 - **Saves:** a Ruby save works on Sapphire and the other way round, and so do FireRed and LeafGreen; an Emerald save doesn't work on Ruby or Sapphire. Japanese FireRed and LeafGreen need a Japanese-format save to load one made elsewhere. Romhacks take the saves of the game they are built on (Fuligin: FireRed or LeafGreen saves; Flora Sky: Emerald saves).
 - Not tried yet: the Japanese Rev 1 FireRed and LeafGreen releases, the Pokémon Box and debug dumps, the Switch Online dumps and any Korean release.
+
+## Pokémon Mystery Dungeon: Red Rescue Team
+
+The USA and Australia release, the European one (tried in English) and the Japanese one (Pokémon Fushigi no Dungeon: Aka no Kyuujotai), all the same. Added by cmyksoda (pull request #94).
+
+- **In a dungeon,** the second screen shows the game's own floor map and status line (the floor, your level, HP and its bar), live, with the dot for where you are. The status line is centred at the top; the map is where the game draws it, so it fills out as you explore. The game screen shows the field alone, with the game's black line down its left edge as on a GBA.
+- **Menus and messages** stay on the game screen. The status line stays on the second screen, over the map as it was, and keeps up with your HP and belly while a menu is open. The box that tells you what just happened (a move used, an item picked up) is on the game screen while the map carries on.
+- **The stairs:** the old floor's map stays through the fade and the new floor's banner, until the new floor's map comes up.
+- **SELECT** does nothing on a dungeon's field: all it does there is hide the field to show the floor map, which the second screen already shows. In the menus it keeps its jobs (sorting items, setting a move), and in the game's own map view it still turns the view off. Playing on one screen, the game gets every button as usual.
+- **Elsewhere** (the guild, the town, the title, the story outside a dungeon), the second screen shows the logo. Leaving a dungeon, the last map goes after about a third of a second.
+- Known: with the game's Map option (Others > Game options > Dungeon) at Off, the second screen has the status line alone; at Shade, the map is dithered as the game draws it. A state saved with the game's own map view on has the game screen black until you press SELECT. A state loaded with a menu open shows the status line alone until the menu closes. Boss scenes and the end of a dungeon can keep the floor's last map for a moment; they haven't all been tried.
 
 ## Pokémon Pinball: Ruby & Sapphire
 
