@@ -495,6 +495,11 @@ typedef struct MapProfile {
 			MemProbe heldWhen[2];
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
+		/* `on` turns it on only while a sprite like onWith shows; then `on` alone keeps it
+		 * on, till onLost frames without one (Densetsu no Stafy 3: the HUD's face, which
+		 * a stage's opening conversation doesn't have and a later one hides) */
+		SpriteRule onWith;
+		int onLost;
 		/* While every `layout` probe matches (racing, not the results):
 		 * HUD pixels in `sign` stay on the game screen when the HUD has
 		 * nothing else on those rows within 40 pixels either side (Mario
