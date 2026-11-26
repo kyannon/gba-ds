@@ -247,7 +247,17 @@ monitor is checked in a real browser.
   comparing `cc -E -P` of mapcap.c, main.c and game.c before and after).
   The buffers carrying snapshots and pictures go round and come back
   (`stateSpare`, `outSpare`), so an update makes no garbage for the browser
-  to collect. With `?debug`, the live worker logs each frame more than
+  to collect. DK: King of Swing's level above the game's screen (climb.c) has
+  the same shape, a second copy of the build with `GBADS_CLIMB_SERVE=CODE`
+  (`climb_web_serve`), started by the page on the first job (the game has
+  `GBADS_CLIMB_OFFLOAD=1`; with one hardware thread, or `?noclimbw`, it has
+  `GBADS_CLIMB_INSTEP=1` and runs the copy in step in its own frame): each
+  frame the game leaves its state, the keys, the camera and its sprite table
+  (`web_climb_job`), the page hands them over and the picture comes back
+  (`web_climb_inbox`, `web_climb_deliver`) a frame behind, moved with the
+  camera by the game (docs/games/dk-king-of-swing.md). One job at a time: the
+  game hands over a newer state only once the last one's picture is back.
+  `web_climb_offload(0)` is the failure: the game on one screen. With `?debug`, the live worker logs each frame more than
   40 ms after the last, with the game's own work in it and what came
   before ("request", "update"): a slow frame whose own work is small was
   waiting for the CPU or the browser, not the game.
@@ -266,11 +276,12 @@ monitor is checked in a real browser.
   app's Map Buttons. Kept in localStorage (`gbadsPlayer.controls`).
 - Touches: the bottom screen only, as fractions of the app's window
   (`web_touch`). Pause when hidden (on by default) pauses the run.
-- `window.gbadsPlayer` (`P`, `S`, `sound`, `capture` (with `jobs` /
+- `window.gbadsPlayer` (`P`, `S`, `sound`, `capture` and `climb` (with `jobs` /
   `results` counts), `currentMask()`) is there for tests and the console.
   Page addresses: `?debug` runs both copies with `GBADS_DEBUG=1` (capture
-  times in the log, the capture worker's lines marked `[capture]`);
-  `?nocapw` runs captures in the game, to compare.
+  times in the log, the capture worker's lines marked `[capture]`, the climb
+  worker's `[climb]`); `?nocapw` runs captures in the game, `?noclimbw` DK's
+  copy, to compare.
 
 Needs WebAssembly, WebGL2, OffscreenCanvas and AudioWorklet: Firefox 105,
 Chrome 69, Safari 17 and later.
