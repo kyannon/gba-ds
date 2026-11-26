@@ -9,7 +9,7 @@
 #include <string.h>
 #include <strings.h>
 
-const char* const filterNames[FILTER_COUNT] = { "0", "1", "scale2x", "scale4x" }; /* gba-ds.cfg's "smooth" */
+const char* const filterNames[FILTER_COUNT] = { "0", "1", "scale2x", "scale4x", "hq2x", "mmpx", "xbr-lv2", "xbr-lv3", "omniscale" }; /* gba-ds.cfg's "smooth" */
 const char* const shaderNames[SH_COUNT] = { N_("off"), "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
 const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader", "toggle",
 	                                          "rewind_toggle", "fast_forward_toggle" };
@@ -448,7 +448,7 @@ void config_usage(const char* argv0) {
 	        "                         subpixels-light, subpixels, subpixels-strong\n"
 	        "                         (--lcd-strength=0..100 for the first three)\n"
 	        "  --lcd-ghosting         each frame blended with the one before, as on a GBA's LCD\n"
-	        "  --smooth=0|1|scale2x|scale4x  scaling filter: sharp, linear, or an upscaler\n"
+	        "  --smooth=FILTER         scaling filter: 0 sharp, 1 linear, scale2x, scale4x, hq2x, mmpx, xbr-lv2, xbr-lv3, omniscale\n"
 	        "  --vsync                sync presentation to the display\n"
 	        "  --no-map               disable the map screen\n"
 	        "  --map-interval=N       frames between map refreshes (90)\n"
@@ -509,6 +509,8 @@ static const SettingChoice chShader[] = {
 };
 static const SettingChoice chFilter[] = {
 	{ "0", "Sharp", FILTER_SHARP }, { "1", "Smooth", FILTER_SMOOTH }, { "scale2x", "Scale2x", FILTER_SCALE2X }, { "scale4x", "Scale4x", FILTER_SCALE4X },
+	{ "hq2x", "hq2x", FILTER_HQ2X }, { "mmpx", "MMPX", FILTER_MMPX }, { "xbr-lv2", "xBR-lv2", FILTER_XBR_LV2 }, { "xbr-lv3", "xBR-lv3", FILTER_XBR_LV3 },
+	{ "omniscale", "OmniScale", FILTER_OMNISCALE },
 };
 static const SettingChoice chSwap[] = { { "0", "Game on top", 0 }, { "1", "Game below", 1 } };
 static const SettingChoice chMatch[] = { { "keep", "Keep device shapes", 0 }, { "aspect", "Match aspect ratios", 0 }, { "size", "Match sizes and shapes", 0 } };
@@ -556,7 +558,7 @@ static const Setting settingsTable[] = {
 	{ "lcd_strength", "Pattern strength", SF_INT, OFFB(lcdStrength), NULL, 0, 0, 100, 5, "%", "How dark the grid, scanlines and soft cells are." },
 	{ "color_correction", "Color correction", SF_BOOL, OFFB(colorCorrection), ARR(chOnOff), 0, 0, 0, NULL, "Colors as a Game Boy Advance's screen showed them." },
 	{ "lcd_ghosting", "LCD ghosting", SF_BOOL, OFFB(ghosting), ARR(chOnOff), 0, 0, 0, NULL, "Moving things leave a short trail, as on a GBA." },
-	{ "smooth", "Scaling filter", SF_INT, OFFB(filter), ARR(chFilter), 0, 0, 0, NULL, "How the game's pixels are enlarged: sharp, blurry, or rounded by Scale2x or Scale4x. Scale2x and Scale4x turn every shader off." },
+	{ "smooth", "Scaling filter", SF_INT, OFFB(filter), ARR(chFilter), 0, 0, 0, NULL, "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off." },
 
 	{ "swap", "Screens", SF_BOOL, OFFB(swap), ARR(chSwap), 0, 0, 0, NULL, "Which screen the game is on." },
 	{ "screen_match", "Screen shapes", SF_STR, OFFB(screenMatch), ARR(chMatch), 0, 0, 0, NULL, "Only when your two screens differ in shape. Experimental." },

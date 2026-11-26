@@ -3971,7 +3971,7 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 2) return N_("Not available in this game: it is made for the Game Boy Color, with colors of its own");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
 	if ((!strcmp(key, "shader") || !strcmp(key, "lcd_strength") || !strcmp(key, "gb_shader")) && ui_upscaling())
-		return N_("Off while the scaling filter is Scale2x or Scale4x");
+		return N_("Off while an upscaling filter is on");
 	if (!strcmp(key, "frame_buffer") && (tallProf || climbProf)) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");

@@ -1550,7 +1550,7 @@ void ui_shader(int sh) {
 	cc_refresh();
 }
 bool ui_upscaling(void) {
-	return upscale_factor(cfg->filter) && nViews > 0 && views[0].ren && upscale_ready(views[0].ren);
+	return upscale_factor(cfg->filter) && nViews > 0 && views[0].ren && upscale_filter_ready(views[0].ren, cfg->filter);
 }
 /* the pattern the pictures are drawn with: the session's (ui_shader), else Display > Shader's */
 static int shader_choice(void) {

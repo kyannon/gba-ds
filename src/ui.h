@@ -134,7 +134,7 @@ void ui_image(int screen, SDL_Texture* const* texPerView, int w, int h, const ch
  * lcd: 0 no grid, 1 a cell per pixel, n a cell per n x n pixels (a picture
  * made at n times the GBA's resolution, like Mario Kart's HUD screen).
  * | UI_PIX_GAME: the game's own picture, which the scaling filter's
- * upscalers (Scale2x, Scale4x: upscale.c) enlarge, without the grid. */
+ * upscalers (upscale.c) enlarge. */
 #define UI_PIX_GAME 0x100
 /* Whether the scaling filter is an upscaler that runs here (an OpenGL ES 2
  * renderer): then every shader counts as Off (issue #89). */

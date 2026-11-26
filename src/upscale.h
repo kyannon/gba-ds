@@ -1,5 +1,6 @@
 /* Upscaling filters (issue #89): the game's picture made 2x or 4x larger by
- * a pixel-art scaler on the GPU, before SDL scales it to the screen.
+ * a pixel-art scaler on the GPU (Scale2x / Scale4x, and mGBA's hq2x, MMPX,
+ * xBR-lv2, xBR-lv3 and OmniScale), before SDL scales it to the screen.
  *
  * Only with SDL's OpenGL ES 2 renderer (the device, Android): our own small
  * GLES2 program runs between SDL's draws, on SDL's own context, and puts
@@ -17,9 +18,13 @@
 /* how many times larger a filter makes the picture (0: not an upscaler) */
 int upscale_factor(int filter);
 
-/* Whether ren can run the upscalers (an OpenGL ES 2 renderer whose programs
- * built). The first call for a renderer builds them and logs the result. */
+/* Whether ren can run upscalers at all (an OpenGL ES 2 renderer); the first
+ * call for a renderer sets it up and logs the result. */
 bool upscale_ready(SDL_Renderer* ren);
+
+/* Whether ren can run this filter: its program is built the first time it's
+ * asked for (logged), and a filter whose program didn't build draws as Sharp. */
+bool upscale_filter_ready(SDL_Renderer* ren, int filter);
 
 /* src (w x h, SDL_PIXELFORMAT_ABGR8888) upscaled by the filter: a texture of
  * w x h times its factor, owned by this module (kept for the next frame), or

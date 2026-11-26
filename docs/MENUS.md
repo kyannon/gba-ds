@@ -99,7 +99,7 @@ returns one step. B/Back and HOME work as now.
 | Category | Rows |
 |---|---|
 | **Games** | Show all games: Supported only / All games (#54), Game name tags, Game folders (Android: choose; Linux: shown), Logo folder, Custom logos |
-| **Display** | Scale (game, second screen), Shader and strength, Brightness: top, Brightness: bottom (#56), Color correction, LCD ghosting, Scaling filter (Sharp, Smooth, Scale2x, Scale4x: issue #89), Swap screens, Screen shapes, Screen placement, Overlays and bezel, Border colour |
+| **Display** | Scale (game, second screen), Shader and strength, Brightness: top, Brightness: bottom (#56), Color correction, LCD ghosting, Scaling filter (Sharp, Smooth, Scale2x, Scale4x, hq2x, MMPX, xBR-lv2, xBR-lv3, OmniScale: issue #89), Swap screens, Screen shapes, Screen placement, Overlays and bezel, Border colour |
 | **Controls** | Map Buttons, Hotkeys, Left stick as D-pad (#57), Face buttons (#55), Turbo rate, Rumble strength (#83), GBA A/B swap, menu combo |
 | **Speed and sound** | Show FPS, Performance, Frame buffer, Match display rate, Rewind and its length, Fast forward and its speed, Sound delay |
 | **Second screen** | Map on/off, Map refresh, Pinball live view |

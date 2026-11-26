@@ -63,7 +63,7 @@ WEBP_DIR   := third_party/libwebp
 WEBP_SRC   := $(wildcard $(WEBP_DIR)/src/dec/*.c $(WEBP_DIR)/src/dsp/*.c $(WEBP_DIR)/src/utils/*.c)
 WEBP_OBJ   := $(patsubst $(WEBP_DIR)/src/%.c,$(OUT)/libwebp/%.o,$(WEBP_SRC))
 
-APP_SRC    := src/main.c src/config.c src/i18n.c src/i18n_data.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/folderpick.c src/game.c src/paths.c src/image.c src/brand_data.c src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/pixfont.c src/fonts_data.c src/ra.c src/http.c src/sha256.c src/update.c src/clocks.c src/drmlease.c src/upscale.c $(WL_SRC) $(CORE_SRC)
+APP_SRC    := src/main.c src/config.c src/i18n.c src/i18n_data.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/folderpick.c src/game.c src/paths.c src/image.c src/brand_data.c src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/pixfont.c src/fonts_data.c src/ra.c src/http.c src/sha256.c src/update.c src/clocks.c src/drmlease.c src/upscale.c src/upscale_shaders.c $(WL_SRC) $(CORE_SRC)
 
 all: $(OUT)/gba-ds
 

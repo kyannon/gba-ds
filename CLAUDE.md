@@ -316,7 +316,10 @@ release zip, which replaces the main install.
 - Generated sources: `src/fonts_data.c` (above), `src/brand_data.c` (artwork
   only: the logo, button prompts and flags; `tools/make_brand.py` needs the
   Futura Bold Italic and Gamecuben fonts, which aren't in the repo: ask the
-  owner for them), `src/logo_masks.c` (`tools/make_logo_masks.py`) and
+  owner for them), `src/logo_masks.c` (`tools/make_logo_masks.py`), `src/upscale_shaders.c`
+  (`tools/embed_shaders.py`: the Scaling filter's upscalers, mGBA's shader
+  packs in `third_party/mgba-shaders`, run by `src/upscale.c` on SDL's
+  OpenGL ES context; issue #89) and
   `src/dumps_data.h` with the rules files' Dumps rows (`tools/make_dumps.py
   --dat DAT`: every official dump of each release by CRC32, from No-Intro's
   list in libretro-database (fetched with git, see the tool), the fixtures'
