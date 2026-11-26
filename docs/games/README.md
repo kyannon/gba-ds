@@ -73,6 +73,9 @@ One file per supported game: what GBA DS shows on each screen, as numbered rules
 | [Breath of Fire II (Shimei no Ko in Japan)](breath-of-fire-ii.md) | BOF2 | `AB2E` + 2 |
 | [Cruis'n Velocity](cruisn-velocity.md) | CRV | `ACFE` |
 | [DK: King of Swing (Bura Bura Donkey in Japan)](dk-king-of-swing.md) | DKKS | `BBKE` + 2 |
+| [Densetsu no Stafy](densetsu-no-stafy.md) | STF | `ASTJ` |
+| [Densetsu no Stafy 2](densetsu-no-stafy-2.md) | ST2 | `AVFJ` |
+| [Densetsu no Stafy 3](densetsu-no-stafy-3.md) | ST3 | `B3DJ` |
 
 ## General rules
 

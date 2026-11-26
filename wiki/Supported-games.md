@@ -14,6 +14,9 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
 | Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings | |
 | Cruis'n Velocity | `ACFE` (USA and Europe) | in a race: the time and the lap | |
+| Densetsu no Stafy | `ASTJ` (Japan only) | in a stage: the HUD and the logo | The Starfy Translation Team's The Legendary Starfy v1.1, Starfy Origins v1.1 and Densetsu no Starfy v1.1 |
+| Densetsu no Stafy 2 | `AVFJ` (Japan only) | in a stage: the HUD and the logo | The Legendary Starfy 2 English v0.9.9 |
+| Densetsu no Stafy 3 | `B3DJ` (Japan only) | in a stage: the HUD and the logo | The Legendary Starfy 3 English v1.0.5 |
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
@@ -185,6 +188,42 @@ The one release, for the USA and Europe. Added by cmyksoda (pull request #98).
 - **Elsewhere** (the title, the menus, the race's intro page, the standings, GAME OVER), the second screen shows the logo.
 - Playing on one screen, the time and the lap box stay on the game screen.
 - Not tried yet: the cup's podium after a race won in a cup, the tracks after Vegas, and Multi Player.
+
+## Densetsu no Stafy
+
+The Japanese release (the only one), and the Starfy Translation Team's English translation v1.1 in all three versions: *The Legendary Starfy*, *Starfy Origins* and *Densetsu no Starfy* (which keeps the characters' Japanese names), as patched ROMs or as `.bps` patches on the Japanese ROM. Added by cmyksoda (pull request #101).
+
+- **In a stage,** the second screen shows the HUD along its top, on black, with the game's logo in the middle: Starfy's face at the left, the hearts in the middle, and the pearls with the total at the right. The game screen has none of it.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
+- A signpost's label, drawn near the bottom of the game screen, stays there.
+- **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; each translation shows its own title.
+- Playing on one screen, the HUD stays on the game screen.
+- Known: with the Japanese game and a translation (or two translations) both in your game list, all of them show the logo made first.
+- Checked in the first stage. Not tried yet: the map between stages, boss fights and the minigames.
+
+## Densetsu no Stafy 2
+
+The Japanese release (the only one), and the English patch v0.9.9 (*The Legendary Starfy 2*), as a patched ROM or as a `.bps` patch on the Japanese ROM. Added by cmyksoda (pull request #101).
+
+- **In a stage,** the second screen shows the HUD along its top, on the same rows as in the first game, on black, with the game's logo in the middle: Starfy's face at the left, the hearts in the middle, and the pearls with the total at the right. The game screen has none of it.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
+- **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
+- Playing on one screen, the HUD stays on the game screen.
+- Known: with the Japanese game and the English patch both in your game list, both show the logo made first.
+- Checked in the first stage. Not tried yet: boss fights, the minigames and signposts' boards.
+
+## Densetsu no Stafy 3
+
+The Japanese release (the first release and Rev 1), and the English patch v1.0.5 (*The Legendary Starfy 3*), as a patched ROM or as a `.bps` patch on the Japanese ROM. Added by cmyksoda (pull request #101).
+
+- **In a stage,** the second screen shows the HUD along its top, on the same rows as in the other two games (the game draws it two rows lower), on black, with the game's logo in the middle: Starfy's face at the left, the hearts in the middle, and the pearls with the total at the right. The game screen has none of it.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
+- **Conversations:** through a stage's opening conversation and the walk-off after it, the second screen shows the logo, and the HUD arrives when the game draws its own. While a character talks in a stage, the game hides its HUD and so does the second screen, leaving the logo; the HUD comes back with the game's.
+- **Signposts:** a signpost's board stays whole on the game screen, with its button prompts.
+- **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
+- Playing on one screen, the HUD stays on the game screen.
+- Known: with the Japanese game and the English patch both in your game list, both show the logo made first.
+- Checked in the first stage. Not tried yet: the shop, boss fights and the minigames.
 
 ## Dragon Ball Z: Buu's Fury
 
