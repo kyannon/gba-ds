@@ -45,11 +45,45 @@ static void logo_hide(Emu* e, const LogoSpec* L) {
 	emu_hide_sprites(e, n ? L->hide : NULL, n);
 }
 
+#ifndef GBADS_VERSION
+#define GBADS_VERSION "dev"
+#endif
+static void failed_path(const char* outPng, char* path, size_t n) {
+	snprintf(path, n, "%s.none", outPng);
+}
+bool logo_failed(const char* outPng) {
+	char path[1100], line[64] = "";
+	failed_path(outPng, path, sizeof(path));
+	FILE* f = fopen(path, "r");
+	if (!f) return false;
+	if (!fgets(line, sizeof(line), f)) line[0] = 0;
+	fclose(f);
+	line[strcspn(line, "\r\n")] = 0;
+	return !strcmp(line, GBADS_VERSION);
+}
+static void failed_mark(const char* outPng, bool failed) {
+	char path[1100];
+	failed_path(outPng, path, sizeof(path));
+	if (!failed) {
+		unlink(path);
+		return;
+	}
+	FILE* f = fopen(path, "w");
+	if (!f) return;
+	fprintf(f, "%s\n", GBADS_VERSION);
+	fclose(f);
+}
+
 bool logo_extract(const char* romPath, const char* gameCode, const char* outPng) {
 	const MapProfile* p = profile_find(gameCode);
 	if (!p) return false;
 	Emu e;
-	if (!emu_open(&e, romPath, NULL, false)) return false;
+	/* a game whose logos are per ROM file: the file's own logo, whatever
+	 * patch is beside it or switched on (a patched game shows its base's) */
+	if (p->logoPerRom) emu_open_unpatched(true);
+	bool opened = emu_open(&e, romPath, NULL, false);
+	if (p->logoPerRom) emu_open_unpatched(false);
+	if (!opened) return false;
 	/* this ROM file's recipe (a romhack's own, by its CRC32), and for a game
 	 * whose logos are per ROM file, never a patched copy's (a patched game
 	 * is the base game: it uses the base's logo, from the unpatched file) */
@@ -330,8 +364,10 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 		ok = stbi_write_png(tmp, w, h, 4, rgba, w * 4) && rename(tmp, outPng) == 0;
 		free(rgba);
 		fprintf(stderr, "logo: %s %dx%d -> %s\n", gameCode, w, h, ok ? outPng : "write failed");
+		if (ok) failed_mark(outPng, false);
 	} else {
 		fprintf(stderr, "logo: %s not found on the title screen (%d px)\n", gameCode, count);
+		failed_mark(outPng, true); /* (not again at every start: logo_failed) */
 	}
 	free(back);
 	free(fg);
@@ -435,7 +471,7 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 			return;
 		}
 	}
-	if (tried_before(outPng)) {
+	if (logo_failed(outPng) || tried_before(outPng)) {
 		pthread_mutex_unlock(&qlock);
 		return;
 	}

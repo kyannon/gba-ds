@@ -13,6 +13,10 @@
 /* Synchronous extraction. Returns false if the game has no logo profile or
  * the logo couldn't be found. */
 bool logo_extract(const char* romPath, const char* gameCode, const char* outPng);
+/* outPng couldn't be made by this version of GBA DS (the logo not found on
+ * the title screen): <outPng>.none says so, so it isn't tried again at every
+ * start; a new version tries once more. */
+bool logo_failed(const char* outPng);
 
 /* Background queue: extracts outPng if it doesn't exist yet. */
 void logo_request(const char* romPath, const char* gameCode, const char* outPng);
