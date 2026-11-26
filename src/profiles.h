@@ -128,7 +128,7 @@ typedef struct {
 	 * the lettering's dithered or translucent edge (Mario & Luigi's
 	 * sky, its shadow's specks), or a layer's own background
 	 * (Battle Network Rockman EXE's blue) */
-	uint32_t edgeClear[4];
+	uint32_t edgeClear[8];
 	/* a drop shadow of this colour (0xRRGGBB; either of a game's two
 	 * colour sets) stays only below and right of the lettering:
 	 * where there's lettering (or shadow kept) up to shadowReach rows
