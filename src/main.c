@@ -22,6 +22,7 @@
 #include "i18n.h"
 #ifdef __wasi__
 #include "mapcap.h"
+#include "climb.h"
 #endif
 #include "emu.h"
 #include "profiles.h"
@@ -78,6 +79,8 @@ int main(int argc, char** argv) {
 		const char* t = getenv("GBADS_CAPTURE_TIGHT");
 		return mapcap_web_serve(argv[argc - 1], getenv("GBADS_CAPTURE_SERVE"), t && *t == '1');
 	}
+	/* the web player's climb worker: GBADS_CLIMB_SERVE=CODE, the ROM last (climb.c) */
+	if (getenv("GBADS_CLIMB_SERVE") && argc > 1) return climb_web_serve(argv[argc - 1], getenv("GBADS_CLIMB_SERVE"));
 #endif
 	for (int i = 1; i < argc; ++i) {
 		if (!strcmp(argv[i], "--version")) {
@@ -88,9 +91,8 @@ int main(int argc, char** argv) {
 		 * game (a profile for its code), 1 if not, 2 if it can't be read
 		 * (BananaOS's banana-play.sh: other games go to RetroArch) */
 		if (!strcmp(argv[i], "--supported") && i + 1 < argc) {
-			uint8_t h[EMU_HEADER_MAX];
 			char code[5];
-			if (!emu_rom_header(argv[i + 1], h, sizeof(h)) || !emu_rom_code(h, sizeof(h), code)) return 2;
+			if (!emu_rom_file_code(argv[i + 1], code)) return 2;
 			bool yes = profile_find(code) != NULL;
 			printf("%s: %s\n", code, yes ? "supported" : "not supported");
 			return yes ? 0 : 1;

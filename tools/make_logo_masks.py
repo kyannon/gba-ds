@@ -4,7 +4,7 @@ full-screen title picture rather than drawn on a layer of their own.
 
     GBADS_LOGO_DEBUG=1 build/host/harness THPS2.gba out logo.txt   # 'logo logo'
     (writes out/logo.png.fg.png: the exact title frame GBA DS renders)
-    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...] [AMW=...]
+    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...] [AMW=...] [SAR=...]
 
 Masks not named on the command line are kept as they are in
 src/logo_masks.c, so one can be redone without the other games' ROMs.
@@ -517,6 +517,21 @@ def rs(a):
     return big.reshape(H, ss, W, ss).mean(axis=(1, 3)) >= 0.5
 
 
+def sar(a):
+    """Shantae Advance: Risky Revolution: the lettering, its red swoosh and "Risky Revolution!" over
+    the title's purple gradient, all one layer with the menu and copyright from row 114 (the
+    "y" of "Risky" reaches row 113). The gradient is the colours on the frame's sides and top above
+    that row: what they reach from the edges is out (its 26 shades are too many for edgeClear)."""
+    top = a[:114]
+    key = lambda p: (p[..., 0] << 16) | (p[..., 1] << 8) | p[..., 2]
+    sides = np.concatenate([key(top[:, :2]).ravel(), key(top[:, -2:]).ravel(), key(top[0]).ravel()])
+    bgc = np.isin(key(a), np.unique(sides))
+    bgc[114:] = True
+    lab, _ = ndimage.label(bgc)
+    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    return ~np.isin(lab, list(edge))
+
+
 CRV_ARM = [(216, 91), (224, 84), (230.5, 80), (232.5, 82.5), (218, 97), (214.5, 94.5)]
 
 
@@ -586,7 +601,7 @@ MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
          ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn),
          ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw), ("ER", er),
-         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn), ("BGD", bgd), ("RS", rs), ("CRV", crv))
+         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn), ("BGD", bgd), ("RS", rs), ("SAR", sar), ("CRV", crv))
 
 
 def runs(mask):

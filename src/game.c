@@ -24,6 +24,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "profiles.h"
 #include "patch.h"
 #include "cheats.h"
+#include "climb.h"
 
 #include <pthread.h>
 #include <stdarg.h>
@@ -153,6 +154,8 @@ static struct {
 } bugSnap[BUG_SNAPS];
 static uint64_t frameCount;
 static bool tallOn;        /* the table's up: the screens show it */
+static const MapProfile* climbProf; /* logo-only game whose levels are climbs, the level above the game's screen on the other one (profile.climb) */
+static bool climbOn;       /* in a level: the copy runs (update_climb) */
 /* profile tall.live: two more copies of the game drawing the table's rows
  * the game's camera doesn't (update_tall). twins[0] is held at the top of
  * the lower view (row tall.rows - 320), twins[1] 160 rows below the view's
@@ -818,7 +821,9 @@ static void run_frame(uint32_t keys) {
 	twinFrameKeys = keys;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_start(i, twin_second, &twins[i]);
 	ww_step();
+	if (climbProf) climb_begin(&emu, keys, climbOn);
 	emu_frame(&emu, keys & 0x3FF);
+	if (climbProf) climb_end(&emu);
 	++bugFrame;
 	for (int i = 0; i < TWINS; ++i) if (twins[i].up) twin_work_wait(i);
 	if (live) twin_step();
@@ -829,6 +834,7 @@ static void bug_reset(void) {
 	bugStart = bugFrame;
 	/* (the live view's copies: what they kept is from before; profile tall) */
 	twinSeq += 2;
+	climb_reset();
 	for (int i = 0; i < BUG_SNAPS; ++i) bugSnap[i].have = false;
 }
 
@@ -1069,7 +1075,7 @@ static bool gbAskOpen; /* leaving the menu with Game Boy colours that need a sta
 static int gbAskSel;
 static bool gbHadGameKey[3]; /* this game's own file had gb_palette / gb_dual as the game started */
 static bool tallLiveAtStart; /* pinball_live as this game started with it: a change counts only after a new start */
-static bool tallLive;      /* the live view: the table over both screens (update_tall) */
+static bool tallLive;      /* the live view: the table over both screens (update_tall), the level over both (update_climb) */
 /* Mario Kart: the race HUD on the second screen (profile .hud) */
 static const MapProfile* hudProf;
 static uint32_t hudPx[GBA_W * GBA_H];
@@ -1514,7 +1520,7 @@ static bool item_enabled(int item) {
 	if (item == M_BUG && ra_hardcore()) return false;  /* (nor bug reports: they load an older state into the game) */
 	if (item == M_SHAPES) return ui_screens_differ(); /* (two screens of a shape: nothing to match) */
 	if (item == M_PLACE) return nScreens == 2;         /* (one screen: no gap) */
-	if (item == M_FRAMEBUF) return !tallProf;          /* (always on in the pinball games' two-screen view) */
+	if (item == M_FRAMEBUF) return !tallProf && !climbProf; /* (always on in the two-screen views) */
 	return item != M_LOAD || file_exists(gp.slot[stateSlot]);
 }
 
@@ -2172,9 +2178,8 @@ static void patch_pick_up(void) {
  * The patched ROM the same size as the one playing, and the battery save and
  * save states the same files. */
 static bool patch_live_ok(void) {
-	uint8_t h[EMU_HEADER_MAX];
 	char code[5] = "????";
-	if (emu_rom_header(romPath, h, sizeof(h))) emu_rom_code(h, sizeof(h), code);
+	emu_rom_file_code(romPath, code);
 	size_t nowN = 0, newN = 0;
 	int nowR = PATCH_NONE, newR = PATCH_NONE;
 	free(emu_rom_read_played(romPath, &nowN, &nowR, NULL, NULL));
@@ -3963,7 +3968,7 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "gb_palette") && emu_gb_border(&emu)) return N_("Not available with the Super Game Boy border: the colors are the Super Game Boy's");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 2) return N_("Not available in this game: it is made for the Game Boy Color, with colors of its own");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
-	if (!strcmp(key, "frame_buffer") && tallProf) return N_("Always on in this game: it needs it for full speed");
+	if (!strcmp(key, "frame_buffer") && (tallProf || climbProf)) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
 	if ((!strcmp(key, "single_layout") || !strcmp(key, "single_size")) && !ui_one_display()) return N_("Only for a single display: this device has two");
@@ -4268,7 +4273,7 @@ static void draw_menu(void) {
 		if (menuItems[i] == M_AUTOSAVE) label = cfg->autoSave ? N_("Save on Quit: On"): N_("Save on Quit: Off");
 		if (menuItems[i] == M_AUTOLOAD) label = cfg->autoLoad ? N_("Auto-Load: On"): N_("Auto-Load: Off");
 		if (menuItems[i] == M_FPS) label = cfg->showFps ? N_("Show FPS: On"): N_("Show FPS: Off");
-		if (menuItems[i] == M_FRAMEBUF) label = tallProf ? N_("Frame Buffer: Always on here"): cfg->frameBuffer ? N_("Frame Buffer: On"): N_("Frame Buffer: Off");
+		if (menuItems[i] == M_FRAMEBUF) label = tallProf || climbProf ? N_("Frame Buffer: Always on here"): cfg->frameBuffer ? N_("Frame Buffer: On"): N_("Frame Buffer: Off");
 		if (menuItems[i] == M_REWIND) label = ra_hardcore() ? N_("Rewind: Off in hardcore"): cfg->rewind ? N_("Rewind: On"): N_("Rewind: Off");
 		if (menuItems[i] == M_HARDCORE) label = ra_hardcore() ? N_("Hardcore: On"): N_("Hardcore: Off");
 		if (menuItems[i] == M_FF) {
@@ -5837,6 +5842,57 @@ static void update_tall(void) {
 	         tallFixedHold && tallFixedBot ? " banners below" : "", msg && tallTopLogo ? " logo above" : "");
 	if (tallTrace) fprintf(stderr, "%s\n", tl);
 	if (!tallLive) fprintf(stderr, "frame %llu: live view\n", (unsigned long long) frameCount);
+	tallLive = true;
+	mapShownIdx = 0;
+}
+
+/* the game's screen is darker than `max` (of 255) on average: a fade, or black while a room loads */
+static bool screen_under(const uint32_t* fb, int max) {
+	long sum = 0, n = 0;
+	for (int y = 0; y < GBA_H; y += 4)
+		for (int x = 0; x < GBA_W; x += 4, ++n) {
+			uint32_t v = fb[y * GBA_W + x];
+			sum += ((v >> 16) & 0xFF) + ((v >> 8) & 0xFF) + (v & 0xFF);
+		}
+	return sum < (long) max * 3 * n;
+}
+
+/* profile.climb: the game's picture on the bottom screen and the level above
+ * it on the top one, from the copy (climb.c; DKKS-3). Called after each frame. */
+static void update_climb(void) {
+	static int missing; /* frames in a level with no picture from the copy */
+	static int between; /* frames of black since a level went, with the view still up */
+	static bool blackTop;
+	bool on = memprobes_match(climbProf->climb.on, 3, &emu);
+	if (on != climbOn) {
+		climbOn = on;
+		climb_reset();
+		missing = between = 0;
+		if (debug) fprintf(stderr, "frame %llu: level %s\n", (unsigned long long) frameCount, on ? "up" : "gone");
+	}
+	const uint32_t* top = on ? climb_picture() : NULL;
+	if (top) {
+		memcpy(tallTop, top, sizeof(tallTop));
+		missing = between = 0;
+		blackTop = false;
+	} else if (on && (++missing <= 4 || (missing <= 90 && (screen_under(emu.fb, 100) || climb_waiting())))) {
+		/* (a level starting or a state loaded: the copy has none for a frame or two, longer while the camera
+		 * settles in a room's fade-in; black meanwhile, the view kept) */
+		if (!tallLive || blackTop) memset(tallTop, 0, sizeof(tallTop));
+	} else if (!on && tallLive && ++between <= 120 && screen_under(emu.fb, 6)) {
+		/* (the game is black between two rooms: the view stays, not the layout flipping to the logo and back) */
+		memset(tallTop, 0, sizeof(tallTop));
+		blackTop = true;
+	} else {
+		if (tallLive) mapShownIdx = -1;
+		tallLive = false;
+		blackTop = false;
+		return;
+	}
+	memcpy(tallBot, emu.fb, sizeof(tallBot));
+	uint32_t* second = cfg->swap ? tallTop : tallBot;
+	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
+	if (!tallLive) fprintf(stderr, "frame %llu: level over both screens\n", (unsigned long long) frameCount);
 	tallLive = true;
 	mapShownIdx = 0;
 }
@@ -8096,7 +8152,7 @@ static void draw_osd(void) {
 static bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	bool pixelArt = false;
 	int sub = 1;
-	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, emu.romCrc, &pixelArt, &sub);
 	if (!lg) return false;
 	int room = ch - top;
 	if (room <= 0) {
@@ -8161,7 +8217,7 @@ static void make_logo_canvas(void) {
 	}
 	bool pixelArt = false;
 	int sub = 1;
-	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, emu.romCrc, &pixelArt, &sub);
 	if (!lg) return;
 	logoSub = sub;
 	bool big = lg->w > GBA_W * sub || lg->h > GBA_H * sub;
@@ -8757,13 +8813,16 @@ static void ss_setup(const char* rom, const char* code) {
 	tallProf = NULL;
 	tallOn = false;
 	tallLive = false;
+	climbProf = NULL;
+	climbOn = false;
+	climb_close();
 	hudProf = NULL;
 	hudOn = false;
 	onWithAt = 0;
 	{
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
-		tallSupported = cp && cp->logoOnly && cp->tall.on[0].addr;
+		tallSupported = cp && cp->logoOnly && (cp->tall.on[0].addr || cp->climb.on[0].addr);
 		snesHere = false;
 		fb_load(); /* GEN-10 */
 		if (ctlProf) {
@@ -8784,6 +8843,7 @@ static void ss_setup(const char* rom, const char* code) {
 		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
 		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
 		else twin_close();
+		climbProf = logoOnly && lp->climb.on[0].addr && cfg->tallLive && nScreens > 1 && climb_open(rom, lp, &emu, !getenv("GBADS_CLIMB_INSTEP")) ? lp : NULL;
 		/* the HUD moves only when there's another screen to put it on */
 		hudProf = lp && lp->hud.on[0].addr && nScreens > 1 ? lp : NULL;
 		emu_hud_game_reg(hudProf ? hudProf->hud.gameReg.addr : 0, hudProf ? hudProf->hud.gameReg.bits : 0);
@@ -8877,7 +8937,7 @@ static void rebuild_textures(void) {
 	if (combatMade) make_combat_canvas();
 	if (hudProf) for (int i = 0; i < nViews; ++i) ui_update_texture(hudTex[i], hudCanvas, HUD_CW * 4);
 	ui_free_image(logoTex);
-	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
+	if (romPath && ui_load_logo(cfg, romPath, emu.gameCode, emu.romCrc, logoTex, &logoW, &logoH, &logoPixel)) make_logo_canvas();
 	else make_logo_canvas();
 	logoProvisional = ui_logo_provisional();
 	ui_textures_reset();
@@ -8909,9 +8969,8 @@ static void ss_switch(const char* rom, const char* code) {
  * say. */
 
 static void patches_setup(const char* rom) {
-	uint8_t h[EMU_HEADER_MAX];
 	char code[5] = "????";
-	if (emu_rom_header(rom, h, sizeof(h))) emu_rom_code(h, sizeof(h), code);
+	emu_rom_file_code(rom, code);
 	patch_folder(cfg, rom, code, patchDir, sizeof(patchDir), true);
 	patch_choice_load(gp.patches, &patchChoice);
 	patchStarted = patchChoice;
@@ -8941,7 +9000,7 @@ static void logo_refresh(void) {
 	ui_free_image(logoTex);
 	ui_free_image(logoCanvasTex);
 	logoSub = 1;
-	bool got = ui_load_logo(cfg, romPath, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel);
+	bool got = ui_load_logo(cfg, romPath, emu.gameCode, emu.romCrc, logoTex, &logoW, &logoH, &logoPixel);
 	logoProvisional = ui_logo_provisional();
 	if (!got) return;
 	make_logo_canvas();
@@ -9234,7 +9293,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	bezelKey[0][0] = bezelKey[1][0] = 0;
 	uint32_t logoGen = logo_generation();
 	logoSub = 1;
-	if (ui_load_logo(cfg, rom, emu.gameCode, logoTex, &logoW, &logoH, &logoPixel) || emu_is_gb(&emu)) make_logo_canvas();
+	if (ui_load_logo(cfg, rom, emu.gameCode, emu.romCrc, logoTex, &logoW, &logoH, &logoPixel) || emu_is_gb(&emu)) make_logo_canvas();
 	logoProvisional = ui_logo_provisional();
 
 	memset(pageLen, 0, sizeof(pageLen));
@@ -10302,6 +10361,17 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			if (strncmp(pc, subCode, 4)) ss_switch(rom, pc);
 		}
 
+		{
+			/* (logoIf: the logo for now, SM4-11; a logo-only game's from its HUD's profile) */
+			const MapProfile* lp = mc ? mapcap_profile(mc) : hudProf;
+			bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
+			                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
+			if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
+			else if (logoHolding > 0) --logoHolding;
+			lf = lf || logoHolding > 0;
+			if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
+			logoForced = lf;
+		}
 		/* ---- map refresh */
 		if (mc) {
 			++sinceMapRequest;
@@ -10312,17 +10382,6 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 				hideWhenOn = !hideWhenOn;
 				emu_hide_sprites(&emu, hideWhenOn ? hideWhenProf->hideSprites : NULL, hideWhenOn ? hideWhenN : 0);
 				if (debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) frameCount, hideWhenOn ? "on" : "off");
-			}
-			{
-				/* (logoIf: the logo for now, SM4-11) */
-				const MapProfile* lp = mapcap_profile(mc);
-				bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &emu)) ||
-				                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &emu)));
-				if (lf) logoHolding = lp->logoIfLast ? 0 : 60;
-				else if (logoHolding > 0) --logoHolding;
-				lf = lf || logoHolding > 0;
-				if (debug && lf != logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) frameCount, lf ? "on" : "off");
-				logoForced = lf;
 			}
 			bool dark = frame_is_dark(emu.fb);
 			if (wasDark && !dark) refreshAt = (long) frameCount + 6;
@@ -10424,6 +10483,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 
 		if (snapProf) update_snapshot();
 		if (tallProf) update_tall();
+		if (climbProf) update_climb();
 		if (hudProf) update_hud();
 		if (combatProf) {
 			/* a fight: after a few frames of it, not on one odd frame */
@@ -10461,7 +10521,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		const uint32_t* shownFb = emu.fb;
 		/* (Pokemon Pinball's tall view always: two copies of the game beside
 		 * it only keep full speed with the frame emulated alongside the drawing) */
-		if ((cfg->frameBuffer || tallProf) && !ff && !rewinding) {
+		if ((cfg->frameBuffer || tallProf || climbProf) && !ff && !rewinding) {
 			memcpy(aheadFb, emu.fb, sizeof(aheadFb));
 			if (ahead_start(keys)) aheadInFlight = true, shownFb = aheadFb;
 		}
@@ -10638,6 +10698,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	webPlaying = false;
 #endif
 	twin_close();
+	climb_close();
 	ui_rumble(0);
 	emu_close(&emu); /* flushes the battery save */
 	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {

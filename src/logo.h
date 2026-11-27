@@ -18,8 +18,9 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
  * start; a new version tries once more. */
 bool logo_failed(const char* outPng);
 
-/* Background queue: extracts outPng if it doesn't exist yet. */
-void logo_request(const char* romPath, const char* gameCode, const char* outPng);
+/* Background queue: extracts outPng if it doesn't exist yet, from the known
+ * mod with that CRC32, or (0) from any ROM but a known mod (GEN-20). */
+void logo_request(const char* romPath, const char* gameCode, uint32_t crc, const char* outPng);
 /* The web build: the next queued job (one a frame; it has no thread to do them). */
 void logo_step(void);
 /* Changes every time a queued logo finishes; compare to know when to reload. */
