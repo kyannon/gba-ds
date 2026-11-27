@@ -132,6 +132,13 @@ void second_close(void);
 /* A new subject: a state loaded, a rewind. The map is captured again as soon
  * as it can be (and the toggle's pages and views start again). */
 void second_new_subject(void);
+/* The game jumped (a state loaded, a rewind, a restart): the copies start
+ * again. A state loaded (after second_jump): its GBA DS block (malloc'd,
+ * taken over; NULL: none) is put back by the next second_frame_start, called
+ * at the start of each frame before the game's. Then second_new_subject. */
+void second_jump(void);
+void second_state_loaded(uint8_t* block, size_t n);
+void second_frame_start(void);
 /* The second screen kept with save states (GBA DS's block inside the state:
  * EXTDATA_GBADS): made now (malloc'd, *n bytes; NULL if nothing), and put
  * back from a loaded state's block (b may be NULL: none; the title card and

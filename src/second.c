@@ -732,6 +732,41 @@ void second_run_frame(uint32_t keys) {
 	twins_after(live);
 }
 
+/* the game jumped (a state loaded, a rewind, a restart): what the Pinball
+ * copies and the climb copy kept is another moment's. (Was in game.c's
+ * bug_reset.) */
+void second_jump(void) {
+	twinSeq += 2;
+	climb_reset();
+}
+
+/* A state was loaded into the game (after second_jump): its second-screen
+ * block (block, n bytes, malloc'd, taken over; NULL: none) is put back by the
+ * next second_frame_start, and the HUD's pictures from before are dropped.
+ * (Was in game.c's state_load and screen_restore_apply.) */
+static uint8_t* restoreBlock;
+static size_t restoreN;
+static bool restorePending;
+void second_state_loaded(uint8_t* block, size_t n) {
+	free(restoreBlock);
+	restoreBlock = block, restoreN = n;
+	restorePending = true;
+	/* HUD pieces from another moment: taken again from the loaded game */
+	for (int m = 0; m < 4; ++m) hud.pieces[m].stale = true, hud.pieces[m].still = 0;
+	hud.mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
+	hud.hudOffLatch = false; /* (hud.offAfter: found again from the loaded game) */
+	hud.onWithAt = 0; /* (hud.onWith: a sprite seen before the load doesn't hold the HUD on after it) */
+	if (hud.hudProf && hud.hudProf->hud.place) hud.hudProf->hud.place(sec.emu, sec.romPath, false); /* (hud.place: worked out again from the loaded game) */
+}
+
+/* At the start of a frame, before the game's (and outside second_run_frame,
+ * which the app may run on another thread): a loaded state's block put back. */
+void second_frame_start(void) {
+	if (!restorePending) return;
+	restorePending = false;
+	second_state_load(restoreBlock, restoreN);
+}
+
 /* The game's second screen taken down before second_open sets it up for
  * another game (a compilation: the game running in it changed, game.c's
  * ss_switch): the old game's HUD split and hidden sprites off, its capture and

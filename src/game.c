@@ -196,9 +196,7 @@ static void run_frame(uint32_t keys) {
 /* Start the bug log again from here (the frames before belong to another moment). */
 static void bug_reset(void) {
 	bugStart = bugFrame;
-	/* (the live view's copies: what they kept is from before; profile tall) */
-	twinSeq += 2;
-	climb_reset();
+	second_jump(); /* (second.c: what the copies kept is from before) */
 	for (int i = 0; i < BUG_SNAPS; ++i) bugSnap[i].have = false;
 }
 
@@ -3906,15 +3904,8 @@ static bool state_file_save(const char* path) {
 	if (ok && ra) state_thumbnail(path);
 	return ok;
 }
-static uint8_t* screenRestore; /* a loaded state's block, put back at the next frame */
-static size_t screenRestoreN;
-static bool screenRestorePending;
-/* (at the start of a frame, everything set up) */
-static void screen_restore_apply(void) {
-	if (!screenRestorePending) return;
-	screenRestorePending = false;
-	second_state_load(screenRestore, screenRestoreN);
-}
+/* (a loaded state's second-screen block: second.c second_state_loaded, put
+ * back by second_frame_start) */
 
 /* Save states, with the RetroAchievements progress beside them (<state>.ra;
  * for one in RetroArch's folder, in GBA DS's own: <state_dir>/retroarch/) */
@@ -3996,20 +3987,14 @@ static bool state_load(const char* path) {
 		}
 		ra_state_loaded(side);
 	}
-	/* (the second screen kept with it: put back at the next frame) */
-	if (ok) {
-		free(screenRestore);
-		screenRestore = emu_state_file_get_extra(&emu, path, &screenRestoreN);
-		screenRestorePending = true;
-	}
 	if (ok) bug_reset();
-	/* HUD pieces from another moment: taken again from the loaded game */
-	for (int m = 0; ok && m < 4; ++m) hud.pieces[m].stale = true, hud.pieces[m].still = 0;
+	if (ok) {
+		/* (second.c: the second screen kept with it, put back at the next frame; the HUD's pictures from before dropped) */
+		size_t n = 0;
+		uint8_t* block = emu_state_file_get_extra(&emu, path, &n);
+		second_state_loaded(block, n);
+	}
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
-	if (ok) hud.mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
-	if (ok) hud.hudOffLatch = false; /* (hud.offAfter: found again from the loaded game) */
-	if (ok) hud.onWithAt = 0; /* (hud.onWith: a sprite seen before the load doesn't hold the HUD on after it) */
-	if (ok && hud.hudProf && hud.hudProf->hud.place) hud.hudProf->hud.place(&emu, romPath, false); /* (hud.place: worked out again from the loaded game) */
 	return ok;
 }
 
@@ -6434,7 +6419,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		}
 		ahead_sync(); /* the core is the loop's again */
 		loopCur.synced = SDL_GetPerformanceCounter();
-		screen_restore_apply();
+		second_frame_start(); /* (second.c: a loaded state's second screen put back) */
 		bug_tick();
 		Uint64 workT0 = SDL_GetPerformanceCounter(); /* this frame's work, without the wait at the end */
 		long preempt0 = thread_preemptions();
