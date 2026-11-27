@@ -1549,6 +1549,17 @@ void ui_shader(int sh) {
 	ccGain = uiShader >= SH_SUB_LIGHT ? subPresets[uiShader - SH_SUB_LIGHT].gain : 100;
 	cc_refresh();
 }
+int ui_filter_fit(int filter) {
+	return upscale_fit(nViews > 0 ? views[0].ren : NULL, filter);
+}
+const char* ui_filter_note(int filter, bool* grey) {
+	int fit = ui_filter_fit(filter);
+	*grey = fit == UPSCALE_TOO_HEAVY || fit == UPSCALE_NO_GL;
+	if (fit == UPSCALE_TOO_HEAVY) return N_("Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it.");
+	if (fit == UPSCALE_NO_GL) return N_("Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp.");
+	if (fit == UPSCALE_UNTRIED) return N_("Heavy: not yet tried on this device's graphics chip, so it may not run at full speed.");
+	return NULL;
+}
 bool ui_upscaling(void) {
 	return upscale_factor(cfg->filter) && nViews > 0 && views[0].ren && upscale_filter_ready(views[0].ren, cfg->filter);
 }

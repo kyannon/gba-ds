@@ -1,8 +1,9 @@
-The Scaling filter's hq2x and xBR in GBA DS come from mGBA's shader folder
-(third_party/mgba-shaders). Both are under the MIT license:
+The Scaling filter's upscalers in GBA DS come from mGBA's shader folder
+(third_party/mgba-shaders). Each is under the MIT license:
 
-  xBR-lv2: Copyright (C) 2011-2015 Hyllian
-  hq2x: Copyright (c) 2015-2023 Lior Halphon
+  xBR-lv2, xBR-lv3: Copyright (C) 2011-2015 Hyllian
+  hq2x, OmniScale: Copyright (c) 2015-2023 Lior Halphon
+  MMPX: Copyright 2020 Morgan McGuire & Mara Gagiu
 
 MIT License
 

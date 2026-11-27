@@ -139,6 +139,11 @@ void ui_image(int screen, SDL_Texture* const* texPerView, int w, int h, const ch
 /* Whether the scaling filter is an upscaler that runs here (an OpenGL ES 2
  * renderer): then every shader counts as Off (issue #89). */
 bool ui_upscaling(void);
+/* Settings > Scaling filter on this device (upscale_fit): the row's note for
+ * a filter that is greyed (*grey: drawn as Sharp here) or only warned about,
+ * or NULL for one that just runs. */
+int ui_filter_fit(int filter);
+const char* ui_filter_note(int filter, bool* grey);
 void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, int lcd);
 /* Where ui_image_pixels puts a w x h image on a screen (screen-local coords). */
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode);

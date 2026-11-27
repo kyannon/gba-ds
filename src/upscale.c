@@ -20,7 +20,7 @@
  *     where two neighbours meeting at that corner match and the edge isn't
  *     straight. The pixels are read at their centres, nearest, so equal colours
  *     compare exactly. Scale4x is two Scale2x passes.
- *   - hq2x and xBR-lv2: mGBA's own shader packs, unmodified
+ *   - hq2x, MMPX, xBR-lv2, xBR-lv3, OmniScale: mGBA's own shader packs, unmodified
  *     (third_party/mgba-shaders, embedded by tools/embed_shaders.py), run the way
  *     mGBA's GLES2 renderer runs them: GLSL ES 1.00 with its plain vertex shader
  *     where the pack has none, attribute `position`, uniforms `tex`, `texSize`
@@ -28,27 +28,53 @@
  *     uniforms at their defaults. (libmgba itself is built without that
  *     renderer: scripts/mgba-options.sh.)
  * Each program is built the first time its filter is used; one that doesn't
- * build leaves its filter drawing as Sharp (logged once).
- * Left out (issue #89, the owner's rule: nothing ships that can't hold full
- * speed on the RG DS Plus): mGBA's MMPX, xBR-lv3 and OmniScale took about
- * 200, 200 and 60 ms a frame on its Mali-G52 (Panfrost, Nov 26, 2026). */
+ * build leaves its filter drawing as Sharp (logged once). MMPX, xBR-lv3 and
+ * OmniScale are heavy: on a GPU in tooWeak they aren't run at all (greyed in
+ * the menus, drawn as Sharp), on one not tried they run with a warning. */
 #include "upscale.h"
 #include "upscale_shaders.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* per filter: the program, its scale each pass and how many passes */
 enum { PROG_SCALE2X, PROG_PACK0, PROG_COUNT = PROG_PACK0 + UP_PACK_COUNT };
 static const struct {
 	int prog, scale, passes;
+	bool heavy; /* too much for some GPUs (tooWeak below) */
 } filters[FILTER_COUNT] = {
 	[FILTER_SCALE2X] = { PROG_SCALE2X, 2, 1 },
 	[FILTER_SCALE4X] = { PROG_SCALE2X, 2, 2 },
 	[FILTER_HQ2X] = { PROG_PACK0 + UP_PACK_HQ2X, 2, 1 },
+	[FILTER_MMPX] = { PROG_PACK0 + UP_PACK_MMPX, 2, 1, true },
 	[FILTER_XBR_LV2] = { PROG_PACK0 + UP_PACK_XBR_LV2, 4, 1 },
+	[FILTER_XBR_LV3] = { PROG_PACK0 + UP_PACK_XBR_LV3, 4, 1, true },
+	[FILTER_OMNISCALE] = { PROG_PACK0 + UP_PACK_OMNISCALE, 4, 1, true },
 };
 #define MAX_PASSES 2
+
+/* GPUs (a part of GL_RENDERER) the heavy filters are known to be too much for:
+ * they're shown greyed and draw as Sharp there (the owner's rule, Nov 26, 2026:
+ * the heavy ones are for stronger devices, greyed out where they can't hold
+ * full speed). On a GPU in neither list they're allowed, with a warning. */
+static const char* const tooWeak[] = {
+	"Mali-G52", /* RG DS Plus (BananaOS, Panfrost), Nov 26, 2026: MMPX and xBR-lv3
+	             * about 200 ms a frame, OmniScale about 60 */
+};
+/* GPUs they were tried on at full speed (none yet) */
+static const char* const triedFine[] = { NULL };
+
+static int gpu_class(const char* gpu) {
+	if (!gpu || !*gpu) return 0;
+	for (size_t i = 0; i < sizeof(tooWeak) / sizeof(tooWeak[0]); ++i) {
+		if (tooWeak[i] && strstr(gpu, tooWeak[i])) return -1;
+	}
+	for (size_t i = 0; i < sizeof(triedFine) / sizeof(triedFine[0]); ++i) {
+		if (triedFine[i] && strstr(gpu, triedFine[i])) return 1;
+	}
+	return 0;
+}
 
 int upscale_factor(int filter) {
 	if (filter < 0 || filter >= FILTER_COUNT || !filters[filter].scale) return 0;
@@ -66,6 +92,10 @@ bool upscale_ready(SDL_Renderer* ren) {
 bool upscale_filter_ready(SDL_Renderer* ren, int filter) {
 	(void) ren, (void) filter;
 	return false;
+}
+int upscale_fit(SDL_Renderer* ren, int filter) {
+	(void) ren;
+	return upscale_factor(filter) ? UPSCALE_NO_GL : UPSCALE_FITS;
 }
 SDL_Texture* upscale_run(SDL_Renderer* ren, SDL_Texture* src, int w, int h, int filter) {
 	(void) ren, (void) src, (void) w, (void) h, (void) filter;
@@ -89,6 +119,7 @@ typedef float GLfloat;
 typedef ptrdiff_t GLsizeiptr;
 
 #define GL_TRIANGLE_STRIP 0x0005
+#define GL_RENDERER 0x1F01
 #define GL_BLEND 0x0BE2
 #define GL_SCISSOR_TEST 0x0C11
 #define GL_VIEWPORT 0x0BA2
@@ -109,6 +140,7 @@ typedef ptrdiff_t GLsizeiptr;
 #define GL_FRAMEBUFFER_COMPLETE 0x8CD5
 
 #define GLFUNCS(X) \
+	X(const unsigned char*, glGetString, (GLenum)) \
 	X(void, glGetIntegerv, (GLenum, GLint*)) \
 	X(GLboolean, glIsEnabled, (GLenum)) \
 	X(void, glEnable, (GLenum)) \
@@ -164,7 +196,7 @@ static bool load_gl(void) {
 /* What goes before every shader. First GLSL ES 1.00, as mGBA's GLES2 renderer
  * does (with high precision where the GPU has it: the upscalers find their
  * place inside a source pixel from texCoord, which medium precision can't hold
- * at 4x a 240-pixel row). hq2x and xBR were written for desktop
+ * at 4x a 240-pixel row). hq2x, OmniScale and xBR were written for desktop
  * GLSL (bit operations, mat4x3), which ES 1.00 refuses: those are built again
  * as GLSL ES 3.00 with mGBA's own GL 3 defines (_gl32VHeader / _gl32FHeader),
  * which an OpenGL ES 3 context (the RG DS Plus's Mali, Mesa) takes even when
@@ -241,6 +273,8 @@ typedef struct {
 typedef struct {
 	SDL_Renderer* ren;
 	bool tried, ok; /* the context: GL loaded, buffer and framebuffer made */
+	char gpu[96];   /* GL_RENDERER */
+	int gpuClass;   /* gpu_class */
 	GLuint vbo, fbo;
 	Prog progs[PROG_COUNT];
 	SDL_Texture* step[MAX_PASSES];
@@ -343,6 +377,10 @@ static bool make_context(Ctx* c, void* arg) {
 	gl.glBindBuffer(GL_ARRAY_BUFFER, c->vbo);
 	gl.glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
 	gl.glGenFramebuffers(1, &c->fbo);
+	const unsigned char* g = gl.glGetString(GL_RENDERER);
+	const char* as = getenv("GBADS_GPU"); /* (tests: as if the GPU were this one) */
+	snprintf(c->gpu, sizeof(c->gpu), "%s", as && *as ? as : g ? (const char*) g : "");
+	c->gpuClass = gpu_class(c->gpu);
 	return c->vbo && c->fbo;
 }
 
@@ -411,7 +449,17 @@ static Ctx* ready_ctx(SDL_Renderer* ren) {
 				glFailed = !glLoaded;
 			}
 			c->ok = glLoaded && with_context(c, make_context, NULL);
-			if (c->ok) fprintf(stderr, "upscale: OpenGL ES 2\n");
+			if (c->ok) {
+				char heavy[96] = "";
+				for (int f = 0; f < FILTER_COUNT; ++f) {
+					if (filters[f].heavy) {
+						size_t l = strlen(heavy);
+						snprintf(heavy + l, sizeof(heavy) - l, "%s%s", l ? ", " : "", upscalePacks[filters[f].prog - PROG_PACK0].name);
+					}
+				}
+				fprintf(stderr, "upscale: OpenGL ES 2, GPU %s: %s %s\n", c->gpu[0] ? c->gpu : "?", heavy,
+				        c->gpuClass < 0 ? "too heavy here (greyed, drawn as Sharp)" : c->gpuClass > 0 ? "tried at full speed" : "allowed, not tried on this GPU");
+			}
 		}
 	}
 	return c->ok ? c : NULL;
@@ -421,10 +469,18 @@ bool upscale_ready(SDL_Renderer* ren) {
 	return ready_ctx(ren) != NULL;
 }
 
+int upscale_fit(SDL_Renderer* ren, int filter) {
+	if (!upscale_factor(filter)) return UPSCALE_FITS;
+	Ctx* c = ren ? ready_ctx(ren) : NULL;
+	if (!c) return UPSCALE_NO_GL;
+	if (!filters[filter].heavy || c->gpuClass > 0) return UPSCALE_FITS;
+	return c->gpuClass < 0 ? UPSCALE_TOO_HEAVY : UPSCALE_UNTRIED;
+}
+
 bool upscale_filter_ready(SDL_Renderer* ren, int filter) {
 	if (!upscale_factor(filter)) return false;
 	Ctx* c = ready_ctx(ren);
-	if (!c) return false;
+	if (!c || upscale_fit(ren, filter) == UPSCALE_TOO_HEAVY) return false;
 	int p = filters[filter].prog;
 	Prog* pr = &c->progs[p];
 	if (!pr->tried) {

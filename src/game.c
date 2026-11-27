@@ -4017,7 +4017,9 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		if (off && !strcmp(key, "pinball_live") && !tallSupported) snprintf(val, sizeof(val), tr("Not available"));
 		if (off && (!strcmp(key, "shader") || !strcmp(key, "gb_shader")) && ui_upscaling()) snprintf(val, sizeof(val), tr("Off"));
 		bool has = game_has(st);
-		SDL_Color vc = off ? C_DIS : C_GOLD;
+		bool fGrey = false;
+		const char* fNote = !strcmp(key, "smooth") ? ui_filter_note(cfg->filter, &fGrey) : NULL;
+		SDL_Color vc = off || fGrey ? C_DIS : C_GOLD;
 		ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, st->label, off ? C_DIS : C_TEXT, -1);
 		int lw = ui_font_width(TF_BOLD, lc, st->label);
 		int ax = r.x + r.w - mg->pad;
@@ -4049,7 +4051,7 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		}
 		if (sel) {
 			const char* ctl = (!strncmp(key, "button_", 7) && ctlProf) ? (ctlProf->controls.snes.bottom ? N_("With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."): N_("With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.")) : NULL;
-			note = off ? off : has ? N_("This game has its own value. X, or going on past the last choice: same as all games"): ctl ? ctl : st->note;
+			note = off ? off : fNote ? fNote : has ? N_("This game has its own value. X, or going on past the last choice: same as all games"): ctl ? ctl : st->note;
 		}
 	}
 	if (menuNote[0]) note = menuNote, noteGold = true;

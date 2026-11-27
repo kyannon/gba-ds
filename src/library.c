@@ -1855,7 +1855,9 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 		int lroom = (ax - px * 16 - vw) - (r.x + px * 6) - px * 8;
 		ui_font_text(scr, TF_BOLD, r.x + px * 6, r.y + r.h / 2, fit_cap(TF_BOLD, px * 5, lroom, rows[i]->label), rows[i]->label, C_TEXT, -1);
 		ui_font_text(scr, TF_BOLD, ax, r.y + r.h / 2, px * 6, "›", i == sel ? C_TEXT : C_DIM, 1);
-		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, vcap, val, C_GOLD, 1);
+		bool fGrey = false;
+		if (!strcmp(rows[i]->key, "smooth")) ui_filter_note(cfg->filter, &fGrey);
+		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, vcap, val, fGrey ? C_DIM : C_GOLD, 1);
 		ui_font_text(scr, TF_BOLD, ax - px * 16 - vw, r.y + r.h / 2, px * 6, "‹", i == sel ? C_TEXT : C_DIM, 1);
 	}
 	if (n > SET_VIS) {
@@ -1866,7 +1868,9 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 		int bh = SDL_max(bw * 3, th * SET_VIS / n), by = a.y + (th - bh) * setTop / SDL_max(1, n - SET_VIS);
 		ui_fill_round(scr, (SDL_Rect) { bx, by, bw, bh }, C_GOLD, px);
 	}
-	const char* note = sel >= n ? NULL : rows[sel] ? rows[sel]->note
+	bool fGrey = false;
+	const char* fNote = sel < n && rows[sel] && !strcmp(rows[sel]->key, "smooth") ? ui_filter_note(cfg->filter, &fGrey) : NULL;
+	const char* note = sel >= n ? NULL : fNote ? fNote : rows[sel] ? rows[sel]->note
 	                 : !strcmp(ids[sel], "@map") ? N_("Sets which of this device's buttons does what."): N_("Sets the shortcuts: the hotkey button held with another.");
 	if (note) {
 		set_notes(scr, p, set_row(scr, nv, nv), note, C_DIM, TF_BODY, NULL, C_DIM, TF_BODY);

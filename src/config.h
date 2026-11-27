@@ -19,7 +19,7 @@ enum { OVL_TOP = 1, OVL_BOTTOM = 2, OVL_BOTH = 3 };
 enum { SH_OFF, SH_GRID, SH_SCANLINES, SH_SOFT, SH_SUB_LIGHT, SH_SUB, SH_SUB_STRONG, SH_COUNT };
 /* Display > Scaling filter (gba-ds.cfg's "smooth"; issue #89): the upscalers
  * run on the GPU (upscale.c) */
-enum { FILTER_SHARP, FILTER_SMOOTH, FILTER_SCALE2X, FILTER_SCALE4X, FILTER_HQ2X, FILTER_XBR_LV2, FILTER_COUNT };
+enum { FILTER_SHARP, FILTER_SMOOTH, FILTER_SCALE2X, FILTER_SCALE4X, FILTER_HQ2X, FILTER_MMPX, FILTER_XBR_LV2, FILTER_XBR_LV3, FILTER_OMNISCALE, FILTER_COUNT };
 extern const char* const filterNames[FILTER_COUNT];
 extern const char* const shaderNames[SH_COUNT]; /* gba-ds.cfg's names: off, grid, ... */
 /* the fast-forward speeds the pause menu goes through (ff_speed) */

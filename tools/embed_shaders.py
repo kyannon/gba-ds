@@ -19,7 +19,7 @@ SRC = os.path.join(ROOT, "third_party", "mgba-shaders")
 OUT = os.path.join(ROOT, "src", "upscale_shaders.c")
 
 # the packs, in the order upscale.c refers to them (UP_PACK_* in upscale_shaders.h)
-PACKS = ["hq2x", "xbr-lv2"]
+PACKS = ["hq2x", "mmpx", "xbr-lv2", "xbr-lv3", "omniscale"]
 
 # Fixes for OpenGL ES, which (unlike the desktop GLSL these were written for)
 # never turns a whole number into a decimal on its own: (pack, file, text,
@@ -28,6 +28,7 @@ PACKS = ["hq2x", "xbr-lv2"]
 # a pack gets looked at again.
 FIXES = [
     ("xbr-lv2", "xbr.fs", "(2 * delta", "(2.0 * delta", 4),
+    ("omniscale", "omniscale.fs", "pixel_size / 2", "pixel_size / 2.0", 21),
 ]
 
 
