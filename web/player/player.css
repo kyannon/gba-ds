@@ -292,3 +292,9 @@ html[data-theme="light"] #touch { --key: #d4d5da; --key2: #b9bbc2; --keyedge: #8
   body.playing .bar-pill { display: block; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 6; width: 44px; height: 18px; border: 0; border-radius: 99px; background: color-mix(in srgb, var(--accent) 28%, transparent); }
   body.playing .bar-pill::after { content: ""; position: absolute; left: 12px; right: 12px; top: 8px; height: 2px; border-radius: 2px; background: var(--s-sub); }
 }
+
+/* the wide view (pack.py --wide): its ratio in the bar; nothing of it in the normal player */
+html:not([data-wide="1"]) .wide-only { display: none !important; }
+.wide-pick { display: flex; align-items: center; gap: 8px; font-size: 13px; white-space: nowrap; }
+.wide-pick select { width: auto; padding: 6px 28px 6px 10px; }
+@media (max-width: 640px) { .wide-pick span { display: none; } }

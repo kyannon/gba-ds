@@ -77,6 +77,11 @@ const RESOLUTIONS = (() => {
 
 /* ================================================================ settings */
 const SET_KEY = "gbadsPlayer.settings", CTL_KEY = "gbadsPlayer.controls";
+// the wide view (pack.py --wide, published at /wide; docs/WEB-PLAYER.md): the game drawn wider (16:9, 16:10) or
+// taller (4:3) than the GBA's screen, as a GBA DS widescreen patch would have it, to see what any game draws
+// past its screen's edges (docs/WIDESCREEN.md). Its ratio is its own setting; the rest is the player's.
+const WIDE = document.documentElement.dataset.wide === "1", WIDE_KEY = "gbadsPlayer.wide", WIDE_RATIOS = ["16:9", "16:10", "4:3", "off"];
+let wideRatio = (() => { try { const v = localStorage.getItem(WIDE_KEY); return WIDE_RATIOS.includes(v) ? v : "16:9"; } catch (e) { return "16:9"; } })();
 const DEFAULTS = { device: "gba", custom: { top: [1024, 768, 4.3], bottom: [1024, 768, 4.3] }, arrange: "stack",
   gap: 0, smooth: true, scale: 2 / 3, volume: 80, muted: false, pauseHidden: true,
   touchShow: "auto", touchPlace: "rotate", touchSize: 100, touchVibrate: true, theme: "dark", accent: "purple",
@@ -962,6 +967,7 @@ async function boot(opts) {
   const debug = /[?&]debug\b/.test(location.search);
   const env = { GBADS_CONFIG: "/gba-ds/gba-ds.cfg", GBADS_WINDOW: win.w + "x" + win.h, HOME: "/home", ...win.env };
   if (debug) env.GBADS_DEBUG = "1";
+  if (WIDE && wideRatio !== "off") env.GBADS_WIDE = wideRatio; /* (the wide view: from the game's first frame) */
   // map captures in a worker of their own, from the start (?nocapw: in the game, to compare)
   const capWorker = !!P.build.caps.hasCaptureWorker && !/[?&]nocapw\b/.test(location.search);
   if (capWorker) env.GBADS_CAPTURE_OFFLOAD = "1";
@@ -1107,6 +1113,7 @@ function onWorker(worker, m) {
     // (the pictures' buffer, back to the capture worker to be used again)
     case "capreturn": if (CAP.w) CAP.w.postMessage(m, [m.buf]); break;
     case "log": addLog(m.line); break;
+    case "wide": if (!m.ok) toast("This GBA DS build has no wide view: it needs v1.6.5 or later.", true); break;
     case "started":
       P.caps = m;
       break;
@@ -1601,6 +1608,17 @@ $("touchSize").oninput = () => { S.touchSize = Number($("touchSize").value); sav
 $("touchVibrate").onchange = () => { S.touchVibrate = $("touchVibrate").checked; saveSettings(); relayout(); };
 $("pauseHidden").onchange = () => { S.pauseHidden = $("pauseHidden").checked; saveSettings(); };
 $("settingsBtn").onclick = () => { showSettings(); $("settings").showModal(); };
+if (WIDE) {
+  // the wide view's ratio: kept, and given to the game playing now straight away
+  const sel = $("wideSel");
+  sel.value = wideRatio;
+  sel.onchange = () => {
+    wideRatio = WIDE_RATIOS.includes(sel.value) ? sel.value : "16:9";
+    try { localStorage.setItem(WIDE_KEY, wideRatio); } catch (e) {}
+    if (P.worker) P.worker.postMessage({ t: "wide", ratio: wideRatio });
+    sel.blur(); /* (so the game's keys go to the game again) */
+  };
+}
 $("folderPick").onclick = () => chooseFolder();
 $("folderReconnect").onclick = async () => {
   if (!(await folderAccess(true))) { toast("The folder wasn't allowed.", true); return; }

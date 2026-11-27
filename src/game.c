@@ -4125,7 +4125,37 @@ static const char* load_failed_osd(void) {
 	return "Load failed.";
 }
 
+/* The wide view (docs/WIDESCREEN.md, "The wide web player"): a ratio forced on
+ * whatever game, from GBADS_WIDE at the start or the wide web player's choice
+ * (web_wide) while it runs, applied between frames (wide_force_apply); 0: none
+ * (a widescreen patch's own marker counts again from the next start). */
+static int wideForceNum, wideForceDen;
+static bool wideForceFromPage; /* (web_wide was called: the page's choice, not GBADS_WIDE) */
+static bool gameTexAll; /* (below) */
+static bool wideForcePending;
+static void wide_force_apply(void) {
+	if (!wideForcePending) return;
+	wideForcePending = false;
+	EmuWide w;
+	bool ok = wideForceNum > 0 && emu_wide_ratio(wideForceNum, wideForceDen, &w);
+	if (!emu_wide_set(&emu, ok ? &w : NULL)) return;
+	/* the game's pictures at the new size */
+	for (int i = 0; i < nViews; ++i) {
+		if (gameTex[i]) SDL_DestroyTexture(gameTex[i]);
+		gameTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, game_tex_w(), game_tex_h());
+		if (gameTex[i]) SDL_SetTextureBlendMode(gameTex[i], SDL_BLENDMODE_NONE);
+	}
+	gameTexAll = true;
+}
+
 #ifdef __wasi__
+/* the wide web player's ratio (num:den; 0:0 off), from the next frame and for every game after */
+__attribute__((export_name("web_wide"))) void web_wide(int num, int den) {
+	wideForceNum = num > 0 && den > 0 ? num : 0;
+	wideForceDen = wideForceNum ? den : 0;
+	wideForceFromPage = wideForcePending = true;
+}
+
 /* State Saver's GBA DS tab: states saved and loaded from the page, between frames */
 static bool webPlaying;
 __attribute__((export_name("web_save_state"))) int web_save_state(const char* path) {
@@ -6292,8 +6322,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		 * to see what it draws past the screen's edges) */
 		EmuWide w;
 		const char* force = getenv("GBADS_WIDE");
-		int num = 0, den = 0;
-		if (force && sscanf(force, "%d:%d", &num, &den) == 2 && emu_wide_ratio(num, den, &w)) emu_wide_on(&emu, &w);
+		int num = wideForceNum, den = wideForceDen;
+		if (!wideForceFromPage && force) sscanf(force, "%d:%d", &num, &den);
+		wideForcePending = false;
+		if (num > 0 && emu_wide_ratio(num, den, &w)) emu_wide_on(&emu, &w);
 		else if ((emu.patch == PATCH_APPLIED || emu.patch == PATCH_PARTIAL) && emu_wide_find(&emu, &w) && !emu_wide_on(&emu, &w))
 			fprintf(stderr, "widescreen: marker found (%d x %d), not used\n", w.w, w.h);
 	}
@@ -7438,6 +7470,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 			}
 		}
 
+		wide_force_apply(); /* (the wide web player's ratio, changed) */
 		Uint64 drawT0 = SDL_GetPerformanceCounter();
 		double drawCpu0 = thread_cpu_ms();
 		/* frame buffer: start the next frame now; this one is drawn from a copy */

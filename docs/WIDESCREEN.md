@@ -18,7 +18,7 @@ A GBA game draws a 240×160 picture, but most of what it draws is laid out past 
 
 What a game has there isn't always right, because it was never meant to be seen: scenery loaded only a tile past the edge, sprites hidden as they leave the screen, a HUD layer that repeats. The patch is what fixes those, game by game: it changes the game so it draws its world out to the wider picture's edges. And it carries the marker that tells GBA DS to draw the wider picture at all.
 
-`GBADS_WIDE=16:9` (an environment variable, for writing a patch) draws the wider picture for any game, patched or not, to see what it has past its edges.
+`GBADS_WIDE=16:9` (an environment variable, for writing a patch) draws the wider picture for any game, patched or not, to see what it has past its edges. The quickest way to look: the web player's wide view, https://kyannon.github.io/gba-ds/wide (docs/WEB-PLAYER.md, "The wide view"), the same with a ratio to pick in its bar that changes while the game plays.
 
 ### The marker
 

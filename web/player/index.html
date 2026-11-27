@@ -87,6 +87,10 @@ try {
       <span class="now-sub" id="nowSub"></span>
     </div>
     <nav class="tools" aria-label="Player">
+      <label class="wide-pick wide-only" title="The wide view: the game drawn wider or taller than the GBA's screen, to see what it draws past its edges"><span>Wide view</span><select id="wideSel" aria-label="Wide view">
+        <option value="16:9">16:9</option><option value="16:10">16:10</option><option value="4:3">4:3</option><option value="off">Off (3:2)</option>
+      </select></label>
+      <span class="sep wide-only"></span>
       <button class="tool" id="openBtn" title="Open files (or drop them anywhere)" aria-label="Open files"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button>
       <span class="sep"></span>
       <button class="tool game-only" id="stateBtn" title="Save a state (downloads a .ss file)" aria-label="Save a state"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg></button>

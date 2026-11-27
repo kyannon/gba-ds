@@ -521,6 +521,17 @@ async function boot(m) {
   setInterval(() => { if (h) syncFiles(); }, 4000);
 }
 
+// the wide view's ratio ("16:9", or "off": the GBA's 3:2) for the game running now and the next
+// ones (game.c web_wide); between the game's frames, so tried again shortly if it's mid-frame
+function wideSet(ratio, tries) {
+  if (!h) return;
+  if (!h.has("web_wide")) { post({ t: "wide", ok: false }); return; }
+  const [n, d] = ratio === "off" ? [0, 0] : String(ratio).split(":").map(Number);
+  if (!h.idle) { if (tries < 60) setTimeout(() => wideSet(ratio, tries + 1), 16); return; }
+  h.call("web_wide", n || 0, d || 0);
+  post({ t: "wide", ok: true, ratio });
+}
+
 onmessage = async (e) => {
   const m = e.data;
   switch (m.t) {
@@ -539,6 +550,7 @@ onmessage = async (e) => {
     case "layout": setLayout(m.layout, 0); if (m.layout2) setLayout(m.layout2, 1); break;
     case "view2": setView2(m.canvas || null, m.layout || null); break;
     case "buttons": if (!paused) setButtons(m.mask); break;
+    case "wide": wideSet(m.ratio, 0); break;
     case "touch": if (h && !paused) h.touch(m.type, m.x, m.y); break;
     case "pause":
       paused = m.on;

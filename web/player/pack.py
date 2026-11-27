@@ -4,7 +4,7 @@
   OUT/gba-ds-web-player-VERSION.html   everything in one file (opens from disk)
   OUT/gba-ds-web-player-VERSION.zip    a folder to put on a web server
 
-  pack.py OUT [--build ZIP_OR_WASM]
+  pack.py OUT [--build ZIP_OR_WASM] [--wide]
 
 --build puts a GBA DS build in both, so the player starts with it: a zip with a
 web build inside (the -dev zips have one; the Pages workflow builds its own)
@@ -12,6 +12,10 @@ web build inside (the -dev zips have one; the Pages workflow builds its own)
 gba-ds.wasm (then dist/gba-ds.cfg and VERSION go with it). Only what the
 player uses is kept (web/gba-ds.wasm, web/VERSION, gba-ds.cfg,
 gamecontrollerdb.txt). The names then end in "-with-BUILDVERSION".
+--wide packs the wide view instead (gba-ds-wide-player-*, published at /wide):
+the same player with a ratio in its bar that draws any game wider or taller
+than the GBA's screen (docs/WIDESCREEN.md), its own name, Home Screen app and
+offline copy.
 Run by scripts/build-web-player.sh.
 """
 import argparse, base64, io, json, os, re, sys, zipfile
@@ -57,9 +61,9 @@ def app_icon(size, pad=0.14):
 
 
 MANIFEST = """{{
-  "name": "GBA DS",
-  "short_name": "GBA DS",
-  "description": "GBA DS in a web browser: GBA games with their second screen.",
+  "name": "{name}",
+  "short_name": "{short}",
+  "description": "{desc}",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -78,13 +82,13 @@ MANIFEST = """{{
 # The offline copy: every file kept on install, served from the cache (the
 # page itself from the network first, so an update shows on the next start).
 SW = """/* GBA DS web player {version}: the offline copy (made by pack.py) */
-const CACHE = "gba-ds-player-{version}";
+const CACHE = "{prefix}{version}";
 const FILES = {files};
 self.addEventListener("install", (e) => {{
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
 }});
 self.addEventListener("activate", (e) => {{
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith("gba-ds-player-") && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith("{prefix}") && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 }});
 self.addEventListener("fetch", (e) => {{
   const req = e.request;
@@ -127,13 +131,23 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
     ap.add_argument("--build")
+    ap.add_argument("--wide", action="store_true")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     version = read(os.path.join(ROOT, "VERSION")).strip()
     bundle, bver = build_zip(a.build) if a.build else (None, None)
-    name = "gba-ds-web-player-v" + version + ("-with-" + bver if bundle else "")
+    name = ("gba-ds-wide-player-v" if a.wide else "gba-ds-web-player-v") + version + ("-with-" + bver if bundle else "")
 
     html = read(os.path.join(HERE, "index.html")).replace('data-version="dev"', 'data-version="' + version + '"')
+    if a.wide:
+        html = html.replace('<html lang="en" ', '<html lang="en" data-wide="1" ', 1)
+        html = html.replace("<title>GBA DS web player</title>", "<title>GBA DS wide view</title>", 1)
+        html = html.replace('<span class="product">Web player</span>', '<span class="product">Wide view</span>', 1)
+        html = html.replace('content="GBA DS">', 'content="GBA DS wide">', 1)
+        if 'data-wide="1"' not in html or "GBA DS wide view" not in html:
+            sys.exit("index.html changed: pack.py --wide can't mark the page")
+    app = (dict(name="GBA DS wide view", short="GBA DS wide", desc="GBA DS's wide view: any GBA game drawn wider than its screen, to see what it draws past its edges.", prefix="gba-ds-wide-")
+           if a.wide else dict(name="GBA DS", short="GBA DS", desc="GBA DS in a web browser: GBA games with their second screen.", prefix="gba-ds-player-"))
     css = read(os.path.join(HERE, "player.css"))
     srcs = {n: read(os.path.join(HERE, n + ".js")) for n in ("zip", "controls", "player", "worker", "worklet")}
     srcs["runtime"] = read(RUNTIME)
@@ -166,7 +180,7 @@ def main():
         z.writestr(d + "player.css", css)
         for n in ("zip", "controls", "player", "worker", "worklet"):
             z.writestr(d + n + ".js", srcs[n])
-        z.writestr(d + "manifest.webmanifest", MANIFEST.format(version=version))
+        z.writestr(d + "manifest.webmanifest", MANIFEST.format(version=version, **{k: app[k] for k in ("name", "short", "desc")}))
         z.writestr(d + "icon-192.png", app_icon(192))
         z.writestr(d + "icon-512.png", app_icon(512))
         z.writestr(d + "apple-touch-icon.png", app_icon(180, 0.12))
@@ -174,7 +188,7 @@ def main():
                  "logo.png", "jost-bold-italic.ttf", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"]
         if bundle:
             files.append("build/gba-ds-web.zip")
-        z.writestr(d + "sw.js", SW.format(version=version + ("+" + bver if bundle else ""), files=json.dumps(files)))
+        z.writestr(d + "sw.js", SW.format(version=version + ("+" + bver if bundle else ""), files=json.dumps(files), prefix=app["prefix"]))
         z.writestr(d + "gbads-runtime.js", srcs["runtime"])
         z.writestr(d + "logo.png", logo)
         z.write(FONT, d + "jost-bold-italic.ttf")

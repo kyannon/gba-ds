@@ -573,7 +573,9 @@ release zip, which replaces the main install.
   offsets, sprites by their own moved OAM copy, affine reference points and window
   edges moved); `emu_wide_compose` puts the margins round the frame game.c shows
   (`game_tex_*`; `game_scale` keeps the picture's shape). `GBADS_WIDE=16:9` forces it
-  on any game (for writing a patch). `tools/widescreen.py` makes the marker and
+  on any game (for writing a patch); the web player's wide view (`pack.py --wide`,
+  published at /wide; docs/WEB-PLAYER.md) does it from its bar while the game runs
+  (`web_wide` -> game.c `wide_force_apply` -> `emu_wide_set`). `tools/widescreen.py` makes the marker and
   patches; `tools/widetest/build.py` the test ROM (ZWSE) and its patches. GBA DS's
   own patches live in `widescreen/` (never in a release; `index.txt` from
   `tools/widescreen.py index`); `src/widedl.c` fetches that list once a run (raw
