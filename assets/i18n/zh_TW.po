@@ -283,9 +283,6 @@ msgstr "邊框標誌"
 msgid "Blue"
 msgstr "藍"
 
-msgid "Blurry instead of sharp: usually leave off."
-msgstr "模糊而不銳利：一般關掉。"
-
 msgid "Both screens"
 msgstr "兩塊螢幕"
 
@@ -1633,9 +1630,6 @@ msgstr "0-9 號位和繼續點是 RetroArch 的（它的 GBA 核心設為 mGBA�
 msgid "Slow (10 a second)"
 msgstr "慢（每秒 10 次）"
 
-msgid "Smooth scaling"
-msgstr "平滑縮放"
-
 msgid "Smoother, one frame more input delay."
 msgstr "更平滑，但多一幀輸入延遲。"
 
@@ -2107,3 +2101,30 @@ msgstr "繼續"
 #, c-format
 msgid "System: %s"
 msgstr "系統：%s"
+
+msgid "Scaling filter"
+msgstr "縮放方式"
+
+msgid "Sharp"
+msgstr "銳利"
+
+msgid "Smooth"
+msgstr "平滑"
+
+msgid "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off."
+msgstr "遊戲像素的放大方式：銳利、模糊，或由放大演算法以圓滑的邊緣重新繪製。使用放大演算法時，所有畫面濾鏡都會關閉。"
+
+msgid "Heavy: not yet tried on this device's graphics chip, so it may not run at full speed."
+msgstr "較重：尚未在此裝置的圖形晶片上試過，可能無法全速執行。"
+
+msgid "Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it."
+msgstr "對此裝置的圖形晶片來說太重：此處以銳利顯示。設定會保留，供能執行它的裝置使用。"
+
+msgid "Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp."
+msgstr "需要 OpenGL ES，但 GBA DS 在此處沒有用它繪製：以銳利顯示。"
+
+msgid "Off while an upscaling filter is on"
+msgstr "使用放大演算法時關閉"
+
+msgid "Shader: Off (scaling filter)"
+msgstr "濾鏡：關（縮放方式）"

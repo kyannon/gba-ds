@@ -287,9 +287,6 @@ msgstr "Logo da moldura"
 msgid "Blue"
 msgstr "Azul"
 
-msgid "Blurry instead of sharp: usually leave off."
-msgstr "Desfocado em vez de nítido: normalmente deixe desativado."
-
 msgid "Both screens"
 msgstr "Ambas as telas"
 
@@ -1640,9 +1637,6 @@ msgstr "Os slots 0-9 e o ponto de retomada são do RetroArch (o núcleo GBA dele
 msgid "Slow (10 a second)"
 msgstr "Lenta (10 por segundo)"
 
-msgid "Smooth scaling"
-msgstr "Escala suave"
-
 msgid "Smoother, one frame more input delay."
 msgstr "Mais suave, um quadro a mais de atraso de entrada."
 
@@ -2111,3 +2105,30 @@ msgstr "Continuar"
 #, c-format
 msgid "System: %s"
 msgstr "Sistema: %s"
+
+msgid "Scaling filter"
+msgstr "Filtro de escala"
+
+msgid "Sharp"
+msgstr "Nítido"
+
+msgid "Smooth"
+msgstr "Suave"
+
+msgid "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off."
+msgstr "Como os píxeis do jogo são ampliados: nítidos, desfocados ou redesenhados com contornos arredondados por um filtro de ampliação. Um filtro de ampliação desativa qualquer shader."
+
+msgid "Heavy: not yet tried on this device's graphics chip, so it may not run at full speed."
+msgstr "Pesado: ainda não experimentado no chip gráfico deste dispositivo, por isso pode não correr à velocidade máxima."
+
+msgid "Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it."
+msgstr "Demasiado pesado para o chip gráfico deste dispositivo: aqui é mostrado como Nítido. Fica guardado para um dispositivo que o consiga correr."
+
+msgid "Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp."
+msgstr "Precisa de OpenGL ES, que o GBA DS não usa aqui para desenhar: é mostrado como Nítido."
+
+msgid "Off while an upscaling filter is on"
+msgstr "Desativado enquanto um filtro de ampliação estiver ligado"
+
+msgid "Shader: Off (scaling filter)"
+msgstr "Shader: Não (filtro de escala)"
