@@ -106,6 +106,10 @@ typedef struct {
 	/* a logo-only game with screens copied to the second screen (profile .snap:
 	 * THPS2's goal sheet): consecutive frames matching show / a revert screen,
 	 * and the copy shown (kept with save states) */
+	/* a logo-only game whose levels are climbs, the level above the game's
+	 * screen on the other one (profile .climb, climb.c); in a level: the copy runs */
+	const MapProfile* climbProf;
+	bool climbOn;
 	const MapProfile* snapProf;
 	int snapShow, snapRevert;
 	uint32_t snapShown[GBA_W * GBA_H];

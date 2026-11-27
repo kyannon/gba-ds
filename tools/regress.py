@@ -192,6 +192,16 @@ def run_app(case, args, workdir):
     romdir = os.path.join(workdir, "rom")
     os.makedirs(romdir)
     os.symlink(rom, os.path.join(romdir, case["rom"] + ".zip"))
+    # "rom_files" {a file name in the game list's folder: a ROM fixture's name}: other ROMs listed beside it
+    for name, other in case.get("rom_files", {}).items():
+        src = os.path.join(args.fixtures, "roms", other + ".zip")
+        if not os.path.exists(src):
+            r.error = "missing ROM fixture roms/%s.zip" % other
+            return r
+        r.error = dump_error(dict(case, rom=other), src)
+        if r.error:
+            return r
+        os.symlink(src, os.path.join(romdir, name))
     if case.get("patch"):  # a patch file beside the ROM (GEN-9), from the fixtures' patches/
         pf = os.path.join(args.fixtures, "patches", case["patch"])
         if not os.path.exists(pf):
@@ -348,7 +358,10 @@ def run_app(case, args, workdir):
                # time zone, so a game that draws its clock (Boktai's, BT-8) read 12:00 on
                # a session's container (New York) and 17:00 on GitHub's UTC runners: the
                # zone is pinned (POSIX "EST5": five hours behind, no DST, no tzdata needed)
-               TZ="EST5")
+               TZ="EST5",
+               # the first-run language question (issue #92, GEN-18) is never asked unless a case
+               # asks for it (a release version's build would ask it in every fresh state folder)
+               GBADS_LANG_ASK="0")
     if not args.paced:
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)
@@ -715,6 +728,8 @@ def main():
         need = set()
         for c in cases:
             need.add("roms/%s.zip" % c["rom"])
+            for other in c.get("rom_files", {}).values():
+                need.add("roms/%s.zip" % other)
             need.add("golden/%s/%s/" % (c["slug"], c["id"]))
             if c.get("state"):
                 need.add("states/" + c["state"])

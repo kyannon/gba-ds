@@ -51,7 +51,10 @@ typedef struct {
 	const MapProfile* hudProf;
 	uint32_t hudPx[GBA_W * GBA_H];
 	bool hudOn; /* the frame being emulated is split */
+	unsigned long long onWithAt; /* hud.onWith: when a sprite like it last showed */
 	uint32_t hudCanvas[HUD_CW * HUD_CH], hudBack[HUD_CW * HUD_CH], hudGrab[GBA_W * GBA_H];
+	uint32_t hudHeld[HUD_CW * HUD_CH]; /* hud.alt.rows: the picture from before the other layer came on */
+	bool hudHeldOk;
 	bool hudBackValid;
 	int hudFrames; /* split frames since the race (re)started */
 	int mapX0, mapY0, mapX1, mapY1; /* the map's box on the HUD, measured over the first frames */

@@ -1,14 +1,9 @@
 #include <limits.h>
 #include "ui.h"
 
-/* the left stick presses the D-pad (issue #57): game.c turns it off for a game
- * with left_stick_dpad = 0, and on again for its menus and the game list */
-static bool stickDpad = true;
-void ui_stick_dpad(bool on) {
-	stickDpad = on;
-}
 #include "android.h"
 #include "brand.h"
+#include "drmlease.h"
 #include "font.h"
 #include "textfont.h"
 #include "fonts_data.h"
@@ -32,6 +27,20 @@ void ui_stick_dpad(bool on) {
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <time.h>
+
+/* the left stick presses the D-pad (issue #57): game.c turns it off for a game
+ * with left_stick_dpad = 0, and on again for its menus and the game list */
+static bool stickDpad = true;
+void ui_stick_dpad(bool on) {
+	stickDpad = on;
+}
+
+/* Retained views (below): Android's, and a leased panel's on Linux */
+#if defined(__ANDROID__) || defined(GBADS_DRM_LEASE)
+#define UI_RETAINED 1
+#else
+#define UI_RETAINED 0
+#endif
 
 View views[2];
 int nViews;
@@ -145,7 +154,9 @@ void ui_load_script(const char* path) {
 		long t;
 		char what[160];
 		if (line[0] == '#' || sscanf(line, "%ld %159s", &t, what) != 2) continue;
-		script = realloc(script, sizeof(*script) * (scriptLen + 1));
+		ScriptLine* grown = realloc(script, sizeof(*script) * (scriptLen + 1));
+		if (!grown) break;
+		script = grown;
 		ScriptLine* s = &script[scriptLen++];
 		s->tick = t;
 		s->btns = 0;
@@ -287,6 +298,20 @@ static bool create_view(View* v, int display, const char* title, bool fullscreen
 	SDL_SetRenderDrawColor(v->ren, 0, 0, 0, 255);
 	SDL_RenderClear(v->ren);
 	SDL_RenderPresent(v->ren);
+	return true;
+}
+
+/* A view with no window, drawn by a software renderer into its own
+ * surface (Android's software second screen, a leased panel's picture). */
+static bool create_software_view(View* v, int w, int h, Uint32 format) {
+	v->offwin = v->retained = true;
+	v->surf = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, format);
+	v->ren = v->surf ? SDL_CreateSoftwareRenderer(v->surf) : NULL;
+	if (!v->ren) {
+		fprintf(stderr, "second screen renderer: %s\n", SDL_GetError());
+		return false;
+	}
+	SDL_SetRenderDrawBlendMode(v->ren, SDL_BLENDMODE_BLEND);
 	return true;
 }
 
@@ -551,15 +576,7 @@ bool ui_init(Config* c, bool wantDual) {
 		fprintf(stderr, "second screen: GPU, %dx%d (game screen %dx%d)\n", sw, sh, w0, h0);
 	} else if (strcmp(cfg->layout, "single") && android_second_size(&sw, &sh)) {
 		fprintf(stderr, "second screen: software\n");
-		views[1].offwin = views[1].retained = true;
-		views[1].surf = SDL_CreateRGBSurfaceWithFormat(0, sw, sh, 32, SDL_PIXELFORMAT_ABGR8888);
-		views[1].ren = views[1].surf ? SDL_CreateSoftwareRenderer(views[1].surf) : NULL;
-		if (views[1].ren) {
-			SDL_SetRenderDrawBlendMode(views[1].ren, SDL_BLENDMODE_BLEND);
-			nViews = 2;
-		} else {
-			fprintf(stderr, "second screen renderer: %s\n", SDL_GetError());
-		}
+		if (create_software_view(&views[1], sw, sh, SDL_PIXELFORMAT_ABGR8888)) nViews = 2;
 	}
 	views[0].retained = true; /* drawn only when it changes, like the second screen */
 	fprintf(stderr, "android: %s\n", nViews == 2 ? "two screens" : "one screen (no second display)");
@@ -582,6 +599,28 @@ bool ui_init(Config* c, bool wantDual) {
 		fprintf(stderr, "  display %d: %s, %dx%d at %d,%d\n", i, name ? name : "?", b.w, b.h, b.x, b.y);
 	}
 	fprintf(stderr, "touch devices: %d\n", SDL_GetNumTouchDevices());
+#ifdef GBADS_DRM_LEASE
+	/* one display, the other panel leased from the compositor (Armada's
+	 * Game Mode: launch.sh sets GBADS_DRM_LEASE): the game's window on the
+	 * display, the second screen drawn in software and put on the panel */
+	int lw, lh;
+	if (displays < 2 && strcmp(cfg->layout, "single") && drmlease_open(&lw, &lh)) {
+		if (!create_view(&views[0], 0, "GBA DS", fullscreen, 720, 480)) return false;
+		/* (ARGB8888 is the panel's XRGB8888: copied as it is) */
+		if (create_software_view(&views[1], lw, lh, SDL_PIXELFORMAT_ARGB8888)) {
+			nViews = 2;
+			/* the touchscreen lies as the panel scans out, so it turns back
+			 * as the picture does (Right Side Up, 270: touch_rotate 90) */
+			if (cfg->touchRotate < 0) cfg->touchRotate = (360 - drmlease_rotation()) % 360;
+			fprintf(stderr, "second screen: the leased panel, %dx%d (software), touch turned %d degrees\n", lw, lh, cfg->touchRotate);
+		} else {
+			drmlease_close();
+			nViews = 1;
+		}
+		ui_layout();
+		return true;
+	}
+#endif
 	if (dual && displays >= 2) {
 		nViews = 2;
 		if (!create_view(&views[0], 0, "GBA DS", true, 720, 480) ||
@@ -611,7 +650,8 @@ static void disc_drop(void);
 /* After a wake (or a renderer reset): the textures ui.c keeps for itself
  * (the scaling pipeline's, the text images, the disc) are let go, to be
  * made again as they're next needed. */
-void ui_textures_reset(void) {
+/* the scaling pipeline's cached textures (render targets, shader masks) let go */
+static void pipe_drop(void) {
 	for (int v = 0; v < 2; ++v) {
 		for (int i = 0; i < PIPE_CACHE; ++i) {
 			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
@@ -620,6 +660,10 @@ void ui_textures_reset(void) {
 			memset(&pipeGrids[v][i], 0, sizeof(pipeGrids[v][i]));
 		}
 	}
+}
+
+void ui_textures_reset(void) {
+	pipe_drop();
 	text_cache_drop();
 	disc_drop();
 }
@@ -627,12 +671,10 @@ void ui_textures_reset(void) {
 void ui_shutdown(void) {
 	ui_rumble(0);
 	if (rumbleHaptic) SDL_HapticClose(rumbleHaptic), rumbleHaptic = NULL;
-	for (int v = 0; v < 2; ++v) {
-		for (int i = 0; i < PIPE_CACHE; ++i) {
-			if (pipeTargets[v][i].tex) SDL_DestroyTexture(pipeTargets[v][i].tex);
-			if (pipeGrids[v][i].tex) SDL_DestroyTexture(pipeGrids[v][i].tex);
-		}
-	}
+	pipe_drop();
+#ifdef GBADS_DRM_LEASE
+	drmlease_close();
+#endif
 	for (int i = 0; i < nViews; ++i) {
 		if (i == 0 || views[i].ren != views[0].ren) SDL_DestroyRenderer(views[i].ren);
 		if (views[i].win) SDL_DestroyWindow(views[i].win);
@@ -762,7 +804,21 @@ void ui_layout_pictures(void) {
 	}
 }
 
+static bool oneDisplay; /* (set by layout_screens) */
+static bool menuFull;   /* the pause menu is up: one screen over the whole display */
+
+void ui_menu_full(bool on) {
+	if (on == menuFull) return;
+	menuFull = on;
+	if (oneDisplay && strcmp(cfg->singleLayout, "off")) ui_layout();
+}
+
+bool ui_one_display(void) {
+	return oneDisplay;
+}
+
 static void layout_screens(void) {
+	oneDisplay = false;
 	if (nViews == 2) {
 		nScreens = 2;
 #ifdef __ANDROID__
@@ -835,6 +891,33 @@ static void layout_screens(void) {
 		screens[0] = (Screen) { 0, { 0, 0, w, s } };
 		screens[1] = (Screen) { 0, { 0, s + gap, w, h - s - gap } };
 	} else {
+		/* one display, both screens on it (issue #84): the game and the
+		 * second screen side by side (the long way of the display with
+		 * "auto") or stacked, the second one's share of it 50 / 40 / 30 %.
+		 * Where the game is (swap) is the player's, as with two screens. */
+		oneDisplay = true;
+		const char* sl = cfg->singleLayout;
+		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && !menuFull;
+		if (together) {
+			bool side = !strcmp(sl, "side") || (!strcmp(sl, "auto") && w >= h);
+			int pct = !strcmp(cfg->singleSize, "small") ? 30 : !strcmp(cfg->singleSize, "medium") ? 40 : 50;
+			int total = side ? w : h;
+			int sec = total * pct / 100, gm = total - sec;
+			int a = cfg->swap ? sec : gm; /* screen 0's length, screen 1's the rest */
+			nScreens = 2;
+			if (side) {
+				screens[0] = (Screen) { 0, { 0, 0, a, h } };
+				screens[1] = (Screen) { 0, { a, 0, w - a, h } };
+			} else {
+				screens[0] = (Screen) { 0, { 0, 0, w, a } };
+				screens[1] = (Screen) { 0, { 0, a, w, h - a } };
+			}
+			static char loggedS[64];
+			char ls[64];
+			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d", w, h, side ? "side" : "stacked", pct, cfg->swap);
+			if (strcmp(ls, loggedS)) snprintf(loggedS, sizeof(loggedS), "%s", ls), fprintf(stderr, "screens: both on one display, %s\n", ls);
+			return;
+		}
 		nScreens = 1;
 		screens[0] = (Screen) { 0, { 0, 0, w, h } };
 	}
@@ -878,7 +961,7 @@ static int view_of_window(Uint32 id) {
 	if (id == GBADS_SECOND_WINDOW_ID) return nViews == 2 ? 1 : -1;
 #endif
 	for (int i = 0; i < nViews; ++i) {
-		if (SDL_GetWindowID(views[i].win) == id) return i;
+		if (views[i].win && SDL_GetWindowID(views[i].win) == id) return i;
 	}
 	return -1;
 }
@@ -962,6 +1045,7 @@ void ui_on_foreground(void (*fn)(void)) {
 #include <fcntl.h>
 #include <linux/input.h>
 #include <sys/ioctl.h>
+#include <sys/syscall.h>
 /* touch_device: the touchscreen read straight from its input device. One
  * finger: its position and whether it's down, sent on as SDL's would be. */
 static int evTouchFd = -2; /* -2: not opened yet; -1: none */
@@ -974,7 +1058,11 @@ static void evdev_touch_poll(void) {
 	if (evTouchFd == -2) {
 		evTouchFd = -1;
 		if (!cfg->touchDevice[0]) return;
-		evTouchFd = open(cfg->touchDevice, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
+		/* the system call itself, not libc's open: on the AYN Thor, started
+		 * from Steam (Armada's Game Mode), open answered ENODEV for the
+		 * touchscreens in MHGU Recomp's DRM lease build while the system call
+		 * worked (Steam's preloaded overlay library is the likely cause) */
+		evTouchFd = (int) syscall(SYS_openat, AT_FDCWD, cfg->touchDevice, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 		if (evTouchFd < 0) {
 			fprintf(stderr, "touch device %s: can't open it\n", cfg->touchDevice);
 			return;
@@ -1469,10 +1557,13 @@ static int shader_choice(void) {
 void ui_shader_setting(void) {
 	uiShaderGame = false;
 }
+/* a pixel's entry in ccLut: the 5-bit colour each 8-bit channel came from */
+static inline unsigned cc_key(uint32_t p) {
+	return (p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10;
+}
 uint32_t ui_color_correct(uint32_t p) {
 	if (!ccOn) return p;
-	unsigned key = (p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10;
-	return ccLut[key] | (p & 0xFF000000u);
+	return ccLut[cc_key(p)] | (p & 0xFF000000u);
 }
 
 static void update_texture(SDL_Texture* t, const void* px, int pitch, bool correct);
@@ -1500,7 +1591,7 @@ static void update_texture(SDL_Texture* t, const void* px, int pitch, bool corre
 				const uint32_t* src = px;
 				for (size_t i = 0; i < n; ++i) {
 					uint32_t p = src[i];
-					buf[i] = ccLut[(p >> 3 & 31) | (p >> 11 & 31) << 5 | (p >> 19 & 31) << 10] | (p & 0xFF000000u);
+					buf[i] = ccLut[cc_key(p)] | (p & 0xFF000000u);
 				}
 				px = buf;
 			}
@@ -1543,7 +1634,7 @@ typedef struct {
 	char mode[16];
 	char text[256];
 } DrawOp;
-#ifdef __ANDROID__
+#if UI_RETAINED
 typedef struct {
 	DrawOp* ops;
 	int nOps, capOps;
@@ -1555,21 +1646,27 @@ typedef struct {
 } Retained;
 static Retained ret[2];
 static bool replaying;
-
+#endif
+#ifdef __ANDROID__
 static void retained_invalidate(void) {
 	for (int i = 0; i < 2; ++i) ret[i].lastSig = 0;
 }
 #endif
 
 static DrawOp* rec(int screen, int kind) {
-#ifndef __ANDROID__
-	return NULL; /* only Android has retained views */
+#if !UI_RETAINED
+	return NULL; /* only Android and a leased panel have retained views */
 #else
 	if (replaying || screen < 0 || screen >= nScreens || !views[screens[screen].view].retained) return NULL;
 	Retained* rv = &ret[screens[screen].view];
 	if (rv->nOps == rv->capOps) {
-		rv->capOps = rv->capOps ? rv->capOps * 2 : 64;
-		rv->ops = realloc(rv->ops, sizeof(*rv->ops) * rv->capOps);
+		int cap = rv->capOps ? rv->capOps * 2 : 64;
+		DrawOp* ops = realloc(rv->ops, sizeof(*rv->ops) * cap);
+		if (!ops) {
+			static DrawOp dropped; /* (no room: the call is left out of this frame, not drawn past the recording) */
+			return &dropped;
+		}
+		rv->ops = ops, rv->capOps = cap;
 	}
 	DrawOp* o = &rv->ops[rv->nOps++];
 	memset(o, 0, sizeof(*o)); /* zeroed padding: ops are hashed bytewise */
@@ -1585,7 +1682,7 @@ static void rec_tex(DrawOp* o, SDL_Texture* const* tex) {
 	o->texVer = tex_version(o->texv);
 }
 
-#ifdef __ANDROID__
+#if UI_RETAINED
 static uint64_t ops_sig(const Retained* rv) {
 	uint64_t h = 1469598103934665603ull;
 	const unsigned char* p = (const unsigned char*) rv->ops;
@@ -1615,8 +1712,9 @@ static bool sw_render(int v) {
 	}
 	Uint64 t0 = SDL_GetPerformanceCounter();
 	SDL_Renderer* ren = views[v].ren;
-	bool second = views[v].offwin && !views[v].surf; /* the GPU second screen */
 	int vpY = 0; /* the second screen's viewport's top, in the game window's coordinates */
+#ifdef __ANDROID__
+	bool second = views[v].offwin && !views[v].surf; /* the GPU second screen */
 	if (second) {
 		if (!android_second_begin()) {
 			rv->state = 2; /* no window yet: try again next frame (lastSig unchanged) */
@@ -1633,6 +1731,7 @@ static bool sw_render(int v) {
 	} else if (!views[v].surf) {
 		android_second_restore(); /* SDL's own window surface current again */
 	}
+#endif
 	SDL_RenderSetClipRect(ren, NULL);
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
 	SDL_RenderClear(ren);
@@ -1659,13 +1758,14 @@ static bool sw_render(int v) {
 		rr.y += vpY;
 		swReadOk = SDL_RenderReadPixels(ren, &rr, SDL_PIXELFORMAT_ABGR8888, swReadDst, swReadPitch) == 0;
 	}
+#ifdef __ANDROID__
 	if (second) {
 		SDL_RenderFlush(ren);
 		android_second_end(); /* stays the current surface until the other view draws */
 		SDL_RenderSetViewport(ren, NULL); /* (queued: applies on the next draw, the game screen's) */
-	} else {
+	} else
+#endif
 		SDL_RenderPresent(ren);
-	}
 	rv->lastSig = sig;
 	rv->sinceDraw = 0;
 	rv->state = 1;
@@ -1699,7 +1799,7 @@ void ui_clear(void) {
 		SDL_SetRenderDrawColor(views[i].ren, 0, 0, 0, 255);
 		SDL_RenderClear(views[i].ren);
 	}
-#ifdef __ANDROID__
+#if UI_RETAINED
 	for (int i = 0; i < 2; ++i) ret[i].nOps = 0, ret[i].state = 0;
 #endif
 }
@@ -1717,8 +1817,6 @@ double ui_last_present_ms(int view) {
 
 #ifdef __ANDROID__
 static int syncWant = -1, syncApplied = -2;
-#endif
-#ifdef __ANDROID__
 static int budgetFirst = -1, deferred;
 static Uint64 budgetStart;
 static double budgetMs;
@@ -1893,12 +1991,27 @@ void ui_present(void) {
 		frames = 0;
 	}
 #else
+	lastRedraws = 0;
 	for (int i = 0; i < nViews; ++i) {
 		Uint64 vt0 = SDL_GetPerformanceCounter();
-		SDL_RenderPresent(views[i].ren);
+		if (!views[i].retained) {
+			SDL_RenderPresent(views[i].ren);
+			lastRedraws |= 1 << i;
+		}
+#if UI_RETAINED
+		else {
+			/* a leased panel's picture: drawn only when it changed, and
+			 * put on the panel when the panel can take it */
+			bool drawn = sw_render(i);
+			if (drawn) lastRedraws |= 1 << i;
+			drmlease_present(views[i].surf, drawn);
+		}
+#endif
 		lastPresentMs[i] = (double) (SDL_GetPerformanceCounter() - vt0) * 1000.0 / (double) SDL_GetPerformanceFrequency();
 	}
-	lastRedraws = (1 << nViews) - 1;
+#if UI_RETAINED
+	for (int i = 0; i < 2; ++i) ret[i].nOps = 0, ret[i].state = 0;
+#endif
 #endif
 }
 
@@ -2545,12 +2658,21 @@ static uint32_t rom_file_crc(const Config* c, const char* rom, bool compute) {
 	return rom_file_crc_ex(c, rom, compute, NULL);
 }
 
-/* The extracted logo's file (whether it exists yet or not): per code, or
- * (profile logoPerRom) per ROM file, so romhacks that share a code each
- * get their own; a patched game is its base ROM file, so it has the base's.
- * False when the ROM file's checksum isn't known yet and isn't being asked
- * for (compute): nothing to look for, or make, yet. */
-static bool extracted_path_for(const Config* c, const char* rom, const char* code, char* path, size_t n, bool compute) {
+/* crc (the ROM's CRC32 as played, 0 if not known yet) if it's a known mod's,
+ * which has a logo of its own (GEN-20), else 0 */
+static uint32_t logo_mod(const char* code, uint32_t crc) {
+	const MapProfile* prof = profile_find(code);
+	return prof && !prof->logoPerRom && profile_known_mod(code, crc) ? crc : 0;
+}
+
+/* The extracted logo's file (whether it exists yet or not): per code (a
+ * known mod's own, GEN-20), or (profile logoPerRom) per ROM file, so
+ * romhacks that share a code each get their own; a patched game is its base
+ * ROM file, so it has the base's. False when the ROM file's checksum isn't
+ * known yet and isn't being asked for (compute): nothing to look for, or
+ * make, yet. */
+static bool extracted_path_for(const Config* c, const char* rom, const char* code, uint32_t crc, char* path, size_t n,
+                               bool compute) {
 	const MapProfile* prof = profile_find(code);
 	if (prof && prof->logoPerRom) {
 		bool pending;
@@ -2565,12 +2687,16 @@ static bool extracted_path_for(const Config* c, const char* rom, const char* cod
 		}
 		if (!compute) return false;
 	}
-	if (prof && prof->logo.rev) snprintf(path, n, "%s/logos/%.4s-r%d.png", c->stateDir, code, prof->logo.rev);
-	else snprintf(path, n, "%s/logos/%.4s.png", c->stateDir, code);
+	uint32_t mod = logo_mod(code, crc);
+	char key[16];
+	if (mod) snprintf(key, sizeof(key), "%.4s-%08X", code, mod);
+	else snprintf(key, sizeof(key), "%.4s", code);
+	if (prof && prof->logo.rev) snprintf(path, n, "%s/logos/%s-r%d.png", c->stateDir, key, prof->logo.rev);
+	else snprintf(path, n, "%s/logos/%s.png", c->stateDir, key);
 	return true;
 }
-static void extracted_path(const Config* c, const char* rom, const char* code, char* path, size_t n) {
-	extracted_path_for(c, rom, code, path, n, true);
+static void extracted_path(const Config* c, const char* rom, const char* code, uint32_t crc, char* path, size_t n) {
+	extracted_path_for(c, rom, code, crc, path, n, true);
 }
 
 /* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg|.webp. */
@@ -2623,7 +2749,8 @@ static void logo_dir_list(const char* dir) {
 			if (!nn) break;
 			logoDir.names = nn;
 		}
-		logoDir.names[logoDir.n++] = strdup(e->d_name);
+		char* name = strdup(e->d_name);
+		if (name) logoDir.names[logoDir.n++] = name;
 	}
 	closedir(d);
 }
@@ -2711,18 +2838,28 @@ SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h) {
 	return o;
 }
 
-/* What the last logo choice was, for the log (once per change) and bug
- * reports: which file, or why a custom one wasn't used. */
+/* What the last logo choice was, for bug reports (which file, or why a custom
+ * one wasn't used), and for the log: each game's once, and again when it
+ * changes. The game list asks for the games around the selection too, so the
+ * notes alternate: the last 64 logged are remembered (by a hash), not only
+ * the one before, or every move of the selection logged them all again. */
 static char logoNote[1400];
 static char logoBad[1200]; /* the last custom logo that couldn't be read */
+static uint64_t logoLogged[64];
+static unsigned logoLoggedNext;
 static void logo_note(const char* fmt, ...) {
 	char s[sizeof(logoNote)];
 	va_list ap;
 	va_start(ap, fmt);
 	vsnprintf(s, sizeof(s), fmt, ap);
 	va_end(ap);
-	if (!strcmp(s, logoNote)) return;
 	snprintf(logoNote, sizeof(logoNote), "%s", s);
+	uint64_t h = 14695981039346656037ull; /* (FNV-1a) */
+	for (const char* p = s; *p; ++p) h = (h ^ (unsigned char) *p) * 1099511628211ull;
+	h |= 1; /* (never 0, the empty slot) */
+	for (size_t i = 0; i < sizeof(logoLogged) / sizeof(logoLogged[0]); ++i)
+		if (logoLogged[i] == h) return;
+	logoLogged[logoLoggedNext++ % (sizeof(logoLogged) / sizeof(logoLogged[0]))] = h;
 	fprintf(stderr, "logo: %s\n", s);
 }
 
@@ -2746,9 +2883,10 @@ static bool scrapedProvisional;
  * 1); otherwise LOGO_SUB pixels per GBA pixel, the same size on the screen. */
 #define LOGO_BOX_W 224
 #define LOGO_BOX_H 64
-static SDL_Surface* sized_surface(const Config* c, const char* rom, const char* src, const char* code, int* sub) {
+static SDL_Surface* sized_surface(const Config* c, const char* rom, const char* src, const char* code, uint32_t crc,
+                                  int* sub) {
 	char ref[1200];
-	extracted_path(c, rom, code, ref, sizeof(ref));
+	extracted_path(c, rom, code, crc, ref, sizeof(ref));
 	int refH = 0;
 	SDL_Surface* r = image_load(ref);
 	if (r) refH = r->h, SDL_FreeSurface(r);
@@ -2821,13 +2959,13 @@ void ui_game_prepare(const Config* c, const char* rom) {
 	bool needCrc = !rom_file_crc(c, rom, false);
 	char logoFile[1200] = "";
 	bool needLogo = false;
-	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+	if (!needCrc && ui_logo_source(c, rom, code, 0, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
 	if (!needCrc && !needLogo) return;
 	ui_notice("Initializing game...", tr("Only the first time for each game"));
 	if (needCrc) {
 		fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
 		rom_file_crc(c, rom, true);
-		if (ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile);
+		if (ui_logo_source(c, rom, code, 0, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
 	}
 	if (needLogo && logoFile[0]) {
 		char dir[1200];
@@ -2838,12 +2976,12 @@ void ui_game_prepare(const Config* c, const char* rom) {
 	}
 }
 
-void ui_logo_queue(const Config* c, const char* rom, const char* code) {
+void ui_logo_queue(const Config* c, const char* rom, const char* code, uint32_t crc) {
 	char path[1200];
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
-	if (!extracted_path_for(c, rom, code, path, sizeof(path), false)) return; /* (its checksum isn't known yet) */
-	if (!file_there(path)) logo_request(rom, code, path);
+	if (!extracted_path_for(c, rom, code, crc, path, sizeof(path), false)) return; /* (its checksum isn't known yet) */
+	if (!file_there(path)) logo_request(rom, code, logo_mod(code, crc), path);
 }
 
 bool ui_logo_provisional(void) {
@@ -2852,7 +2990,7 @@ bool ui_logo_provisional(void) {
 
 /* The logo's source: the player's own file or a scraped one (path set), or
  * the extracted one (path its file, which may not exist yet). */
-int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n) {
+int ui_logo_source(const Config* c, const char* rom, const char* code, uint32_t crc, char* path, size_t n) {
 	if (c->customLogos != CL_OFF) {
 		/* (one that couldn't be read keeps saying so: sized_surface falls back) */
 		if (own_logo(c, code, path, n)) {
@@ -2874,7 +3012,7 @@ int ui_logo_source(const Config* c, const char* rom, const char* code, char* pat
 			logo_note("the game's own: nothing in %s (%d images) named after %s, and no logos/%.4s.png", c->logoFolder,
 			          logoDir.n, base ? base + 1 : rom ? rom : "?", code);
 	} else logo_note("the game's own (no logos/%.4s.png, logo_folder not set)", code);
-	extracted_path(c, rom, code, path, n);
+	extracted_path(c, rom, code, crc, path, n);
 	return LOGO_EXTRACTED;
 }
 
@@ -2883,44 +3021,52 @@ bool ui_logo_custom(const Config* c, const char* rom, const char* code) {
 	return own_logo(c, code, path, sizeof(path)) || scraped_logo(c, rom, path, sizeof(path));
 }
 
-SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, bool* pixelArt, int* sub) {
+SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, uint32_t crc, bool* pixelArt,
+                             int* sub) {
 	char path[1200];
 	int one;
 	if (!sub) sub = &one;
 	*sub = 1;
 	scrapedProvisional = false;
-	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
+	if (ui_logo_source(c, rom, code, crc, path, sizeof(path)) != LOGO_EXTRACTED) {
 		/* the player's own or a scraped logo, as tall as the extracted one (GEN-11) */
-		SDL_Surface* s = sized_surface(c, rom, path, code, sub);
+		SDL_Surface* s = sized_surface(c, rom, path, code, crc, sub);
 		if (s) {
 			*pixelArt = *sub == 1;
 			return s;
 		}
-		extracted_path(c, rom, code, path, sizeof(path));
+		extracted_path(c, rom, code, crc, path, sizeof(path));
 	}
 	*pixelArt = true;
-	return image_load(path);
+	SDL_Surface* s = image_load(path);
+	if (!s && logo_mod(code, crc)) {
+		/* a known mod's own not made yet: the release's meanwhile (GEN-20) */
+		extracted_path(c, rom, code, 0, path, sizeof(path));
+		s = image_load(path);
+	}
+	return s;
 }
 
-bool ui_load_logo(const Config* c, const char* rom, const char* code, SDL_Texture* tex[2], int* w, int* h,
-                  bool* pixelArt) {
+bool ui_load_logo(const Config* c, const char* rom, const char* code, uint32_t crc, SDL_Texture* tex[2], int* w,
+                  int* h, bool* pixelArt) {
 	char path[1200];
 	scrapedProvisional = false;
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
 	char ext[1200];
-	extracted_path(c, rom, code, ext, sizeof(ext));
+	extracted_path(c, rom, code, crc, ext, sizeof(ext));
+	uint32_t mod = logo_mod(code, crc);
 	if (!ext[0]) { /* (its ROM's checksum is still being worked out: asked again when it's known) */
 		*pixelArt = true;
 		return false;
 	}
 	/* the player's own logo, else a scraped one: sized from the extracted
 	 * one (made if missing) */
-	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
+	if (ui_logo_source(c, rom, code, crc, path, sizeof(path)) != LOGO_EXTRACTED) {
 		int sub = 1;
-		SDL_Surface* s = sized_surface(c, rom, path, code, &sub);
+		SDL_Surface* s = sized_surface(c, rom, path, code, crc, &sub);
 		if (s) {
-			if (scrapedProvisional && rom) logo_request(rom, code, ext);
+			if (scrapedProvisional && rom) logo_request(rom, code, mod, ext);
 			*pixelArt = sub == 1;
 			return textures_from(s, tex, w, h, sub > 1);
 		}
@@ -2928,8 +3074,11 @@ bool ui_load_logo(const Config* c, const char* rom, const char* code, SDL_Textur
 	/* otherwise the one extracted from the game's own title screen */
 	*pixelArt = true;
 	if (ui_load_image(ext, tex, w, h, false)) return true;
-	if (rom) logo_request(rom, code, ext);
-	return false;
+	if (rom) logo_request(rom, code, mod, ext);
+	if (!mod) return false;
+	/* a known mod's own not made yet: the release's meanwhile (GEN-20) */
+	extracted_path(c, rom, code, 0, ext, sizeof(ext));
+	return ui_load_image(ext, tex, w, h, false);
 }
 
 void ui_screenshot(const char* path) {
@@ -2940,6 +3089,10 @@ void ui_screenshot(const char* path) {
 	int w, h;
 	SDL_GetRendererOutputSize(v->ren, &w, &h);
 	SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+	if (!s) {
+		fprintf(stderr, "screenshot failed: %s\n", SDL_GetError());
+		return;
+	}
 	if (SDL_RenderReadPixels(v->ren, NULL, SDL_PIXELFORMAT_ARGB8888, s->pixels, s->pitch) == 0) {
 		SDL_SaveBMP(s, path);
 		fprintf(stderr, "screenshot %dx%d -> %s\n", w, h, path);
@@ -2967,7 +3120,7 @@ bool ui_screenshot_stacked(const char* pngPath) {
 		SDL_Rect r = screens[i].rect;
 		/* ABGR8888 is R, G, B, A in memory: what the PNG writer wants */
 		unsigned char* dst = img + (size_t) y * W * 4 + (size_t) (W - r.w) / 2 * 4;
-#ifdef __ANDROID__
+#if UI_RETAINED
 		if (views[screens[i].view].retained) {
 			/* drawn now (otherwise at ui_present), read back while it's drawn */
 			swReadDst = dst, swReadRect = r, swReadPitch = W * 4, swReadOk = false;
@@ -3418,6 +3571,14 @@ static void font_text_raw(int screen, int font, int x, int cy, int capPx, const 
 
 void ui_font_text(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
 	font_text_raw(screen, font, x, cy, capPx, tr(text), c, align);
+}
+
+/* the same for text not to be translated (a language's own name, a line kept in English) */
+void ui_font_text_as_is(int screen, int font, int x, int cy, int capPx, const char* text, SDL_Color c, int align) {
+	font_text_raw(screen, font, x, cy, capPx, text, c, align);
+}
+int ui_font_width_as_is(int font, int capPx, const char* text) {
+	return text_width(font, capPx, text);
 }
 
 /* The language changed (i18n_set): the pictures and widths of the old text are

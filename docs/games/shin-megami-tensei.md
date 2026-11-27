@@ -5,7 +5,7 @@
 | Releases | `AAUJ` Japan (the only release; played in English with the iOS version's translation ported by Gymzatan, a mod of it: with or without its font hack) |
 | Dumps | `AAUJ` cartridge `b857c3c5` (tested) |
 | Mods | `AAUJ` English v1.3b iOS Localized (Gymzatan) `f74db49f` (tested), English v1.3b iOS Localized with the font hack (Gymzatan) `2050b471` (tested) |
-| Profile | `src/profiles.c`: the `AAUJ` entry (`smt_*`) |
+| Profile | `src/profiles.c`: the `AAUJ` entry (`smt_*`, shared with [Shin Megami Tensei II](shin-megami-tensei-2.md): this game's addresses are `smt1`) |
 | Tests | `tests/regress/shin-megami-tensei.json` (`tools/regress.py shin-megami-tensei`) |
 | Status | supported (merged into dev Nov 18, 2026, for v1.5.6; tested on the device) |
 
@@ -35,7 +35,7 @@ Asked what the game would have put on a second GBA screen: it is a dungeon crawl
 
 **SMT-6. Game screen untouched.** Nothing leaves the game screen: the view, the compass letter, the moon, the MAG counter, the party's panels, the command bar and the messages stay where the game draws them. (GEN-2.)
 
-**SMT-7. The English translation and its font hack.** On Gymzatan's English v1.3b (iOS Localized, as a patched ROM or with its patches on the Japanese ROM, GEN-9) and on the same with the font hack, SMT-1 to SMT-6 hold as they are: the same addresses and screens, the floor names in English. The logo is the one the title shows. Known issue: GBA DS keeps one logo per game (made from whichever of them is started first), so with both the Japanese game and a translation on the card, they all show that one's title.
+**SMT-7. The English translation and its font hack.** On Gymzatan's English v1.3b (iOS Localized, as a patched ROM or with its patches on the Japanese ROM, GEN-9) and on the same with the font hack, SMT-1 to SMT-6 hold as they are: the same addresses and screens, the floor names in English. The logo is the one the title shows, each translation's kept apart from the Japanese game's (GEN-20), so with them all on the card each shows its own. (Until GEN-20 they all showed the title of whichever was started first.)
 
 ## Exceptions
 
@@ -46,7 +46,6 @@ SMT-8 is an exception to the philosophy's use of the game's own graphics only, i
 - **Areas without an automap.** The map isn't tried before the game gives you the Automap app (the first dungeon of a new game), nor in towns or on the overworld, if the game has any. Where L does nothing the last map stays; it isn't switched to the logo.
 - **Floor changes** are followed by the position bytes and the area byte, but only walked in the three save files' floors; stairs and teleporters elsewhere haven't been tried.
 - **Conversations, shops and name entry** aren't covered by a case; they're expected to keep the last map (SMT-4), with the name entry on the logo (SMT-5).
-- **The logo** is made from whichever of the Japanese ROM and the translation you start first (the lettering differs), and both then show that one.
 - **Floors bigger than the pieces.** The map above and below the game's window is four scroll steps (32 rows) each way; a floor taller than that is cut there, as the game's own window would be.
 - **Fights on the translation** have no case (the Japanese fight's steps led to a different encounter there); the fight is on the game screen only in either.
 

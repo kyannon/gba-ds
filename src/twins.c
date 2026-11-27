@@ -518,7 +518,7 @@ void twin_open(const char* rom, const MapProfile* p) {
 bool tallOn;        /* the table's up: the screens show it */
 const MapProfile* tallProf; /* logo-only game with a table over both screens (profile.tall) */
 uint32_t tallTop[GBA_W * GBA_H], tallBot[GBA_W * GBA_H];
-bool tallLive;      /* the live view: the table over both screens (update_tall) */
+bool tallLive;      /* the live view: the table over both screens (update_tall), the level over both (second.c update_climb) */
 
 /* profile.tall: the table over both screens (see profiles.h, PP-1). The
  * view's top row v is the game's scroll, at most rows - 320: the top screen

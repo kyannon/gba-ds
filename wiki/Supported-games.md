@@ -13,6 +13,11 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Castlevania: Circle of the Moon | `AAME` `AAMP` `AAMJ` | map, with the completion rate | |
 | Castlevania: Harmony of Dissonance | `ACHE` `ACHP` `ACHJ` | map | Recolor by JonataGuitar and sorrow (USA) |
 | Crash Nitro Kart (Crash Bandicoot Bakusou! Nitro Cart in Japan) | `BCNE` `BCNP` `BCNJ` | the race HUD: time, wumpa fruit, lap, the leaders and the course map twice as big; the race rankings | |
+| Cruis'n Velocity | `ACFE` (USA and Europe) | in a race: the time and the lap | |
+| Densetsu no Stafy | `ASTJ` (Japan only) | in a stage: the HUD and the logo | The Starfy Translation Team's The Legendary Starfy v1.1, Starfy Origins v1.1 and Densetsu no Starfy v1.1 |
+| Densetsu no Stafy 2 | `AVFJ` (Japan only) | in a stage: the HUD and the logo | The Legendary Starfy 2 English v0.9.9 |
+| Densetsu no Stafy 3 | `B3DJ` (Japan only) | in a stage: the HUD and the logo | The Legendary Starfy 3 English v1.0.5 |
+| DK: King of Swing (Bura Bura Donkey in Japan) | `BBKE` `BBKP` `BBKJ` | in a level: the level above the game's screen | |
 | Dragon Ball Z: Buu's Fury | `BG3E` (USA only) | the Scouter's area map; flying, the world map twice as big | |
 | Dragon Ball Z: The Legacy of Goku | `ALGE` `ALGP` (no Japanese release) | the pause menu, with the HP and Ki bars (or the counter SELECT and flying show) in place of its options | |
 | Dragon Ball Z: The Legacy of Goku II (The Legacy of Goku II International in Japan) | `ALFE` `ALFP` `ALFJ` | the Scouter's area map (before the Scouter, the Status page); flying, the world map twice as big | |
@@ -42,6 +47,8 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | The Legend of Zelda: The Minish Cap | `BZME` `BZMP` `BZMJ` | the map of Hyrule and dungeon maps (Quest Status before you have the map) | |
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
+| Mario Party Advance | `B8ME` `B8MP` `B8MJ` | on the board: the Map and Quest Data in turn | |
+| Mario Pinball Land (Super Mario Ball in Europe and Japan) | `BMVE` (USA and Australia) `BMVP` `BMVJ` | in a room: the whole HUD, as when paused, with the logo | |
 | Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
 | Mega Man Battle Network 2 (Battle Network Rockman EXE 2 in Japan) | `AE2E` `AM2P` `AE2J` | MegaMan's status (level, HP, style, buster) with your money, in battles too; on the net, a map of the area | |
@@ -51,10 +58,13 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Muppet Pinball Mayhem | `AMWE` `AMWP` (no Japanese release) | the table twice as tall over both screens, live, with the score bar | |
 | Ninja Five-O (Ninja Cop in Europe) | `ANXE` `ANXP` (no Japanese release) | in stages: the HUD (bars, score or time, the boss's bar, the shuriken's level, keys and hostages) | |
 | Pokémon FireRed, LeafGreen, Ruby, Sapphire and Emerald (every language) | `BPRE` `BPGE` `BPRJ` `BPGJ` `BPRD` `BPGD` `BPRF` `BPGF` `BPRI` `BPGI` `BPRS` `BPGS` (FireRed, LeafGreen) · `AXVE` `AXPE` `AXVJ` `AXPJ` `AXVD` `AXPD` `AXVF` `AXPF` `AXVI` `AXPI` `AXVS` `AXPS` (Ruby, Sapphire) · `BPEE` `BPEJ` `BPED` `BPEF` `BPEI` `BPES` (Emerald) | the Party and the region map, in turn; only the Party in a battle | Radical Red 4.1, Unbound 2.1.1.1, Gaia, Saiph, Fuligin, FRLG+ 1.5.1, Light Platinum, Flora Sky, Glazed 9.1.0, Theta Emerald EX 1; Super MarioMon 1.5.1 and Emerald Rogue EX 2.1.1 (their own ROMs, not patches) |
+| Pokémon Mystery Dungeon: Red Rescue Team (Pokémon Fushigi no Dungeon: Aka no Kyuujotai in Japan) | `B24E` (USA and Australia) `B24P` `B24J` | in a dungeon: the floor map and the status line, live | |
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
+| Shantae Advance: Risky Revolution | `CSAE` (Limited Run Games' 2024 cartridge, which has no code of its own) | in play: the HUD and the logo | |
 | Shin Megami Tensei | `AAUJ` (Japan only; Gymzatan's English translation v1.3b, with or without its font hack) | the game's automap, taller than the game draws it | Gymzatan's English v1.3b iOS Localized translation, with and without the font hack |
+| Shin Megami Tensei II | `A5TJ` (Japan only; the English translation) | the game's automap, taller than the game draws it | the English translation (port of the Super Famicom translation), as a patched ROM or its `.xdelta` |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 2 | `A2NE` `A2NP` `A2NJ` | the zone card, with the rings, score, time and lives | |
 | Sonic Advance 3 | `B3SE` `B3SP` `B3SJ` | the act card, with the rings, time and lives; the hubs' keys and zone label | |
@@ -90,7 +100,7 @@ GBA DS knows a game by its code, which romhacks and patches of a supported game 
 - **Patches GBA DS knows:** besides the tested ones, GBA DS knows a list of colour, voice and translation patches for other games too (some not supported yet), so the Patches menu can name them and say when one is made for another version of the game (a `.ips` file can't say which version it's for, so this is the only warning you'll get).
 - **Patch files:** put the patch (`.ips`, `.ups`, `.bps` or `.xdelta`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
-- A romhack with its own title screen still shows the original game's logo on the second screen.
+- A romhack GBA DS doesn't know shares its game's logo, made from whichever of them is started first; a tested one has its own.
 
 ## How the maps work
 
@@ -172,6 +182,61 @@ The HUD is moved off the game screen rather than copied, as in Mario Kart: Super
 - The game's **pause menu** stays on the game screen, with the last HUD on the second screen. TRY AGAIN, the title and the menus show the logo.
 - With one screen (`layout = single`), the HUD stays where the game draws it.
 - Not tried yet: Adventure's boss races, CNK challenges, relic races and crystal arenas, Time Trial's results, and link play.
+
+## Cruis'n Velocity
+
+The one release, for the USA and Europe. Added by cmyksoda (pull request #98).
+
+- **In a race,** the second screen shows the time and the lap box, each where the game draws it, over the logo; they slide in with the game's own as the course's intro ends. The game screen keeps the rest: your place, the speed and turbos, the gear and rev bar, the start lights, WRONG WAY and the checkpoint signs.
+- **Paused,** the PAUSED page is on the game screen and the second screen keeps the time and lap as they were; they go live again when the race carries on. Quitting the race brings the logo back.
+- **The finish:** the game clears its time box to 00 00 00 just after the line. Instead, from the line to the end of the results page, the box shows the race's total time (the results page's total, added up right even where the page misprints it) and the lap box stays on the last lap.
+- **Elsewhere** (the title, the menus, the race's intro page, the standings, GAME OVER), the second screen shows the logo.
+- Playing on one screen, the time and the lap box stay on the game screen.
+- Not tried yet: the cup's podium after a race won in a cup, the tracks after Vegas, and Multi Player.
+
+## Densetsu no Stafy
+
+The Japanese release (the only one), and the Starfy Translation Team's English translation v1.1 in all three versions: *The Legendary Starfy*, *Starfy Origins* and *Densetsu no Starfy* (which keeps the characters' Japanese names), as patched ROMs or as `.bps` patches on the Japanese ROM. Added by cmyksoda (pull request #101).
+
+- **In a stage,** the second screen shows the HUD along its top, on black, with the game's logo in the middle: Starfy's face at the left, the hearts in the middle, and the pearls with the total at the right. The game screen has none of it.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
+- A signpost's label, drawn near the bottom of the game screen, stays there.
+- **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; each translation shows its own title.
+- Playing on one screen, the HUD stays on the game screen.
+- Checked in the first stage. Not tried yet: the map between stages, boss fights and the minigames.
+
+## Densetsu no Stafy 2
+
+The Japanese release (the only one), and the English patch v0.9.9 (*The Legendary Starfy 2*), as a patched ROM or as a `.bps` patch on the Japanese ROM. Added by cmyksoda (pull request #101).
+
+- **In a stage,** the second screen shows the HUD along its top, on the same rows as in the first game, on black, with the game's logo in the middle: Starfy's face at the left, the hearts in the middle, and the pearls with the total at the right. The game screen has none of it.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
+- **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
+- Playing on one screen, the HUD stays on the game screen.
+- Checked in the first stage. Not tried yet: boss fights, the minigames and signposts' boards.
+
+## Densetsu no Stafy 3
+
+The Japanese release (the first release and Rev 1), and the English patch v1.0.5 (*The Legendary Starfy 3*), as a patched ROM or as a `.bps` patch on the Japanese ROM. Added by cmyksoda (pull request #101).
+
+- **In a stage,** the second screen shows the HUD along its top, on the same rows as in the other two games (the game draws it two rows lower), on black, with the game's logo in the middle: Starfy's face at the left, the hearts in the middle, and the pearls with the total at the right. The game screen has none of it.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
+- **Conversations:** through a stage's opening conversation and the walk-off after it, the second screen shows the logo, and the HUD arrives when the game draws its own. While a character talks in a stage, the game hides its HUD and so does the second screen, leaving the logo; the HUD comes back with the game's.
+- **Signposts:** a signpost's board stays whole on the game screen, with its button prompts.
+- **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
+- Playing on one screen, the HUD stays on the game screen.
+- Checked in the first stage. Not tried yet: the shop, boss fights and the minigames.
+
+## DK: King of Swing
+
+All three releases: the USA, Europe (in each of its five languages) and Japan's Bura Bura Donkey. Added by cmyksoda (pull request #105).
+
+- **In a level** (the tutorial's rooms and the world map's levels), the two screens are one tall screen: the game, hearts and bananas included, on the bottom screen, and the 160 rows of the level above it on the top, moving with the game's camera: the pegs and bananas coming up, the sky above them. A second copy of the game, kept in step with yours every frame, draws them.
+- **At the top of a level,** where the camera stops, DK climbs on across the gap: for a moment he's split between the two screens, then he's on the top screen with the pegs he left on the bottom one.
+- **Elsewhere** (the title, the file select, the menus, the world map, the Jungle Jam scenes, King K. Rool's fights, the cutscenes), the game is on the top screen and the second screen shows the logo.
+- The in-game settings' Pinball two-screen view (Off) turns the tall view off for this game too: the game on the top screen, the logo on the other. Playing on one screen, the game plays as it is.
+- While you hold rewind, the top screen holds still; after a second and a half the game goes back to the top screen and the logo to the other until you let go.
+- Not tried yet: the end of a level and its score screen, a death by damage, Time Attack and Jungle Jam played from their menus, and multiplayer.
 
 ## Dragon Ball Z: Buu's Fury
 
@@ -449,6 +514,25 @@ The USA, European and Japanese (Mario & Luigi RPG) releases.
 - Not tried yet: the European and Japanese releases beyond the Koopa Cruiser (walking about and its battles were tried in both).
 - **Superstar Saga+** (the romhack, v1.5, its 100% patch for the USA release; its 80% and 60% versions haven't been tried) works the same, with the mod's own names and numbers on Bros. Info and in the battle boxes (its items, its attacks' BP). Don't load a save state made on the unchanged game into the mod, or the other way round: a conversation in progress comes out garbled. Battery saves are fine.
 
+## Mario Party Advance
+
+The USA, European and Japanese releases.
+
+- **On the board,** the second screen shows two of the game's own pages, five seconds each: the **Map** (R, then A), with the area the car is in and the quest places, and **Quest Data** (L's menu), with the quest being asked and the ones you've met. Their button hints, the Map's cursor and the scroll arrows are left out. They're opened in the background in a silent copy of the game about once a second, so the car on the Map trails yours by a second or two while it moves; your game is never paused. On a new file they're there from the first turn, while the game screen still shows its first-time boxes for R and L.
+- In dialogs, the dice, the L menu and scenes, the last pages stay. While you have the game's own Map or Quest Data open, the second screen shows the logo, so the same page isn't on both screens.
+- On the title, the name entry and the main menu, the second screen shows the logo.
+- Tried in Shroom City's Town area (Europe and Japan at a new file's first turn; Europe in English and French). Not tried yet: the minigames, Party Land, Challenge Land and the other areas' boards, a Map with a flag placed.
+
+## Mario Pinball Land
+
+Mario Pinball Land in the USA and Australia, Super Mario Ball in Europe and Japan. Added by cmyksoda (pull request #97).
+
+- **In a room** (a table, a boss's room, Toad's shop, a mini game), in the adventure or in Time Attack, the second screen shows the game's HUD on black with the logo in the middle, each piece where the game draws it: the stars and the score along the top with your lives (Time Attack's timer in their place), the coins and blue coins at the bottom left, the B button and the item slot at the bottom right. An item falling into the slot falls there too. The game screen shows the table alone.
+- **The whole HUD, as when paused.** Playing, the game shows your lives, the score and the blue coins only for a moment after one of them changes, and slides them off again; pausing brings them all in. The second screen always has them where the pause puts them, with the numbers as they are now. What a room leaves out even when paused stays out (the score in Toad's shop, the lives in Time Attack). When a number gains a digit, it can sit a little off for a split second.
+- Toad running round the table, the item roulette, the pause menu, a shop's price and the target game's counter stay on the game screen.
+- **Elsewhere** (the title, the world select, the ball falling through the drain, the bonus screens, Time Attack's level select and best times), the second screen shows the logo.
+- Not tried yet: a boss played through, a Time Attack run won, Time Attack and an item falling into the slot in the European and Japanese releases, and their Virtual Console dumps.
+
 ## Mario vs. Donkey Kong
 
 The USA, European and Japanese releases.
@@ -549,6 +633,17 @@ Every release in every language (English, Japanese, German, French, Italian and 
 - **Saves:** a Ruby save works on Sapphire and the other way round, and so do FireRed and LeafGreen; an Emerald save doesn't work on Ruby or Sapphire. Japanese FireRed and LeafGreen need a Japanese-format save to load one made elsewhere. Romhacks take the saves of the game they are built on (Fuligin: FireRed or LeafGreen saves; Flora Sky: Emerald saves).
 - Not tried yet: the Japanese Rev 1 FireRed and LeafGreen releases, the Pokémon Box and debug dumps, the Switch Online dumps and any Korean release.
 
+## Pokémon Mystery Dungeon: Red Rescue Team
+
+The USA and Australia release, the European one (tried in English) and the Japanese one (Pokémon Fushigi no Dungeon: Aka no Kyuujotai), all the same. Added by cmyksoda (pull request #94).
+
+- **In a dungeon,** the second screen shows the game's own floor map and status line (the floor, your level, HP and its bar), live, with the dot for where you are. The status line is centred at the top; the map is where the game draws it, so it fills out as you explore. The game screen shows the field alone, with the game's black line down its left edge as on a GBA.
+- **Menus and messages** stay on the game screen. The status line stays on the second screen, over the map as it was, and keeps up with your HP and belly while a menu is open. The box that tells you what just happened (a move used, an item picked up) is on the game screen while the map carries on.
+- **The stairs:** the old floor's map stays through the fade and the new floor's banner, until the new floor's map comes up.
+- **SELECT** does nothing on a dungeon's field: all it does there is hide the field to show the floor map, which the second screen already shows. In the menus it keeps its jobs (sorting items, setting a move), and in the game's own map view it still turns the view off. Playing on one screen, the game gets every button as usual.
+- **Elsewhere** (the guild, the town, the title, the story outside a dungeon), the second screen shows the logo. Leaving a dungeon, the last map goes after about a third of a second.
+- Known: with the game's Map option (Others > Game options > Dungeon) at Off, the second screen has the status line alone; at Shade, the map is dithered as the game draws it. A state saved with the game's own map view on has the game screen black until you press SELECT. A state loaded with a menu open shows the status line alone until the menu closes. Boss scenes and the end of a dungeon can keep the floor's last map for a moment; they haven't all been tried.
+
 ## Pokémon Pinball: Ruby & Sapphire
 
 The USA, European and Japanese releases (the Japanese one's Rev 1 too), all the same. A hacked copy whose code differs plays on one screen, with the logo on the other.
@@ -582,9 +677,25 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 - With one screen (`layout = single`), the top bar stays where the game draws it.
 - Shops, restaurants and two players haven't been tried yet.
 
+## Shantae Advance: Risky Revolution
+
+Limited Run Games' 2024 cartridge (the game's only release). Its header has no game code, so GBA DS knows the ROM by its checksum: a copy changed in the file itself plays as an unsupported game, while a patch switched on in Extras > Patches keeps the game supported. Added by cmyksoda (pull request #103).
+
+- **In play,** the second screen shows the HUD in the same corners as on the game screen, on black, with the game's logo in the middle: the held item's circle with the magic bar below it and the hearts at the top left, the gems with the dance indicator at the top right. The game screen has none of it.
+- **Talks:** for a signpost or a character, the HUD slides off the top of the second screen as the game slides it away, and back down after; while it's gone, the second screen shows the logo.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, at once (no fade), and the HUD again as you go back to play.
+- **During the airship fight** the airship's top, which the game draws under the gem counter, shows whole on the game screen.
+- **Elsewhere** (the title, the file select, the opening and the town's scenes), the second screen shows the logo.
+- Playing on one screen, the HUD stays on the game screen.
+- Checked in the opening, the first area, the first boss and the town after it. Not tried yet: dances, transformations, dungeons, shops and Battle Mode.
+
 ## Shin Megami Tensei
 
 The Japanese release and Gymzatan's English translation (v1.3b, with or without its font hack). The second screen shows the game's automap, which you open with L, kept up to date as you walk and turn. The party panels at the bottom of the map screen are left off, so nothing is on both screens. Fights, menus and conversations keep the last map; the title and file lists show the logo. The map is taller than the game draws it: the second screen shows four scroll steps above and below the game's own window, over the game's own grid. Known issues: not tried in a new game's first dungeon or on floor changes outside the test save; one logo is kept for the Japanese game and the translation.
+
+## Shin Megami Tensei II
+
+The Japanese release and the English translation (a port of the Super Famicom game's), as a patched ROM or with its `.xdelta` beside the ROM or switched on in Extras > Patches; the game list says "Romhack: English (port of the Super Famicom translation)" for it. As in Shin Megami Tensei, the second screen shows the game's automap, which you open with L, with the compass, the floor's name and your map markers, kept up to date as you walk and turn. The party panels are left off, so nothing is on both screens. Where a floor is taller than the game's window (Valhalla's streets), the second screen shows four scroll steps above and below it, over the game's own grid; the scroll arrows the game draws beside its window are left out. Fights, menus, conversations and the rooms between dungeons (the training room, the Virtual Battler's room) keep the last map; the title and a new game's training room show the logo. Tried in the training room, the Virtual trainer, Valhalla's first street, the Virtual Battler's first level and Virtual Space. Known issues: a step that starts a conversation (the Virtual trainer's exit, the Virtual Battler's door) keeps the map from before that step; with the translation, the Virtual Battler's levels keep their Japanese names (the patch leaves them); stairs, the overworld, shops, the name entry and later dungeons haven't been tried yet.
 
 ## Sonic Advance
 

@@ -218,6 +218,22 @@ static bool oam_has_tile_pal(int tile, int tileMax, int pal, int prio1) {
 	return false;
 }
 
+/* A shown sprite matching r's box, tiles, priority, palettes and shapes (not the sprite window; `tagged` isn't read) */
+static bool oam_rule_shown(const SpriteRule* r) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(&(*sec.emu), 0x07000000 + i * 8), a1 = emu_read16(&(*sec.emu), 0x07000002 + i * 8);
+		uint16_t a2 = emu_read16(&(*sec.emu), 0x07000004 + i * 8);
+		if ((a0 & 0x300) == 0x200 || a0 >> 14 == 3 || ((a0 >> 10) & 3) == 2) continue;
+		int x = (int) ((uint32_t) a1 << 23) >> 23, y = a0 & 0xFF, tile = a2 & 0x3FF, prio = (a2 >> 10) & 3, pal = a2 >> 12;
+		if (y >= 160) y -= 256;
+		if (x < r->x0 || x > r->x1 || y < r->y0 || y > r->y1 || tile < r->tileMin || tile > r->tileMax ||
+		    (r->prio >= 0 && prio != r->prio) || (r->palMask && !(r->palMask >> pal & 1)) ||
+		    (r->shapes && !(r->shapes >> ((a0 >> 14) * 4 + (a1 >> 14)) & 1))) continue;
+		return true;
+	}
+	return false;
+}
+
 /* hud.card: this frame's card (hudPx) as a take: kept if its name (dark
  * pixels on rows y0..y1) is clear of both edges and nearer the centre
  * than the best so far. True once it's centred (within a pixel). */
@@ -440,9 +456,14 @@ static void hud_compose(void) {
 			}
 		}
 	}
+	uint32_t plain = h->mapCnt ? (hud.hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : h->black ? SCREEN_LIVE : 0xFF1A1010;
 	if (hud.hudScene) {
 		if (!hud.hudLogoDone) hud_make_logo_back();
 		memcpy(hud.hudCanvas, hud.hudLogoBack, sizeof(hud.hudCanvas));
+	} else if (hud.hudAlt && h->alt.rows && hud.hudHeldOk) {
+		/* (hud.alt.rows: the last picture below the live rows) */
+		memcpy(hud.hudCanvas, hud.hudHeld, sizeof(hud.hudCanvas));
+		for (int i = 0; i < h->alt.rows * 2 * HUD_CW; ++i) hud.hudCanvas[i] = plain;
 	} else if ((hud.hudAlt ? h->alt.mapBelow : h->mapBelow) && sec.mapShownIdx >= 0 && sec.mapW == GBA_W && sec.mapH == GBA_H && map_px(sec.mapShownIdx)) {
 		/* (hud.mapBelow, hud.alt.mapBelow: the map picture behind, at the game's size) */
 		const uint32_t* mp = map_px(sec.mapShownIdx);
@@ -501,13 +522,24 @@ static void hud_compose(void) {
 	} else if (h->card.tile) {
 		memcpy(hud.hudCanvas, card_logo(), sizeof(hud.hudCanvas));
 	} else {
-		uint32_t plain = h->mapCnt ? (hud.hudFadeEff == 2 ? 0xFFFFFFFF : 0xFF000000) : h->black ? SCREEN_LIVE : 0xFF1A1010;
 		for (int i = 0; i < HUD_CW * HUD_CH; ++i) hud.hudCanvas[i] = plain;
 	}
 	/* moved pieces (the scene's, or racing's): how far each goes this frame */
 	const HudMove* movesIn = hud.hudScene ? h->scene.moves : racing ? h->moves : NULL;
 	/* (hud.alt.moves: its own, on the other layer) */
 	if (movesIn == h->moves && hud.hudAlt && (h->alt.moves[0].how || h->alt.moves[0].vhow || h->alt.moves[0].toGame)) movesIn = h->alt.moves;
+	if (hud.hudAlt && h->alt.rows) movesIn = NULL; /* (hud.alt.rows: the game draws the rest itself) */
+	/* (hud.moves' `always` pieces, where no other moves are) */
+	HudMove movesA[HUD_MOVES];
+	if (!movesIn && !hud.hudScene) {
+		int n = 0;
+		for (int m = 0; m < HUD_MOVES; ++m)
+			if (h->moves[m].always) movesA[n++] = h->moves[m];
+		if (n) {
+			memset(&movesA[n], 0, sizeof(HudMove) * (HUD_MOVES - n));
+			movesIn = movesA;
+		}
+	}
 	/* with a BG mosaic on (fading out through a pipe), the boxes' top and
 	 * bottom go to the blocks' edges: a block across a box's edge is drawn
 	 * from its first row, so it goes with the box above */
@@ -531,6 +563,7 @@ static void hud_compose(void) {
 			o[0] = o[1] = o[HUD_CW] = o[HUD_CW + 1] = hud.mapTitle[y * GBA_W + x];
 		}
 	}
+	int rowsNow = hud.hudAlt && h->alt.rows ? h->alt.rows : h->rows;
 	int moveDx[HUD_MOVES] = { 0 }, moveDy[HUD_MOVES] = { 0 };
 	bool moving[HUD_MOVES] = { false };
 	int pieceLo[HUD_MOVES] = { 0 }, pieceTop[HUD_MOVES] = { 0 };
@@ -589,7 +622,7 @@ static void hud_compose(void) {
 				(*sec.emu).fb[ny * GBA_W + nx] = c; /* back onto the game picture */
 				continue;
 			}
-			if (h->rows && y >= h->rows) continue; /* (hud.rows: the game draws the rest) */
+			if (rowsNow && y >= rowsNow) continue; /* (hud.rows: the game draws the rest) */
 			if (sign && x >= h->sign.x0 && x <= h->sign.x1 && y >= h->sign.y0 && y <= h->sign.y1) continue;
 			if (bigMap && x >= bx0 && x <= bx1 && y >= by0 && y <= by1) continue;
 			ny += titleDy;
@@ -789,6 +822,15 @@ void update_hud(void) {
 		}
 	}
 	bool main = memprobes_match(h->on, 4, &(*sec.emu));
+	if (rule_count(&h->onWith, 1)) {
+		bool with = main && oam_rule_shown(&h->onWith);
+		if (with) hud.onWithAt = sec.frame;
+		if (main && (!hud.hudOn || hud.hudAlt)) main = with;
+		else if (main && sec.frame - hud.onWithAt > (unsigned long long) h->onLost) {
+			main = false;
+			if (sec.debug) fprintf(stderr, "frame %llu: HUD off: no onWith sprite\n", (unsigned long long) sec.frame);
+		}
+	}
 	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &(*sec.emu));
 	bool race = main || altOn || (hud.hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &(*sec.emu)));
 	/* hud.offAfter: off from when it matches (a battle's results) until
@@ -911,6 +953,7 @@ void update_hud(void) {
 			}
 			if (!hud.hudShown && sec.debug) fprintf(stderr, "frame %llu: HUD on the second screen\n", (unsigned long long) sec.frame);
 			hud.hudShown = true;
+			if (!hud.hudAlt && h->alt.rows && memprobes_match(h->alt.heldWhen, 2, &(*sec.emu))) memcpy(hud.hudHeld, hud.hudCanvas, sizeof(hud.hudHeld)), hud.hudHeldOk = true;
 		}
 	}
 	bool scene = race && h->scene.when[0].addr && memprobes_match(h->scene.when, 2, &(*sec.emu));
@@ -960,6 +1003,7 @@ void update_hud(void) {
 		 * renderer) */
 		static bool splitting;
 		bool some = mask || nObjs || h->band;
+		if (alt != hud.hudAlt && h->alt.rows) emu_hud_rows(alt ? h->alt.rows : h->rows);
 		if (some || splitting) emu_hud_split(&(*sec.emu), race && some, mask, objs, nObjs, hud.hudPx);
 		splitting = race && some;
 		if (race && some) emu_hud_copy(&(*sec.emu), cardObjs); /* (the card stays on the game screen too) */
@@ -986,6 +1030,9 @@ void update_hud(void) {
 		hud.mapFound = false;
 		hud.mapHeldOk = false, hud.nMapDots = 0, hud.mapUndrawn = 0; /* (hud.mapAt.holdTile: none held yet) */
 	}
+	/* hud.place: the profile's own places for the HUD's sprites, worked out
+	 * each frame (Mario Pinball Land: where the game has them paused) */
+	if (h->place) h->place(&(*sec.emu), sec.romPath, hud.hudOn && !hud.hudAlt);
 	/* a spell or other animation: its effects are on the text box layers,
 	 * in other palettes than the text boxes; those layers stay (from the
 	 * next frame) */
@@ -995,6 +1042,11 @@ void update_hud(void) {
 		emu_hud_keep_bgs(keep);
 		if (sec.debug) fprintf(stderr, "frame %llu: effect layers %X\n", (unsigned long long) sec.frame, keep);
 		hud.hudKeep = keep;
+	}
+	if (h->retile) {
+		int idx[8];
+		uint16_t tile[8];
+		emu_hud_retile(idx, tile, hud.hudOn ? h->retile(&(*sec.emu), idx, tile) : 0);
 	}
 	/* the course's backdrop, as each race starts (not for the scene) */
 	if (hud.hudOn && ++hud.hudFrames == 2 && h->backdrop && !hud.hudScene) emu_hud_grab(&(*sec.emu), h->backdrop, hud.hudGrab);
@@ -1050,6 +1102,7 @@ void update_hud(void) {
 	goneFor = gone ? goneFor + 1 : 0;
 	if (goneFor >= 20) {
 		hud.hudShown = false;
+		hud.hudHeldOk = false;
 		goneFor = 0;
 		if (sec.debug) fprintf(stderr, "frame %llu: HUD gone\n", (unsigned long long) sec.frame);
 	}
@@ -1235,6 +1288,7 @@ void hud_setup(const MapProfile* lp, int screens) {
 	}
 	hud.hudOn = false;
 	hud.hudShown = false;
+	hud.hudHeldOk = false;
 	hud.mirrorHave = hud.mirrorOn = false;
 	hud.hudScene = false;
 	hud.hudCard = false, hud.cardScore = -1, hud.sideScore = -1;

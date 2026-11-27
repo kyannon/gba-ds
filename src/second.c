@@ -8,6 +8,7 @@
 #include "hud.h"
 #include "twins.h"
 #include "rgba.h"
+#include "climb.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -251,6 +252,17 @@ const uint32_t* map_px(int idx) {
 }
 
 void map_refresh_step(void) {
+	{
+		/* (logoIf: the logo for now, SM4-11; a logo-only game's from its HUD's profile) */
+		const MapProfile* lp = sec.mc ? mapcap_profile(sec.mc) : hud.hudProf;
+		bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &(*sec.emu))) ||
+		                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &(*sec.emu))));
+		if (lf) sec.logoHolding = lp->logoIfLast ? 0 : 60;
+		else if (sec.logoHolding > 0) --sec.logoHolding;
+		lf = lf || sec.logoHolding > 0;
+		if (sec.debug && lf != sec.logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) sec.frame, lf ? "on" : "off");
+		sec.logoForced = lf;
+	}
 	if (sec.mc) {
 		++sec.refresh.sinceMapRequest;
 		/* the profile's sprite hiding, where it's only for some moments
@@ -260,17 +272,6 @@ void map_refresh_step(void) {
 			sec.hideWhenOn = !sec.hideWhenOn;
 			emu_hide_sprites(&(*sec.emu), sec.hideWhenOn ? sec.hideWhenProf->hideSprites : NULL, sec.hideWhenOn ? sec.hideWhenN : 0);
 			if (sec.debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) sec.frame, sec.hideWhenOn ? "on" : "off");
-		}
-		{
-			/* (logoIf: the logo for now, SM4-11) */
-			const MapProfile* lp = mapcap_profile(sec.mc);
-			bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &(*sec.emu))) ||
-			                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &(*sec.emu))));
-			if (lf) sec.logoHolding = lp->logoIfLast ? 0 : 60;
-			else if (sec.logoHolding > 0) --sec.logoHolding;
-			lf = lf || sec.logoHolding > 0;
-			if (sec.debug && lf != sec.logoForced) fprintf(stderr, "frame %llu: logo only %s\n", (unsigned long long) sec.frame, lf ? "on" : "off");
-			sec.logoForced = lf;
 		}
 		bool dark = frame_is_dark((*sec.emu).fb);
 		if (sec.refresh.wasDark && !dark) sec.refresh.refreshAt = (long) sec.frame + 6;
@@ -624,6 +625,7 @@ void second_reset(void) {
 	sec.snapProf = NULL;
 	hud.hudProf = NULL;
 	hud.hudOn = false;
+	hud.onWithAt = 0;
 }
 
 /* The map's set-up for a game once its capture exists (code: the profile in
@@ -705,10 +707,63 @@ bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha) {
 	return true;
 }
 
+/* the game's screen is darker than `max` (of 255) on average: a fade, or black while a room loads */
+static bool screen_under(const uint32_t* fb, int max) {
+	long sum = 0, n = 0;
+	for (int y = 0; y < GBA_H; y += 4)
+		for (int x = 0; x < GBA_W; x += 4, ++n) {
+			uint32_t v = fb[y * GBA_W + x];
+			sum += ((v >> 16) & 0xFF) + ((v >> 8) & 0xFF) + (v & 0xFF);
+		}
+	return sum < (long) max * 3 * n;
+}
+
+/* profile.climb: the game's picture on the bottom screen and the level above
+ * it on the top one, from the copy (climb.c; DKKS-3). Called after each frame.
+ * (dev's game.c update_climb, Nov 26, 2026, put here with the other views:
+ * the texture upload is sec.hooks.presentGba.) */
+static void update_climb(void) {
+	static int missing; /* frames in a level with no picture from the copy */
+	static int between; /* frames of black since a level went, with the view still up */
+	static bool blackTop;
+	bool on = memprobes_match(sec.climbProf->climb.on, 3, &(*sec.emu));
+	if (on != sec.climbOn) {
+		sec.climbOn = on;
+		climb_reset();
+		missing = between = 0;
+		if (sec.debug) fprintf(stderr, "frame %llu: level %s\n", (unsigned long long) sec.frame, on ? "up" : "gone");
+	}
+	const uint32_t* top = on ? climb_picture() : NULL;
+	if (top) {
+		memcpy(tallTop, top, sizeof(tallTop));
+		missing = between = 0;
+		blackTop = false;
+	} else if (on && (++missing <= 4 || (missing <= 90 && (screen_under((*sec.emu).fb, 100) || climb_waiting())))) {
+		/* (a level starting or a state loaded: the copy has none for a frame or two, longer while the camera
+		 * settles in a room's fade-in; black meanwhile, the view kept) */
+		if (!tallLive || blackTop) memset(tallTop, 0, sizeof(tallTop));
+	} else if (!on && tallLive && ++between <= 120 && screen_under((*sec.emu).fb, 6)) {
+		/* (the game is black between two rooms: the view stays, not the layout flipping to the logo and back) */
+		memset(tallTop, 0, sizeof(tallTop));
+		blackTop = true;
+	} else {
+		if (tallLive) sec.mapShownIdx = -1;
+		tallLive = false;
+		blackTop = false;
+		return;
+	}
+	memcpy(tallBot, (*sec.emu).fb, sizeof(tallBot));
+	uint32_t* second = sec.cfg->swap ? tallTop : tallBot;
+	sec.hooks.presentGba(second);
+	if (!tallLive) fprintf(stderr, "frame %llu: level over both screens\n", (unsigned long long) sec.frame);
+	tallLive = true;
+	sec.mapShownIdx = 0;
+}
+
 /* The second screen's part of a frame, once the game's frame has run, in
  * this order: the map refresh, a logo-only game's screen copy, the Pinball
- * games' tall view (screens: how many there are now), the HUD split, the
- * fights' picture. (Was inline in game.c's frame loop.) */
+ * games' tall view (screens: how many there are now), the climb view (profile
+ * climb), the HUD split, the fights' picture. (Was inline in game.c's frame loop.) */
 void second_step(int screens) {
 	map_refresh_step();
 
@@ -717,6 +772,7 @@ void second_step(int screens) {
 		TallEnv env = { screens, sec.frame, sec.cfg->swap, hud.hudPx, &sec.mapShownIdx, sec.hooks.presentGba };
 		update_tall(&env);
 	}
+	if (sec.climbProf) update_climb();
 	if (hud.hudProf) update_hud();
 	if (hud.combatProf) hud_combat_step();
 }

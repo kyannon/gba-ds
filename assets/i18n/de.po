@@ -67,9 +67,6 @@ msgstr "%s %s. Wähle einen anderen, wenn RetroArch seine Spielstände woanders 
 msgid "%s (beside the ROM)"
 msgstr "%s (neben der ROM)"
 
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "%s als Hotkey-Taste, mit Start, R1, L1, X, Y und B"
-
 msgid "%s has no button now"
 msgstr "%s hat jetzt keine Taste mehr"
 
@@ -147,9 +144,6 @@ msgstr "A-Taste (rechts)"
 
 msgid "A and B buttons"
 msgstr "A- und B-Taste"
-
-msgid "A dark line under each row of pixels"
-msgstr "Eine dunkle Linie unter jeder Pixelreihe"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "Ein bereits vorhandener Spielstand neben dem Spiel oder im anderen Format wird beim ersten Spielen kopiert. .srm ist das Format von RetroArch: Wähle auch dessen Speicherordner, um jeden Spielstand mit ihm zu teilen."
@@ -249,9 +243,6 @@ msgstr "Wie beim Start des Spiels"
 
 msgid "Aug"
 msgstr "Aug"
-
-msgid "Auto"
-msgstr "Auto"
 
 msgid "Auto-load"
 msgstr "Automatisch laden"
@@ -546,9 +537,6 @@ msgstr "Unten"
 
 msgid "Downloading"
 msgstr "Wird heruntergeladen"
-
-msgid "Each pixel a little darker toward its edges"
-msgstr "Jedes Pixel zu den Rändern hin etwas dunkler"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "Sammle Erfolge im Casual-Modus mit deinem retroachievements.org-Konto. GBA DS speichert ein Anmelde-Token, nicht dein Passwort."
@@ -919,14 +907,8 @@ msgstr "Hell-/Dunkelmodus"
 msgid "Like a GBA"
 msgstr "Wie ein GBA"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "Linien zwischen den Pixeln, wie beim Bildschirm eines GBA"
-
 msgid "Load failed"
 msgstr "Laden fehlgeschlagen"
-
-msgid "Load failed."
-msgstr "Laden fehlgeschlagen."
 
 msgid "Load State"
 msgstr "Spielstand laden"
@@ -1315,15 +1297,6 @@ msgstr "Erhöhe es, wenn der Ton knackt."
 msgid "Red"
 msgstr "Rot"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "Rote, grüne und blaue Streifen, sanft: für dunkle Bildschirme"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "Rote, grüne und blaue Streifen, wie beim Bildschirm eines GBA"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "Rote, grüne und blaue Streifen, kräftig: für helle Bildschirme"
-
 msgid "Reset"
 msgstr "Zurücksetzen"
 
@@ -1669,9 +1642,6 @@ msgstr "Weiche Skalierung"
 msgid "Smoother, one frame more input delay."
 msgstr "Weicher, ein Bild mehr Eingabeverzögerung."
 
-msgid "SNES"
-msgstr "SNES"
-
 msgid "Soft Cells"
 msgstr "Weiche Zellen"
 
@@ -1801,9 +1771,6 @@ msgstr "die Taste, die das Menü von GBA DS öffnet (Home, Menu oder Function)"
 msgid "the game"
 msgstr "das Spiel"
 
-msgid "The game's pixels as they are"
-msgstr "Die Pixel des Spiels unverändert"
-
 msgid "The GBA DS logo in the generated bezel."
 msgstr "Das GBA-DS-Logo im generierten Rahmen."
 
@@ -1854,6 +1821,9 @@ msgstr "die obere Taste"
 
 msgid "This folder can't be opened"
 msgstr "Dieser Ordner kann nicht geöffnet werden"
+
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS kann in diesem Ordner nicht speichern: wähle einen anderen"
 
 msgid "This game"
 msgstr "Dieses Spiel"
@@ -2080,3 +2050,63 @@ msgstr "maschinell übersetzt"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "Tonverzögerung auf %d ms erhöht: der Ton setzte immer wieder aus"
+
+msgid "Android couldn't install the update."
+msgstr "Android konnte das Update nicht installieren."
+
+msgid "Android couldn't install the update: %s."
+msgstr "Android konnte das Update nicht installieren: %s."
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Android installiert v%s nicht über diese Kopie von GBA DS: Sie wurde mit einem anderen Schlüssel signiert (ein Test-Build?). Deinstalliere GBA DS und installiere dann die neue Version von github.com/kyannon/gba-ds/releases. Deine Dateien im GBA-DS-Ordner bleiben erhalten."
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Android installiert v%s nicht über diese Kopie von GBA DS: Diese Kopie ist ein späterer Test-Build, und Android geht nicht auf einen früheren Build zurück. Behalte diese oder deinstalliere GBA DS und installiere v%s von github.com/kyannon/gba-ds/releases (deine Dateien im GBA-DS-Ordner bleiben erhalten)."
+
+msgid "Couldn't check for updates."
+msgstr "Suche nach Updates fehlgeschlagen."
+
+msgid "Couldn't check for updates: %s."
+msgstr "Suche nach Updates fehlgeschlagen: %s."
+
+msgid "Couldn't download the update: %s."
+msgstr "Das Update konnte nicht heruntergeladen werden: %s."
+
+msgid "Couldn't install the update: %s."
+msgstr "Das Update konnte nicht installiert werden: %s."
+
+msgid "Couldn't start installing the update: %s."
+msgstr "Die Installation des Updates konnte nicht gestartet werden: %s."
+
+msgid "Couldn't start the download."
+msgstr "Der Download konnte nicht gestartet werden."
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "Der Download stimmt nicht mit seiner Prüfsumme überein. Versuche es erneut."
+
+msgid "The download was incomplete. Try again."
+msgstr "Der Download war unvollständig. Versuche es erneut."
+
+msgid "There isn't enough storage free to install the update."
+msgstr "Es ist nicht genug Speicher frei, um das Update zu installieren."
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "Wähle die Sprache für die Menüs von GBA DS."
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "Du kannst sie später unter Einstellungen > System ändern."
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "Wählen"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "Weiter"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "System: %s"
