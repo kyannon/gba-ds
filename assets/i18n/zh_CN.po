@@ -2107,3 +2107,13 @@ msgstr "继续"
 #, c-format
 msgid "System: %s"
 msgstr "系统：%s"
+
+# issue 109: mute while fast forwarding
+msgid "Mute while fast forwarding"
+msgstr "快进时关闭声音"
+
+msgid "No sound while the game is fast-forwarded."
+msgstr "游戏快进时不发出声音。"
+
+msgid "Turn on fast forward first"
+msgstr "请先开启快进"

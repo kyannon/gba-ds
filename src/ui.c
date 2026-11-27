@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <ctype.h>
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -315,6 +316,7 @@ static bool create_software_view(View* v, int w, int h, Uint32 format) {
 }
 
 static void open_pads(void);
+static void check_flip_pad(void);
 
 /* ------------------------------------------------------- raw input */
 
@@ -495,12 +497,36 @@ void ui_rumble_pulse(float level, int ms) {
 	rumbleSentAt = SDL_GetTicks() + (Uint32) ms; /* (the next ui_rumble doesn't cut it short) */
 }
 
+/* A controller that folds over the bottom of a phone held upright (8BitDo's
+ * FlipPad, issue #107): with pad_cover = auto, the screens are kept above it
+ * while one is plugged in. Known by its name; GBADS_TEST_PAD names a pretend
+ * one (tests). */
+static bool flipPadIn;
+
+static bool flip_pad_name(const char* name) {
+	if (!name) return false;
+	char low[128];
+	size_t n = 0;
+	for (; name[n] && n < sizeof(low) - 1; ++n) low[n] = (char) tolower((unsigned char) name[n]);
+	low[n] = 0;
+	return strstr(low, "flippad") || strstr(low, "flip pad");
+}
+
+static void check_flip_pad(void) {
+	bool in = flip_pad_name(getenv("GBADS_TEST_PAD"));
+	for (int i = 0; i < SDL_NumJoysticks() && !in; ++i) in = flip_pad_name(SDL_JoystickNameForIndex(i));
+	if (in == flipPadIn) return;
+	flipPadIn = in;
+	fprintf(stderr, "controller over the screen (FlipPad): %s (pad_cover = %s)\n", in ? "plugged in" : "gone", cfg->padCover);
+	if (views[0].ren && !strcmp(cfg->padCover, "auto")) ui_layout();
+}
+
 static void open_pads(void) {
 	for (int i = 0; i < SDL_NumJoysticks() && i < 8; ++i) {
 		if (!pads[i] && SDL_IsGameController(i)) {
 			pads[i] = SDL_GameControllerOpen(i);
 			if (pads[i]) {
-				fprintf(stderr, "controller: %s\n", SDL_GameControllerName(pads[i]));
+				fprintf(stderr, "controller: %s (%04x:%04x)\n", SDL_GameControllerName(pads[i]), SDL_JoystickGetDeviceVendor(i), SDL_JoystickGetDeviceProduct(i));
 				char* map = SDL_GameControllerMapping(pads[i]);
 				if (map) fprintf(stderr, "  mapping: %s\n", map), SDL_free(map);
 			}
@@ -512,10 +538,11 @@ static void open_pads(void) {
 			if (pads[i]) fprintf(stderr, "controller: %s (mapped)\n", SDL_GameControllerName(pads[i]));
 		} else if (!pads[i] && !rawJoys[i]) {
 			rawJoys[i] = SDL_JoystickOpen(i);
-			if (rawJoys[i]) fprintf(stderr, "joystick without mapping: %s\n", SDL_JoystickName(rawJoys[i]));
+			if (rawJoys[i]) fprintf(stderr, "joystick without mapping: %s (%04x:%04x)\n", SDL_JoystickName(rawJoys[i]), SDL_JoystickGetDeviceVendor(i), SDL_JoystickGetDeviceProduct(i));
 		}
 	}
 	update_user_mapped();
+	check_flip_pad();
 }
 
 bool ui_init(Config* c, bool wantDual) {
@@ -837,6 +864,22 @@ static bool list_part_fits(SDL_Rect r) {
 	return r.w >= 640 && r.h >= 480 && r.w * 10 >= r.h * 8 && r.w <= r.h * 2;
 }
 
+/* How many of the window's rows, from the bottom, a controller over the
+ * display covers (pad_cover; above): only held upright, with one display;
+ * pad_cover_mm by the display's pixels per inch, else 45 % of it, and never
+ * more than 60 %. */
+static int pad_cover(int w, int h) {
+	if (nViews != 1 || h <= w || !strcmp(cfg->padCover, "off") || (!strcmp(cfg->padCover, "auto") && !flipPadIn)) return 0;
+	float hd = 0, vd = 0;
+	int di = views[0].win ? SDL_GetWindowDisplayIndex(views[0].win) : -1;
+	if (di >= 0 && SDL_GetDisplayDPI(di, NULL, &hd, &vd) == 0 && hd > 0) vd = (hd + vd) / 2;
+	int px = vd >= 80 && vd <= 1000 ? (int) (SDL_clamp(cfg->padCoverMm, 0, 200) / 25.4f * vd) : h * 45 / 100;
+	px = SDL_min(px, h * 60 / 100);
+	static int logged = -1;
+	if (px != logged) logged = px, fprintf(stderr, "screens: %d rows kept for the controller over the screen (%d mm at %.0f ppi)\n", px, cfg->padCoverMm, vd);
+	return px;
+}
+
 static void layout_screens(void) {
 	oneDisplay = false;
 	if (nViews == 2) {
@@ -884,6 +927,10 @@ static void layout_screens(void) {
 		screens[1] = (Screen) { 0, { (w - tw1) / 2, th0, tw1, th1 } };
 		return;
 	}
+	/* a controller over the bottom of the display (above): the screens cut
+	 * from the part above it */
+	int cover = pad_cover(w, h);
+	h -= cover;
 	const char* lay = cfg->layout;
 	/* a hinge across the middle of one display (Surface Duo spanned over
 	 * both screens, issue #48): a screen each side of it, the hinge's
@@ -896,9 +943,9 @@ static void layout_screens(void) {
 		if (gap > 0) lay = h > w ? "span-v" : "span-h";
 		else lay = w >= h * 18 / 10 ? "span-h" : h >= w * 12 / 10 ? "span-v" : "single";
 	}
-	static char logged[48];
-	char line[48];
-	snprintf(line, sizeof(line), "%dx%d %s gap %d", w, h, lay, gap);
+	static char logged[64];
+	char line[64];
+	snprintf(line, sizeof(line), "%dx%d %s gap %d cover %d", w, h + cover, lay, gap, cover);
 	if (strcmp(line, logged)) snprintf(logged, sizeof(logged), "%s", line), fprintf(stderr, "screens: one window, %s\n", line);
 	if (!strcmp(lay, "span-h")) {
 		nScreens = 2;
@@ -1283,6 +1330,9 @@ bool ui_events(void) {
 		case SDL_CONTROLLERDEVICEADDED:
 		case SDL_JOYDEVICEADDED:
 			open_pads();
+			break;
+		case SDL_JOYDEVICEREMOVED:
+			check_flip_pad();
 			break;
 		case SDL_WINDOWEVENT:
 			if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED || ev.window.event == SDL_WINDOWEVENT_RESIZED) {
