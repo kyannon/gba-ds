@@ -9,8 +9,15 @@
 ### Single displays
 - **The game list always shows the selected game** (issue #84). On a tablet, a phone or another single display, the game list used to show the list alone with One display on Game only, or where the display was too small or the wrong shape for two screens, so the selected game's details (and the ROM path) never showed. Now the list sits under a short strip across the top with GBA DS's logo, the game's logo, whether it has a save state, Play and Quit, the version, any romhack or modified ROM note and, with Show ROM Path on, the game's file. Where the display has room for both screens, nothing changes. On a tall, narrow display the list's buttons now fit across it too.
 
+### Display
+- **Edge stretch, a new game screen and second screen scale.** Display > Game screen scale and Second screen scale have **Edge stretch**: the picture fills the screen like Stretch, but the edges are stretched more than the middle, so what you look at keeps closer to its shape (sideways on wide screens, up and down on 4:3 ones such as the RG DS Plus).
+- **Web player: the Scaling filter's upscalers** (Scale2x to OmniScale) now work there too. Known: how fast the heavier filters run in the web player hasn't been measured.
+
 ### Menus
 - **The ROM path on the game list can be bigger.** Settings > System > Show ROM Path on Game List now steps through Off and On at four font sizes, 1x (as before) to 4x, for reading the path on a big display or from further away. At the larger sizes a long path takes more lines, and on the RG DS Plus the save state's picture above it gets smaller to make room. If you had it on, it stays on at 1x.
+
+### Android
+- **Save states shared with RetroArch on Android too** (issue #111): the game list's Settings now has **Save States: Shared with RetroArch** and **RetroArch's State Folder**, as on Linux, so the pause menu's slots 0 to 9 and the resume point can be RetroArch's own (save in one, go on in the other, or on another device you sync the folder with). GBA DS finds them in `RetroArch/states/mGBA` on your storage; choose another folder with **RetroArch's State Folder** (needs All files access). Known: RetroArch builds that keep their states inside `Android/data` can't share them, as Android keeps other apps out of that folder: set RetroArch's Settings > Directory > Save States to a folder on your storage first.
 
 ### Fixes
 - **The game list shows every game in a big folder.** With All on and more than 256 games, the list stopped drawing after the 256th: the rest could still be picked, but their rows were blank. Every game is shown now, in the list and in both grids.
