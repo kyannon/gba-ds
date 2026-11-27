@@ -15,6 +15,9 @@
 - **A translation or romhack GBA DS knows now has its own logo** (pull request #102 by cmyksoda). With the Japanese game and its English translation both in your game list, each now shows its own title, in the list and on the second screen, instead of both showing whichever logo was made first: F-Zero Climax, Fire Emblem: The Binding Blade, Shin Megami Tensei and Densetsu no Stafy 1 to 3. A translation shows the Japanese game's logo until you've selected it once in the list. A logo made from a translation before this update stays on the Japanese game until you delete that game's logo file in the `states/logos/` folder (`BFTJ.png` for F-Zero Climax, named by the game code).
 - **RG DS Plus on the Stock Linux OS: the left stick's left and right are no longer swapped** (issue #104). The controls GBA DS ships for that system had the stick's left and right the wrong way round, in the menus and in games. A mapping you made yourself with Map Buttons still comes first.
 
+### Android
+- **Phones with an 8BitDo FlipPad: the screens move up above it** (issue #107). The FlipPad folds over the bottom of a phone held upright and used to cover the bottom screen. While one is plugged in, both screens (or the game alone, and the pause menu) now fit in the part of the display above it, and they go back to the whole display when you unplug it. Settings > Screens > **Controller over the screen**: Automatic (the default), On for a controller of this kind that GBA DS doesn't recognise by name, or Off. Not used with the phone held sideways or on a device with two displays. Experimental: not yet tried with a real FlipPad; if the screens sit too high or too low, `pad_cover_mm` in the settings file says how much of the display it covers (64 mm by default).
+
 ## v1.6.3 (2026-11-25)
 
 ### New games
