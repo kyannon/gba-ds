@@ -112,6 +112,9 @@ int main(int argc, char** argv) {
 		return 2;
 	}
 	profile_set_rom(emu.gameCode, emu.romCrc);
+	/* exact runs: the captures, logo extraction and the profiles' workers on
+	 * this thread (a trace is only replayed exactly so; emu_sync_work) */
+	emu_set_sync_work(true);
 	/* what the module reads from the host, set once per game */
 	sec.emu = &emu, sec.cfg = &cfg, sec.debug = getenv("GBADS_DEBUG") != NULL, sec.romPath = romPath;
 	sec.hooks = (SecondHooks) { d_present, d_present_gba, d_logo_load, d_logo_free };

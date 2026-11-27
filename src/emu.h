@@ -130,6 +130,11 @@ float emu_rumble_level(const Emu* e);
  * a hidden copy. */
 void emu_frame_blind(Emu* e, uint32_t keys);
 /* the cartridge has a sun sensor (Boktai) */
+/* background work on the caller's thread (map captures, logo extraction, the
+ * profiles' workers, the climb copy's pictures waited for): exact runs.
+ * Off unless set (or GBADS_SYNC=1 at the start). See emu.c. */
+void emu_set_sync_work(bool on);
+bool emu_sync_work(void);
 bool emu_has_solar(Emu* e);
 /* The cartridge's gyro reading for the frames to come, in mGBA's units (WarioWare: Twisted!):
  * 0 is at rest, 2^21 a count of the cartridge's 12-bit sample. Only that game reads it. */

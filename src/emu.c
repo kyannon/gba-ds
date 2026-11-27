@@ -366,6 +366,29 @@ static void rtc_pin(Emu* e) {
 	e->core->rtc.value = atoll(t) * 1000;
 }
 
+/* Background work done on the caller's thread, with no thread of its own:
+ * map captures (mapcap.c, run in mapcap_request), logo extraction (logo.c),
+ * the profiles' own workers (profiles.c: Mega Man Battle Network's map,
+ * Baldur's Gate's, Mario Pinball Land's counters) and the climb copy's
+ * pictures, each waited for (climb.c). Exact and repeatable (the same
+ * pictures at the same frames), at the cost of frames that take longer:
+ * the regression tests run so, and a libretro core can choose it (run-ahead,
+ * or a frontend that wants no threads). Off unless set; GBADS_SYNC=1 sets it
+ * at the start (as the tests do). (The battery save's writer, emu.c, and the
+ * Pinball copies' workers, workers.c, run as they always do: the copies'
+ * frames are waited for each frame either way.) */
+static int syncWork = -1;
+void emu_set_sync_work(bool on) {
+	syncWork = on;
+}
+bool emu_sync_work(void) {
+	if (syncWork < 0) {
+		const char* e = getenv("GBADS_SYNC");
+		syncWork = e && atoi(e);
+	}
+	return syncWork;
+}
+
 /* Does the cartridge have a sun sensor (Boktai 1, 2 and 3)? mGBA sets the flag from its
  * game database (or the header's GPIO probe) when the ROM loads. */
 bool emu_has_solar(Emu* e) {
