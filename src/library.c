@@ -1639,6 +1639,12 @@ static int draw_wrapped(int scr, int x, int y, int width, float px, const char* 
 }
 
 /* The panel, its buttons (labels[i] on row i; sel == nRows is Back). */
+/* Shader, Pattern strength and Game Boy shader while the scaling filter is an
+ * upscaler that runs here: Off, greyed, not changed (as in the pause menu) */
+static bool shader_row_off(const Setting* st) {
+	return st && (!strcmp(st->key, "shader") || !strcmp(st->key, "lcd_strength") || !strcmp(st->key, "gb_shader")) && ui_upscaling();
+}
+
 static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const char* const* labels) {
 	float px = g->px;
 	ui_dim(scr, 200);
@@ -1927,13 +1933,17 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 		}
 		char val[48];
 		config_setting_text(cfg, rows[i], val, sizeof(val));
+		bool off = shader_row_off(rows[i]);
+		if (off && strcmp(rows[i]->key, "lcd_strength")) snprintf(val, sizeof(val), "%s", tr("Off"));
 		int ax = r.x + r.w - px * 6;
 		/* (the value keeps at most 55% of the row, the label the rest: either is set smaller to fit) */
 		int vcap = fit_cap(TF_BOLD, px * 5, r.w * 55 / 100, val), vw = ui_font_width(TF_BOLD, vcap, val);
 		int lroom = (ax - px * 16 - vw) - (r.x + px * 6) - px * 8;
-		ui_font_text(scr, TF_BOLD, r.x + px * 6, r.y + r.h / 2, fit_cap(TF_BOLD, px * 5, lroom, rows[i]->label), rows[i]->label, C_TEXT, -1);
+		ui_font_text(scr, TF_BOLD, r.x + px * 6, r.y + r.h / 2, fit_cap(TF_BOLD, px * 5, lroom, rows[i]->label), rows[i]->label, off ? C_DIM : C_TEXT, -1);
 		ui_font_text(scr, TF_BOLD, ax, r.y + r.h / 2, px * 6, "›", i == sel ? C_TEXT : C_DIM, 1);
-		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, vcap, val, C_GOLD, 1);
+		bool fGrey = false;
+		if (!strcmp(rows[i]->key, "smooth")) ui_filter_note(cfg->filter, &fGrey);
+		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, vcap, val, fGrey || off ? C_DIM : C_GOLD, 1);
 		ui_font_text(scr, TF_BOLD, ax - px * 16 - vw, r.y + r.h / 2, px * 6, "‹", i == sel ? C_TEXT : C_DIM, 1);
 	}
 	if (n > SET_VIS) {
@@ -1944,7 +1954,9 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 		int bh = SDL_max(bw * 3, th * SET_VIS / n), by = a.y + (th - bh) * setTop / SDL_max(1, n - SET_VIS);
 		ui_fill_round(scr, (SDL_Rect) { bx, by, bw, bh }, C_GOLD, px);
 	}
-	const char* note = sel >= n ? NULL : rows[sel] ? rows[sel]->note
+	bool fGrey = false;
+	const char* fNote = sel < n && rows[sel] && !strcmp(rows[sel]->key, "smooth") ? ui_filter_note(cfg->filter, &fGrey) : NULL;
+	const char* note = sel >= n ? NULL : fNote ? fNote : shader_row_off(rows[sel]) ? N_("Off while an upscaling filter is on") : rows[sel] ? rows[sel]->note
 	                 : !strcmp(ids[sel], "@map") ? N_("Sets which of this device's buttons does what."): N_("Sets the shortcuts: the hotkey button held with another.");
 	if (note) {
 		set_notes(scr, p, set_row(scr, nv, nv), note, C_DIM, TF_BODY, NULL, C_DIM, TF_BODY);
@@ -2072,7 +2084,7 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			if (dir && !btn_pressed(B_LEFT) && !btn_pressed(B_RIGHT)) setPage = SP_HOME, setSel = 0;
 		} else if (!rows[setSel]) {
 			if (dir > 0) page_action(cfg, ids[setSel]);
-		} else if (dir && config_setting_step(cfg, rows[setSel], dir)) {
+		} else if (dir && !shader_row_off(rows[setSel]) && config_setting_step(cfg, rows[setSel], dir)) {
 			setting_changed(cfg, rows[setSel]);
 		}
 		if (back) setSel = setPage, setPage = SP_HOME;
@@ -2124,7 +2136,7 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			}
 			/* the left part of the value steps back, the rest forward */
 			int d = q.x > r.x + r.w * 62 / 100 && q.x < r.x + r.w * 75 / 100 ? -1 : 1;
-			if (config_setting_step(cfg, rows[i], d)) setting_changed(cfg, rows[i]);
+			if (!shader_row_off(rows[i]) && config_setting_step(cfg, rows[i], d)) setting_changed(cfg, rows[i]);
 		}
 	}
 	return true;

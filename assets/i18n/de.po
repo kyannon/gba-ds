@@ -286,9 +286,6 @@ msgstr "Rahmenlogo"
 msgid "Blue"
 msgstr "Blau"
 
-msgid "Blurry instead of sharp: usually leave off."
-msgstr "Unscharf statt scharf: meist besser aus."
-
 msgid "Both screens"
 msgstr "Beide Bildschirme"
 
@@ -1636,9 +1633,6 @@ msgstr "Die Plätze 0-9 und der Fortsetzungspunkt gehören RetroArch (sein GBA-C
 msgid "Slow (10 a second)"
 msgstr "Langsam (10 pro Sekunde)"
 
-msgid "Smooth scaling"
-msgstr "Weiche Skalierung"
-
 msgid "Smoother, one frame more input delay."
 msgstr "Weicher, ein Bild mehr Eingabeverzögerung."
 
@@ -2110,6 +2104,33 @@ msgstr "Weiter"
 #, c-format
 msgid "System: %s"
 msgstr "System: %s"
+
+msgid "Scaling filter"
+msgstr "Skalierungsfilter"
+
+msgid "Sharp"
+msgstr "Scharf"
+
+msgid "Smooth"
+msgstr "Weich"
+
+msgid "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off."
+msgstr "Wie die Pixel des Spiels vergrößert werden: scharf, unscharf oder von einem Hochskalierungsfilter mit abgerundeten Kanten neu gezeichnet. Ein Hochskalierungsfilter schaltet jeden Shader aus."
+
+msgid "Heavy: not yet tried on this device's graphics chip, so it may not run at full speed."
+msgstr "Aufwendig: auf dem Grafikchip dieses Geräts noch nicht ausprobiert, läuft also vielleicht nicht mit voller Geschwindigkeit."
+
+msgid "Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it."
+msgstr "Zu aufwendig für den Grafikchip dieses Geräts: wird hier als Scharf gezeigt. Bleibt gespeichert für ein Gerät, das ihn schafft."
+
+msgid "Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp."
+msgstr "Braucht OpenGL ES, mit dem GBA DS hier nicht zeichnet: wird als Scharf gezeigt."
+
+msgid "Off while an upscaling filter is on"
+msgstr "Aus, solange ein Hochskalierungsfilter an ist"
+
+msgid "Shader: Off (scaling filter)"
+msgstr "Shader: Aus (Skalierungsfilter)"
 
 # issue 109: mute while fast forwarding
 msgid "Mute while fast forwarding"

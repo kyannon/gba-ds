@@ -3304,6 +3304,7 @@ static int item_at(int scr, int x, int y) {
 /* the pattern a Game Boy game has (GB-10): its own choice, else the GBA's; Dot matrix is the grid (and
  * dots_filter's shadows) */
 static int shader_now(void) {
+	if (ui_upscaling()) return SH_OFF; /* (an upscaler turns every shader off: issue #89) */
 	if (emu_is_gb(&emu) && strcmp(cfg->gbShader, "same")) {
 		static const struct { const char* key; int sh; } m[] = { { "grid", SH_GRID }, { "scanlines", SH_SCANLINES }, { "soft", SH_SOFT }, { "dots", SH_GRID } };
 		for (size_t i = 0; i < sizeof(m) / sizeof(m[0]); ++i)
@@ -3313,7 +3314,7 @@ static int shader_now(void) {
 	return cfg->shader;
 }
 static bool dots_on(void) {
-	return emu_is_gb(&emu) && !strcmp(cfg->gbShader, "dots");
+	return emu_is_gb(&emu) && !strcmp(cfg->gbShader, "dots") && !ui_upscaling();
 }
 #define SHADER_ON (shader_now() != SH_OFF)
 static const char* const shaderLabels[SH_COUNT] = {
@@ -3968,6 +3969,8 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "gb_palette") && emu_gb_border(&emu)) return N_("Not available with the Super Game Boy border: the colors are the Super Game Boy's");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 2) return N_("Not available in this game: it is made for the Game Boy Color, with colors of its own");
 	if (!strcmp(key, "gb_palette") && emu_gb_kind(&emu) == 1 && strcmp(cfg->gbDual, "mono")) return N_("Not available while this game plays in color: choose In monochrome under Dual-mode games");
+	if ((!strcmp(key, "shader") || !strcmp(key, "lcd_strength") || !strcmp(key, "gb_shader")) && ui_upscaling())
+		return N_("Off while an upscaling filter is on");
 	if (!strcmp(key, "frame_buffer") && (tallProf || climbProf)) return N_("Always on in this game: it needs it for full speed");
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
@@ -4014,8 +4017,11 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		if (off && (!strcmp(key, "toggle") || !strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !toggle_supported())
 			snprintf(val, sizeof(val), tr("Not available"));
 		if (off && !strcmp(key, "pinball_live") && !tallSupported) snprintf(val, sizeof(val), tr("Not available"));
+		if (off && (!strcmp(key, "shader") || !strcmp(key, "gb_shader")) && ui_upscaling()) snprintf(val, sizeof(val), tr("Off"));
 		bool has = game_has(st);
-		SDL_Color vc = off ? C_DIS : C_GOLD;
+		bool fGrey = false;
+		const char* fNote = !strcmp(key, "smooth") ? ui_filter_note(cfg->filter, &fGrey) : NULL;
+		SDL_Color vc = off || fGrey ? C_DIS : C_GOLD;
 		ui_font_text(scr, TF_BOLD, r.x + mg->pad, cy, lc, st->label, off ? C_DIS : C_TEXT, -1);
 		int lw = ui_font_width(TF_BOLD, lc, st->label);
 		int ax = r.x + r.w - mg->pad;
@@ -4047,7 +4053,7 @@ static void draw_rows_page(int scr, const MenuGeom* mg) {
 		}
 		if (sel) {
 			const char* ctl = (!strncmp(key, "button_", 7) && ctlProf) ? (ctlProf->controls.snes.bottom ? N_("With SNES picked under Controls in the quick bar, the SNES layout replaces these in levels."): N_("With Four buttons picked under Controls in the quick bar, the four-button layout replaces these.")) : NULL;
-			note = off ? off : has ? N_("This game has its own value. X, or going on past the last choice: same as all games"): ctl ? ctl : st->note;
+			note = off ? off : fNote ? fNote : has ? N_("This game has its own value. X, or going on past the last choice: same as all games"): ctl ? ctl : st->note;
 		}
 	}
 	if (menuNote[0]) note = menuNote, noteGold = true;
@@ -4269,7 +4275,7 @@ static void draw_menu(void) {
 		bool en = item_enabled(menuItems[i]);
 		const char* label = menuLabels[menuItems[i]];
 		if (menuItems[i] == M_SCALE) label = scale_label(cfg->scale);
-		if (menuItems[i] == M_LCD) label = shader_label(cfg->shader);
+		if (menuItems[i] == M_LCD) label = shader_label(ui_upscaling() ? SH_OFF : cfg->shader);
 		if (menuItems[i] == M_COLOR) label = cfg->colorCorrection ? N_("Color Correction: On"): N_("Color Correction: Off");
 		if (menuItems[i] == M_GHOST) label = cfg->ghosting ? N_("LCD Ghosting: On"): N_("LCD Ghosting: Off");
 		if (menuItems[i] == M_AUTOSAVE) label = cfg->autoSave ? N_("Save on Quit: On"): N_("Save on Quit: Off");
@@ -6793,7 +6799,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 
 	text_add(t, "\n== Settings\n");
 	text_add(t, "layout %s, swap %d, scale %s, map_scale %s, shader %s, color_correction %d, lcd_ghosting %d, smooth %d, overlays %d (screens %d, logo %d, %s / %s), border_color %s\n", cfg->layout,
-	         cfg->swap, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection, cfg->ghosting, cfg->smooth, cfg->overlayMode, cfg->overlays, cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter, cfg->borderColor);
+	         cfg->swap, cfg->scale, cfg->mapScale, shaderNames[cfg->shader], cfg->colorCorrection, cfg->ghosting, cfg->filter, cfg->overlayMode, cfg->overlays, cfg->bezelLogo, cfg->bezelInner, cfg->bezelOuter, cfg->borderColor);
 	text_add(t, "map %d, map_interval %d, pinball_live %d, toggle %d, auto_rotate %d, toggle_button %s\n", cfg->map, cfg->mapInterval, cfg->tallLive,
 	         cfg->toggle, cfg->autoRotate, cfg->toggleButton);
 	text_add(t, "logo_folder %s, custom_logos %s; logo: %s\n", cfg->logoFolder[0] ? cfg->logoFolder : "(not set)",
@@ -8286,7 +8292,7 @@ static void draw_game(void) {
 				if (overlay_on(s)) draw_overlay(s, 1);
 				continue;
 			}
-			ui_image_pixels(s, gameTex, game_tex_w(), game_tex_h(), game_scale(), SHADER_ON);
+			ui_image_pixels(s, gameTex, game_tex_w(), game_tex_h(), game_scale(), SHADER_ON | UI_PIX_GAME);
 			if (hudProf && hudOn && hudAlt && hudProf->hud.alt.dimGame) {
 				/* (the phase banner moved to the other screen) */
 				SDL_Rect img = ui_image_rect(s, game_tex_w(), game_tex_h(), game_scale());
@@ -8438,6 +8444,12 @@ static void setting_applied(const Setting* st) {
 		rebuild_textures(); /* (every picture given again, through it or not) */
 	} else if (!strcmp(k, "gb_size")) {
 		rebuild_textures(); /* (the game's texture is another size) */
+	} else if (!strcmp(k, "smooth")) {
+		/* the scaling filter: the game's picture reads it as it's drawn; the
+		 * other pictures take Smooth from the hint when they're made */
+		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->filter == FILTER_SMOOTH ? "linear" : "nearest");
+		ui_shader(shader_now()); /* (an upscaler turns every shader off; Sharp and Smooth give it back) */
+		rebuild_textures(); /* (and the subpixels' brightening and the dot matrix with it) */
 	} else if (!strcmp(k, "lcd_ghosting") || !strcmp(k, "gb_ghosting")) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
@@ -9324,6 +9336,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_DISPLAY, "lcd_strength");
 	ROW(PG_DISPLAY, "color_correction");
 	ROW(PG_DISPLAY, "lcd_ghosting");
+	ROW(PG_DISPLAY, "smooth"); /* the scaling filter (issue #89) */
 	if (ui_logo_custom(cfg, romPath, emu.gameCode)) ROW(PG_DISPLAY, "custom_logos"); /* the game has the player's own or a scraped logo (GEN-11) */
 	if (nScreens >= 2) ROW(PG_SCREENS, "swap");
 	ROW(PG_SCREENS, "single_layout");
@@ -9949,6 +9962,10 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 					else ffOn = !ffOn, rewindOn = false;
 					break;
 				case HK_SHADER:
+					if (ui_upscaling()) { /* (every shader is off while an upscaler is the scaling filter) */
+						ui_osd("%s", tr("Shader: Off (scaling filter)"));
+						break;
+					}
 					if (emu_is_gb(&emu) && strcmp(cfg->gbShader, "same")) { /* (this game has its own pattern: the hotkey turns that off and on) */
 						snprintf(cfg->gbShader, sizeof(cfg->gbShader), "%s", shader_now() != SH_OFF ? "off" : "dots");
 						ui_shader(shader_now());

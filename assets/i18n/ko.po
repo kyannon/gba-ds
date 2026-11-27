@@ -283,9 +283,6 @@ msgstr "베젤 로고"
 msgid "Blue"
 msgstr "파랑"
 
-msgid "Blurry instead of sharp: usually leave off."
-msgstr "선명하지 않고 흐릿하게: 보통은 끈 채로 두세요."
-
 msgid "Both screens"
 msgstr "두 화면 모두"
 
@@ -1636,9 +1633,6 @@ msgstr "슬롯 0-9와 이어하기 지점은 RetroArch 것입니다 (RetroArch�
 msgid "Slow (10 a second)"
 msgstr "느림 (초당 10회)"
 
-msgid "Smooth scaling"
-msgstr "부드러운 배율"
-
 msgid "Smoother, one frame more input delay."
 msgstr "더 부드럽지만 입력 지연이 한 프레임 늘어납니다."
 
@@ -2107,6 +2101,33 @@ msgstr "계속"
 #, c-format
 msgid "System: %s"
 msgstr "시스템: %s"
+
+msgid "Scaling filter"
+msgstr "확대 필터"
+
+msgid "Sharp"
+msgstr "선명하게"
+
+msgid "Smooth"
+msgstr "부드럽게"
+
+msgid "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off."
+msgstr "게임 픽셀을 키우는 방식: 선명하게, 흐릿하게, 또는 확대 필터로 가장자리를 둥글게 다시 그립니다. 확대 필터를 쓰면 셰이더는 모두 꺼집니다."
+
+msgid "Heavy: not yet tried on this device's graphics chip, so it may not run at full speed."
+msgstr "무거움: 이 기기의 그래픽 칩에서 아직 시험해 보지 않아 최고 속도로 돌지 않을 수 있습니다."
+
+msgid "Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it."
+msgstr "이 기기의 그래픽 칩에는 너무 무겁습니다: 여기서는 선명하게로 표시됩니다. 돌릴 수 있는 기기를 위해 설정은 남겨 둡니다."
+
+msgid "Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp."
+msgstr "OpenGL ES가 필요한데 GBA DS가 여기서는 그것으로 그리지 않습니다: 선명하게로 표시됩니다."
+
+msgid "Off while an upscaling filter is on"
+msgstr "확대 필터가 켜져 있는 동안 끔"
+
+msgid "Shader: Off (scaling filter)"
+msgstr "셰이더: 끔 (확대 필터)"
 
 # issue 109: mute while fast forwarding
 msgid "Mute while fast forwarding"

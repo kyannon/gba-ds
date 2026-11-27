@@ -55,10 +55,11 @@ cp "$DEPS/mgba/LICENSE" "$LIC/mGBA-LICENSE.txt"
 cp "$DEPS/SDL2/LICENSE.txt" "$LIC/SDL2-LICENSE.txt"
 cp assets/fonts/Jost-OFL.txt "$LIC/Jost-OFL.txt"
 cp third_party/rcheevos/LICENSE "$LIC/rcheevos-LICENSE.txt"
+cp third_party/mgba-shaders/UPSCALERS-LICENSE.txt "$LIC/UPSCALERS-LICENSE.txt"
 cp third_party/libwebp/COPYING "$LIC/libwebp-COPYING.txt"
 cp third_party/libwebp/PATENTS "$LIC/libwebp-PATENTS.txt"
 cp third_party/rzstd/LICENSE.txt "$LIC/rzstd-LICENSE.txt"
-printf "GBA DS %s is free software under the GNU General Public License, version 3 only (GBA-DS-LICENSE.txt).\nIt statically links libmgba (c) Jeffrey Pfau, MPL-2.0.\nmGBA source: https://github.com/mgba-emu/mgba (commit %s)\nSDL2 (c) Sam Lantinga, zlib licence: https://github.com/libsdl-org/SDL (%s)\nIts text is set in Jost (c) The Jost Project Authors, SIL Open Font License 1.1 (Jost-OFL.txt).\nRetroAchievements support: rcheevos (c) RetroAchievements, MIT (rcheevos-LICENSE.txt), %s.\nWebP images: libwebp (c) Google Inc., BSD 3-clause (libwebp-COPYING.txt, libwebp-PATENTS.txt), v1.6.0.\nRetroArch save states (zstd): the rzstd decoder from libretro-common (c) The RetroArch team, MIT (rzstd-LICENSE.txt).\nGBA DS source: https://github.com/kyannon/gba-ds\n" \
+printf "GBA DS %s is free software under the GNU General Public License, version 3 only (GBA-DS-LICENSE.txt).\nIt statically links libmgba (c) Jeffrey Pfau, MPL-2.0.\nmGBA source: https://github.com/mgba-emu/mgba (commit %s)\nSDL2 (c) Sam Lantinga, zlib licence: https://github.com/libsdl-org/SDL (%s)\nIts text is set in Jost (c) The Jost Project Authors, SIL Open Font License 1.1 (Jost-OFL.txt).\nRetroAchievements support: rcheevos (c) RetroAchievements, MIT (rcheevos-LICENSE.txt), %s.\nWebP images: libwebp (c) Google Inc., BSD 3-clause (libwebp-COPYING.txt, libwebp-PATENTS.txt), v1.6.0.\nRetroArch save states (zstd): the rzstd decoder from libretro-common (c) The RetroArch team, MIT (rzstd-LICENSE.txt).\nUpscaling filters (hq2x, MMPX, xBR-lv2, xBR-lv3, OmniScale): mGBA's shaders by Hyllian, Lior Halphon, and Morgan McGuire & Mara Gagiu, MIT (UPSCALERS-LICENSE.txt).\nGBA DS source: https://github.com/kyannon/gba-ds\n" \
 	"$VERSION" "$(git -C "$DEPS/mgba" rev-parse --short HEAD)" "$SDL_BRANCH" "$(tail -1 third_party/rcheevos/VERSION)" > "$LIC/README.txt"
 
 # (no longer packed: the default overlays the APK carried before the bezel was drawn by the app)

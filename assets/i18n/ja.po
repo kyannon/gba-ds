@@ -283,9 +283,6 @@ msgstr "ベゼルのロゴ"
 msgid "Blue"
 msgstr "青"
 
-msgid "Blurry instead of sharp: usually leave off."
-msgstr "シャープではなくぼやけます。通常はオフのままで。"
-
 msgid "Both screens"
 msgstr "両方の画面"
 
@@ -1636,9 +1633,6 @@ msgstr "スロット 0〜9 と再開ポイントは RetroArch のもの (GBA コ
 msgid "Slow (10 a second)"
 msgstr "遅い (毎秒 10 回)"
 
-msgid "Smooth scaling"
-msgstr "スムーズな拡大"
-
 msgid "Smoother, one frame more input delay."
 msgstr "よりなめらかになりますが、入力遅延が 1 フレーム増えます。"
 
@@ -2107,6 +2101,33 @@ msgstr "続ける"
 #, c-format
 msgid "System: %s"
 msgstr "システム: %s"
+
+msgid "Scaling filter"
+msgstr "拡大フィルター"
+
+msgid "Sharp"
+msgstr "シャープ"
+
+msgid "Smooth"
+msgstr "スムーズ"
+
+msgid "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off."
+msgstr "ゲームの画素の拡大方法：シャープ、ぼかし、または拡大フィルターで輪郭を丸めて描き直します。拡大フィルターを使うとシェーダーはすべてオフになります。"
+
+msgid "Heavy: not yet tried on this device's graphics chip, so it may not run at full speed."
+msgstr "重い：この機器のグラフィックチップではまだ試されていないため、フルスピードで動かないことがあります。"
+
+msgid "Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it."
+msgstr "この機器のグラフィックチップには重すぎます：ここではシャープとして表示されます。動かせる機器のために設定は残ります。"
+
+msgid "Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp."
+msgstr "OpenGL ESが必要ですが、GBA DSはここではそれで描画していません：シャープとして表示されます。"
+
+msgid "Off while an upscaling filter is on"
+msgstr "拡大フィルターの使用中はオフ"
+
+msgid "Shader: Off (scaling filter)"
+msgstr "シェーダー: オフ（拡大フィルター）"
 
 # issue 109: mute while fast forwarding
 msgid "Mute while fast forwarding"

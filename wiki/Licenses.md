@@ -1,6 +1,6 @@
 # Licenses
 
-*Last updated November 25, 2026.*
+*Last updated November 26, 2026.*
 
 GBA DS is free software under the **[GNU General Public License, version 3](https://github.com/kyannon/gba-ds/blob/main/LICENSE)**. Its source is at [github.com/kyannon/gba-ds](https://github.com/kyannon/gba-ds), and every release's source is the repository at that release's tag. GBA DS is free and has no paid features, in-app purchases or advertising.
 
@@ -30,6 +30,7 @@ GBA DS talks to the RetroAchievements service through `curl` (a program already 
 | Part | Version | License | Source |
 |---|---|---|---|
 | **libwebp**, decoder only, for the menus' pictures (`third_party/libwebp`) | v1.6.0 | BSD-3-Clause | [webmproject/libwebp](https://github.com/webmproject/libwebp) |
+| **Upscaling filters** for Display > Scaling filter: hq2x and OmniScale (Lior Halphon), MMPX (Morgan McGuire & Mara Gagiu), xBR-lv2 and xBR-lv3 (Hyllian), mGBA's shader files (`third_party/mgba-shaders`; two need small number-format fixes to compile on OpenGL ES, listed in `tools/embed_shaders.py`). Scale2x and Scale4x are GBA DS's own | mGBA commit `143adf5` | MIT | [mgba-emu/mgba `res/shaders`](https://github.com/mgba-emu/mgba/tree/master/res/shaders) |
 | **rzstd** and xxh64 from libretro-common, to read RetroArch's compressed save states (`third_party/rzstd`) | commit `52781c4` | MIT | [libretro/libretro-common](https://github.com/libretro/libretro-common) |
 | **stb_truetype**, **stb_image**, **stb_image_write** (`src/`) | stb_truetype 1.26 | public domain (or MIT, at your choice) | [nothings/stb](https://github.com/nothings/stb) |
 | **Jost**, the interface font (`assets/fonts`) | | [SIL Open Font License 1.1](https://github.com/kyannon/gba-ds/blob/main/assets/fonts/Jost-OFL.txt) | [indestructible-type/Jost](https://github.com/indestructible-type/Jost) |

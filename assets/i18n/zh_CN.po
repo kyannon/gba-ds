@@ -283,9 +283,6 @@ msgstr "边框徽标"
 msgid "Blue"
 msgstr "蓝"
 
-msgid "Blurry instead of sharp: usually leave off."
-msgstr "模糊而不锐利：一般关掉。"
-
 msgid "Both screens"
 msgstr "两块屏幕"
 
@@ -1633,9 +1630,6 @@ msgstr "0-9 号位和继续点是 RetroArch 的（它的 GBA 核心设为 mGBA�
 msgid "Slow (10 a second)"
 msgstr "慢（每秒 10 次）"
 
-msgid "Smooth scaling"
-msgstr "平滑缩放"
-
 msgid "Smoother, one frame more input delay."
 msgstr "更平滑，但多一帧输入延迟。"
 
@@ -2107,6 +2101,33 @@ msgstr "继续"
 #, c-format
 msgid "System: %s"
 msgstr "系统：%s"
+
+msgid "Scaling filter"
+msgstr "缩放方式"
+
+msgid "Sharp"
+msgstr "锐利"
+
+msgid "Smooth"
+msgstr "平滑"
+
+msgid "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off."
+msgstr "游戏像素的放大方式：锐利、模糊，或由放大算法以圆滑的边缘重新绘制。使用放大算法时，所有画面滤镜都会关闭。"
+
+msgid "Heavy: not yet tried on this device's graphics chip, so it may not run at full speed."
+msgstr "较重：尚未在此设备的图形芯片上试过，可能无法全速运行。"
+
+msgid "Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it."
+msgstr "对此设备的图形芯片来说太重：此处按锐利显示。设置会保留，供能运行它的设备使用。"
+
+msgid "Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp."
+msgstr "需要 OpenGL ES，但 GBA DS 在此处没有用它绘制：按锐利显示。"
+
+msgid "Off while an upscaling filter is on"
+msgstr "使用放大算法时关闭"
+
+msgid "Shader: Off (scaling filter)"
+msgstr "滤镜：关（缩放方式）"
 
 # issue 109: mute while fast forwarding
 msgid "Mute while fast forwarding"
