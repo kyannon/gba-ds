@@ -1798,6 +1798,12 @@ static int draw_wrapped(int scr, int x, int y, int width, float px, const char* 
 }
 
 /* The panel, its buttons (labels[i] on row i; sel == nRows is Back). */
+/* Shader, Pattern strength and Game Boy shader while the scaling filter is an
+ * upscaler that runs here: Off, greyed, not changed (as in the pause menu) */
+static bool shader_row_off(const Setting* st) {
+	return st && (!strcmp(st->key, "shader") || !strcmp(st->key, "lcd_strength") || !strcmp(st->key, "gb_shader")) && ui_upscaling();
+}
+
 static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const char* const* labels) {
 	float px = g->px;
 	ui_dim(scr, 200);
@@ -1865,9 +1871,9 @@ typedef struct {
 static const SetPage setPages[SP_SYSTEM] = {
 	{ N_("Games"), N_("Which games, names, saving"), { "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
 	{ N_("Display"), N_("Scale, shader, theme, color"), { "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_border", "gb_correction", "gb_ghosting", "gb_shader", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth", "theme", "accent" } },
-	{ "Screens", N_("Placement, overlays"), { "swap", "single_layout", "single_size", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
+	{ "Screens", N_("Placement, overlays"), { "swap", "single_layout", "single_size", "pad_cover", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
 	{ "Controls", N_("Stick, buttons, hotkeys"), { "@map", "@hotkeys", "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right", "turbo_rate", "rumble_strength" } },
-	{ N_("Speed and sound"), N_("Rewind, fast forward"), { "show_fps", "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
+	{ N_("Speed and sound"), N_("Rewind, fast forward"), { "show_fps", "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "ff_mute", "audio_latency", "performance" } },
 	{ "Second screen", N_("The map and the logo"), { "map", "map_interval", "toggle", "auto_rotate", "toggle_button", "pinball_live" } },
 };
 static int setPage = SP_HOME; /* SP_HOME, a category, or SP_SYSTEM (the older panel) */
@@ -1957,6 +1963,67 @@ static void draw_set_heading(int scr, SDL_Rect p, const char* title, int icon) {
 	ui_label(scr, tx, p.y + px * 11, cap, title, C_TEXT);
 }
 
+/* The settings home's tall buttons (issue #108): one size for all eight, from
+ * the buttons' width (px follows the display's height, too big for a narrow
+ * button), as large as lets every button's picture, name and note fit its
+ * height, wrapped, with no word wider than the button */
+static int home_word_w(int font, int cap, const char* text) {
+	const char* p = tr(text);
+	int w = 0;
+	while (*p) {
+		char word[96];
+		int n = 0;
+		/* (a character of three or more UTF-8 bytes, Chinese or Japanese, is a word of its own:
+		 * the lines break between them) */
+		if ((unsigned char) p[0] >= 0xE0) {
+			n = (unsigned char) p[0] >= 0xF0 ? 4 : 3;
+			memcpy(word, p, n);
+		} else {
+			while (p[n] && p[n] != ' ' && (unsigned char) p[n] < 0xE0 && n < (int) sizeof(word) - 1) word[n] = p[n], ++n;
+		}
+		word[n] = 0;
+		if (n) w = SDL_max(w, ui_font_width_as_is(font, cap, word));
+		p += n;
+		while (*p == ' ') ++p;
+	}
+	return w;
+}
+
+static const char* home_name(int i) {
+	return i < SP_SYSTEM ? setPages[i].name : i == SP_SYSTEM ? "System" : "Back";
+}
+
+static const char* home_sub(int i) {
+#ifdef __ANDROID__
+	if (i == SP_SYSTEM) return N_("Folders, accounts, updates");
+#endif
+	return i < SP_SYSTEM ? setPages[i].sub : i == SP_SYSTEM ? N_("Updates, integrations"): NULL;
+}
+
+static float home_tall_unit(int scr) {
+	SDL_Rect t = set_tile(scr, 0);
+	/* (worked out once per size and language, not every frame) */
+	static int cw, ch;
+	static char clang[16];
+	static float ctp;
+	const char* lang = i18n_code();
+	if (t.w == cw && t.h == ch && !strcmp(lang, clang)) return ctp;
+	float tp = SDL_min(ui_px(scr), t.w / 55.0f);
+	for (; tp > 2; tp *= 0.9f) {
+		int tw = t.w - tp * 10, is = SDL_min(t.h * 3 / 10, (int) (tp * 18));
+		bool fits = true;
+		for (int i = 0; i < 8 && fits; ++i) {
+			const char *name = home_name(i), *sub = home_sub(i);
+			int total = (i <= SP_SYSTEM ? is + (int) (tp * 3) : 0) + ui_font_wrap_height(TF_BOLD, tw, tp * 6, name) + (sub ? ui_font_wrap_height(TF_BODY, tw, tp * 4, sub) : 0);
+			fits = total <= t.h - tp * 8 && home_word_w(TF_BOLD, tp * 6, name) <= tw && (!sub || home_word_w(TF_BODY, tp * 4, sub) <= tw);
+		}
+		if (fits) break;
+	}
+	cw = t.w, ch = t.h, ctp = tp;
+	snprintf(clang, sizeof(clang), "%s", lang);
+	return tp;
+}
+
 static void draw_set_home(int scr, int sel) {
 	int px = (int) ui_px(scr);
 	SDL_Rect p = set_panel(scr);
@@ -1966,11 +2033,28 @@ static void draw_set_home(int scr, int sel) {
 	for (int i = 0; i < 8; ++i) {
 		SDL_Rect t = set_tile(scr, i);
 		ui_key(scr, t, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
-		const char* name = i < SP_SYSTEM ? setPages[i].name : i == SP_SYSTEM ? "System" : "Back";
-		const char* sub = i < SP_SYSTEM ? setPages[i].sub : i == SP_SYSTEM ? N_("Updates, integrations"): NULL;
-#ifdef __ANDROID__
-		if (i == SP_SYSTEM) sub = N_("Folders, accounts, updates");
-#endif
+		const char *name = home_name(i), *sub = home_sub(i);
+		/* A tall button (a tall display: a tablet or phone held upright) has the
+		 * picture above the text, and the name and note wrapped to the button's
+		 * width, all left-aligned and centred as a block (issue #108: beside the
+		 * picture they were cut off there, with room to spare below) */
+		if (t.w < t.h * 2) {
+			int hasIcon = i <= SP_SYSTEM;
+			float tp = home_tall_unit(scr);
+			int x0 = t.x + tp * 5, tw = t.w - tp * 10, gap = tp * 3, nameCap = tp * 6, subCap = tp * 4;
+			int is = SDL_min(t.h * 3 / 10, (int) (tp * 18));
+			int nh = ui_font_wrap_height(TF_BOLD, tw, nameCap, name), sh = sub ? ui_font_wrap_height(TF_BODY, tw, subCap, sub) : 0;
+			int total = (hasIcon ? is + gap : 0) + nh + sh;
+			int y = t.y + (t.h - total) / 2;
+			if (hasIcon) {
+				SDL_Rect ib = { x0, y, is, is };
+				game_page_icon(scr, i == SP_SYSTEM ? GAME_ICON_SYSTEM : i, ib, i == sel || !ui_theme_light() ? C_TEXT : ui_key_ink(), ui_key_mid(i == sel ? KEY_SEL : KEY_PLAIN));
+				y += is + gap;
+			}
+			y = ui_font_wrap(scr, TF_BOLD, x0, y, tw, nameCap, name, C_TEXT);
+			if (sub) ui_font_wrap(scr, TF_BODY, x0, y, tw, subCap, sub, C_DIM);
+			continue;
+		}
 		/* the pause menu's picture (not on Back), then the text, all left-aligned in the button */
 		int iw = t.h * 6 / 10, gap = px * 3, x0 = t.x + px * 5, tx = x0 + iw + gap;
 		if (i <= SP_SYSTEM) {
@@ -2008,13 +2092,17 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 		}
 		char val[48];
 		config_setting_text(cfg, rows[i], val, sizeof(val));
+		bool off = shader_row_off(rows[i]);
+		if (off && strcmp(rows[i]->key, "lcd_strength")) snprintf(val, sizeof(val), "%s", tr("Off"));
 		int ax = r.x + r.w - px * 6;
 		/* (the value keeps at most 55% of the row, the label the rest: either is set smaller to fit) */
 		int vcap = fit_cap(TF_BOLD, px * 5, r.w * 55 / 100, val), vw = ui_font_width(TF_BOLD, vcap, val);
 		int lroom = (ax - px * 16 - vw) - (r.x + px * 6) - px * 8;
-		ui_font_text(scr, TF_BOLD, r.x + px * 6, r.y + r.h / 2, fit_cap(TF_BOLD, px * 5, lroom, rows[i]->label), rows[i]->label, C_TEXT, -1);
+		ui_font_text(scr, TF_BOLD, r.x + px * 6, r.y + r.h / 2, fit_cap(TF_BOLD, px * 5, lroom, rows[i]->label), rows[i]->label, off ? C_DIM : C_TEXT, -1);
 		ui_font_text(scr, TF_BOLD, ax, r.y + r.h / 2, px * 6, "›", i == sel ? C_TEXT : C_DIM, 1);
-		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, vcap, val, C_GOLD, 1);
+		bool fGrey = false;
+		if (!strcmp(rows[i]->key, "smooth")) ui_filter_note(cfg->filter, &fGrey);
+		ui_font_text(scr, TF_BOLD, ax - px * 8, r.y + r.h / 2, vcap, val, fGrey || off ? C_DIM : C_GOLD, 1);
 		ui_font_text(scr, TF_BOLD, ax - px * 16 - vw, r.y + r.h / 2, px * 6, "‹", i == sel ? C_TEXT : C_DIM, 1);
 	}
 	if (n > SET_VIS) {
@@ -2025,7 +2113,9 @@ static void draw_set_page(const Config* cfg, int scr, int page, int sel) {
 		int bh = SDL_max(bw * 3, th * SET_VIS / n), by = a.y + (th - bh) * setTop / SDL_max(1, n - SET_VIS);
 		ui_fill_round(scr, (SDL_Rect) { bx, by, bw, bh }, C_GOLD, px);
 	}
-	const char* note = sel >= n ? NULL : rows[sel] ? rows[sel]->note
+	bool fGrey = false;
+	const char* fNote = sel < n && rows[sel] && !strcmp(rows[sel]->key, "smooth") ? ui_filter_note(cfg->filter, &fGrey) : NULL;
+	const char* note = sel >= n ? NULL : fNote ? fNote : shader_row_off(rows[sel]) ? N_("Off while an upscaling filter is on") : rows[sel] ? rows[sel]->note
 	                 : !strcmp(ids[sel], "@map") ? N_("Sets which of this device's buttons does what."): N_("Sets the shortcuts: the hotkey button held with another.");
 	if (note) {
 		set_notes(scr, p, set_row(scr, nv, nv), note, C_DIM, TF_BODY, NULL, C_DIM, TF_BODY);
@@ -2050,7 +2140,7 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	if (!strcmp(st->key, "rumble_strength")) ui_rumble_pulse(cfg->rumbleStrength / 100.0f, 250); /* a buzz to feel it by */
 	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
 	if (!strcmp(st->key, "screen_match") || !strcmp(st->key, "screen_placement")) ui_layout_pictures();
-	if (!strcmp(st->key, "single_layout") || !strcmp(st->key, "single_size")) ui_layout();
+	if (!strcmp(st->key, "single_layout") || !strcmp(st->key, "single_size") || !strcmp(st->key, "pad_cover")) ui_layout();
 	fprintf(stderr, "setting: %s = %s (all games)\n", lines[0][0], lines[0][1]);
 }
 
@@ -2153,7 +2243,7 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			if (dir && !btn_pressed(B_LEFT) && !btn_pressed(B_RIGHT)) setPage = SP_HOME, setSel = 0;
 		} else if (!rows[setSel]) {
 			if (dir > 0) page_action(cfg, ids[setSel]);
-		} else if (dir && config_setting_step(cfg, rows[setSel], dir)) {
+		} else if (dir && !shader_row_off(rows[setSel]) && config_setting_step(cfg, rows[setSel], dir)) {
 			setting_changed(cfg, rows[setSel]);
 		}
 		if (back) setSel = setPage, setPage = SP_HOME;
@@ -2205,7 +2295,7 @@ static bool settings_pages_input(Config* cfg, int ls) {
 			}
 			/* the left part of the value steps back, the rest forward */
 			int d = q.x > r.x + r.w * 62 / 100 && q.x < r.x + r.w * 75 / 100 ? -1 : 1;
-			if (config_setting_step(cfg, rows[i], d)) setting_changed(cfg, rows[i]);
+			if (!shader_row_off(rows[i]) && config_setting_step(cfg, rows[i], d)) setting_changed(cfg, rows[i]);
 		}
 	}
 	return true;
@@ -3235,6 +3325,8 @@ void library_language_ask(Config* cfg) {
 
 	bool done = false, waitRelease = true;
 	Uint32 releasedAt = 0;
+	enum UiFace faceWas = ui_face_now();
+	ui_face(UI_FACE_MENU); /* (GEN-19: a menu, over the whole of one display) */
 	while (!done) {
 		if (!ui_events()) break;
 		ui_tick();
@@ -3281,6 +3373,7 @@ void library_language_ask(Config* cfg) {
 		ui_present();
 		SDL_Delay(15);
 	}
+	ui_face(faceWas);
 	if (!done) { /* (the app closed: asked again next time) */
 		i18n_set(cfg->language);
 		ui_language_changed();
@@ -3341,6 +3434,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		if (!strcmp(games[i].path, last)) sel = i;
 	}
 	viewCols = !strcmp(cfg->libraryView, "grid3") ? 3 : !strcmp(cfg->libraryView, "grid") ? 2 : 1;
+	ui_face(UI_FACE_LIST); /* (GEN-19: back from a game, as when the app started) */
 	int ls = ui_touch_screen();
 	int scroll = sel > 0 ? keep_visible(ls, sel, 0) : 0;
 	bool dragging = false, pressed = false;
@@ -3394,6 +3488,23 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		ui_tick();
 		ui_read_buttons();
 		ra_idle(); /* sign-in answers (at start-up, or from Settings) */
+		{
+			/* GEN-19: on one display, Settings and its screens (and the update
+			 * notice) take the whole of it; the list and the preview come back
+			 * when they close */
+			bool menu = settingsOpen || updatesOpen;
+#ifdef __ANDROID__
+			menu |= foldersOpen;
+#endif
+			int was = nScreens;
+			SDL_Rect wasR = screens[ui_touch_screen()].rect;
+			ui_face(menu ? UI_FACE_MENU : UI_FACE_LIST);
+			SDL_Rect nowR = screens[ui_touch_screen()].rect;
+			if (nScreens != was || !SDL_RectEquals(&wasR, &nowR)) {
+				thumbFor = -2; /* (the preview's size) */
+				scroll = sel >= 0 ? keep_visible(ui_touch_screen(), sel, 0) : 0;
+			}
+		}
 		ls = ui_touch_screen();
 		ListGeom g = list_geom(ls);
 

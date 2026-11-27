@@ -9,6 +9,7 @@
 #include "fonts_data.h"
 #include "logo.h"
 #include "paths.h"
+#include "upscale.h"
 #include "profiles.h"
 #include "emu.h"
 #include "i18n.h"
@@ -18,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <ctype.h>
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -315,6 +317,7 @@ static bool create_software_view(View* v, int w, int h, Uint32 format) {
 }
 
 static void open_pads(void);
+static void check_flip_pad(void);
 
 /* ------------------------------------------------------- raw input */
 
@@ -495,12 +498,36 @@ void ui_rumble_pulse(float level, int ms) {
 	rumbleSentAt = SDL_GetTicks() + (Uint32) ms; /* (the next ui_rumble doesn't cut it short) */
 }
 
+/* A controller that folds over the bottom of a phone held upright (8BitDo's
+ * FlipPad, issue #107): with pad_cover = auto, the screens are kept above it
+ * while one is plugged in. Known by its name; GBADS_TEST_PAD names a pretend
+ * one (tests). */
+static bool flipPadIn;
+
+static bool flip_pad_name(const char* name) {
+	if (!name) return false;
+	char low[128];
+	size_t n = 0;
+	for (; name[n] && n < sizeof(low) - 1; ++n) low[n] = (char) tolower((unsigned char) name[n]);
+	low[n] = 0;
+	return strstr(low, "flippad") || strstr(low, "flip pad");
+}
+
+static void check_flip_pad(void) {
+	bool in = flip_pad_name(getenv("GBADS_TEST_PAD"));
+	for (int i = 0; i < SDL_NumJoysticks() && !in; ++i) in = flip_pad_name(SDL_JoystickNameForIndex(i));
+	if (in == flipPadIn) return;
+	flipPadIn = in;
+	fprintf(stderr, "controller over the screen (FlipPad): %s (pad_cover = %s)\n", in ? "plugged in" : "gone", cfg->padCover);
+	if (views[0].ren && !strcmp(cfg->padCover, "auto")) ui_layout();
+}
+
 static void open_pads(void) {
 	for (int i = 0; i < SDL_NumJoysticks() && i < 8; ++i) {
 		if (!pads[i] && SDL_IsGameController(i)) {
 			pads[i] = SDL_GameControllerOpen(i);
 			if (pads[i]) {
-				fprintf(stderr, "controller: %s\n", SDL_GameControllerName(pads[i]));
+				fprintf(stderr, "controller: %s (%04x:%04x)\n", SDL_GameControllerName(pads[i]), SDL_JoystickGetDeviceVendor(i), SDL_JoystickGetDeviceProduct(i));
 				char* map = SDL_GameControllerMapping(pads[i]);
 				if (map) fprintf(stderr, "  mapping: %s\n", map), SDL_free(map);
 			}
@@ -512,17 +539,18 @@ static void open_pads(void) {
 			if (pads[i]) fprintf(stderr, "controller: %s (mapped)\n", SDL_GameControllerName(pads[i]));
 		} else if (!pads[i] && !rawJoys[i]) {
 			rawJoys[i] = SDL_JoystickOpen(i);
-			if (rawJoys[i]) fprintf(stderr, "joystick without mapping: %s\n", SDL_JoystickName(rawJoys[i]));
+			if (rawJoys[i]) fprintf(stderr, "joystick without mapping: %s (%04x:%04x)\n", SDL_JoystickName(rawJoys[i]), SDL_JoystickGetDeviceVendor(i), SDL_JoystickGetDeviceProduct(i));
 		}
 	}
 	update_user_mapped();
+	check_flip_pad();
 }
 
 bool ui_init(Config* c, bool wantDual) {
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
 	SDL_SetHint(SDL_HINT_APP_NAME, "GBA DS");
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->smooth ? "linear" : "nearest");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->filter == FILTER_SMOOTH ? "linear" : "nearest");
 #ifdef __ANDROID__
 	SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft");
 	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"); /* BACK opens the menu instead of closing the app */
@@ -675,7 +703,7 @@ void ui_shutdown(void) {
 	drmlease_close();
 #endif
 	for (int i = 0; i < nViews; ++i) {
-		if (i == 0 || views[i].ren != views[0].ren) SDL_DestroyRenderer(views[i].ren);
+		if (i == 0 || views[i].ren != views[0].ren) upscale_forget(views[i].ren), SDL_DestroyRenderer(views[i].ren);
 		if (views[i].win) SDL_DestroyWindow(views[i].win);
 		if (views[i].surf) SDL_FreeSurface(views[i].surf);
 		views[i] = (View) { 0 };
@@ -804,16 +832,53 @@ void ui_layout_pictures(void) {
 }
 
 static bool oneDisplay; /* (set by layout_screens) */
-static bool menuFull;   /* the pause menu is up: one screen over the whole display */
+static enum UiFace face = UI_FACE_GAME; /* what is up: decides how one display is cut (GEN-19) */
 
-void ui_menu_full(bool on) {
-	if (on == menuFull) return;
-	menuFull = on;
-	if (oneDisplay && strcmp(cfg->singleLayout, "off")) ui_layout();
+/* GEN-19, the one place that says how one display is cut, by what is up:
+ * - the game: both screens on it as One display says (Game only: one);
+ * - a menu (the pause menu and its screens, the game list's Settings and
+ *   its screens, the update notice): one screen over the whole display;
+ * - the game list: both screens as One display says, as on a two-screen
+ *   device (the list on the touch screen, the game's preview on the
+ *   other), unless the list's part would be too small or the wrong shape
+ *   (list_part_fits): then the list alone.
+ * Two displays (or a window over two panels) aren't cut: this changes nothing there. */
+void ui_face(enum UiFace f) {
+	if (f == face) return;
+	face = f;
+	if (oneDisplay) ui_layout();
+}
+
+enum UiFace ui_face_now(void) {
+	return face;
 }
 
 bool ui_one_display(void) {
 	return oneDisplay;
+}
+
+/* the game list's part of one display is big enough and of a shape its
+ * header, sort bar and tiles are laid out for (they're sized by its height):
+ * at least the RG DS's 640x480 screen, and from a little narrower than
+ * square (a phone held upright, stacked: 1080x1200) to twice as wide as tall */
+static bool list_part_fits(SDL_Rect r) {
+	return r.w >= 640 && r.h >= 480 && r.w * 10 >= r.h * 8 && r.w <= r.h * 2;
+}
+
+/* How many of the window's rows, from the bottom, a controller over the
+ * display covers (pad_cover; above): only held upright, with one display;
+ * pad_cover_mm by the display's pixels per inch, else 45 % of it, and never
+ * more than 60 %. */
+static int pad_cover(int w, int h) {
+	if (nViews != 1 || h <= w || !strcmp(cfg->padCover, "off") || (!strcmp(cfg->padCover, "auto") && !flipPadIn)) return 0;
+	float hd = 0, vd = 0;
+	int di = views[0].win ? SDL_GetWindowDisplayIndex(views[0].win) : -1;
+	if (di >= 0 && SDL_GetDisplayDPI(di, NULL, &hd, &vd) == 0 && hd > 0) vd = (hd + vd) / 2;
+	int px = vd >= 80 && vd <= 1000 ? (int) (SDL_clamp(cfg->padCoverMm, 0, 200) / 25.4f * vd) : h * 45 / 100;
+	px = SDL_min(px, h * 60 / 100);
+	static int logged = -1;
+	if (px != logged) logged = px, fprintf(stderr, "screens: %d rows kept for the controller over the screen (%d mm at %.0f ppi)\n", px, cfg->padCoverMm, vd);
+	return px;
 }
 
 static void layout_screens(void) {
@@ -863,6 +928,10 @@ static void layout_screens(void) {
 		screens[1] = (Screen) { 0, { (w - tw1) / 2, th0, tw1, th1 } };
 		return;
 	}
+	/* a controller over the bottom of the display (above): the screens cut
+	 * from the part above it */
+	int cover = pad_cover(w, h);
+	h -= cover;
 	const char* lay = cfg->layout;
 	/* a hinge across the middle of one display (Surface Duo spanned over
 	 * both screens, issue #48): a screen each side of it, the hinge's
@@ -875,9 +944,9 @@ static void layout_screens(void) {
 		if (gap > 0) lay = h > w ? "span-v" : "span-h";
 		else lay = w >= h * 18 / 10 ? "span-h" : h >= w * 12 / 10 ? "span-v" : "single";
 	}
-	static char logged[48];
-	char line[48];
-	snprintf(line, sizeof(line), "%dx%d %s gap %d", w, h, lay, gap);
+	static char logged[64];
+	char line[64];
+	snprintf(line, sizeof(line), "%dx%d %s gap %d cover %d", w, h + cover, lay, gap, cover);
 	if (strcmp(line, logged)) snprintf(logged, sizeof(logged), "%s", line), fprintf(stderr, "screens: one window, %s\n", line);
 	if (!strcmp(lay, "span-h")) {
 		nScreens = 2;
@@ -896,7 +965,7 @@ static void layout_screens(void) {
 		 * Where the game is (swap) is the player's, as with two screens. */
 		oneDisplay = true;
 		const char* sl = cfg->singleLayout;
-		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && !menuFull;
+		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && face != UI_FACE_MENU;
 		if (together) {
 			bool side = !strcmp(sl, "side") || (!strcmp(sl, "auto") && w >= h);
 			int pct = !strcmp(cfg->singleSize, "small") ? 30 : !strcmp(cfg->singleSize, "medium") ? 40 : 50;
@@ -911,11 +980,14 @@ static void layout_screens(void) {
 				screens[0] = (Screen) { 0, { 0, 0, w, a } };
 				screens[1] = (Screen) { 0, { 0, a, w, h - a } };
 			}
-			static char loggedS[64];
-			char ls[64];
-			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d", w, h, side ? "side" : "stacked", pct, cfg->swap);
+			static char loggedS[96];
+			char ls[96];
+			bool fits = true;
+			if (face == UI_FACE_LIST) fits = list_part_fits(screens[ui_touch_screen()].rect);
+			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d%s", w, h, side ? "side" : "stacked", pct, cfg->swap,
+			         face == UI_FACE_LIST ? (fits ? " (game list)" : " (game list: its part too small, the list alone)") : "");
 			if (strcmp(ls, loggedS)) snprintf(loggedS, sizeof(loggedS), "%s", ls), fprintf(stderr, "screens: both on one display, %s\n", ls);
-			return;
+			if (fits) return;
 		}
 		nScreens = 1;
 		screens[0] = (Screen) { 0, { 0, 0, w, h } };
@@ -1260,6 +1332,9 @@ bool ui_events(void) {
 		case SDL_JOYDEVICEADDED:
 			open_pads();
 			break;
+		case SDL_JOYDEVICEREMOVED:
+			check_flip_pad();
+			break;
 		case SDL_WINDOWEVENT:
 			if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED || ev.window.event == SDL_WINDOWEVENT_RESIZED) {
 				ui_layout();
@@ -1548,6 +1623,20 @@ void ui_shader(int sh) {
 	ccGain = uiShader >= SH_SUB_LIGHT ? subPresets[uiShader - SH_SUB_LIGHT].gain : 100;
 	cc_refresh();
 }
+int ui_filter_fit(int filter) {
+	return upscale_fit(nViews > 0 ? views[0].ren : NULL, filter);
+}
+const char* ui_filter_note(int filter, bool* grey) {
+	int fit = ui_filter_fit(filter);
+	*grey = fit == UPSCALE_TOO_HEAVY || fit == UPSCALE_NO_GL;
+	if (fit == UPSCALE_TOO_HEAVY) return N_("Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it.");
+	if (fit == UPSCALE_NO_GL) return N_("Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp.");
+	if (fit == UPSCALE_UNTRIED) return N_("Heavy: not yet tried on this device's graphics chip, so it may not run at full speed.");
+	return NULL;
+}
+bool ui_upscaling(void) {
+	return upscale_factor(cfg->filter) && nViews > 0 && views[0].ren && upscale_filter_ready(views[0].ren, cfg->filter);
+}
 /* the pattern the pictures are drawn with: the session's (ui_shader), else Display > Shader's */
 static int shader_choice(void) {
 	return uiShaderGame ? uiShader : cfg->shader;
@@ -1689,7 +1778,7 @@ static uint64_t ops_sig(const Retained* rv) {
 	h = (h ^ (uint64_t) rv->nOps) * 1099511628211ull;
 	h = (h ^ (uint64_t) cfg->lcdStrength) * 1099511628211ull;
 	h = (h ^ (uint64_t) shader_choice()) * 1099511628211ull;
-	return h ^ (cfg->smooth ? 0x9e3779b97f4a7c15ull : 0);
+	return h ^ ((uint64_t) cfg->filter * 0x9e3779b97f4a7c15ull);
 }
 
 /* a screenshot wants a view's pixels (only readable while it's being drawn) */
@@ -2283,12 +2372,29 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 /* ui_image_pixels' drawing, into dst on the current (screen) target. */
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd) {
 	SDL_Rect dst = *dstp;
+	bool game = lcd & UI_PIX_GAME;
+	lcd &= ~UI_PIX_GAME;
+	int up = game ? upscale_factor(cfg->filter) : 0;
+	if (up) {
+		/* the scaling filter's upscaler (issue #89): the game's picture made
+		 * 2x / 4x on the GPU, then scaled to its place (linear unless it is
+		 * already the size), without the grid. Where the renderer can't
+		 * (not OpenGL ES 2), the picture is drawn as with Sharp. */
+		SDL_Texture* big = upscale_run(ren, src, w, h, cfg->filter);
+		if (big) {
+			bool same = dst.w == w * up && dst.h == h * up;
+			SDL_SetTextureScaleMode(big, same ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
+			SDL_RenderCopy(ren, big, NULL, &dst);
+			return;
+		}
+	}
+	bool smooth = cfg->filter == FILTER_SMOOTH;
 	int k = SDL_max(1, SDL_min(dst.w / w, dst.h / h));
 	bool exact = dst.w == w * k && dst.h == h * k;
 	int c = lcd > 1 ? lcd : 1; /* source pixels per grid cell, each way */
 	int gw = w / c, gh = h / c;
-	if (!lcd && (exact || cfg->smooth)) {
-		SDL_SetTextureScaleMode(src, cfg->smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+	if (!lcd && (exact || smooth)) {
+		SDL_SetTextureScaleMode(src, smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
 		SDL_RenderCopy(ren, src, NULL, &dst);
 		return;
 	}

@@ -319,7 +319,10 @@ release zip, which replaces the main install.
 - Generated sources: `src/fonts_data.c` (above), `src/brand_data.c` (artwork
   only: the logo, button prompts and flags; `tools/make_brand.py` needs the
   Futura Bold Italic and Gamecuben fonts, which aren't in the repo: ask the
-  owner for them), `src/logo_masks.c` (`tools/make_logo_masks.py`) and
+  owner for them), `src/logo_masks.c` (`tools/make_logo_masks.py`), `src/upscale_shaders.c`
+  (`tools/embed_shaders.py`: the Scaling filter's upscalers, mGBA's shader
+  packs in `third_party/mgba-shaders`, run by `src/upscale.c` on SDL's
+  OpenGL ES context; issue #89) and
   `src/dumps_data.h` with the rules files' Dumps rows (`tools/make_dumps.py
   --dat DAT`: every official dump of each release by CRC32, from No-Intro's
   list in libretro-database (fetched with git, see the tool), the fixtures'
@@ -502,7 +505,13 @@ release zip, which replaces the main install.
   (and the releases tested only on their logo). `--changed` runs only the
   games a change touches (docs/TESTING.md); GitHub runs that on every push
   to dev / android / game/* (`.github/workflows/regress.yml`; the full
-  suite only for "Run workflow" with "full", once per release). `GBADS_SYNC=1`
+  suite only for "Run workflow" with "full", once per release). The
+  workflow has time limits (`select` 10 min, a shard 45, the fixtures'
+  download two tries of 5 min, the cases 30): a shard that fails on a time
+  limit with no failing case is a download, not the code: re-run the failed
+  jobs (`gh api -X POST repos/kyannon/gba-ds/actions/runs/RUN_ID/rerun-failed-jobs`),
+  and if it fails again, run that shard locally (`python3 tools/regress.py
+  GAMES --shard N/K`); docs/TESTING.md, "On GitHub". `GBADS_SYNC=1`
   makes captures and logo extraction run inline, so runs are exact; the app
   draws with SDL's software renderer (`SDL_RENDER_DRIVER=software`, set by
   regress.py), the same on every machine (through Mesa's OpenGL, blended
