@@ -57,7 +57,7 @@ Per-game keys: `swap`, `scale`, `map_scale`, `smooth`, `border_color`,
 `color_correction`, `lcd_ghosting`, `frame_buffer`, `match_display`,
 `screen_match`, `screen_placement`, `map`,
 `map_interval`, `custom_logos`, `pinball_live`, `rewind`,
-`rewind_seconds`, `fast_forward`, `ff_speed`, `ab_swap`, `show_fps`,
+`rewind_seconds`, `fast_forward`, `ff_speed`, `ff_mute`, `ab_swap`, `show_fps`,
 `audio_latency`, `save_on_quit`, `auto_load`, and the new `brightness_top`,
 `brightness_bottom`, `left_stick_dpad`, `turbo_rate`, `rumble_strength`, `button_right`,
 `button_bottom`, `button_top`, `button_left`, `button_l`, `button_r`, `button_dpad_up`,
@@ -101,7 +101,7 @@ returns one step. B/Back and HOME work as now.
 | **Games** | Show all games: Supported only / All games (#54), Game name tags, Game folders (Android: choose; Linux: shown), Logo folder, Custom logos |
 | **Display** | Scale (game, second screen), Shader and strength, Brightness: top, Brightness: bottom (#56), Color correction, LCD ghosting, Smooth scaling, Swap screens, Screen shapes, Screen placement, Overlays and bezel, Border colour |
 | **Controls** | Map Buttons, Hotkeys, Left stick as D-pad (#57), Face buttons (#55), Turbo rate, Rumble strength (#83), GBA A/B swap, menu combo |
-| **Speed and sound** | Show FPS, Performance, Frame buffer, Match display rate, Rewind and its length, Fast forward and its speed, Sound delay |
+| **Speed and sound** | Show FPS, Performance, Frame buffer, Match display rate, Rewind and its length, Fast forward and its speed, Mute while fast forwarding (#109), Sound delay |
 | **Second screen** | Map on/off, Map refresh, Pinball live view |
 | **Saves** | Save on quit, Auto-load, Save folder and type, GBA DS data folder |
 | **System** | Language, RetroAchievements, Updates, EmulationStation / BananaOS list (as now) |

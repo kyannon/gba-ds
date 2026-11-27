@@ -2110,3 +2110,13 @@ msgstr "Continuar"
 #, c-format
 msgid "System: %s"
 msgstr "Sistema: %s"
+
+# issue 109: mute while fast forwarding
+msgid "Mute while fast forwarding"
+msgstr "Silenciar al avanzar rápido"
+
+msgid "No sound while the game is fast-forwarded."
+msgstr "Sin sonido mientras el juego avanza rápido."
+
+msgid "Turn on fast forward first"
+msgstr "Activa primero el avance rápido"

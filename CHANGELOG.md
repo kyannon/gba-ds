@@ -18,6 +18,9 @@
 ### Android
 - **Phones with an 8BitDo FlipPad: the screens move up above it** (issue #107). The FlipPad folds over the bottom of a phone held upright and used to cover the bottom screen. While one is plugged in, both screens (or the game alone, and the pause menu) now fit in the part of the display above it, and they go back to the whole display when you unplug it. Settings > Screens > **Controller over the screen**: Automatic (the default), On for a controller of this kind that GBA DS doesn't recognise by name, or Off. Not used with the phone held sideways or on a device with two displays. Experimental: not yet tried with a real FlipPad; if the screens sit too high or too low, `pad_cover_mm` in the settings file says how much of the display it covers (64 mm by default).
 
+### Menus
+- **Mute while fast forwarding** (issue #109). Fast forward's sped-up, high-pitched sound is now muted by default. To hear it again, turn off **Mute while fast forwarding** in Settings > Speed and sound, or in the pause menu's Speed and sound settings, right below Fast forward. Like the other settings there, it can be set for one game or for all.
+
 ## v1.6.3 (2026-11-25)
 
 ### New games

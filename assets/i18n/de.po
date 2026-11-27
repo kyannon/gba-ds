@@ -2110,3 +2110,13 @@ msgstr "Weiter"
 #, c-format
 msgid "System: %s"
 msgstr "System: %s"
+
+# issue 109: mute while fast forwarding
+msgid "Mute while fast forwarding"
+msgstr "Beim Vorspulen stumm"
+
+msgid "No sound while the game is fast-forwarded."
+msgstr "Kein Ton, während das Spiel vorgespult wird."
+
+msgid "Turn on fast forward first"
+msgstr "Schalte zuerst das Vorspulen ein"
