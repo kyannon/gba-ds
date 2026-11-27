@@ -299,6 +299,13 @@ release zip, which replaces the main install.
 
 - Desktop (for development and tests): `scripts/setup-host.sh` once (fetches
   and builds mGBA and SDL2 into `deps/`), then `make` and `make tools`.
+- `make module-check`: the second-screen module (`MODULE_SRC`) and the core
+  it runs on (`CORE_SRC`, `src/logo.c`) built with no SDL include path, linked
+  with no SDL library and run (`tools/module_check.c`), so they stay what a
+  libretro core can compile (discussion #75). CI runs it on every push that
+  touches `src/` (`.github/workflows/module.yml`, mGBA only, no SDL). A module
+  file that includes SDL, calls it, or calls back into the app (`game.c`,
+  `ui.c`) fails it.
 - Device: `scripts/build-rocknix.sh` (fetches an aarch64 toolchain, mGBA
   and SDL2 into `deps/`) produces the release zip in `dist/`.
 - Android: `scripts/build-android.sh` (needs the Android SDK/NDK, so it

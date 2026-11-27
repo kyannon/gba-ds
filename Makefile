@@ -63,7 +63,11 @@ WEBP_DIR   := third_party/libwebp
 WEBP_SRC   := $(wildcard $(WEBP_DIR)/src/dec/*.c $(WEBP_DIR)/src/dsp/*.c $(WEBP_DIR)/src/utils/*.c)
 WEBP_OBJ   := $(patsubst $(WEBP_DIR)/src/%.c,$(OUT)/libwebp/%.o,$(WEBP_SRC))
 
-APP_SRC    := src/main.c src/config.c src/i18n.c src/i18n_data.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/folderpick.c src/game.c src/paths.c src/image.c src/brand_data.c src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/pixfont.c src/fonts_data.c src/ra.c src/http.c src/sha256.c src/update.c src/clocks.c src/workers.c src/twins.c src/toggle.c src/second.c src/hud.c src/rgba.c src/drmlease.c src/upscale.c src/upscale_shaders.c $(WL_SRC) $(CORE_SRC)
+# The second-screen module (discussion #75): what a libretro core compiles beside CORE_SRC and
+# src/logo.c, without SDL (make module-check)
+MODULE_SRC := src/workers.c src/twins.c src/toggle.c src/second.c src/hud.c src/rgba.c
+
+APP_SRC    := src/main.c src/config.c src/i18n.c src/i18n_data.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/folderpick.c src/game.c src/paths.c src/image.c src/brand_data.c src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/pixfont.c src/fonts_data.c src/ra.c src/http.c src/sha256.c src/update.c src/clocks.c $(MODULE_SRC) src/drmlease.c src/upscale.c src/upscale_shaders.c $(WL_SRC) $(CORE_SRC)
 
 all: $(OUT)/gba-ds
 
@@ -93,7 +97,19 @@ $(OUT)/harness: tools/harness.c tools/png.c $(CORE_SRC) src/logo.c src/*.h $(RZS
 clean:
 	rm -rf build
 
-.PHONY: all tools clean
+.PHONY: all tools clean module-check
+
+# The second-screen module and the core it runs on, built with no SDL include path and linked
+# with no SDL library, then run (tools/module_check.c): it stays what a libretro core can compile
+# (discussion #75). CI runs it (.github/workflows/module.yml).
+NOSDL_SRC    := $(MODULE_SRC) $(CORE_SRC) src/logo.c
+NOSDL_CFLAGS  = $(filter-out -I$(SDL_PREFIX)/include/SDL2,$(CFLAGS)) -Werror=implicit-function-declaration
+module-check: $(OUT)/module-check
+	$(OUT)/module-check
+
+$(OUT)/module-check: tools/module_check.c $(NOSDL_SRC) src/*.h $(MGBA_BUILD)/libmgba.a $(RZSTD_OBJ)
+	@mkdir -p $(OUT)
+	$(CC) $(NOSDL_CFLAGS) -o $@ tools/module_check.c $(NOSDL_SRC) $(RZSTD_OBJ) $(MGBA_BUILD)/libmgba.a $(ZLIB_A) -lpthread -lm
 
 # tests for the interface's language and its fonts (tools/test_i18n.c); DejaVu Sans is
 # only the stand-in fallback face for the font part
