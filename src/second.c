@@ -652,6 +652,58 @@ void second_map_setup(const char* code, bool logoOnly) {
 	}
 }
 
+/* The second screen's set-up for a game, from nothing (code: the profile in
+ * use: the game's, or for a compilation the game running in it, sec.subCode):
+ * the capture, the HUD split, the fights' picture, a logo-only game's screen
+ * copy, tall view or climb. What a core calls once the game is open and sec.emu,
+ * sec.cfg, sec.romPath, sec.hooks and hud.hooks are set; the app calls it from
+ * ss_setup beside its own set-up (controls, WarioWare's sensor, Android's
+ * pinning). screens: how many there are (the tall view and climbs need two).
+ * With the second screen off (cfg->map) only the reset. (Was inline in game.c's
+ * ss_setup.) */
+void second_open(const char* rom, const char* code, int screens) {
+	second_reset();
+	sec.logoOnly = false;
+	tallProf = NULL;
+	tallOn = false;
+	tallLive = false;
+	sec.climbProf = NULL;
+	sec.climbOn = false;
+	climb_close();
+	if (!sec.cfg->map) return;
+	sec.mc = mapcap_create(rom, code, true);
+	const MapProfile* lp = profile_find(code);
+	memprobe_virtual = lp ? lp->virt : NULL;
+	sec.logoOnly = lp && lp->logoOnly;
+	sec.snapProf = sec.logoOnly && lp->snap.showMin ? lp : NULL;
+	tallProf = sec.logoOnly && lp->tall.on[0].addr && sec.cfg->tallLive ? lp : NULL;
+	if (tallProf && screens > 1) twin_open(rom, tallProf);
+	else twin_close();
+	sec.climbProf = sec.logoOnly && lp->climb.on[0].addr && sec.cfg->tallLive && screens > 1 && climb_open(rom, lp, sec.emu, !getenv("GBADS_CLIMB_INSTEP")) ? lp : NULL;
+	sec.overOn = false;
+	hud_setup(lp, screens); /* (hud.c) */
+	sec.snapShow = sec.snapRevert = 0;
+	if (sec.mc) mapcap_set_still(sec.mc, !map_anim());
+	if (sec.logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
+	second_map_setup(code, sec.logoOnly);
+}
+
+/* The game's second screen taken down before second_open sets it up for
+ * another game (a compilation: the game running in it changed, game.c's
+ * ss_switch): the old game's HUD split and hidden sprites off, its capture and
+ * pictures gone. */
+void second_drop(void) {
+	if (hud.hudOn) emu_hud_split(sec.emu, false, 0, NULL, 0, hud.hudPx); /* (the old game's HUD split off) */
+	emu_hide_sprites(sec.emu, NULL, 0);
+	sec.hideWhenProf = NULL;
+	mapcap_destroy(sec.mc);
+	sec.mc = NULL;
+	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
+		free(sec.mapRes.frames[i]);
+		sec.mapRes.frames[i] = NULL;
+	}
+}
+
 /* The game's logo at its own size (GEN-1) onto a cw x ch canvas: k canvas
  * pixels to a logo pixel (one GBA pixel each for an extracted logo),
  * centred, blended over what's there at `alpha` (255: opaque; the logo

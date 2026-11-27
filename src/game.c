@@ -394,7 +394,6 @@ static bool logoProvisional; /* a scraped logo sized before the extracted one ex
 /* "Map Animations: Off" shows this composed still instead of mapRes.frames[] */
 /* The map button did nothing at the last attempt (A Link to the Past indoors
  * without a map): keep showing the last map, dimmed. */
-static bool logoOnly; /* the game has a profile but no map: logo on the second screen */
 static bool tallSupported; /* the game has the table over both screens, whether or not pinball_live has it on */
 static char gbPaletteAtStart[8], gbDualAtStart[8], gbBorderAtStart[8]; /* GB-6, GB-7 as this game started: a change counts from the next start */
 /* a Game Boy game's colours (GB-6, GB-7), from the settings, for emu_open */
@@ -2080,7 +2079,7 @@ static SDL_Rect bar_cell_g(int i) {
  * the picture's w / 240 screen pixels. With no map the touchscreen may show
  * the game: then the game's picture. */
 static SDL_Rect bar_pic_full(int s) {
-	bool gameHere = nScreens == 1 || s == game_screen() || !((sec.mc || logoOnly) && cfg->map);
+	bool gameHere = nScreens == 1 || s == game_screen() || !((sec.mc || sec.logoOnly) && cfg->map);
 	return ui_image_rect(s, GBA_W, GBA_H, gameHere ? cfg->scale : cfg->mapScale);
 }
 static SDL_Rect bar_to_screen(int s, SDL_Rect g) {
@@ -4300,7 +4299,7 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	}
 	text_add(t, "Running %.1f minutes (%llu frames), %.1f FPS (%.0f%%) when the report was made\n", SDL_GetTicks() / 60000.0,
 	         (unsigned long long) sec.frame, fps, speedPct);
-	text_add(t, "Second screen: %s\n", hud.combatOn ? "logo (a fight)" : hud.hudShown ? "HUD" : sec.mapShownIdx >= 0 ? "map / status picture" : logoOnly ? "logo (logo-only game)" : "logo");
+	text_add(t, "Second screen: %s\n", hud.combatOn ? "logo (a fight)" : hud.hudShown ? "HUD" : sec.mapShownIdx >= 0 ? "map / status picture" : sec.logoOnly ? "logo (logo-only game)" : "logo");
 	if (sec.mc) {
 		const char* why = NULL;
 		int fails = mapcap_failures(sec.mc, &why);
@@ -5213,7 +5212,7 @@ static void draw_osd(void) {
 	if (!osd || menuOpen || shotPending || barShown > 0) return; /* (the quick bar shows it) */
 	int s = ui_touch_screen();
 	SDL_Rect r = screens[s].rect;
-	bool gameHere = nScreens == 1 || s == game_screen() || !((sec.mc || logoOnly) && cfg->map);
+	bool gameHere = nScreens == 1 || s == game_screen() || !((sec.mc || sec.logoOnly) && cfg->map);
 	SDL_Rect img = gameHere ? ui_image_rect(s, game_tex_w(), game_tex_h(), game_scale()) : ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
 	int gap = r.h - (img.y + img.h);
 	int fpx = small_text_px(s, img.y < gap ? img.y : gap);
@@ -5274,7 +5273,7 @@ static void make_logo_canvas(void) {
 #include "ww_twisted.inc"
 
 static void draw_game(void) {
-	bool mapOn = (sec.mc || logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
+	bool mapOn = (sec.mc || sec.logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
 	for (int s = 0; s < nScreens; ++s) {
 		bool showGame = nScreens == 1 ? !(singleShowsMap && mapOn) : (s == game_screen() || !mapOn);
 		SDL_Rect r = screens[s].rect;
@@ -5345,7 +5344,7 @@ static void draw_game(void) {
 			/* a user's high-resolution logo: fitted to where the picture goes */
 			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
 			ui_image(s, logoTex, logoW, logoH, logoPixel ? "integer" : "fit", &area);
-		} else if (logoOnly) {
+		} else if (sec.logoOnly) {
 			/* no logo to show (none extracted for this game yet): its name */
 			const MapProfile* tp = profile_find(emu.gameCode);
 			SDL_Rect area = ui_image_rect(s, GBA_W, GBA_H, cfg->mapScale);
@@ -5809,16 +5808,8 @@ static void take_screenshot(void) {
  * or for a compilation the game running in it: subCode): the map capture,
  * the HUD split, the fights' picture. */
 static void ss_setup(const char* rom, const char* code) {
-	second_reset(); /* (the module's: second.c) */
 	singleShowsMap = false;
-	logoOnly = false;
 	ww_setup(NULL, rom);
-	tallProf = NULL;
-	tallOn = false;
-	tallLive = false;
-	sec.climbProf = NULL;
-	sec.climbOn = false;
-	climb_close();
 	{
 		const MapProfile* cp = profile_find(code);
 		ctlProf = cp && (cp->controls.fourFace || cp->controls.snes.bottom) ? cp : NULL;
@@ -5830,26 +5821,13 @@ static void ss_setup(const char* rom, const char* code) {
 			fprintf(stderr, "controls: %s\n", ctl_name(ctlMode));
 		}
 	}
-	if (cfg->map) {
 #ifdef __ANDROID__
-		android_set_pinning(cfg->pinCores);
+	if (cfg->map) android_set_pinning(cfg->pinCores);
 #endif
-		sec.mc = mapcap_create(rom, code, true);
+	second_open(rom, code, nScreens); /* (second.c) */
+	if (cfg->map) {
 		const MapProfile* lp = profile_find(code);
-		memprobe_virtual = lp ? lp->virt : NULL;
-		logoOnly = lp && lp->logoOnly;
 		ww_setup(lp, rom);
-		sec.snapProf = logoOnly && lp->snap.showMin ? lp : NULL;
-		tallProf = logoOnly && lp->tall.on[0].addr && cfg->tallLive ? lp : NULL;
-		if (tallProf && nScreens > 1) twin_open(rom, tallProf);
-		else twin_close();
-		sec.climbProf = logoOnly && lp->climb.on[0].addr && cfg->tallLive && nScreens > 1 && climb_open(rom, lp, &emu, !getenv("GBADS_CLIMB_INSTEP")) ? lp : NULL;
-		sec.overOn = false;
-		hud_setup(lp, nScreens); /* (hud.c) */
-		sec.snapShow = sec.snapRevert = 0;
-		if (sec.mc) mapcap_set_still(sec.mc, !map_anim());
-		if (logoOnly) fprintf(stderr, "logo only: %s\n", lp->title);
-		second_map_setup(code, logoOnly); /* (second.c) */
 		swallowProf = lp && lp->swallow.keys && nScreens > 1 ? lp : NULL;
 	}
 }
@@ -5901,15 +5879,8 @@ static void rebuild_textures(void) {
 static void ss_switch(const char* rom, const char* code) {
 	fprintf(stderr, "frame %llu: now %s\n", (unsigned long long) sec.frame, code);
 	snprintf(sec.subCode, sizeof(sec.subCode), "%.4s", code);
-	if (hud.hudOn) emu_hud_split(&emu, false, 0, NULL, 0, hud.hudPx); /* (the old game's HUD split off) */
-	emu_hide_sprites(&emu, NULL, 0);
-	sec.hideWhenProf = NULL, swallowProf = NULL;
-	mapcap_destroy(sec.mc);
-	sec.mc = NULL;
-	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
-		free(sec.mapRes.frames[i]);
-		sec.mapRes.frames[i] = NULL;
-	}
+	second_drop(); /* (second.c: the old game's) */
+	swallowProf = NULL;
 	ss_setup(rom, sec.subCode);
 	ss_textures();
 	make_logo_canvas();

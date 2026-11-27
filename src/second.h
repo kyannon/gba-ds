@@ -63,6 +63,7 @@ typedef struct {
 	int logoHolding;        /* frames logoIf's logo is held after it stops matching */
 	bool overOn, overDirty; /* the HUD's pieces over the map (hud.overMap); the picture to be uploaded again */
 	bool liveOn;            /* a profile's own live picture is up (liveView): drawn as it is */
+	bool logoOnly;          /* the game has a profile but no map: the logo on the second screen (or a screen copy) */
 	uint64_t mapAnimStart;
 	/* the contextual toggle (GEN-14, issue #37): where the pages' count starts
 	 * (0 with the toggle off: then nothing here is used), the picture's
@@ -156,6 +157,12 @@ void* second_state_save(size_t* n);
  * hud_setup (hud.h), then second_map_setup */
 void second_reset(void);
 void second_map_setup(const char* code, bool logoOnly);
+/* A game's second screen set up from nothing (second_reset, the capture,
+ * hud_setup, second_map_setup, in that order), and taken down for another
+ * game (a compilation's): what a core calls; the app's ss_setup / ss_switch
+ * call them beside its own set-up. */
+void second_open(const char* rom, const char* code, int screens);
+void second_drop(void);
 void second_state_load(const uint8_t* b, size_t n);
 /* the frame is mostly dark / one colour nearly all over (a fade, a blank screen) */
 bool frame_is_dark(const uint32_t* fb);
