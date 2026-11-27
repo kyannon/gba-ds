@@ -153,6 +153,32 @@ instead, a restart with it open, closing it, a phone (no button) and a reload
 (it closes). Headless Chromium has one screen, so placing it on another
 monitor is checked in a real browser.
 
+## The Scaling filter's upscalers and Edge stretch
+
+Nov 27, 2026 (branch `stretch-curve`): the web build draws with SDL's software
+renderer, so it had no OpenGL for Display > Scaling filter's upscalers
+(Scale2x to OmniScale), which were greyed. Now `upscale.c`'s `__wasi__` branch
+reads the game's picture back and hands each pass to the import `web_gl_pass`:
+`worker.js` (`glUpscaleImports`, given to the runtime as `opts.imports`, a hook
+in `gbads-runtime.js`) runs the pass's shader, the same one a device runs
+(GLSL ES 1.00, else 3.00, with the same headers, uniforms and quad), in a
+WebGL2 context of its own (an OffscreenCanvas, not the one that shows the
+window), and writes the result back into the app's memory. A shader that
+declares its own output in GLSL 3.00 (xBR) gets the 3.00 header without
+`compat_FragColor`: WebGL2 refuses two outputs without locations, which the
+device's Mali lets by. The heavy filters show the untried-chip warning. The
+State Saver page doesn't pass the hook, so `web_gl_ok` answers 0 there and the
+filters stay greyed. Each pass is two copies (in and back), so they're slower
+than on a device; not measured.
+
+The scale **Edge stretch** (`edges`) draws in strips on a GPU, but SDL's
+software renderer samples those nearest only (pixels dropped and doubled), so
+on it `ui.c` resamples the picture on the CPU instead (`curve_sw`: Sharp is an
+area average, Smooth linear; with an LCD shader, from the picture with the
+grid drawn in; with an upscaler, from its result). Tested headless in
+Chromium (SwiftShader) with every filter, Sharp and Smooth on the AYN Thor's
+resolution, and by the owner in the web player.
+
 ## How it works
 
 - `player.js` (the page): files dropped or chosen (`takeFiles`: a dev zip,
