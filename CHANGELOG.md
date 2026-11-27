@@ -2,6 +2,9 @@
 
 ## v1.6.5 (not yet released)
 
+### Single displays
+- **The game list always shows the selected game** (issue #84). On a tablet, a phone or another single display, the game list used to show the list alone with One display on Game only, or where the display was too small or the wrong shape for two screens, so the selected game's details (and the ROM path) never showed. Now the list sits under a short strip across the top with GBA DS's logo, the game's logo, whether it has a save state, Play and Quit, the version, any romhack or modified ROM note and, with Show ROM Path on, the game's file. Where the display has room for both screens, nothing changes. On a tall, narrow display the list's buttons now fit across it too.
+
 ## v1.6.4 (2026-11-26)
 
 ### New games
