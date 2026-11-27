@@ -2128,3 +2128,13 @@ msgstr "확대 필터가 켜져 있는 동안 끔"
 
 msgid "Shader: Off (scaling filter)"
 msgstr "셰이더: 끔 (확대 필터)"
+
+# issue 109: mute while fast forwarding
+msgid "Mute while fast forwarding"
+msgstr "빨리 감기 중 음소거"
+
+msgid "No sound while the game is fast-forwarded."
+msgstr "게임을 빨리 감는 동안 소리를 내지 않습니다."
+
+msgid "Turn on fast forward first"
+msgstr "먼저 빨리 감기를 켜세요"

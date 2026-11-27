@@ -502,7 +502,13 @@ release zip, which replaces the main install.
   (and the releases tested only on their logo). `--changed` runs only the
   games a change touches (docs/TESTING.md); GitHub runs that on every push
   to dev / android / game/* (`.github/workflows/regress.yml`; the full
-  suite only for "Run workflow" with "full", once per release). `GBADS_SYNC=1`
+  suite only for "Run workflow" with "full", once per release). The
+  workflow has time limits (`select` 10 min, a shard 45, the fixtures'
+  download two tries of 5 min, the cases 30): a shard that fails on a time
+  limit with no failing case is a download, not the code: re-run the failed
+  jobs (`gh api -X POST repos/kyannon/gba-ds/actions/runs/RUN_ID/rerun-failed-jobs`),
+  and if it fails again, run that shard locally (`python3 tools/regress.py
+  GAMES --shard N/K`); docs/TESTING.md, "On GitHub". `GBADS_SYNC=1`
   makes captures and logo extraction run inline, so runs are exact; the app
   draws with SDL's software renderer (`SDL_RENDER_DRIVER=software`, set by
   regress.py), the same on every machine (through Mesa's OpenGL, blended

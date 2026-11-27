@@ -2128,3 +2128,13 @@ msgstr "使用放大算法时关闭"
 
 msgid "Shader: Off (scaling filter)"
 msgstr "滤镜：关（缩放方式）"
+
+# issue 109: mute while fast forwarding
+msgid "Mute while fast forwarding"
+msgstr "快进时关闭声音"
+
+msgid "No sound while the game is fast-forwarded."
+msgstr "游戏快进时不发出声音。"
+
+msgid "Turn on fast forward first"
+msgstr "请先开启快进"

@@ -2132,3 +2132,13 @@ msgstr "Désactivé tant qu'un filtre d'agrandissement est actif"
 
 msgid "Shader: Off (scaling filter)"
 msgstr "Shader : Non (filtre de mise à l'échelle)"
+
+# issue 109: mute while fast forwarding
+msgid "Mute while fast forwarding"
+msgstr "Muet pendant l'avance rapide"
+
+msgid "No sound while the game is fast-forwarded."
+msgstr "Pas de son pendant que le jeu est en avance rapide."
+
+msgid "Turn on fast forward first"
+msgstr "Activez d'abord l'avance rapide"

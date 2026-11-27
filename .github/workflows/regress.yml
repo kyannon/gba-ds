@@ -35,6 +35,7 @@ concurrency:
 jobs:
   select:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       games: ${{ steps.pick.outputs.games }}
       shards: ${{ steps.pick.outputs.shards }}
@@ -57,7 +58,8 @@ jobs:
           git init -q
           git remote add origin "https://x-access-token:${TOKEN}@github.com/kyannon/gba-ds-tests.git"
           git sparse-checkout set --no-cone /dependencies.json
-          if git fetch -q --depth 1 --filter=blob:none origin main && git checkout -q FETCH_HEAD; then
+          # (a fetch that hangs is stopped after 2 minutes and counts as not reachable)
+          if timeout 120 git fetch -q --depth 1 --filter=blob:none origin main && git checkout -q FETCH_HEAD; then
             echo "Dependency map from gba-ds commit $(python3 -c 'import json; print(json.load(open("dependencies.json"))["commit"][:9])')"
           else
             echo "::warning title=No dependency map::Couldn't fetch dependencies.json from kyannon/gba-ds-tests; shared code runs every game."
@@ -104,6 +106,7 @@ jobs:
     needs: select
     if: needs.select.outputs.shards != '[]'
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -138,6 +141,7 @@ jobs:
           echo "$(wc -l < fixtures.txt) fixture paths"
 
       - name: Fixtures
+        timeout-minutes: 15
         env:
           TOKEN: ${{ secrets.GBA_DS_TESTS_TOKEN }}
         run: |
@@ -151,12 +155,19 @@ jobs:
           # (one path a line on stdin, so names with spaces stay whole (the patches'); a
           # pattern's own wildcards escaped, and each anchored at the top)
           sed -e 's/[][*?\\]/\\&/g' -e 's|^|/|' ../fixtures.txt | git sparse-checkout set --no-cone --stdin
-          git fetch -q --depth 1 --filter=blob:none origin main || {
-            echo "::error title=Fixtures not reachable::Couldn't fetch kyannon/gba-ds-tests: GBA_DS_TESTS_TOKEN may have expired or lost access."; exit 1; }
+          # (a fetch that hangs is stopped after 5 minutes and tried once more: Nov 25, 2026 one hung for 47)
+          fetched=
+          for try in 1 2; do
+            if timeout 300 git fetch -q --depth 1 --filter=blob:none origin main; then fetched=1; break; fi
+            echo "::warning title=Fixtures fetch, attempt $try::The fixtures' download failed or took over 5 minutes."
+          done
+          [ -n "$fetched" ] || {
+            echo "::error title=Fixtures not reachable::Couldn't fetch kyannon/gba-ds-tests twice (failed, or over 5 minutes each): GBA_DS_TESTS_TOKEN may have expired or lost access, or GitHub was slow. Re-run the failed jobs."; exit 1; }
           git checkout -q FETCH_HEAD
           du -sh .
 
       - name: Run
+        timeout-minutes: 30
         env:
           LD_LIBRARY_PATH: ${{ github.workspace }}/deps/sdl-host/lib  # (the SDL2 built above: the runner has none)
         run: |
