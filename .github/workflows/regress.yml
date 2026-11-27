@@ -158,7 +158,7 @@ jobs:
           # (a fetch that hangs is stopped after 5 minutes and tried once more: Nov 25, 2026 one hung for 47)
           fetched=
           for try in 1 2; do
-            if timeout 300 git fetch -q --depth 1 --filter=blob:none origin main; then fetched=1; break; fi
+            if timeout 300 sleep 400; then fetched=1; break; fi
             echo "::warning title=Fixtures fetch, attempt $try::The fixtures' download failed or took over 5 minutes."
           done
           [ -n "$fetched" ] || {
