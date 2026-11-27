@@ -835,7 +835,15 @@ void ui_layout_pictures(void) {
 static bool oneDisplay; /* (set by layout_screens) */
 static bool stripMode; /* the game list's strip over the list (GEN-19; set by layout_screens) */
 static float stripPx;  /* the strip's layout unit */
+static int stripExtra; /* pixels the strip needs beyond UI_STRIP_UNITS (a larger ROM path, GEN-21) */
 bool ui_list_strip(void) { return stripMode; }
+bool ui_list_strip_extra(int px) {
+	if (px == stripExtra) return false;
+	stripExtra = px;
+	if (!stripMode) return false;
+	ui_layout();
+	return true;
+}
 static enum UiFace face = UI_FACE_GAME; /* what is up: decides how one display is cut (GEN-19) */
 
 /* GEN-19, the one place that says how one display is cut, by what is up:
@@ -1002,7 +1010,7 @@ static void layout_screens(void) {
 			 * Plus's other screen is across, the strip at most a quarter of the height),
 			 * the list under it */
 			stripPx = SDL_max(2.0f, SDL_min(w / 256.0f, h / 4.0f / UI_STRIP_UNITS));
-			int s = (int) (stripPx * UI_STRIP_UNITS);
+			int s = SDL_min((int) (stripPx * UI_STRIP_UNITS) + stripExtra, h / 2);
 			nScreens = 2;
 			stripMode = true;
 			screens[0] = (Screen) { 0, { 0, 0, w, s } };

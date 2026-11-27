@@ -78,6 +78,7 @@ enum UiFace { UI_FACE_GAME, UI_FACE_LIST, UI_FACE_MENU };
 void ui_face(enum UiFace f); /* what is up, for how one display is cut (GEN-19): the game as One display says, a menu over the whole display, the game list as One display says when its part fits (else the list alone); nothing on two displays */
 enum UiFace ui_face_now(void);
 #define UI_STRIP_UNITS 76 /* the game list strip's height in its layout units (GEN-19) */
+bool ui_list_strip_extra(int px); /* the strip needs px more than its own height (a larger ROM path): cuts the display again if that changed; true then */
 bool ui_list_strip(void); /* the game list is a strip (screen 0, the selected game's details) over the list (screen 1) on one display (GEN-19) */
 bool ui_one_display(void); /* the screens are cut from one display's window (not two displays, or a window over two panels): both screens on it are an option (issue #84) */
 /* Works out the screens' picture areas again (screen_match or

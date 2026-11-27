@@ -693,6 +693,65 @@
      "frac": 0.999
     }
    ]
+  },
+  {
+   "id": "cva-us-single-library-strip-4x",
+   "kind": "library",
+   "rom": "A2CE",
+   "desc": "the phone of cva-us-single-library-strip with Show ROM Path on at 4x: the path in letters four times the size, broken after a folder onto a second line, and the strip over the list taller by as much as that needs (GEN-21, GEN-19)",
+   "rules": [
+    "GEN-21",
+    "GEN-19"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "off",
+    "show_rom_path": 4,
+    "update_check": 0
+   },
+   "env": {
+    "GBADS_WINDOW": "1080x2400"
+   },
+   "shots": {
+    "list": 30
+   },
+   "golden_mask": [
+    [
+     880,
+     235,
+     1080,
+     280
+    ],
+    [
+     0,
+     286,
+     1080,
+     520
+    ]
+   ],
+   "checks": [
+    {
+     "rule": "GEN-21",
+     "what": "4x: the strip taller than at 1x (320)",
+     "type": "log",
+     "match": "screens: game list strip, 1080x2400, strip (3[3-9][0-9]|[4-9][0-9][0-9])"
+    },
+    {
+     "rule": "GEN-21",
+     "what": "4x: the path's letters in the strip",
+     "type": "not_uniform",
+     "shot": "list",
+     "screen": "game",
+     "rect": [
+      24,
+      290,
+      1024,
+      510
+     ],
+     "color": "000000",
+     "frac": 0.99
+    }
+   ]
   }
  ]
 }
