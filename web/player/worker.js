@@ -290,6 +290,86 @@ function serveTick() {
   serve.stateBack = null;
   post({ t: "capresult", job: done, frames, step: i[1], tileValid: i[2], failed: err ? 1 : 0, buf: out.buffer, len, state }, state ? [out.buffer, state] : [out.buffer]);
 }
+/* The Scaling filter's upscalers (src/upscale.c, the web build): SDL draws in
+ * software here, so the app hands each pass to web_gl_pass, which runs the
+ * same shader as a device does in a WebGL2 context of its own (not the one
+ * that shows the window) and writes the result back into the app's memory. */
+function glUpscaleImports(exports) {
+  let gl = null, tried = false, vbo = null, fbo = null, texIn = null, texOut = null;
+  const progs = new Map();
+  const mem = () => exports().memory.buffer;
+  const cstr = (p) => { if (!p) return ""; const u = new Uint8Array(mem()); let e = p; while (u[e]) e++; return new TextDecoder().decode(u.subarray(p, e)); };
+  function init() {
+    tried = true;
+    try {
+      gl = new OffscreenCanvas(1, 1).getContext("webgl2", { alpha: true, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: false });
+    } catch (e) { gl = null; }
+    if (!gl) { log("upscale: no WebGL2 for the upscalers"); return; }
+    vbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    fbo = gl.createFramebuffer();
+    const mk = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); return t; };
+    texIn = mk(); texOut = mk();
+  }
+  function compile(type, src) {
+    const sh = gl.createShader(type); gl.shaderSource(sh, src); gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) { const e = gl.getShaderInfoLog(sh); gl.deleteShader(sh); throw new Error(e); }
+    return sh;
+  }
+  function build(vs, fs, uniforms) {
+    const p = gl.createProgram();
+    gl.attachShader(p, compile(gl.VERTEX_SHADER, vs)); gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+    gl.bindAttribLocation(p, 0, "position"); gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error("link: " + gl.getProgramInfoLog(p));
+    gl.useProgram(p);
+    gl.uniform1i(gl.getUniformLocation(p, "tex"), 0);
+    for (const line of uniforms.split("\n")) {
+      const [k, v] = line.split("=");
+      if (k) { const l = gl.getUniformLocation(p, k); if (l) gl.uniform1f(l, parseFloat(v)); }
+    }
+    return { p, texSize: gl.getUniformLocation(p, "texSize"), outputSize: gl.getUniformLocation(p, "outputSize") };
+  }
+  return {
+    web_gl_ok() { if (!tried) init(); return gl ? 1 : 0; },
+    web_gl_pass(key, vs0, fs0, vs1, fs1, uni, inP, inW, inH, outP, outW, outH) {
+      if (!tried) init();
+      if (!gl) return 0;
+      let pr = progs.get(key);
+      if (pr === undefined) {
+        const u = cstr(uni), errs = [];
+        for (const [vs, fs] of [[vs0, fs0], [vs1, fs1]]) {
+          try { pr = build(cstr(vs), cstr(fs), u); break; } catch (e) { errs.push(String(e.message || e)); pr = null; }
+        }
+        if (!pr) log("upscale: a filter's shader didn't build in WebGL2: " + errs.join(" / "));
+        progs.set(key, pr);
+      }
+      if (!pr) return 0;
+      gl.useProgram(pr.p);
+      gl.disable(gl.BLEND); gl.disable(gl.SCISSOR_TEST);
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texOut);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, outW, outH, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texOut, 0);
+      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) return 0;
+      gl.bindTexture(gl.TEXTURE_2D, texIn);
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, inW, inH, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(mem(), inP, inW * inH * 4));
+      gl.viewport(0, 0, outW, outH);
+      if (pr.texSize) gl.uniform2f(pr.texSize, inW, inH);
+      if (pr.outputSize) gl.uniform2f(pr.outputSize, outW, outH);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.readPixels(0, 0, outW, outH, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(mem(), outP, outW * outH * 4));
+      return 1;
+    },
+  };
+}
 async function bootCapture(m) {
   const fs = new GBADS.MemFS();
   for (const [p, b, t] of m.files) fs.write(p, b, t);
@@ -408,7 +488,7 @@ async function boot(m) {
   fpsT = performance.now(); snd.wall = fpsT;
   try {
     h = await GBADS.start({
-      wasm: m.wasm, fs, args: m.args, env: m.env, log,
+      wasm: m.wasm, fs, args: m.args, env: m.env, log, imports: glUpscaleImports,
       onFrame: (px, w, fh, pitch) => {
         if (dbg.on) {
           const n = performance.now(), gap = n - dbg.last;
