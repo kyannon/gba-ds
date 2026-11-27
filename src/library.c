@@ -17,6 +17,7 @@
 #include "update.h"
 #include "clocks.h"
 #include "game.h"
+#include "pixfont.h"
 
 
 #include <ctype.h>
@@ -881,6 +882,137 @@ static void load_thumbs(Config* cfg, int idx) {
 	}
 }
 
+/* Settings > System > Show ROM Path on Game List (GEN-21): the selected game's full path and file name
+ * under the preview's button hints, on its black, written in the quick bar's small pixel
+ * font (pixfont.h) at half a layout unit to a font pixel (2 screen pixels on the RG DS Plus), as the GitHub link. A path with a letter the
+ * pixel font lacks is written in Jost at the same size. Too long for one line: up to three, broken after a
+ * '/' where one is close enough, the last cut with "...". */
+#define PATH_LINES 3
+static bool path_pixel(const char* s) { /* every character in the pixel font */
+	for (const unsigned char* p = (const unsigned char*) s; *p; ++p)
+		if (*p >= 0x80) return false;
+	return pixfont_has(&pixfont_small, s);
+}
+static int path_width(const char* s, size_t n, bool pix, int scale) {
+	char buf[1100];
+	if (n >= sizeof(buf)) n = sizeof(buf) - 1;
+	memcpy(buf, s, n);
+	buf[n] = 0;
+	return pix ? pixfont_width(&pixfont_small, buf) * scale : ui_font_width_as_is(TF_BODY, pixfont_small.cap * scale, buf);
+}
+/* how many bytes of s go on a line maxW wide (at least one character) */
+static size_t path_break(const char* s, int maxW, bool pix, int scale) {
+	size_t len = strlen(s), n = 0;
+	if (path_width(s, len, pix, scale) <= maxW) return len;
+	for (size_t k = 1; k <= len; ++k) {
+		if (k < len && ((unsigned char) s[k] & 0xC0) == 0x80) continue; /* (inside a UTF-8 character) */
+		if (path_width(s, k, pix, scale) > maxW) break;
+		n = k;
+	}
+	if (!n) { /* not even one character fits: take it anyway */
+		n = 1;
+		while (n < len && ((unsigned char) s[n] & 0xC0) == 0x80) ++n;
+	}
+	for (size_t k = n; k > n / 2; --k)
+		if (s[k - 1] == '/') return k; /* (a folder ends the line) */
+	for (size_t k = n; k > n / 2; --k)
+		if (s[k - 1] == ' ') return k; /* (else a space, so the next line doesn't start with one) */
+	return n;
+}
+static void pix_draw(int scr, const PixFont* f, int x, int y, int scale, const char* s, size_t n, SDL_Color c) {
+	for (size_t i = 0; i < n; ++i) {
+		unsigned char ch = (unsigned char) s[i];
+		if (ch == ' ') {
+			x += f->space * scale;
+			continue;
+		}
+		const PixGlyph* g = &f->g[ch - 32];
+		for (int row = 0; row < f->height; ++row) {
+			for (int col = 0; col < g->w; ) { /* (a run of lit pixels: one rectangle) */
+				if (!(g->row[row] >> (g->w - 1 - col) & 1)) { ++col; continue; }
+				int run = 0;
+				while (col + run < g->w && (g->row[row] >> (g->w - 1 - col - run) & 1)) ++run;
+				ui_fill(scr, (SDL_Rect) { x + col * scale, y + row * scale, run * scale, scale }, c);
+				col += run;
+			}
+		}
+		x += (g->w + 1) * scale;
+	}
+}
+/* a path's lines on a strip maxW wide (1 to PATH_LINES); *cut: it needed more */
+static int path_lines(const char* path, int maxW, int scale, const char** line, size_t* len, bool* cut) {
+	bool pix = path_pixel(path);
+	int n = 0;
+	const char* s = path;
+	for (; *s && n < PATH_LINES; ++n) {
+		line[n] = s, len[n] = path_break(s, maxW, pix, scale);
+		s += len[n];
+	}
+	*cut = *s != 0;
+	return n;
+}
+static bool pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath) */
+static int path_scale(int scr) { return SDL_max(1, (int) ui_px(scr) / 2); } /* (the owner's choice: 2 on the RG DS Plus, as the GitHub link) */
+static int path_line_h(int scr) { return (pixfont_small.height + 2) * path_scale(scr); }
+/* The path's room under the preview's hints: the longest listed path's lines, so the hints above don't
+ * jump as the selection moves (worked out again only when the games or the screen change). 0: off. */
+static int path_block_h(int scr) {
+	if (!pathStrip || nGames <= 0) return 0;
+	static unsigned key = 0;
+	static int lines = 1;
+	int w = screens[scr].rect.w, scale = path_scale(scr), maxW = w - (int) (ui_px(scr) * 6) * 2;
+	unsigned k = (unsigned) nGames * 2654435761u ^ (unsigned) w * 40503u;
+	for (int i = 0; i < nGames; ++i) k = k * 31u + (unsigned) strlen(games[i].path) + (unsigned char) games[i].path[0];
+	if (k != key) {
+		key = k, lines = 1;
+		for (int i = 0; i < nGames && lines < PATH_LINES; ++i) {
+			const char* line[PATH_LINES];
+			size_t len[PATH_LINES];
+			bool cut;
+			lines = SDL_max(lines, path_lines(games[i].path, maxW, scale, line, len, &cut));
+		}
+	}
+	return path_line_h(scr) * lines - 2 * scale;
+}
+/* the path's lines, left at the preview's margin, the first one's top at y (on the black: no strip) */
+static void draw_path_text(int scr, int y, const char* path, SDL_Color c) {
+	if (!path || !path[0]) return;
+	SDL_Rect r = screens[scr].rect;
+	float px = ui_px(scr);
+	int scale = path_scale(scr), m = px * 6;
+	int lineH = path_line_h(scr), maxW = r.w - m * 2;
+	bool pix = path_pixel(path), cut;
+	const char* line[PATH_LINES];
+	size_t len[PATH_LINES];
+	int n = path_lines(path, maxW, scale, line, len, &cut);
+	for (int i = 0; i < n; ++i) {
+		char buf[1100];
+		size_t k = SDL_min(len[i], sizeof(buf) - 4);
+		memcpy(buf, line[i], k);
+		buf[k] = 0;
+		if (i == n - 1 && cut) {
+			/* the last line ends "...": characters come off its end until that fits */
+			while (k > 0 && path_width(buf, k, pix, scale) + path_width("...", 3, pix, scale) > maxW) {
+				do --k; while (k > 0 && ((unsigned char) buf[k] & 0xC0) == 0x80);
+			}
+			memcpy(buf + k, "...", 4);
+			k += 3;
+		}
+		int ly = y + i * lineH;
+		if (pix) pix_draw(scr, &pixfont_small, m, ly, scale, buf, k, c);
+		else ui_font_text_as_is(scr, TF_BODY, m, ly + pixfont_small.cap * scale / 2, pixfont_small.cap * scale, buf, c, -1);
+	}
+}
+
+/* a line in the quick bar's pixel font (the large one), its top at y; x is its left, or its right with
+ * right set; false (nothing drawn) if the font lacks a character */
+static bool pix_line(int scr, int x, int y, int scale, const char* text, SDL_Color c, bool right) {
+	if (!path_pixel(text) || !pixfont_has(&pixfont_large, text)) return false;
+	if (right) x -= pixfont_width(&pixfont_large, text) * scale;
+	pix_draw(scr, &pixfont_large, x, y, scale, text, strlen(text), c);
+	return true;
+}
+
 static void draw_preview(Config* cfg, int scr, int sel) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
@@ -893,14 +1025,25 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	int ourW = draw_brand(scr, BRAND_LOGO, m, m, headH);
 	{
 		/* where to find us, under our logo, as the version number is drawn
-		 * (the pixel font's capitals; without https://, so it stays clear
+		 * (the quick bar's pixel font; without https://, so it stays clear
 		 * of a wide game logo on the right) */
 		int vpx = SDL_max(1, px / 2);
-		ui_text(scr, m + px * 2, m + headH + px * 2, vpx, "GITHUB.COM/KYANNON/GBA-DS", C_DIM);
+		pix_line(scr, m + px * 2, m + headH + px * 2, vpx, "github.com/kyannon/gba-ds", C_DIM, false);
 	}
 
+	/* the selected game's path at the bottom (Settings > System, GEN-21), the hints above it */
+	pathStrip = cfg->romPath;
+	int pathH = path_block_h(scr), ty = r.h - px * 11;
+	if (pathH) {
+		/* a rule above it, one font pixel thick, two font pixels of black either side (the hints' icons above,
+		 * the path below), in the same grey, margin to margin */
+		int ps = path_scale(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
+		ui_fill(scr, (SDL_Rect) { m, ruleY, r.w - m * 2, ps }, C_DIM);
+		if (sel >= 0 && sel < nGames) draw_path_text(scr, pathY, games[sel].path, C_DIM);
+		ty = ruleY - 2 * ps - (int) (px * 17 / 2); /* (the icons' bottom is ty + 8.5 units) */
+	}
 	/* button hints along the bottom */
-	int ty = r.h - px * 11, d = px * 10, bx = m;
+	int d = px * 10, bx = m;
 	int gy = ty + px * 7 / 2 - d / 2;
 	int cap = px * 5, cy = gy + d / 2, wordW = px * 18;
 	bx += draw_brand(scr, BRAND_BTN_A, bx, gy, d) + px * 2;
@@ -914,8 +1057,9 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 
 	{
 		int vpx = SDL_max(1, px / 2);
-		const char* v = "V" GBADS_VERSION;
-		ui_text(scr, r.w - m - ui_text_width(v, vpx), cy - vpx * 7 / 2, vpx, v, C_DIM);
+		const char* v = "v" GBADS_VERSION;
+		if (!pix_line(scr, r.w - m, cy - vpx * pixfont_large.cap / 2, vpx, v, C_DIM, true))
+			ui_text(scr, r.w - m - ui_text_width("V" GBADS_VERSION, vpx), cy - vpx * 7 / 2, vpx, "V" GBADS_VERSION, C_DIM);
 	}
 	if (nGames == 0 || sel < 0) {
 		ui_label(scr, r.w / 2, r.h / 2, px * 6, "No games found", C_TEXT);
@@ -1270,6 +1414,8 @@ static void save_library_cfg(const Config* cfg) {
 	fprintf(f, "retroarch_state_dir = %s\n", cfg->raStateDir);
 	/* (Settings > GBA BIOS: the player's own, off unless switched on; issue #78) */
 	fprintf(f, "gba_bios = %d\n", cfg->gbaBios ? 1 : 0);
+	/* (Settings > Show ROM Path on Game List) */
+	fprintf(f, "show_rom_path = %d\n", cfg->romPath ? 1 : 0);
 #ifdef __ANDROID__
 	fprintf(f, "rom_dir = %s\n", cfg->romDir);
 	/* (Settings > Folders; empty: next to the games) */
@@ -1342,6 +1488,7 @@ static void storage_check(const Config* cfg) {
 }
 
 static void draw_list(Config* cfg, int scr, int sel, int scroll) {
+	pathStrip = cfg->romPath;
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	ListGeom g = list_geom(scr);
@@ -1454,10 +1601,10 @@ static int updatesSel;
  * there's one; Map Buttons and Hotkeys; Performance, where GBA DS can set
  * the clock governors (clocks.c); Updates. Android: Folders,
  * RetroAchievements, Map Buttons and Hotkeys, Updates. */
-#define SETTINGS_MAX 9
+#define SETTINGS_MAX 10
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE, ROW_BIOS };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE, ROW_BIOS, ROW_ROMPATH };
 static int rowKind[SETTINGS_MAX];
 
 /* System's top row: the interface's language, stepped on each press (the setting is the one in config.c's table) */
@@ -1522,6 +1669,16 @@ static const char* bios_note(const Config* cfg, SDL_Color* col) {
 	return tr("Use your own GBA BIOS (gba_bios.bin, in the bios folder of GBA DS's data folder) instead of the built-in one. Only needed for save states made with one.");
 }
 
+/* System's Show ROM Path on Game List row: the selected game's file under the preview's hints (draw_path_text) */
+static const char* rompath_label(const Config* cfg) { return cfg->romPath ? N_("Show ROM Path on Game List: On") : N_("Show ROM Path on Game List: Off"); }
+static const char* rompath_note(void) { return N_("Shows the selected game's folder and file name under Play and Quit on the game list's other screen."); }
+static void rompath_switch(Config* cfg) {
+	cfg->romPath = !cfg->romPath;
+	pathStrip = cfg->romPath;
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: ROM path on the game list %s\n", cfg->romPath ? "on" : "off");
+}
+
 #ifdef __ANDROID__
 /* the row showing kind (0 if none) */
 static int row_of(int kind) {
@@ -1547,6 +1704,7 @@ static void settings_rows(const Config* cfg) {
 		if (android[i] == ROW_RA && android_one_display()) rowKind[nRows++] = ROW_ROTATION;
 	}
 	rowKind[nRows++] = ROW_BIOS; /* (issue #78) */
+	rowKind[nRows++] = ROW_ROMPATH;
 	rowKind[nRows++] = ROW_RESET;
 	rowKind[nRows++] = ROW_DELCFG;
 #else
@@ -1563,6 +1721,7 @@ static void settings_rows(const Config* cfg) {
 	else if (es_present(cfg)) rowKind[nRows++] = ROW_ES;
 #endif
 	rowKind[nRows++] = ROW_BIOS; /* (issue #78) */
+	rowKind[nRows++] = ROW_ROMPATH;
 	rowKind[nRows++] = ROW_RESET;
 	rowKind[nRows++] = ROW_DELCFG;
 #endif
@@ -2184,6 +2343,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		int k = rowKind[i];
 		labels[i] = k == ROW_LANGUAGE ? lang_label(cfg)
 		          : k == ROW_BIOS    ? bios_label(cfg)
+		          : k == ROW_ROMPATH ? rompath_label(cfg)
 		          : k == ROW_ESDE    ? (esde_integration_on() ? N_("GBA DS in ES-DE: On"): N_("GBA DS in ES-DE: Off"))
 		          : k == ROW_FOLDERS ? "Folders"
 		          : k == ROW_RA      ? raLabel
@@ -2203,6 +2363,9 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		break;
 	case ROW_BIOS:
 		text = bios_note(cfg, &col);
+		break;
+	case ROW_ROMPATH:
+		text = rompath_note();
 		break;
 	case ROW_ESDE:
 		text = N_("Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, "
@@ -2261,6 +2424,9 @@ static void settings_activate(Config* cfg, int row) {
 		return;
 	case ROW_BIOS:
 		bios_switch(cfg);
+		return;
+	case ROW_ROMPATH:
+		rompath_switch(cfg);
 		return;
 	case ROW_ESDE:
 		esde_integration_set(!esde_integration_on(), settingsMsg, sizeof(settingsMsg));
@@ -2622,6 +2788,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	for (int i = 0; i < nRows; ++i) {
 		labels[i] = rowKind[i] == ROW_LANGUAGE ? lang_label(cfg)
 		          : rowKind[i] == ROW_BIOS   ? bios_label(cfg)
+		          : rowKind[i] == ROW_ROMPATH ? rompath_label(cfg)
 		          : rowKind[i] == ROW_BANANA ? (banana_integration_on() ? N_("GBA DS in BananaOS's GBA list: On"): N_("GBA DS in BananaOS's GBA list: Off"))
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? N_("GBA DS in EmulationStation: On"): N_("GBA DS in EmulationStation: Off"))
 		          : rowKind[i] == ROW_RESET  ? (confirmRow == i ? N_("Are you sure? Reset settings"): N_("Reset settings to defaults"))
@@ -2650,6 +2817,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                       : update_blurb();
 	SDL_Color biosCol = C_DIM;
 	if (rowKind[i] == ROW_BIOS) text = bios_note(cfg, &biosCol);
+	if (rowKind[i] == ROW_ROMPATH) text = rompath_note();
 	/* a message from switching a row (settings_activate): in place of its text */
 	bool msg = settingsMsg[0] && settingsMsgRow == i;
 	if (msg) text = settingsMsg;
@@ -2676,6 +2844,7 @@ static void settings_activate(Config* cfg, int row) {
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_BIOS) bios_switch(cfg);
+	else if (rowKind[row] == ROW_ROMPATH) rompath_switch(cfg);
 	else if (rowKind[row] == ROW_STATES) states_switch(cfg);
 	else if (rowKind[row] == ROW_STATES_DIR) states_dir_pick(cfg);
 	else if (rowKind[row] == ROW_PERF) {
@@ -3224,6 +3393,7 @@ void library_language_ask(Config* cfg) {
 }
 
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
+	pathStrip = cfg->romPath; /* (the preview's room for the ROM path, GEN-21) */
 	if (!cfg->languageAsked) library_language_ask(cfg); /* (a first install, issue #92) */
 	storage_check(cfg);
 	sortMode = !strcmp(cfg->librarySort, "recent") ? 1 : 0;

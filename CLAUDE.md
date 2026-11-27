@@ -311,8 +311,11 @@ release zip, which replaces the main install.
   `src/fonts_data.c` by `tools/embed_fonts.py`) with stb_truetype
   (`src/textfont.c`): `ui_label` (bold, centred), `ui_font_text` /
   `ui_font_wrap` (TF_BOLD or TF_BODY, any UTF-8). New text is just a string;
-  write it in normal sentence case. The pixel font (`ui_text`) is left for
-  the FPS counter and version number.
+  write it in normal sentence case. The old pixel font (`ui_text`, capitals
+  only) is left for the FPS counter (and the version number where the quick
+  bar's pixel font lacks a character); the game list's GitHub link, version
+  number and ROM path strip (GEN-21) use the quick bar's Jost-like pixel font
+  (`pixfont.h`, library.c `pix_draw`).
 - Generated sources: `src/fonts_data.c` (above), `src/brand_data.c` (artwork
   only: the logo, button prompts and flags; `tools/make_brand.py` needs the
   Futura Bold Italic and Gamecuben fonts, which aren't in the repo: ask the

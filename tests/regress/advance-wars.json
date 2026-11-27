@@ -1875,6 +1875,169 @@
    ]
   },
   {
+   "id": "aw-rom-path-list",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On, and back on the game list the other screen shows the ROM's path under the Play / Quit hints, on black",
+   "rules": [
+    "GEN-21"
+   ],
+   "input": [
+    [
+     30,
+     "SELECT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     44,
+     "DOWN"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     52,
+     "DOWN"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     74,
+     "-"
+    ],
+    [
+     78,
+     "DOWN"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     86,
+     "DOWN"
+    ],
+    [
+     90,
+     "-"
+    ],
+    [
+     94,
+     "DOWN"
+    ],
+    [
+     98,
+     "-"
+    ],
+    [
+     102,
+     "DOWN"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     160,
+     "B"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     172,
+     "B"
+    ],
+    [
+     176,
+     "-"
+    ]
+   ],
+   "shots": {
+    "system-rom-path-on": 150,
+    "list-rom-path": 200
+   },
+   "golden_mask": [
+    [
+     870,
+     600,
+     1024,
+     750
+    ],
+    [
+     0,
+     600,
+     1024,
+     768
+    ]
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "library: ROM path on the game list on",
+     "rule": "GEN-21",
+     "what": "switched on from the System page"
+    },
+    {
+     "type": "not_uniform",
+     "shot": "list-rom-path",
+     "screen": "game",
+     "rect": [
+      24,
+      734,
+      700,
+      754
+     ],
+     "color": "000000",
+     "frac": 0.999,
+     "rule": "GEN-21",
+     "what": "the path written under the hints, on the black"
+    },
+    {
+     "type": "uniform",
+     "shot": "list-rom-path",
+     "screen": "game",
+     "rect": [
+      0,
+      755,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.999,
+     "rule": "GEN-21",
+     "what": "no coloured strip: black below the path"
+    }
+   ]
+  },
+  {
    "id": "aw-us-toggle-unavailable",
    "rom": "AWRE",
    "state": "advance-wars/us-title.ss",

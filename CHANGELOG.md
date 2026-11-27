@@ -21,6 +21,8 @@
 
 ### Menus
 - **Mute while fast forwarding** (issue #109). Fast forward's sped-up, high-pitched sound is now muted by default. To hear it again, turn off **Mute while fast forwarding** in Settings > Speed and sound, or in the pause menu's Speed and sound settings, right below Fast forward. Like the other settings there, it can be set for one game or for all.
+- **Show the selected game's file in the game list.** Settings > System has a new switch, **Show ROM Path on Game List** (under GBA BIOS, off by default). On, the game list's other screen shows the selected game's folder and file name under Play and Quit, in small pixel letters below a thin line. Handy for telling two copies of a game apart.
+- **The game list's GitHub link and version number are in the quick menu's pixel letters**, the link now in lower case. Those letters now also have `&`, brackets and the other symbols file names use, so quick-menu messages with them show in pixel letters too.
 
 ## v1.6.3 (2026-11-25)
 
