@@ -19,6 +19,13 @@
 ### Android
 - **Save states shared with RetroArch on Android too** (issue #111): the game list's Settings now has **Save States: Shared with RetroArch** and **RetroArch's State Folder**, as on Linux, so the pause menu's slots 0 to 9 and the resume point can be RetroArch's own (save in one, go on in the other, or on another device you sync the folder with). GBA DS finds them in `RetroArch/states/mGBA` on your storage; choose another folder with **RetroArch's State Folder** (needs All files access). Known: RetroArch builds that keep their states inside `Android/data` can't share them, as Android keeps other apps out of that folder: set RetroArch's Settings > Directory > Save States to a folder on your storage first.
 
+### Fixes
+- **The game list shows every game in a big folder.** With All on and more than 256 games, the list stopped drawing after the 256th: the rest could still be picked, but their rows were blank. Every game is shown now, in the list and in both grids.
+- **When no supported games are found**, the game list now says to tap Supported to see every game, instead of pointing to a line in the settings file.
+- **A few more words translated:** "(patch)" after a patched game's name, and "Downloading", "Installing" and "Installed" on the Updates screen.
+- **Game Boy games in the web player** could overwrite a little of the player's memory as they started (GBA cartridge rumble was being set up for them too). Fixed; on handhelds and Android it did no harm.
+- **A game that fails to load** no longer leaves its memory in use until GBA DS is closed.
+
 ## v1.6.4 (2026-11-26)
 
 ### New games

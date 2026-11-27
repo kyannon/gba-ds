@@ -1120,8 +1120,13 @@ msgstr "已开启。重启 BananaOS（设置 > 系统）后它的菜单才会用
 msgid "On. Restart EmulationStation to see it."
 msgstr "已开启。重启 EmulationStation 就能看到。"
 
-msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
-msgstr "只列出有地图画面的游戏（show_all = 1 会列出全部）"
+#: src/library.c:1513
+msgid "Only games with a map screen are listed."
+msgstr "只列出有地图画面的游戏。"
+
+#: src/library.c:1514
+msgid "Tap \"Supported\" to see every game."
+msgstr "点按“支持的”可查看全部游戏。"
 
 msgid "Only one screen: nothing to move"
 msgstr "只有一块屏幕：无需移动"
@@ -1197,12 +1202,6 @@ msgstr "已暂停"
 
 msgid "Performance"
 msgstr "性能"
-
-msgid "Performance: Let the System Decide"
-msgstr "性能：由系统决定"
-
-msgid "Performance: Set to Max"
-msgstr "性能：设为最高"
 
 msgid "Pictures in the middle of their screens, or close together."
 msgstr "画面在各自屏幕中间，或彼此靠近。"
@@ -1801,9 +1800,6 @@ msgstr "ROM 旁边的补丁"
 msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
 msgstr "补丁与游戏开始时不同：重新开始才会用上它们（否则从下次启动开始生效）"
 
-msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
-msgstr "GBA DS 打开时处理器、内存和图形都全速运行：最流畅，但更费电、机器更热。"
-
 msgid "the right face button"
 msgstr "右边的主按键"
 
@@ -1815,9 +1811,6 @@ msgstr "左边第二个肩键"
 
 msgid "the second right shoulder button"
 msgstr "右边第二个肩键"
-
-msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
-msgstr "由系统决定速度，和它的其他模拟器一样。如果游戏卡顿或声音断断续续，可以试试“设为最高”。"
 
 msgid "the top face button"
 msgstr "上面的主按键"

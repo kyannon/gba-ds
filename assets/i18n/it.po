@@ -1127,8 +1127,13 @@ msgstr "Sì. Riavvia BananaOS (Impostazioni > Sistema) perché il suo menu lo us
 msgid "On. Restart EmulationStation to see it."
 msgstr "Sì. Riavvia EmulationStation per vederlo."
 
-msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
-msgstr "Sono elencati solo i giochi con una schermata mappa (show_all = 1 li elenca tutti)"
+#: src/library.c:1513
+msgid "Only games with a map screen are listed."
+msgstr "Sono elencati solo i giochi con una schermata mappa."
+
+#: src/library.c:1514
+msgid "Tap \"Supported\" to see every game."
+msgstr "Tocca «Supportato» per vedere tutti i giochi."
 
 msgid "Only one screen: nothing to move"
 msgstr "Un solo schermo: niente da spostare"
@@ -1204,12 +1209,6 @@ msgstr "In pausa"
 
 msgid "Performance"
 msgstr "Prestazioni"
-
-msgid "Performance: Let the System Decide"
-msgstr "Prestazioni: decide il sistema"
-
-msgid "Performance: Set to Max"
-msgstr "Prestazioni: Max"
 
 msgid "Pictures in the middle of their screens, or close together."
 msgstr "Immagini al centro dei loro schermi, o vicine tra loro."
@@ -1808,9 +1807,6 @@ msgstr "la patch accanto alla ROM"
 msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
 msgstr "Le patch non sono quelle dell'avvio del gioco: riavvialo per giocare con esse (oppure vengono usate dal prossimo avvio)"
 
-msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
-msgstr "Processore, memoria e grafica vanno a piena velocità finché GBA DS è aperto: il gioco più fluido, ma la batteria si scarica più in fretta e il dispositivo si scalda di più."
-
 msgid "the right face button"
 msgstr "il pulsante a destra"
 
@@ -1822,9 +1818,6 @@ msgstr "il secondo pulsante dorsale sinistro"
 
 msgid "the second right shoulder button"
 msgstr "il secondo pulsante dorsale destro"
-
-msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
-msgstr "Il sistema imposta la velocità, come per i suoi altri emulatori. Se i giochi scattano o l'audio si interrompe, prova Imposta al massimo."
 
 msgid "the top face button"
 msgstr "il pulsante in alto"
