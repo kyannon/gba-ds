@@ -704,6 +704,24 @@ void second_drop(void) {
 	}
 }
 
+/* The game's second screen taken down as the game ends: its capture, the
+ * Pinball copies and the climb copy (their own cores and threads), the
+ * pictures and the still. Call it before the game's emulator is closed: the
+ * copies are taken from it. (Was inline in game.c's end of a game.) */
+void second_close(void) {
+	mapcap_destroy(sec.mc);
+	sec.mc = NULL;
+	twin_close();
+	climb_close();
+	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
+		free(sec.mapRes.frames[i]);
+		sec.mapRes.frames[i] = NULL;
+	}
+	free(sec.stillPx);
+	sec.stillPx = NULL;
+	sec.stillValid = false;
+}
+
 /* The game's logo at its own size (GEN-1) onto a cw x ch canvas: k canvas
  * pixels to a logo pixel (one GBA pixel each for an extracted logo),
  * centred, blended over what's there at `alpha` (255: opaque; the logo

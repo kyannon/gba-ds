@@ -163,6 +163,9 @@ void second_map_setup(const char* code, bool logoOnly);
  * call them beside its own set-up. */
 void second_open(const char* rom, const char* code, int screens);
 void second_drop(void);
+/* The second screen taken down as the game ends (the capture, the copies,
+ * the pictures and the still): before the game's emulator is closed. */
+void second_close(void);
 void second_state_load(const uint8_t* b, size_t n);
 /* the frame is mostly dark / one colour nearly all over (a fade, a blank screen) */
 bool frame_is_dark(const uint32_t* fb);

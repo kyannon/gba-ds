@@ -7516,23 +7516,13 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	if (audio) SDL_CloseAudioDevice(audio);
 	if (audioConv) SDL_FreeAudioStream(audioConv);
 	ww_free();
-	mapcap_destroy(sec.mc);
-	sec.mc = NULL;
+	second_close(); /* (second.c: the capture, the copies, the pictures; before emu_close) */
 	emu_rewind_deinit();
 #ifdef __wasi__
 	webPlaying = false;
 #endif
-	twin_close();
-	climb_close();
 	ui_rumble(0);
 	emu_close(&emu); /* flushes the battery save */
-	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
-		free(sec.mapRes.frames[i]);
-		sec.mapRes.frames[i] = NULL;
-	}
-	free(sec.stillPx);
-	sec.stillPx = NULL;
-	sec.stillValid = false;
 	for (int i = 0; i < nViews; ++i) {
 		SDL_DestroyTexture(gameTex[i]);
 		SDL_DestroyTexture(mapTex[i]);
