@@ -238,6 +238,29 @@ void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n);
 /* Which layers are drawn: bits 0-3 BG0-3, bit 4 sprites (0x1F = all). Takes
  * effect when the display registers are next written (e.g. a state load). */
 void emu_layers(Emu* e, unsigned mask);
+/* Widescreen patches (docs/WIDESCREEN.md): the marker a GBA DS
+ * widescreen patch puts in the ROM, and the wider (or taller) picture it asks
+ * for. */
+#define WIDE_MARGIN_MAX 64
+typedef struct {
+	bool found;
+	int num, den;    /* the aspect ratio, as the patch names it (16:9) */
+	int w, h;        /* the picture: 284 x 160 for 16:9 */
+	uint32_t offset; /* where the marker is in the ROM */
+} EmuWide;
+bool emu_wide_parse(const uint8_t* rom, size_t size, EmuWide* out);
+/* the picture for a ratio (as tools/widescreen.py's): one axis the GBA's */
+bool emu_wide_ratio(int num, int den, EmuWide* out);
+/* the game's ROM as loaded (patched) */
+bool emu_wide_find(const Emu* e, EmuWide* out);
+/* Draws the margins from now on (the game's own core, once per open). */
+bool emu_wide_on(Emu* e, const EmuWide* w);
+bool emu_wide_active(void);
+int emu_wide_w(void);
+int emu_wide_h(void);
+/* The whole picture: centre (GBA_W x GBA_H, the game's frame as shown) with
+ * the margins around it; emu_wide_w() pixels a row. centre itself when off. */
+const uint32_t* emu_wide_compose(const uint32_t* centre);
 /* HUD split (Mario Kart): while on, the BG layers in bgMask (bit 0 = BG0)
  * and the sprites matching any of objs are left out of the game picture and
  * drawn alone into hud (GBA_W x GBA_H, kept by the caller while the core is

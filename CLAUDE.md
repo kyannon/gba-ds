@@ -547,6 +547,15 @@ release zip, which replaces the main install.
   `emu_hud_band`, also the layers whose BGxCNT has given values on a line:
   Advance Wars' conversations). The harness has `split BGMASK PRIO` /
   `split off` and `hudshot NAME`.
+  Widescreen patches (docs/WIDESCREEN.md, rules WS-n; branch `widescreen`): a
+  patch's 32-byte marker `GBADS-WIDESCREEN` in the ROM as played (`emu_wide_find`)
+  makes `emu_wide_on` hook the game core's renderer like the HUD split and feed two
+  more software renderers looking a margin to each side (text BGs by mGBA's layer
+  offsets, sprites by their own moved OAM copy, affine reference points and window
+  edges moved); `emu_wide_compose` puts the margins round the frame game.c shows
+  (`game_tex_*`; `game_scale` keeps the picture's shape). `GBADS_WIDE=16:9` forces it
+  on any game (for writing a patch). `tools/widescreen.py` makes the marker and
+  patches; `tools/widetest/build.py` the test ROM (ZWSE) and its patches.
   State files (issue #39): loading (and `emu_state_file_kind` /
   `_rom_crc` / `_get_extra`) takes mGBA's own files and RetroArch's /
   BananaFront's (`RASTATE`, RZIP-compressed (zlib, or zstd since issue #78: the

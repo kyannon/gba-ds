@@ -1,0 +1,407 @@
+{
+ "game": "Widescreen patches (test ROM)",
+ "rules": "docs/WIDESCREEN.md",
+ "cases": [
+  {
+   "id": "ws-off",
+   "rom": "ZWSE",
+   "desc": "the test ROM with no patch: the GBA's 240x160 at Pixel Perfect (960x640), nothing past its edges",
+   "rules": [
+    "WS-1"
+   ],
+   "config": {},
+   "shots": {
+    "scene1": 120
+   },
+   "golden": [
+    "scene1"
+   ],
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "widescreen:",
+     "rule": "WS-1",
+     "what": "no wider picture"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       33,
+       385,
+       "FFDE00"
+      ],
+      [
+       990,
+       385,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-1",
+     "what": "the frame at the GBA's own edges"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       20,
+       385,
+       "000000"
+      ],
+      [
+       1004,
+       385,
+       "000000"
+      ]
+     ],
+     "rule": "WS-1",
+     "what": "black beside the picture"
+    }
+   ]
+  },
+  {
+   "id": "ws-16-9",
+   "rom": "ZWSE",
+   "desc": "the test ROM with its 16:9 patch beside it: 284x160 at Pixel Perfect (3x, 852x480), green margins with the grid going on into them, the GBA's edges dashed",
+   "rules": [
+    "WS-1",
+    "WS-2",
+    "WS-3"
+   ],
+   "config": {},
+   "patch": "GBA DS Widescreen Test (16-9).ips",
+   "shots": {
+    "scene1": 120
+   },
+   "golden": [
+    "scene1"
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: 16:9, 284 x 160 \\(margins 22\\)",
+     "rule": "WS-1",
+     "what": "the marker found"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       87,
+       385,
+       "FFDE00"
+      ],
+      [
+       936,
+       385,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "the picture's frame 852 wide"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       117,
+       325,
+       "104A21"
+      ],
+      [
+       909,
+       325,
+       "104A21"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the margins, drawn by the game"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       150,
+       148,
+       "00D6FF"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the GBA's own edge, dashed"
+    }
+   ]
+  },
+  {
+   "id": "ws-16-9-stretch",
+   "rom": "ZWSE",
+   "desc": "the 16:9 patch with Game screen scale on Stretch: shown at its own shape anyway (Full Width, 1024x576)",
+   "rules": [
+    "WS-3"
+   ],
+   "config": {
+    "scale": "stretch"
+   },
+   "patch": "GBA DS Widescreen Test (16-9).ips",
+   "shots": {
+    "scene1": 120
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       1,
+       385,
+       "FFDE00"
+      ],
+      [
+       1022,
+       385,
+       "FFDE00"
+      ],
+      [
+       512,
+       97,
+       "FFDE00"
+      ],
+      [
+       512,
+       670,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "the frame at 1024x576, centred"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       512,
+       90,
+       "000000"
+      ],
+      [
+       512,
+       678,
+       "000000"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "bars above and below"
+    }
+   ]
+  },
+  {
+   "id": "ws-16-10",
+   "rom": "ZWSE",
+   "desc": "the 16:10 patch: 256x160 at Pixel Perfect (4x, 1024x640)",
+   "rules": [
+    "WS-2",
+    "WS-3"
+   ],
+   "config": {},
+   "patch": "GBA DS Widescreen Test (16-10).ips",
+   "shots": {
+    "scene1": 120
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: 16:10, 256 x 160 \\(margins 8\\)",
+     "rule": "WS-1",
+     "what": "the marker found"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       1,
+       385,
+       "FFDE00"
+      ],
+      [
+       1022,
+       385,
+       "FFDE00"
+      ],
+      [
+       512,
+       65,
+       "FFDE00"
+      ],
+      [
+       512,
+       702,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "the frame at 1024x640"
+    }
+   ]
+  },
+  {
+   "id": "ws-4-3-stretch",
+   "rom": "ZWSE",
+   "desc": "the 4:3 patch with Stretch: 240x180, Full Width, filling the RG DS Plus's 4:3 screen (1024x768), extra rows above and below",
+   "rules": [
+    "WS-2",
+    "WS-3"
+   ],
+   "config": {
+    "scale": "stretch"
+   },
+   "patch": "GBA DS Widescreen Test (4-3).ips",
+   "shots": {
+    "scene1": 120
+   },
+   "golden": [
+    "scene1"
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: 4:3, 240 x 180 \\(margins 10\\)",
+     "rule": "WS-1",
+     "what": "the marker found"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       40,
+       2,
+       "FFDE00"
+      ],
+      [
+       40,
+       766,
+       "FFDE00"
+      ],
+      [
+       2,
+       384,
+       "FFDE00"
+      ],
+      [
+       1021,
+       384,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "the frame at the screen's edges"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       87,
+       23,
+       "104A21"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the top margin, drawn by the game"
+    }
+   ]
+  },
+  {
+   "id": "ws-16-9-rotation",
+   "rom": "ZWSE",
+   "desc": "the 16:9 patch, scene 2: a rotating background going on into the margins without a seam, a window band reaching the picture's edges, a hole kept in the middle",
+   "rules": [
+    "WS-2"
+   ],
+   "config": {},
+   "patch": "GBA DS Widescreen Test (16-9).ips",
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     106,
+     "-"
+    ]
+   ],
+   "shots": {
+    "scene2": 400
+   },
+   "golden": [
+    "scene2"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene2",
+     "probes": [
+      [
+       99,
+       205,
+       "18296B"
+      ],
+      [
+       924,
+       205,
+       "18296B"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the band (a window to the screen's edges) in the margins: no background behind"
+    },
+    {
+     "type": "not_pixels",
+     "screen": "game",
+     "shot": "scene2",
+     "probes": [
+      [
+       99,
+       400,
+       "18296B"
+      ],
+      [
+       924,
+       400,
+       "18296B"
+      ],
+      [
+       99,
+       520,
+       "18296B"
+      ],
+      [
+       924,
+       520,
+       "18296B"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the rotating background in the margins below it"
+    }
+   ]
+  }
+ ]
+}

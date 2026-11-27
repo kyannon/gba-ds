@@ -982,13 +982,16 @@ static bool gb_native(void) {
 /* with the Super Game Boy's border (GB-12) the picture is the 256x224 frame: the border the core
  * drew, with the game's window (as filtered) set into it */
 static int game_tex_w(void) {
+	if (emu_wide_active()) return emu_wide_w(); /* (WS-2: a widescreen patch's wider picture) */
 	return emu_gb_border(&emu) ? SGB_W : gb_native() ? emu.picW : GBA_W;
 }
 static int game_tex_h(void) {
+	if (emu_wide_active()) return emu_wide_h();
 	return emu_gb_border(&emu) ? SGB_H : gb_native() ? emu.picH : GBA_H;
 }
 static uint32_t borderOut[SGB_W * SGB_H];
 static const uint32_t* game_tex_px(const uint32_t* fb) {
+	if (emu_wide_active()) return emu_wide_compose(fb);
 	if (emu_gb_border(&emu)) {
 		memcpy(borderOut, emu_gb_border_px(&emu), sizeof(borderOut));
 		for (int y = 0; y < emu.picH; ++y) {
@@ -999,9 +1002,13 @@ static const uint32_t* game_tex_px(const uint32_t* fb) {
 	return gb_native() ? fb + emu.picY * GBA_W + emu.picX : fb; /* (rows GBA_W apart either way) */
 }
 static int game_tex_pitch(void) {
+	if (emu_wide_active()) return emu_wide_w() * 4;
 	return (emu_gb_border(&emu) ? SGB_W : GBA_W) * 4; /* (the picture's rows, in bytes: a window in the frame is GBA_W apart) */
 }
 static const char* game_scale(void) {
+	/* WS-3: a widescreen patch's picture keeps its shape: Pixel Perfect
+	 * stays, every other scale is Full Width (the picture's own ratio) */
+	if (emu_wide_active()) return !strcmp(cfg->scale, "integer") ? "integer" : "fit";
 	return gb_native() ? cfg->gbScale : cfg->scale;
 }
 static SDL_Texture* mapTex[2];
@@ -9250,6 +9257,17 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	}
 	sun_load();
 	profile_set_rom(emu.gameCode, emu.romCrc); /* (a known colour patch: the profile's colours as it draws them) */
+	{
+		/* WS-1: a GBA DS widescreen patch's marker: the wider picture.
+		 * (GBADS_WIDE=16:9, for writing a patch: that picture on any game,
+		 * to see what it draws past the screen's edges) */
+		EmuWide w;
+		const char* force = getenv("GBADS_WIDE");
+		int num = 0, den = 0;
+		if (force && sscanf(force, "%d:%d", &num, &den) == 2 && emu_wide_ratio(num, den, &w)) emu_wide_on(&emu, &w);
+		else if ((emu.patch == PATCH_APPLIED || emu.patch == PATCH_PARTIAL) && emu_wide_find(&emu, &w) && !emu_wide_on(&emu, &w))
+			fprintf(stderr, "widescreen: marker found (%d x %d), not used\n", w.w, w.h);
+	}
 	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
 	{
 		char d[640];
