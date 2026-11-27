@@ -2109,7 +2109,7 @@ SDL_Renderer* ui_ren(int screen) {
 
 /* align: where a picture shorter than the area goes (Screen.align) */
 static void fit_rect_at(const SDL_Rect* area, int w, int h, const char* mode, int align, SDL_Rect* out) {
-	if (!strcmp(mode, "stretch")) {
+	if (!strcmp(mode, "stretch") || !strcmp(mode, "curve")) {
 		*out = *area;
 		return;
 	}
@@ -2341,6 +2341,63 @@ static SDL_Texture* shader_mask(int v, int dw, int dh, int gw, int gh, int kc) {
 
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd);
 
+/* Scale "curve", Stretch (gentle curve): the picture fills its area as with
+ * Stretch, but the stretch is uneven along the one direction that would have
+ * had black bars (across on a wide screen, down on a 4:3 one): the middle gets
+ * about half of the average stretch and the edges the rest, so what the eye
+ * is on keeps closer to its shape. The source position for v in [-1, 1] along
+ * that direction is g(v) = A v - (A - 1) v^3 (g(1) = 1; the stretch at the
+ * middle is the average / A, at the edges the average / (3 - 2A)). Set by
+ * ui_image_pixels for draw_pixels, whose copies onto the screen go through
+ * put_pic. */
+#define CURVE_MID_SHARE 0.54 /* the middle's share of the extra stretch: 16:9 -> 1.10x in the middle, 1.40x at the edges */
+#define CURVE_STEPS 64       /* strips the picture is drawn in */
+static int curveAxis;        /* 0 none, 1 across, 2 down */
+static double curveA;
+
+static void curve_setup(const SDL_Rect* area, int w, int h) {
+	SDL_Rect fit;
+	double avg = 1;
+	curveAxis = 0;
+	fit_rect_at(area, w, h, "fit", 0, &fit);
+	if (fit.w > 0 && fit.w < area->w) curveAxis = 1, avg = (double) area->w / fit.w;
+	else if (fit.h > 0 && fit.h < area->h) curveAxis = 2, avg = (double) area->h / fit.h;
+	curveA = SDL_min(avg / (1 + CURVE_MID_SHARE * (avg - 1)), 1.4); /* (A < 1.5 keeps g rising) */
+	if (curveA < 1.001) curveAxis = 0; /* bars of a pixel or two: plain stretch */
+}
+
+/* tex (all of it) onto dst: as SDL_RenderCopy, or through the curve */
+static void put_pic(SDL_Renderer* ren, SDL_Texture* tex, const SDL_Rect* dst) {
+	if (!curveAxis) {
+		SDL_RenderCopy(ren, tex, NULL, dst);
+		return;
+	}
+	SDL_Vertex vx[(CURVE_STEPS + 1) * 2];
+	int idx[CURVE_STEPS * 6];
+	const SDL_Color white = { 255, 255, 255, 255 };
+	double A = curveA;
+	for (int i = 0; i <= CURVE_STEPS; ++i) {
+		double t = (double) i / CURVE_STEPS, v = 2 * t - 1;
+		float u = (float) ((1 + A * v - (A - 1) * v * v * v) / 2);
+		u = u < 0 ? 0 : u > 1 ? 1 : u;
+		if (curveAxis == 1) {
+			float x = (float) (dst->x + t * dst->w);
+			vx[2 * i] = (SDL_Vertex) { { x, (float) dst->y }, white, { u, 0 } };
+			vx[2 * i + 1] = (SDL_Vertex) { { x, (float) (dst->y + dst->h) }, white, { u, 1 } };
+		} else {
+			float y = (float) (dst->y + t * dst->h);
+			vx[2 * i] = (SDL_Vertex) { { (float) dst->x, y }, white, { 0, u } };
+			vx[2 * i + 1] = (SDL_Vertex) { { (float) (dst->x + dst->w), y }, white, { 1, u } };
+		}
+	}
+	for (int i = 0; i < CURVE_STEPS; ++i) {
+		int* q = idx + i * 6;
+		q[0] = 2 * i, q[1] = 2 * i + 1, q[2] = 2 * i + 2;
+		q[3] = 2 * i + 1, q[4] = 2 * i + 3, q[5] = 2 * i + 2;
+	}
+	if (SDL_RenderGeometry(ren, tex, vx, (CURVE_STEPS + 1) * 2, idx, CURVE_STEPS * 6) < 0) SDL_RenderCopy(ren, tex, NULL, dst);
+}
+
 void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, int lcd) {
 	RECORD(screen, OP_PIXELS) {
 		rec_tex(o, texPerView);
@@ -2365,7 +2422,9 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 		if (hadClip) SDL_IntersectRect(&prev, &s->rect, &c); /* inside an existing ui_clip */
 		SDL_RenderSetClipRect(ren, &c);
 	}
+	if (!strcmp(mode, "curve")) curve_setup(&pic, w, h);
 	draw_pixels(ren, v, src, w, h, &dst, lcd);
+	curveAxis = 0;
 	if (clip) SDL_RenderSetClipRect(ren, hadClip ? &prev : NULL);
 }
 
@@ -2384,7 +2443,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		if (big) {
 			bool same = dst.w == w * up && dst.h == h * up;
 			SDL_SetTextureScaleMode(big, same ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
-			SDL_RenderCopy(ren, big, NULL, &dst);
+			put_pic(ren, big, &dst);
 			return;
 		}
 	}
@@ -2395,7 +2454,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 	int gw = w / c, gh = h / c;
 	if (!lcd && (exact || smooth)) {
 		SDL_SetTextureScaleMode(src, smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
-		SDL_RenderCopy(ren, src, NULL, &dst);
+		put_pic(ren, src, &dst);
 		return;
 	}
 	if (lcd && exact && k * c >= 3) {
@@ -2403,9 +2462,9 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		 * No render-target switch, so tiled GPUs don't have to flush and
 		 * reload the whole framebuffer. */
 		SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
-		SDL_RenderCopy(ren, src, NULL, &dst);
+		put_pic(ren, src, &dst);
 		SDL_Texture* grid = shader_mask(v, dst.w, dst.h, gw, gh, k * c);
-		if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
+		if (grid) put_pic(ren, grid, &dst);
 		return;
 	}
 	if (lcd && (dst.w < gw * 3 || dst.h < gh * 3)) {
@@ -2413,17 +2472,17 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		 * then a grid made at the screen's resolution on top */
 		draw_pixels(ren, v, src, w, h, &dst, 0);
 		SDL_Texture* grid = shader_mask(v, dst.w, dst.h, gw, gh, 0);
-		if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
+		if (grid) put_pic(ren, grid, &dst);
 		return;
 	}
 	SDL_Texture* target = SDL_RenderTargetSupported(ren) ? pipe_target(v, w * k, h * k) : NULL;
 	if (!target) {
 		/* no render targets: draw directly, grid on top */
 		SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
-		SDL_RenderCopy(ren, src, NULL, &dst);
+		put_pic(ren, src, &dst);
 		if (lcd) {
 			SDL_Texture* grid = shader_mask(v, w * k, h * k, gw, gh, k * c);
-			if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
+			if (grid) put_pic(ren, grid, &dst);
 		}
 		return;
 	}
@@ -2441,7 +2500,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 	SDL_SetRenderTarget(ren, NULL);
 	if (clipped) SDL_RenderSetClipRect(ren, &clipRect);
 	SDL_SetTextureScaleMode(target, exact ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
-	SDL_RenderCopy(ren, target, NULL, &dst);
+	put_pic(ren, target, &dst);
 }
 
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode) {
