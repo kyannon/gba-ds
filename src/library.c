@@ -1013,7 +1013,107 @@ static bool pix_line(int scr, int x, int y, int scale, const char* text, SDL_Col
 	return true;
 }
 
+/* the note under the game's logo: a romhack, or a modified ROM (GEN-8), patched by a patch
+ * file beside it or not (GEN-9); "" for none */
+static void game_note(GameEntry* g, char* line, size_t n) {
+	line[0] = 0;
+	uint32_t crc;
+	int patch = PATCH_NONE;
+	if (!game_crc(g, &crc, &patch)) return;
+	const char* name;
+	const char* from = patch == PATCH_APPLIED ? N_(" (patch)"): "";
+	if (patch == PATCH_PARTIAL) {
+		snprintf(line, n, tr("Patched, but a patch was left out: see Patches in the game's menu"));
+	} else if (patch == PATCH_WRONG_ROM) {
+		snprintf(line, n, tr("Patch not applied: %s is for another ROM"), g->patch);
+	} else if (patch == PATCH_UNREADABLE) {
+		snprintf(line, n, tr("Patch not applied: %s can't be read"), g->patch);
+	} else if (profile_code_is_gb(g->code)) {
+		/* (a Game Boy game: no second screen to lose, GB-14) */
+		if (!profile_gb_dump_known(crc)) snprintf(line, n, "%s", patch == PATCH_APPLIED ? tr("Patched ROM: not a known dump") : tr("Modified ROM: not a known dump"));
+	} else {
+		switch (profile_dump(g->code, crc, &name)) {
+		case DUMP_MOD_TESTED: snprintf(line, n, tr("Romhack: %s%s"), name, from); break;
+		case DUMP_MOD: snprintf(line, n, tr("Romhack: %s%s, untested"), name, from); break;
+		case DUMP_MODIFIED:
+			if (patch == PATCH_APPLIED) snprintf(line, n, tr("Patched: the second screen may not work"));
+			else snprintf(line, n, tr("Modified ROM: the second screen may not work"));
+			break;
+		default: break;
+		}
+	}
+}
+
+/* The other screen as a strip over the list (GEN-19: one display where the list would
+ * otherwise be alone, Game only included): everything draw_preview shows but the resume
+ * point's picture, which is one line instead. Its unit is a 256th of the width (ui.c), so it
+ * sits across the display as the RG DS Plus's other screen does; UI_STRIP_UNITS tall. */
+static void draw_preview_compact(Config* cfg, int scr, int sel) {
+	SDL_Rect r = screens[scr].rect;
+	float px = ui_px(scr);
+	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 0, 0, 0, 255 });
+	load_brand();
+	int m = px * 6, headH = px * 21;
+	int ourW = draw_brand(scr, BRAND_LOGO, m, m, headH);
+	int vpx = SDL_max(1, px / 2);
+	pix_line(scr, m + px * 2, m + headH + px * 2, vpx, "github.com/kyannon/gba-ds", C_DIM, false);
+	/* the path at the bottom under its rule, as on the preview */
+	pathStrip = cfg->romPath;
+	int pathH = path_block_h(scr), rowBottom = r.h - px * 4;
+	if (pathH) {
+		int ps = path_scale(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
+		ui_fill(scr, (SDL_Rect) { m, ruleY, r.w - m * 2, ps }, C_DIM);
+		if (sel >= 0 && sel < nGames) draw_path_text(scr, pathY, games[sel].path, C_DIM);
+		rowBottom = ruleY - 3 * ps;
+	}
+	/* the hints row just above the rule: A Play, B Quit, the version on the right */
+	int d = px * 10, gy = rowBottom - d, cy = gy + d / 2, bx = m, cap = px * 5, wordW = px * 18;
+	bx += draw_brand(scr, BRAND_BTN_A, bx, gy, d) + px * 2;
+	{
+		int ww = SDL_max(wordW, ui_label_width(scr, cap, "Play"));
+		ui_label(scr, bx + ww / 2, cy, cap, "Play", C_TEXT);
+		bx += ww + px * 8;
+	}
+	bx += draw_brand(scr, BRAND_BTN_B, bx, gy, d) + px * 2;
+	ui_label(scr, bx + SDL_max(wordW, ui_label_width(scr, cap, "Quit")) / 2, cy, cap, "Quit", C_TEXT);
+	{
+		const char* v = "v" GBADS_VERSION;
+		if (!pix_line(scr, r.w - m, cy - vpx * pixfont_large.cap / 2, vpx, v, C_DIM, true))
+			ui_text(scr, r.w - m - ui_text_width("V" GBADS_VERSION, vpx), cy - vpx * 7 / 2, vpx, "V" GBADS_VERSION, C_DIM);
+	}
+	if (nGames == 0 || sel < 0) {
+		ui_label(scr, r.w / 2, m + headH / 2, px * 6, "No games found", C_TEXT);
+		return;
+	}
+	GameEntry* g = &games[sel];
+	load_thumbs(cfg, sel);
+	/* the game's logo top right, a little taller than ours */
+	int gameH = px * 26, maxW = r.w - ourW - m * 3;
+	if (logoTex[0] || logoTex[1]) {
+		int w = logoW * gameH / logoH, h = gameH;
+		if (w > maxW) w = maxW, h = logoH * maxW / logoW;
+		SDL_Rect a = { r.w - m - w, m + (gameH - h) / 2, w, h };
+		ui_image(scr, logoTex, logoW, logoH, "stretch", &a);
+	} else if (g->supported) {
+		const MapProfile* prof = profile_find(g->code);
+		if (prof && prof->title) ui_title_block(scr, (SDL_Rect) { r.w - m - maxW, m, maxW, gameH }, prof->title, px * 7, C_TEXT);
+	}
+	if (!g->supported) ui_font_text(scr, TF_BODY, r.w - m, m + headH / 2, px * 5, "Single screen only: plays normally", C_DIM, 1);
+	/* the line between the logos and the hints: the save state on the left (in place of its
+	 * picture), a romhack / modified ROM note on the right */
+	int ly = (m + gameH + gy) / 2 + px;
+	char note[400];
+	game_note(g, note, sizeof(note));
+	bool has = thumbTex[0] || thumbTex[1];
+	ui_font_text(scr, TF_BODY, m, ly, px * 5, has ? "Save state: picks up where you left off" : "No save state yet", has ? C_TEXT : C_DIM, -1);
+	if (note[0]) ui_font_text(scr, TF_BODY, r.w - m, ly, px * 4, note, C_DIM, 1);
+}
+
 static void draw_preview(Config* cfg, int scr, int sel) {
+	if (ui_list_strip() && scr == 0) {
+		draw_preview_compact(cfg, scr, sel);
+		return;
+	}
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 0, 0, 0, 255 }); /* black, like the logos */
@@ -1085,34 +1185,9 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	if (!g->supported) ui_font_text(scr, TF_BODY, r.w - m, m + headH / 2, px * 5, "Single screen only: plays normally", C_DIM, 1);
 	/* a romhack, or a modified ROM, under the game's logo (GEN-8), patched
 	 * by a patch file beside it or not (GEN-9) */
-	uint32_t crc;
-	int patch = PATCH_NONE;
-	if (game_crc(g, &crc, &patch)) {
-		const char* name;
-		const char* from = patch == PATCH_APPLIED ? N_(" (patch)"): "";
-		char line[400] = "";
-		if (patch == PATCH_PARTIAL) {
-			snprintf(line, sizeof(line), tr("Patched, but a patch was left out: see Patches in the game's menu"));
-		} else if (patch == PATCH_WRONG_ROM) {
-			snprintf(line, sizeof(line), tr("Patch not applied: %s is for another ROM"), g->patch);
-		} else if (patch == PATCH_UNREADABLE) {
-			snprintf(line, sizeof(line), tr("Patch not applied: %s can't be read"), g->patch);
-		} else if (profile_code_is_gb(g->code)) {
-			/* (a Game Boy game: no second screen to lose, GB-14) */
-			if (!profile_gb_dump_known(crc)) snprintf(line, sizeof(line), "%s", patch == PATCH_APPLIED ? tr("Patched ROM: not a known dump") : tr("Modified ROM: not a known dump"));
-		} else {
-			switch (profile_dump(g->code, crc, &name)) {
-			case DUMP_MOD_TESTED: snprintf(line, sizeof(line), tr("Romhack: %s%s"), name, from); break;
-			case DUMP_MOD: snprintf(line, sizeof(line), tr("Romhack: %s%s, untested"), name, from); break;
-			case DUMP_MODIFIED:
-				if (patch == PATCH_APPLIED) snprintf(line, sizeof(line), tr("Patched: the second screen may not work"));
-				else snprintf(line, sizeof(line), tr("Modified ROM: the second screen may not work"));
-				break;
-			default: break;
-			}
-		}
-		if (line[0]) ui_font_text(scr, TF_BODY, r.w - m, m + headH * 2 + px * 7, px * 4, line, C_DIM, 1);
-	}
+	char line[400];
+	game_note(g, line, sizeof(line));
+	if (line[0]) ui_font_text(scr, TF_BODY, r.w - m, m + headH * 2 + px * 7, px * 4, line, C_DIM, 1);
 
 	/* the resume point (the game screen only), or a note that there isn't one,
 	 * with clear space above (below the game's logo) and below (above the hints) */
