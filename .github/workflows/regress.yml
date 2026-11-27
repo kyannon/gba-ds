@@ -141,7 +141,7 @@ jobs:
           echo "$(wc -l < fixtures.txt) fixture paths"
 
       - name: Fixtures
-        timeout-minutes: 15
+        timeout-minutes: 1
         env:
           TOKEN: ${{ secrets.GBA_DS_TESTS_TOKEN }}
         run: |
