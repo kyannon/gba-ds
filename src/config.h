@@ -142,6 +142,7 @@ typedef struct Config {
 	bool raHardcore;      /* RetroAchievements hardcore (ra_hardcore; the pause menu's switch, kept in prefs.cfg) */
 	char raHost[256];     /* testing: another server */
 	bool gbaBios;         /* run games with the player's own GBA BIOS (<data folder>/bios/gba_bios.bin; issue #78; Settings > System) */
+	bool romPath;         /* show the selected game's full path and file name in a strip under the game list's other screen (show_rom_path; Settings > System) */
 	bool updateCheck;     /* look for a new release once a day (the game list's Settings can switch it) */
 	char updateUrl[256];  /* testing: the release API to ask instead of GitHub's */
 	char rom[512];        /* launch straight into this game (skips the library) */

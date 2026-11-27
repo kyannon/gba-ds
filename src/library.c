@@ -17,6 +17,7 @@
 #include "update.h"
 #include "clocks.h"
 #include "game.h"
+#include "pixfont.h"
 
 
 #include <ctype.h>
@@ -881,6 +882,102 @@ static void load_thumbs(Config* cfg, int idx) {
 	}
 }
 
+/* Settings > System > Show ROM Path on Game List: the selected game's full path and file name in a
+ * strip along the bottom of the preview screen, in the header's colour, written in the quick bar's
+ * small pixel font (pixfont.h) at one font pixel to a layout unit, as the quick bar is drawn. A path
+ * with a letter the pixel font lacks is written in Jost at the same size. Too long for one line: up
+ * to three, broken after a '/' where one is close enough, the last cut with "...". Returns the strip's
+ * height (0: nothing drawn). */
+#define PATH_LINES 3
+static bool path_pixel(const char* s) { /* every character in the pixel font */
+	for (const unsigned char* p = (const unsigned char*) s; *p; ++p)
+		if (*p >= 0x80) return false;
+	return pixfont_has(&pixfont_small, s);
+}
+static int path_width(const char* s, size_t n, bool pix, int scale) {
+	char buf[1100];
+	if (n >= sizeof(buf)) n = sizeof(buf) - 1;
+	memcpy(buf, s, n);
+	buf[n] = 0;
+	return pix ? pixfont_width(&pixfont_small, buf) * scale : ui_font_width_as_is(TF_BODY, pixfont_small.cap * scale, buf);
+}
+/* how many bytes of s go on a line maxW wide (at least one character) */
+static size_t path_break(const char* s, int maxW, bool pix, int scale) {
+	size_t len = strlen(s), n = 0;
+	if (path_width(s, len, pix, scale) <= maxW) return len;
+	for (size_t k = 1; k <= len; ++k) {
+		if (k < len && ((unsigned char) s[k] & 0xC0) == 0x80) continue; /* (inside a UTF-8 character) */
+		if (path_width(s, k, pix, scale) > maxW) break;
+		n = k;
+	}
+	if (!n) { /* not even one character fits: take it anyway */
+		n = 1;
+		while (n < len && ((unsigned char) s[n] & 0xC0) == 0x80) ++n;
+	}
+	for (size_t k = n; k > n / 2; --k)
+		if (s[k - 1] == '/') return k; /* (a folder ends the line) */
+	for (size_t k = n; k > n / 2; --k)
+		if (s[k - 1] == ' ') return k; /* (else a space, so the next line doesn't start with one) */
+	return n;
+}
+static void path_pix_draw(int scr, int x, int y, int scale, const char* s, size_t n, SDL_Color c) {
+	const PixFont* f = &pixfont_small;
+	for (size_t i = 0; i < n; ++i) {
+		unsigned char ch = (unsigned char) s[i];
+		if (ch == ' ') {
+			x += f->space * scale;
+			continue;
+		}
+		const PixGlyph* g = &f->g[ch - 32];
+		for (int row = 0; row < f->height; ++row) {
+			for (int col = 0; col < g->w; ) { /* (a run of lit pixels: one rectangle) */
+				if (!(g->row[row] >> (g->w - 1 - col) & 1)) { ++col; continue; }
+				int run = 0;
+				while (col + run < g->w && (g->row[row] >> (g->w - 1 - col - run) & 1)) ++run;
+				ui_fill(scr, (SDL_Rect) { x + col * scale, y + row * scale, run * scale, scale }, c);
+				col += run;
+			}
+		}
+		x += (g->w + 1) * scale;
+	}
+}
+static int draw_path_strip(int scr, const char* path) {
+	if (!path || !path[0]) return 0;
+	SDL_Rect r = screens[scr].rect;
+	float px = ui_px(scr);
+	int scale = SDL_max(1, (int) px), m = px * 6, pad = px * 3;
+	int lineH = (pixfont_small.height + 2) * scale, maxW = r.w - m * 2;
+	bool pix = path_pixel(path);
+	const char* line[PATH_LINES];
+	size_t len[PATH_LINES];
+	int n = 0;
+	for (const char* s = path; *s && n < PATH_LINES; ++n) {
+		line[n] = s, len[n] = path_break(s, maxW, pix, scale);
+		s += len[n];
+	}
+	bool cut = line[n - 1][len[n - 1]] != 0; /* (more than PATH_LINES lines' worth) */
+	int h = pad * 2 + lineH * n - 2 * scale;
+	ui_fill(scr, (SDL_Rect) { 0, r.h - h, r.w, h }, C_HEADER);
+	for (int i = 0; i < n; ++i) {
+		char buf[1100];
+		size_t k = SDL_min(len[i], sizeof(buf) - 4);
+		memcpy(buf, line[i], k);
+		buf[k] = 0;
+		if (i == n - 1 && cut) {
+			/* the last line ends "...": characters come off its end until that fits */
+			while (k > 0 && path_width(buf, k, pix, scale) + path_width("...", 3, pix, scale) > maxW) {
+				do --k; while (k > 0 && ((unsigned char) buf[k] & 0xC0) == 0x80);
+			}
+			memcpy(buf + k, "...", 4);
+			k += 3;
+		}
+		int y = r.h - h + pad + i * lineH;
+		if (pix) path_pix_draw(scr, m, y, scale, buf, k, C_TEXT);
+		else ui_font_text_as_is(scr, TF_BODY, m, y + pixfont_small.cap * scale / 2, pixfont_small.cap * scale, buf, C_TEXT, -1);
+	}
+	return h;
+}
+
 static void draw_preview(Config* cfg, int scr, int sel) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
@@ -899,8 +996,10 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 		ui_text(scr, m + px * 2, m + headH + px * 2, vpx, "GITHUB.COM/KYANNON/GBA-DS", C_DIM);
 	}
 
+	/* the ROM's path in a strip along the bottom (Settings > System), the hints above it */
+	int strip = cfg->romPath && nGames > 0 && sel >= 0 && sel < nGames ? draw_path_strip(scr, games[sel].path) : 0;
 	/* button hints along the bottom */
-	int ty = r.h - px * 11, d = px * 10, bx = m;
+	int ty = r.h - strip - px * 11, d = px * 10, bx = m;
 	int gy = ty + px * 7 / 2 - d / 2;
 	int cap = px * 5, cy = gy + d / 2, wordW = px * 18;
 	bx += draw_brand(scr, BRAND_BTN_A, bx, gy, d) + px * 2;
@@ -1270,6 +1369,8 @@ static void save_library_cfg(const Config* cfg) {
 	fprintf(f, "retroarch_state_dir = %s\n", cfg->raStateDir);
 	/* (Settings > GBA BIOS: the player's own, off unless switched on; issue #78) */
 	fprintf(f, "gba_bios = %d\n", cfg->gbaBios ? 1 : 0);
+	/* (Settings > Show ROM Path on Game List) */
+	fprintf(f, "show_rom_path = %d\n", cfg->romPath ? 1 : 0);
 #ifdef __ANDROID__
 	fprintf(f, "rom_dir = %s\n", cfg->romDir);
 	/* (Settings > Folders; empty: next to the games) */
@@ -1454,10 +1555,10 @@ static int updatesSel;
  * there's one; Map Buttons and Hotkeys; Performance, where GBA DS can set
  * the clock governors (clocks.c); Updates. Android: Folders,
  * RetroAchievements, Map Buttons and Hotkeys, Updates. */
-#define SETTINGS_MAX 9
+#define SETTINGS_MAX 10
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE, ROW_BIOS };
+enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE, ROW_BIOS, ROW_ROMPATH };
 static int rowKind[SETTINGS_MAX];
 
 /* System's top row: the interface's language, stepped on each press (the setting is the one in config.c's table) */
@@ -1522,6 +1623,15 @@ static const char* bios_note(const Config* cfg, SDL_Color* col) {
 	return tr("Use your own GBA BIOS (gba_bios.bin, in the bios folder of GBA DS's data folder) instead of the built-in one. Only needed for save states made with one.");
 }
 
+/* System's Show ROM Path on Game List row: the selected game's file in a strip under the preview (draw_path_strip) */
+static const char* rompath_label(const Config* cfg) { return cfg->romPath ? N_("Show ROM Path on Game List: On") : N_("Show ROM Path on Game List: Off"); }
+static const char* rompath_note(void) { return N_("Shows the selected game's folder and file name along the bottom of the game list's other screen."); }
+static void rompath_switch(Config* cfg) {
+	cfg->romPath = !cfg->romPath;
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: ROM path on the game list %s\n", cfg->romPath ? "on" : "off");
+}
+
 #ifdef __ANDROID__
 /* the row showing kind (0 if none) */
 static int row_of(int kind) {
@@ -1547,6 +1657,7 @@ static void settings_rows(const Config* cfg) {
 		if (android[i] == ROW_RA && android_one_display()) rowKind[nRows++] = ROW_ROTATION;
 	}
 	rowKind[nRows++] = ROW_BIOS; /* (issue #78) */
+	rowKind[nRows++] = ROW_ROMPATH;
 	rowKind[nRows++] = ROW_RESET;
 	rowKind[nRows++] = ROW_DELCFG;
 #else
@@ -1563,6 +1674,7 @@ static void settings_rows(const Config* cfg) {
 	else if (es_present(cfg)) rowKind[nRows++] = ROW_ES;
 #endif
 	rowKind[nRows++] = ROW_BIOS; /* (issue #78) */
+	rowKind[nRows++] = ROW_ROMPATH;
 	rowKind[nRows++] = ROW_RESET;
 	rowKind[nRows++] = ROW_DELCFG;
 #endif
@@ -2094,6 +2206,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		int k = rowKind[i];
 		labels[i] = k == ROW_LANGUAGE ? lang_label(cfg)
 		          : k == ROW_BIOS    ? bios_label(cfg)
+		          : k == ROW_ROMPATH ? rompath_label(cfg)
 		          : k == ROW_ESDE    ? (esde_integration_on() ? N_("GBA DS in ES-DE: On"): N_("GBA DS in ES-DE: Off"))
 		          : k == ROW_FOLDERS ? "Folders"
 		          : k == ROW_RA      ? raLabel
@@ -2113,6 +2226,9 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		break;
 	case ROW_BIOS:
 		text = bios_note(cfg, &col);
+		break;
+	case ROW_ROMPATH:
+		text = rompath_note();
 		break;
 	case ROW_ESDE:
 		text = N_("Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, "
@@ -2171,6 +2287,9 @@ static void settings_activate(Config* cfg, int row) {
 		return;
 	case ROW_BIOS:
 		bios_switch(cfg);
+		return;
+	case ROW_ROMPATH:
+		rompath_switch(cfg);
 		return;
 	case ROW_ESDE:
 		esde_integration_set(!esde_integration_on(), settingsMsg, sizeof(settingsMsg));
@@ -2532,6 +2651,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	for (int i = 0; i < nRows; ++i) {
 		labels[i] = rowKind[i] == ROW_LANGUAGE ? lang_label(cfg)
 		          : rowKind[i] == ROW_BIOS   ? bios_label(cfg)
+		          : rowKind[i] == ROW_ROMPATH ? rompath_label(cfg)
 		          : rowKind[i] == ROW_BANANA ? (banana_integration_on() ? N_("GBA DS in BananaOS's GBA list: On"): N_("GBA DS in BananaOS's GBA list: Off"))
 		          : rowKind[i] == ROW_ES     ? (es_integration_on(cfg) ? N_("GBA DS in EmulationStation: On"): N_("GBA DS in EmulationStation: Off"))
 		          : rowKind[i] == ROW_RESET  ? (confirmRow == i ? N_("Are you sure? Reset settings"): N_("Reset settings to defaults"))
@@ -2560,6 +2680,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                       : update_blurb();
 	SDL_Color biosCol = C_DIM;
 	if (rowKind[i] == ROW_BIOS) text = bios_note(cfg, &biosCol);
+	if (rowKind[i] == ROW_ROMPATH) text = rompath_note();
 	/* a message from switching a row (settings_activate): in place of its text */
 	bool msg = settingsMsg[0] && settingsMsgRow == i;
 	if (msg) text = settingsMsg;
@@ -2586,6 +2707,7 @@ static void settings_activate(Config* cfg, int row) {
 	else if (rowKind[row] == ROW_BANANA) banana_integration_set(!banana_integration_on(), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_ES) es_integration_set(cfg, !es_integration_on(cfg), settingsMsg, sizeof(settingsMsg));
 	else if (rowKind[row] == ROW_BIOS) bios_switch(cfg);
+	else if (rowKind[row] == ROW_ROMPATH) rompath_switch(cfg);
 	else if (rowKind[row] == ROW_STATES) states_switch(cfg);
 	else if (rowKind[row] == ROW_STATES_DIR) states_dir_pick(cfg);
 	else if (rowKind[row] == ROW_PERF) {

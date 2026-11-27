@@ -19,7 +19,7 @@ GBA DS opens on a game list on the touchscreen (the bottom screen on the RG DS P
 | Y, or tap a game's star | Favorite on / off (favorites are listed first) |
 | Up from the first game | The sort bar: Left / Right, A to choose, Down to go back |
 | X, or tap the button left of Settings | Next view: list, two columns, three columns |
-| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder, [GBA BIOS](#a-state-saved-with-a-gba-bios) and Updates (Linux) or Folders, RetroAchievements sign-in, GBA BIOS and Updates (Android)) |
+| SELECT, or tap **Settings** | Settings (ROCKNIX: GBA DS in EmulationStation; BananaOS: GBA DS in its GBA list; Controls has Map Buttons and Hotkeys; System has [Save States](#save-states-shared-with-retroarch), RetroArch's State Folder, [GBA BIOS](#a-state-saved-with-a-gba-bios), Show ROM Path on Game List and Updates (Linux) or Folders, RetroAchievements sign-in, GBA BIOS, Show ROM Path on Game List and Updates (Android); Show ROM Path on Game List puts the selected game's folder and file name in a strip along the bottom of the other screen) |
 | B or HOME | Back to EmulationStation / the launcher |
 
 ## Resume points

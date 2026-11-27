@@ -295,6 +295,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("ra_system_cfg", raSystemCfg)
 	STR("ra_host", raHost)
 	BOOL("gba_bios", gbaBios)
+	BOOL("show_rom_path", romPath)
 	BOOL("update_check", updateCheck)
 	STR("update_url", updateUrl)
 	STR("load_state", loadState)

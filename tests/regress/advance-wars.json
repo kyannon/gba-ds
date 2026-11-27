@@ -1875,6 +1875,158 @@
    ]
   },
   {
+   "id": "aw-rom-path-list",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On, and back in the list the other screen has the header-coloured strip with the ROM's path along its bottom, the hints above it",
+   "rules": [
+    "GEN-21"
+   ],
+   "input": [
+    [
+     30,
+     "SELECT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     44,
+     "DOWN"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     52,
+     "DOWN"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     74,
+     "-"
+    ],
+    [
+     78,
+     "DOWN"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     86,
+     "DOWN"
+    ],
+    [
+     90,
+     "-"
+    ],
+    [
+     94,
+     "DOWN"
+    ],
+    [
+     98,
+     "-"
+    ],
+    [
+     102,
+     "DOWN"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     160,
+     "B"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     172,
+     "B"
+    ],
+    [
+     176,
+     "-"
+    ]
+   ],
+   "shots": {
+    "system-rom-path-on": 150,
+    "list-rom-path": 200
+   },
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ],
+    [
+     0,
+     560,
+     1024,
+     768
+    ]
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "library: ROM path on the game list on",
+     "rule": "GEN-21",
+     "what": "switched on from the System page"
+    },
+    {
+     "type": "pixels",
+     "shot": "list-rom-path",
+     "screen": "game",
+     "probes": [
+      [
+       2,
+       766,
+       "1E1A34"
+      ],
+      [
+       1021,
+       766,
+       "1E1A34"
+      ]
+     ],
+     "rule": "GEN-21",
+     "what": "the strip along the other screen's bottom, the header's colour"
+    }
+   ]
+  },
+  {
    "id": "aw-us-toggle-unavailable",
    "rom": "AWRE",
    "state": "advance-wars/us-title.ss",
