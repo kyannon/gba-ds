@@ -1,0 +1,5 @@
+# GBA DS widescreen patches (docs/WIDESCREEN.md): made by tools/widescreen.py index, don't edit.
+# code<TAB>ratio<TAB>file under widescreen/<TAB>SHA-256<TAB>the ROM files it fits (CRC32s, or -)
+ZWSE	16:10	ZWSE/GBA DS Widescreen Test (16-10).ips	4b89a3bc078e9276eec8bf5c484f01103159c82ab6534430c555b58299673aa9	84079440
+ZWSE	16:9	ZWSE/GBA DS Widescreen Test (16-9).ips	602a7db1642f1227849acb7dee9a2fe73076447491aee8eaf5c95b783586b0e0	84079440
+ZWSE	4:3	ZWSE/GBA DS Widescreen Test (4-3).ips	54493e0d87e4c0b85ade26ac969496420bce6f153099f1993b84b0cb21bafa09	84079440

@@ -8,6 +8,7 @@ extern void web_sleep(unsigned ms) __attribute__((import_module("env"), import_n
 #include "android.h"
 #include "brand.h"
 #include "emu.h"
+#include "widedl.h"
 #include "mapcap.h"
 #include "hotkeys.h"
 #include "paths.h"
@@ -342,13 +343,16 @@ static bool gb_native(void) {
 /* with the Super Game Boy's border (GB-12) the picture is the 256x224 frame: the border the core
  * drew, with the game's window (as filtered) set into it */
 static int game_tex_w(void) {
+	if (emu_wide_active()) return emu_wide_w(); /* (WS-2: a widescreen patch's wider picture) */
 	return emu_gb_border(&emu) ? SGB_W : gb_native() ? emu.picW : GBA_W;
 }
 static int game_tex_h(void) {
+	if (emu_wide_active()) return emu_wide_h();
 	return emu_gb_border(&emu) ? SGB_H : gb_native() ? emu.picH : GBA_H;
 }
 static uint32_t borderOut[SGB_W * SGB_H];
 static const uint32_t* game_tex_px(const uint32_t* fb) {
+	if (emu_wide_active()) return emu_wide_compose(fb);
 	if (emu_gb_border(&emu)) {
 		memcpy(borderOut, emu_gb_border_px(&emu), sizeof(borderOut));
 		for (int y = 0; y < emu.picH; ++y) {
@@ -359,9 +363,13 @@ static const uint32_t* game_tex_px(const uint32_t* fb) {
 	return gb_native() ? fb + emu.picY * GBA_W + emu.picX : fb; /* (rows GBA_W apart either way) */
 }
 static int game_tex_pitch(void) {
+	if (emu_wide_active()) return emu_wide_w() * 4;
 	return (emu_gb_border(&emu) ? SGB_W : GBA_W) * 4; /* (the picture's rows, in bytes: a window in the frame is GBA_W apart) */
 }
 static const char* game_scale(void) {
+	/* WS-3: a widescreen patch's picture keeps its shape: Pixel Perfect
+	 * stays, every other scale is Full Width (the picture's own ratio) */
+	if (emu_wide_active()) return !strcmp(cfg->scale, "integer") ? "integer" : "fit";
 	return gb_native() ? cfg->gbScale : cfg->scale;
 }
 static SDL_Texture* mapTex[2];
@@ -981,7 +989,7 @@ static bool patchReloadNext;
 static bool patchHandoffNext;
 static char patchHandoff[1100];
 uint32_t doCrc32(const void* buf, size_t size); /* (libmgba's: its header wants zlib.h) */
-enum { PR_RESTART, PR_SAVE, PR_STATES, PR_HEADER, PR_SUMMARY, PR_BESIDE, PR_PATCH, PR_EMPTY };
+enum { PR_RESTART, PR_SAVE, PR_STATES, PR_HEADER, PR_SUMMARY, PR_BESIDE, PR_PATCH, PR_EMPTY, PR_DOWNLOAD };
 /* what each file does to the ROM on its own (worked out as the list opens) */
 typedef struct {
 	uint32_t from, to; /* [from, to) */
@@ -1000,6 +1008,7 @@ typedef struct {
 	int nBases;
 	bool baseOk; /* made for this ROM (or for any of its release's) */
 	char okNote[300];
+	EmuWide wide; /* (WS-1) a GBA DS widescreen patch: its marker in the result */
 } PatchInfo;
 #define PATCH_ROWS 70
 static PatchInfo patchInfo[PATCH_ROWS];
@@ -1160,6 +1169,11 @@ static void patch_describe(const uint8_t* rom, size_t romN, uint32_t romCrc, con
 		patch_result_text(out, outN, pi->note, sizeof(pi->note));
 	}
 	if (r == PATCH_APPLIED) patch_ranges(rom, romN, out, outN, pi);
+	memset(&pi->wide, 0, sizeof(pi->wide));
+	if (r == PATCH_APPLIED && emu_wide_parse(out, outN, &pi->wide) && !pi->known) {
+		snprintf(pi->note, sizeof(pi->note), tr("GBA DS widescreen patch: the game at %d:%d (%d x %d). One widescreen patch is on at a time"),
+		         pi->wide.num, pi->wide.den, pi->wide.w, pi->wide.h);
+	}
 	free(out);
 }
 
@@ -1177,6 +1191,32 @@ static void patch_title_type(const char* file, char* out, size_t size) {
 	else
 		for (int k = 0; ext && ext[k + 1] && k < 3; ++k) type[k] = (char) toupper((unsigned char) ext[k + 1]);
 	snprintf(out, size, "%s (%s)", title, type);
+}
+
+/* the name in the list: with "widescreen 16:9" for a GBA DS widescreen patch (WS-1) */
+static void patch_label(const char* file, const PatchInfo* pi, char* out, size_t size) {
+	patch_title_type(file, out, size);
+	size_t n = strlen(out);
+	if (pi && pi->wide.found && n && out[n - 1] == ')')
+		snprintf(out + n - 1, size - (n - 1), tr(", widescreen %d:%d)"), pi->wide.num, pi->wide.den);
+}
+
+static int game_screen(void);
+/* WS-6: GBA DS's widescreen patches for this game, at the screens' shapes, not here yet */
+static WideEntry wideOffer[2];
+static int nWideOffer, wideGenSeen = -1;
+
+/* WS-1: switching a widescreen patch on switches the others off */
+static void patch_wide_alone(const char* file) {
+	for (int i = 0; i < patchChoice.nOn;) {
+		const PatchInfo* pi = strcmp(patchChoice.on[i], file) ? patch_info(patchChoice.on[i]) : NULL;
+		if (pi && pi->wide.found) {
+			for (int k = i; k + 1 < patchChoice.nOn; ++k) memcpy(patchChoice.on[k], patchChoice.on[k + 1], sizeof(patchChoice.on[0]));
+			--patchChoice.nOn;
+		} else {
+			++i;
+		}
+	}
 }
 
 /* The rows, from patchInfo and the choice; the selection kept on the same
@@ -1211,7 +1251,7 @@ static void patch_rebuild(void) {
 	for (int i = 0; i < patchChoice.nOn; ++i) {
 		PatchInfo* pi = patch_info(patchChoice.on[i]);
 		char label[300], t[280];
-		patch_title_type(patchChoice.on[i], t, sizeof(t));
+		patch_label(patchChoice.on[i], pi, t, sizeof(t));
 		if (nApply > 1) snprintf(label, sizeof(label), "%d. %s", i + 1, t);
 		else snprintf(label, sizeof(label), "%s", t);
 		PatchRow* r = patch_row_add(PR_PATCH, patchChoice.on[i], label,
@@ -1223,10 +1263,40 @@ static void patch_rebuild(void) {
 	for (int i = first; i < nPatchInfo; ++i) {
 		if (patch_choice_find(&patchChoice, patchInfo[i].file) >= 0) continue;
 		char t[280];
-		patch_title_type(patchInfo[i].file, t, sizeof(t));
+		patch_label(patchInfo[i].file, &patchInfo[i], t, sizeof(t));
 		patch_row_add(PR_PATCH, patchInfo[i].file, t, patchInfo[i].note, patchInfo[i].usable);
 	}
-	if (nPatchInfo == first) {
+	/* WS-6: GBA DS's widescreen patches for the screens' shapes, to download */
+	{
+		WideEntry all[16];
+		int n = widedl_for(emu.gameCode, emu.fileCrc, all, 16);
+		nWideOffer = 0;
+		int gs = game_screen();
+		for (int k = 0; k < nScreens && k < 2 && n; ++k) {
+			int s = k == 0 ? gs : 1 - gs;
+			if (s < 0 || s >= nScreens) continue;
+			const WideEntry* e = widedl_nearest(all, n, screens[s].rect.w, screens[s].rect.h);
+			if (!e || patch_info(e->file)) continue; /* (none for its shape, or already in the folder) */
+			if (nWideOffer == 1 && !strcmp(wideOffer[0].file, e->file)) continue;
+			wideOffer[nWideOffer++] = *e;
+			char label[300], note[600];
+			snprintf(label, sizeof(label), tr("Widescreen %d:%d: download"), e->num, e->den);
+			snprintf(note, sizeof(note),
+			         k == 0 ? tr("GBA DS's widescreen patch for this game, at the shape of the game's screen (%d:%d). A: download it, switch it on and restart")
+			                : tr("GBA DS's widescreen patch for this game, at the shape of the other screen (%d:%d). A: download it, switch it on and restart"),
+			         e->num, e->den);
+			patch_row_add(PR_DOWNLOAD, e->file, label, note, true);
+		}
+		static char lastOffers[200] = "-";
+		char offers[200] = "";
+		for (int i = 0; i < nWideOffer; ++i)
+			snprintf(offers + strlen(offers), sizeof(offers) - strlen(offers), "%s%d:%d", i ? ", " : "", wideOffer[i].num, wideOffer[i].den);
+		if (strcmp(offers, lastOffers)) {
+			fprintf(stderr, "widescreen: %d in the list for this game, offered: %s\n", n, offers[0] ? offers : "none");
+			snprintf(lastOffers, sizeof(lastOffers), "%s", offers);
+		}
+	}
+	if (nPatchInfo == first && !nWideOffer) {
 		char note[1300];
 		snprintf(note, sizeof(note), tr("Put .ips, .ups, .bps or .xdelta files in %s"), patchDir);
 		patch_row_add(PR_EMPTY, NULL, "No patches here yet", note, false);
@@ -1342,6 +1412,8 @@ static void open_patches(void) {
 		patch_describe(rom, romN, romCrc, path, pi);
 	}
 	free(rom);
+	widedl_refresh(cfg->stateDir); /* (WS-6: the list of GBA DS's widescreen patches, fetched once a run) */
+	wideGenSeen = widedl_generation();
 	patch_rebuild();
 	patchSel = 0;
 	patchesOpen = true;
@@ -1480,6 +1552,43 @@ static bool patch_choose(int row, bool later) {
 		patchArmed = -1;
 		return patch_restart();
 	}
+	if (r->kind == PR_DOWNLOAD) {
+		if (later) return false;
+		if (patchArmed != row) {
+			patchArmed = row;
+			snprintf(patchNote, sizeof(patchNote), "%s", tr("Are you sure? Save your game first. A: download it, switch it on and restart. B: call it off"));
+			return false;
+		}
+		patchArmed = -1;
+		const WideEntry* e = NULL;
+		for (int i = 0; i < nWideOffer; ++i)
+			if (!strcmp(wideOffer[i].file, r->file)) e = &wideOffer[i];
+		if (!e) return false;
+		ui_notice(tr("Downloading the widescreen patch..."), e->file);
+		char err[300] = "";
+		if (!widedl_fetch(e, patchDir, err, sizeof(err))) {
+			snprintf(patchNote, sizeof(patchNote), "%s", tr(err));
+			return false;
+		}
+		char file[256];
+		snprintf(file, sizeof(file), "%s", e->file);
+		open_patches(); /* (the new file read like the others) */
+		PatchInfo* pi = patch_info(file);
+		if (!pi || !pi->usable || !pi->wide.found) {
+			snprintf(patchNote, sizeof(patchNote), "%s", tr("Downloaded, but it doesn't fit this ROM: it's left off"));
+			return false;
+		}
+		patch_wide_alone(file);
+		if (patchChoice.nOn >= PATCH_ON_MAX) {
+			snprintf(patchNote, sizeof(patchNote), tr("Downloaded. Up to %d patches can be on at once: switch one off first"), PATCH_ON_MAX);
+			patch_rebuild();
+			return false;
+		}
+		snprintf(patchChoice.on[patchChoice.nOn++], sizeof(patchChoice.on[0]), "%s", file);
+		patch_choice_save(gp.patches, &patchChoice);
+		fprintf(stderr, "patches: %s downloaded and switched on\n", file);
+		return patch_restart();
+	}
 	if (r->kind != PR_PATCH) return false;
 	bool on = patch_is_on(r);
 	if (!on && !r->usable) {
@@ -1498,6 +1607,8 @@ static bool patch_choose(int row, bool later) {
 			for (int k = r->order; k + 1 < patchChoice.nOn; ++k) memcpy(patchChoice.on[k], patchChoice.on[k + 1], sizeof(patchChoice.on[0]));
 			--patchChoice.nOn;
 		} else {
+			const PatchInfo* pi = patch_info(r->file);
+			if (pi && pi->wide.found) patch_wide_alone(r->file);
 			snprintf(patchChoice.on[patchChoice.nOn++], sizeof(patchChoice.on[0]), "%s", r->file);
 		}
 		bool live = patch_live_ok();
@@ -1519,6 +1630,8 @@ static bool patch_choose(int row, bool later) {
 		for (int k = i; k + 1 < patchChoice.nOn; ++k) memcpy(patchChoice.on[k], patchChoice.on[k + 1], sizeof(patchChoice.on[0]));
 		--patchChoice.nOn;
 	} else {
+		const PatchInfo* pi = patch_info(file);
+		if (pi && pi->wide.found) patch_wide_alone(file); /* (WS-1: one widescreen patch at a time) */
 		snprintf(patchChoice.on[patchChoice.nOn++], sizeof(patchChoice.on[0]), "%s", file); /* (applied last) */
 	}
 	patch_choice_save(gp.patches, &patchChoice);
@@ -1550,6 +1663,11 @@ static int patch_row_at(int scr, int x, int y) {
 }
 
 static void draw_patches(int scr) {
+	if (widedl_generation() != wideGenSeen) {
+		/* (WS-6: the list came: its offers in) */
+		wideGenSeen = widedl_generation();
+		patch_rebuild();
+	}
 	CheatGeom g = cheat_geom(scr);
 	SDL_Rect r = screens[scr].rect;
 	float px = g.px;
@@ -1584,7 +1702,7 @@ static void draw_patches(int scr) {
 		fit_text(line, sizeof(line), TF_BODY, tcap, pr->label, nameW);
 		/* (a patch that shares bytes with one above it: its name in gold) */
 		ui_font_text(scr, TF_BODY, g.x + px * 4, y + g.rowH / 2, tcap, line, dim ? C_DIS : on && pr->chain == 1 ? C_GOLD : C_TEXT, -1);
-		const char* pill = i == patchArmed ? N_("Sure?"): moving        ? N_("Move"): pr->kind == PR_RESTART ? "Restart"
+		const char* pill = i == patchArmed ? N_("Sure?"): moving        ? N_("Move"): pr->kind == PR_RESTART ? "Restart": pr->kind == PR_DOWNLOAD ? N_("Get")
 		                   : pr->kind == PR_BESIDE  ? (pr->chain == 2 ? N_("Fails"): N_("Always"))
 		                   : dim                    ? "-"
 		                   : on && pr->chain == 2   ? N_("Fails"): on                     ? "On"
@@ -6168,6 +6286,17 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	}
 	sun_load();
 	profile_set_rom(emu.gameCode, emu.romCrc); /* (a known colour patch: the profile's colours as it draws them) */
+	{
+		/* WS-1: a GBA DS widescreen patch's marker: the wider picture.
+		 * (GBADS_WIDE=16:9, for writing a patch: that picture on any game,
+		 * to see what it draws past the screen's edges) */
+		EmuWide w;
+		const char* force = getenv("GBADS_WIDE");
+		int num = 0, den = 0;
+		if (force && sscanf(force, "%d:%d", &num, &den) == 2 && emu_wide_ratio(num, den, &w)) emu_wide_on(&emu, &w);
+		else if ((emu.patch == PATCH_APPLIED || emu.patch == PATCH_PARTIAL) && emu_wide_find(&emu, &w) && !emu_wide_on(&emu, &w))
+			fprintf(stderr, "widescreen: marker found (%d x %d), not used\n", w.w, w.h);
+	}
 	fprintf(stderr, "game %s (%s), save %s\n", gp.base, emu.gameCode, gp.sav);
 	{
 		char d[640];

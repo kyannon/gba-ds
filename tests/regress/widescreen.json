@@ -1,0 +1,804 @@
+{
+ "game": "Widescreen patches (test ROM)",
+ "rules": "docs/WIDESCREEN.md",
+ "cases": [
+  {
+   "id": "ws-off",
+   "rom": "ZWSE",
+   "desc": "the test ROM with no patch: the GBA's 240x160 at Pixel Perfect (960x640), nothing past its edges",
+   "rules": [
+    "WS-1"
+   ],
+   "config": {},
+   "shots": {
+    "scene1": 120
+   },
+   "golden": [
+    "scene1"
+   ],
+   "checks": [
+    {
+     "type": "no_log",
+     "match": "widescreen:",
+     "rule": "WS-1",
+     "what": "no wider picture"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       33,
+       385,
+       "FFDE00"
+      ],
+      [
+       990,
+       385,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-1",
+     "what": "the frame at the GBA's own edges"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       20,
+       385,
+       "000000"
+      ],
+      [
+       1004,
+       385,
+       "000000"
+      ]
+     ],
+     "rule": "WS-1",
+     "what": "black beside the picture"
+    }
+   ]
+  },
+  {
+   "id": "ws-16-9",
+   "rom": "ZWSE",
+   "desc": "the test ROM with its 16:9 patch beside it: 284x160 at Pixel Perfect (3x, 852x480), green margins with the grid going on into them, the GBA's edges dashed",
+   "rules": [
+    "WS-1",
+    "WS-2",
+    "WS-3"
+   ],
+   "config": {},
+   "patch": "GBA DS Widescreen Test (16-9).ips",
+   "shots": {
+    "scene1": 120
+   },
+   "golden": [
+    "scene1"
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: 16:9, 284 x 160 \\(margins 22\\)",
+     "rule": "WS-1",
+     "what": "the marker found"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       87,
+       385,
+       "FFDE00"
+      ],
+      [
+       936,
+       385,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "the picture's frame 852 wide"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       117,
+       325,
+       "104A21"
+      ],
+      [
+       909,
+       325,
+       "104A21"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the margins, drawn by the game"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       150,
+       148,
+       "00D6FF"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the GBA's own edge, dashed"
+    }
+   ]
+  },
+  {
+   "id": "ws-16-9-stretch",
+   "rom": "ZWSE",
+   "desc": "the 16:9 patch with Game screen scale on Stretch: shown at its own shape anyway (Full Width, 1024x576)",
+   "rules": [
+    "WS-3"
+   ],
+   "config": {
+    "scale": "stretch"
+   },
+   "patch": "GBA DS Widescreen Test (16-9).ips",
+   "shots": {
+    "scene1": 120
+   },
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       1,
+       385,
+       "FFDE00"
+      ],
+      [
+       1022,
+       385,
+       "FFDE00"
+      ],
+      [
+       512,
+       97,
+       "FFDE00"
+      ],
+      [
+       512,
+       670,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "the frame at 1024x576, centred"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       512,
+       90,
+       "000000"
+      ],
+      [
+       512,
+       678,
+       "000000"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "bars above and below"
+    }
+   ]
+  },
+  {
+   "id": "ws-16-10",
+   "rom": "ZWSE",
+   "desc": "the 16:10 patch: 256x160 at Pixel Perfect (4x, 1024x640)",
+   "rules": [
+    "WS-2",
+    "WS-3"
+   ],
+   "config": {},
+   "patch": "GBA DS Widescreen Test (16-10).ips",
+   "shots": {
+    "scene1": 120
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: 16:10, 256 x 160 \\(margins 8\\)",
+     "rule": "WS-1",
+     "what": "the marker found"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       1,
+       385,
+       "FFDE00"
+      ],
+      [
+       1022,
+       385,
+       "FFDE00"
+      ],
+      [
+       512,
+       65,
+       "FFDE00"
+      ],
+      [
+       512,
+       702,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "the frame at 1024x640"
+    }
+   ]
+  },
+  {
+   "id": "ws-4-3-stretch",
+   "rom": "ZWSE",
+   "desc": "the 4:3 patch with Stretch: 240x180, Full Width, filling the RG DS Plus's 4:3 screen (1024x768), extra rows above and below",
+   "rules": [
+    "WS-2",
+    "WS-3"
+   ],
+   "config": {
+    "scale": "stretch"
+   },
+   "patch": "GBA DS Widescreen Test (4-3).ips",
+   "shots": {
+    "scene1": 120
+   },
+   "golden": [
+    "scene1"
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: 4:3, 240 x 180 \\(margins 10\\)",
+     "rule": "WS-1",
+     "what": "the marker found"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       40,
+       2,
+       "FFDE00"
+      ],
+      [
+       40,
+       766,
+       "FFDE00"
+      ],
+      [
+       2,
+       384,
+       "FFDE00"
+      ],
+      [
+       1021,
+       384,
+       "FFDE00"
+      ]
+     ],
+     "rule": "WS-3",
+     "what": "the frame at the screen's edges"
+    },
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene1",
+     "probes": [
+      [
+       87,
+       23,
+       "104A21"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the top margin, drawn by the game"
+    }
+   ]
+  },
+  {
+   "id": "ws-16-9-rotation",
+   "rom": "ZWSE",
+   "desc": "the 16:9 patch, scene 2: a rotating background going on into the margins without a seam, a window band reaching the picture's edges, a hole kept in the middle",
+   "rules": [
+    "WS-2"
+   ],
+   "config": {},
+   "patch": "GBA DS Widescreen Test (16-9).ips",
+   "input": [
+    [
+     100,
+     "A"
+    ],
+    [
+     106,
+     "-"
+    ]
+   ],
+   "shots": {
+    "scene2": 400
+   },
+   "golden": [
+    "scene2"
+   ],
+   "checks": [
+    {
+     "type": "pixels",
+     "screen": "game",
+     "shot": "scene2",
+     "probes": [
+      [
+       99,
+       205,
+       "18296B"
+      ],
+      [
+       924,
+       205,
+       "18296B"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the band (a window to the screen's edges) in the margins: no background behind"
+    },
+    {
+     "type": "not_pixels",
+     "screen": "game",
+     "shot": "scene2",
+     "probes": [
+      [
+       99,
+       400,
+       "18296B"
+      ],
+      [
+       924,
+       400,
+       "18296B"
+      ],
+      [
+       99,
+       520,
+       "18296B"
+      ],
+      [
+       924,
+       520,
+       "18296B"
+      ]
+     ],
+     "rule": "WS-2",
+     "what": "the rotating background in the margins below it"
+    }
+   ]
+  },
+  {
+   "id": "ws-offer",
+   "rom": "ZWSE",
+   "widescreen_list": true,
+   "desc": "no patch yet; the Patches menu (pause, Game tab) with GBA DS's list of widescreen patches: the test ROM's 4:3 offered to download, the RG DS Plus's screens being 4:3; nothing else in the folder",
+   "rules": [
+    "WS-6"
+   ],
+   "config": {},
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     126,
+     "DOWN"
+    ],
+    [
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "RIGHT"
+    ],
+    [
+     147,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ]
+   ],
+   "shots": {
+    "offer": 200
+   },
+   "golden": [
+    "offer"
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: list fetched",
+     "rule": "WS-6",
+     "what": "the list read"
+    },
+    {
+     "type": "log",
+     "match": "widescreen: 3 in the list for this game, offered: 4:3$",
+     "rule": "WS-6",
+     "what": "the one for the screens' shape offered"
+    }
+   ]
+  },
+  {
+   "id": "ws-download",
+   "rom": "ZWSE",
+   "widescreen_list": true,
+   "desc": "ws-offer, then the offer chosen (A, then A again for Sure?): downloaded into the game's patches folder, checked, switched on, the game restarted with it at 240x180",
+   "rules": [
+    "WS-6",
+    "WS-1"
+   ],
+   "config": {},
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     126,
+     "DOWN"
+    ],
+    [
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "RIGHT"
+    ],
+    [
+     147,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     183,
+     "-"
+    ],
+    [
+     186,
+     "DOWN"
+    ],
+    [
+     189,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     203,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     223,
+     "-"
+    ]
+   ],
+   "shots": {
+    "armed": 210,
+    "after": 600
+   },
+   "golden": [
+    "after"
+   ],
+   "golden_mask": [
+    [
+     0,
+     0,
+     260,
+     70
+    ]
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: downloaded .*GBA%20DS%20Widescreen%20Test%20\\(4-3\\)\\.ips",
+     "rule": "WS-6",
+     "what": "downloaded"
+    },
+    {
+     "type": "log",
+     "match": "patches: GBA DS Widescreen Test \\(4-3\\)\\.ips downloaded and switched on",
+     "rule": "WS-6",
+     "what": "switched on"
+    },
+    {
+     "type": "log",
+     "match": "widescreen: 4:3, 240 x 180",
+     "rule": "WS-1",
+     "what": "the game restarted with it"
+    }
+   ]
+  },
+  {
+   "id": "ws-offer-two-shapes",
+   "rom": "ZWSE",
+   "widescreen_list": true,
+   "desc": "two screens of different shapes (a 16:9 one with the game, a 4:3 one): both patches offered, the game's screen's first",
+   "rules": [
+    "WS-6"
+   ],
+   "config": {},
+   "env": {
+    "GBADS_SCREENS": "1920x1080,1024x768",
+    "GBADS_WINDOW": "1920x1848"
+   },
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     126,
+     "DOWN"
+    ],
+    [
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "RIGHT"
+    ],
+    [
+     147,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ]
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "widescreen: 3 in the list for this game, offered: 16:9, 4:3$",
+     "rule": "WS-6",
+     "what": "16:9 for the game's screen, 4:3 for the other"
+    }
+   ],
+   "shots": {
+    "menu": 200
+   }
+  },
+  {
+   "id": "ws-exclusive",
+   "rom": "ZWSE",
+   "desc": "the 4:3 and 16:9 patches in the folder, 4:3 on; 16:9 switched on in the Patches menu: 4:3 goes off, the game restarts with 16:9 alone",
+   "rules": [
+    "WS-1"
+   ],
+   "config": {},
+   "patch_folder": [
+    "GBA DS Widescreen Test (4-3).ips",
+    "GBA DS Widescreen Test (16-9).ips"
+   ],
+   "patch_on": "GBA DS Widescreen Test (4-3).ips",
+   "input": [
+    [
+     120,
+     "TAP:0.5,0.3"
+    ],
+    [
+     126,
+     "DOWN"
+    ],
+    [
+     129,
+     "-"
+    ],
+    [
+     132,
+     "DOWN"
+    ],
+    [
+     135,
+     "-"
+    ],
+    [
+     138,
+     "DOWN"
+    ],
+    [
+     141,
+     "-"
+    ],
+    [
+     144,
+     "RIGHT"
+    ],
+    [
+     147,
+     "-"
+    ],
+    [
+     162,
+     "A"
+    ],
+    [
+     166,
+     "-"
+    ],
+    [
+     180,
+     "DOWN"
+    ],
+    [
+     183,
+     "-"
+    ],
+    [
+     186,
+     "DOWN"
+    ],
+    [
+     189,
+     "-"
+    ],
+    [
+     192,
+     "DOWN"
+    ],
+    [
+     195,
+     "-"
+    ],
+    [
+     200,
+     "A"
+    ],
+    [
+     203,
+     "-"
+    ],
+    [
+     220,
+     "A"
+    ],
+    [
+     223,
+     "-"
+    ]
+   ],
+   "shots": {
+    "list": 198,
+    "after": 600
+   },
+   "checks": [
+    {
+     "type": "log",
+     "match": "1 to apply, on: GBA DS Widescreen Test \\(16-9\\)\\.ips$",
+     "rule": "WS-1",
+     "what": "16:9 alone on"
+    },
+    {
+     "type": "log",
+     "match": "widescreen: 16:9, 284 x 160",
+     "rule": "WS-1",
+     "what": "the game restarted at 16:9"
+    }
+   ]
+  }
+ ]
+}

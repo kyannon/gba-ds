@@ -192,7 +192,7 @@ BPS or xdelta) beside its ROM, named as the ROM with the patch's extension, so t
 applies it as the game starts (GEN-9). `"patch_folder": [FILE, ...]` puts
 fixtures in the game's own patches folder (`<work>/patches/<release name>`,
 the release's No-Intro name as `profile_release_name` gives it), and
-`"patch_on": "FILE"` switches one on there (writing `<rom>.patches`; a list switches on several, in the order they're applied; `"patch_separate": false` turns the separate battery save and states switches off). Every
+`"widescreen_list": true` serves the repository's `widescreen/` folder (the widescreen patches' list and files, WS-6) to the case from a local server, as `GBADS_WIDE_URL`; every other case gets an address nothing answers, so none reaches GitHub. `"patch_on": "FILE"` switches one on there (writing `<rom>.patches`; a list switches on several, in the order they're applied; `"patch_separate": false` turns the separate battery save and states switches off). Every
 app case runs with its own `--patch_dir`.
 
 A case with `"driver": true` (or every case, with `--driver`) also checks the second-screen
