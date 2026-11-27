@@ -767,6 +767,29 @@ void second_frame_start(void) {
 	second_state_load(restoreBlock, restoreN);
 }
 
+/* What the second screen shows now (the app draws it; a core puts it in its
+ * frame): SHOWN_OFF none (no capture and not a logo-only game, or the second
+ * screen switched off: the game alone, or the other screen black); else the
+ * first that holds of SHOWN_COMBAT (the fights' picture, sec.mapW x mapH, from
+ * presentCombat; only where the app has a place for it: hasCombat), SHOWN_HUD
+ * (HUD_CW x HUD_CH, from presentHud), SHOWN_MAP (from present, sec.mapW x
+ * mapH, or presentGba, GBA_W x GBA_H: the tall and climb views) and
+ * SHOWN_LOGO (the idle logo, second_idle_picture, or none). *dim: the map
+ * dimmed over whatever shows (the map button did nothing: sec.mapInactive).
+ * WarioWare's dial and wheel come before all of these (the app's). (Was
+ * inline in game.c's draw_game.) */
+int second_shown(bool* dim) {
+	*dim = !hud.hudShown && sec.mapShownIdx >= 0 && sec.mapInactive && !sec.logoForced;
+	if (!((sec.mc || sec.logoOnly) && sec.cfg->map)) return SHOWN_OFF;
+	/* (and with hud.logoUnder, on the map before there's a map picture) */
+	bool logoBack = hud.combatProf && hud.combatProf->hud.logoUnder && sec.mapShownIdx < 0 && (hud.combatInGame || hud.combatProf->hud.logoAlways);
+	if (hud.overAlone && sec.mapShownIdx >= 0) logoBack = false; /* (the phase banner, on the other armies' turn too) */
+	if (((hud.combatOn && !(hud.overAlone && sec.mapShownIdx >= 0)) || logoBack) && hud.hooks.hasCombat && hud.hooks.hasCombat()) return SHOWN_COMBAT;
+	if (hud.hudShown && !sec.logoForced) return SHOWN_HUD;
+	if (sec.mapShownIdx >= 0 && !sec.logoForced) return SHOWN_MAP;
+	return SHOWN_LOGO;
+}
+
 /* The game's second screen taken down before second_open sets it up for
  * another game (a compilation: the game running in it changed, game.c's
  * ss_switch): the old game's HUD split and hidden sprites off, its capture and

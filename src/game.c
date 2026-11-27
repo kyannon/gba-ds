@@ -5251,7 +5251,9 @@ static void make_logo_canvas(void) {
 #include "ww_twisted.inc"
 
 static void draw_game(void) {
-	bool mapOn = (sec.mc || sec.logoOnly) && cfg->map; /* logo-only games: the logo stands in for the map */
+	bool dim = false;
+	int shown = second_shown(&dim); /* (second.c: which picture the second screen shows) */
+	bool mapOn = shown != SHOWN_OFF; /* logo-only games: the logo stands in for the map */
 	for (int s = 0; s < nScreens; ++s) {
 		bool showGame = nScreens == 1 ? !(singleShowsMap && mapOn) : (s == game_screen() || !mapOn);
 		SDL_Rect r = screens[s].rect;
@@ -5286,9 +5288,6 @@ static void draw_game(void) {
 			continue;
 		}
 		/* the map screen */
-		/* (and with hud.logoUnder, on the map before there's a map picture) */
-		bool logoBack = hud.combatProf && hud.combatProf->hud.logoUnder && sec.mapShownIdx < 0 && (hud.combatInGame || hud.combatProf->hud.logoAlways);
-		if (hud.overAlone && sec.mapShownIdx >= 0) logoBack = false; /* (the phase banner, on the other armies' turn too) */
 		if (ww_wheel_shown()) {
 			/* WarioWare: Twisted!'s Touch mode: the menu's wheel, turned with the dial (WWT-4) */
 			ww_wheel_update();
@@ -5299,14 +5298,14 @@ static void draw_game(void) {
 			ww_gyro_update();
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, ww.tex, GBA_W, GBA_H, cfg->mapScale, SHADER_ON);
-		} else if (((hud.combatOn && !(hud.overAlone && sec.mapShownIdx >= 0)) || logoBack) && (combatTex[0] || combatTex[1])) {
+		} else if (shown == SHOWN_COMBAT) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, combatTex, sec.mapW, sec.mapH, cfg->mapScale, SHADER_ON);
-		} else if (hud.hudShown && !sec.logoForced) {
+		} else if (shown == SHOWN_HUD) {
 			/* the HUD picture is at 2x: a grid cell per GBA pixel */
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, hudTex, HUD_CW, HUD_CH, cfg->mapScale, SHADER_ON ? 2 : 0);
-		} else if (sec.mapShownIdx >= 0 && !sec.logoForced) {
+		} else if (shown == SHOWN_MAP) {
 			ui_fill(s, (SDL_Rect) { 0, 0, r.w, r.h }, borderColor);
 			ui_image_pixels(s, mapTex, sec.mapW, sec.mapH, cfg->mapScale, SHADER_ON);
 		} else if ((logoCanvasTex[0] || logoCanvasTex[1]) && logoSub > 1) {
@@ -5332,9 +5331,7 @@ static void draw_game(void) {
 		}
 		/* whatever this screen shows: map, HUD, logo or nothing */
 		if (overlay_on(s)) draw_overlay(s, 1);
-		if (!hud.hudShown && sec.mapShownIdx >= 0 && sec.mapInactive && !sec.logoForced) {
-			ui_dim(s, 120);
-		}
+		if (dim) ui_dim(s, 120);
 	}
 	draw_osd();
 }

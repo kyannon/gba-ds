@@ -146,6 +146,10 @@ void second_frame_start(void);
 void* second_state_save(size_t* n);
 void second_state_load(const uint8_t* b, size_t n);
 
+/* what the second screen shows now, and whether the map's dimmed over it
+ * (see second.c) */
+enum { SHOWN_OFF, SHOWN_COMBAT, SHOWN_HUD, SHOWN_MAP, SHOWN_LOGO };
+int second_shown(bool* dim);
 /* the idle second screen's picture (the logo on grey, or plain grey for a
  * Game Boy game): IDLE_PIC with *px (malloc'd, *w x *h, *sub pixels per GBA
  * pixel); IDLE_NOPIC a logo but no picture (too big: *sub set); IDLE_NONE no logo */
