@@ -3972,6 +3972,7 @@ static const char* row_disabled(const char* key) {
 	if (!strcmp(key, "screen_match") && !ui_screens_differ()) return N_("Your screens are the same shape: nothing to match");
 	if (!strcmp(key, "screen_placement") && nScreens != 2) return N_("Only one screen: nothing to move");
 	if ((!strcmp(key, "single_layout") || !strcmp(key, "single_size")) && !ui_one_display()) return N_("Only for a single display: this device has two");
+	if (!strcmp(key, "pad_cover") && nViews == 2) return N_("Only for a single display: this device has two");
 	if (!strcmp(key, "single_size") && !strcmp(cfg->singleLayout, "off")) return N_("Choose how to show both screens first");
 	if ((!strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !cfg->toggle) return N_("Turn on the contextual toggle first");
 	if (!strcmp(key, "ff_mute") && !cfg->fastForward) return N_("Turn on fast forward first");
@@ -8444,7 +8445,7 @@ static void setting_applied(const Setting* st) {
 		if (emu.fb) {
 			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), game_tex_pitch());
 		}
-	} else if (!strcmp(k, "single_layout") || !strcmp(k, "single_size")) {
+	} else if (!strcmp(k, "single_layout") || !strcmp(k, "single_size") || !strcmp(k, "pad_cover")) {
 		ui_layout(); /* (the screens are cut again from the window) */
 		overlays_reload();
 		gameTexAll = true;
@@ -9326,6 +9327,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	if (nScreens >= 2) ROW(PG_SCREENS, "swap");
 	ROW(PG_SCREENS, "single_layout");
 	ROW(PG_SCREENS, "single_size");
+	ROW(PG_SCREENS, "pad_cover");
 	ROW(PG_SCREENS, "screen_match");
 	ROW(PG_SCREENS, "screen_placement");
 	ROW(PG_SCREENS, "overlays");

@@ -41,6 +41,8 @@ void config_defaults(Config* c) {
 	strcpy(c->screenPlace, "center");
 	strcpy(c->singleLayout, "off");
 	strcpy(c->singleSize, "equal");
+	strcpy(c->padCover, "auto");
+	c->padCoverMm = 64;
 	strcpy(c->touchMap, "window");
 	c->touchRotate = -1;
 	c->map = true;
@@ -256,6 +258,8 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("screen_placement", screenPlace)
 	STR("single_layout", singleLayout)
 	STR("single_size", singleSize)
+	STR("pad_cover", padCover)
+	INT("pad_cover_mm", padCoverMm)
 	STR("screen_ppi", screenPpi)
 	STR("touch_map", touchMap)
 	STR("touch_device", touchDevice)
@@ -506,6 +510,7 @@ static const SettingChoice chMatch[] = { { "keep", "Keep device shapes", 0 }, { 
 static const SettingChoice chToggleBtn[] = { { "left", "Left", 0 }, { "center", "Center", 0 }, { "right", "Right", 0 }, { "off", "Off", 0 } };
 static const SettingChoice chPlace[] = { { "center", "Centered", 0 }, { "no_gap", "Closest to gap", 0 } };
 static const SettingChoice chSingleLayout[] = { { "off", "Game only", 0 }, { "auto", "Both, automatic", 0 }, { "side", "Side by side", 0 }, { "stacked", "Stacked", 0 } };
+static const SettingChoice chPadCover[] = { { "auto", "Automatic", 0 }, { "on", "On", 0 }, { "off", "Off", 0 } };
 static const SettingChoice chSingleSize[] = { { "equal", "Equal", 0 }, { "medium", "Medium", 0 }, { "small", "Small", 0 } };
 static const SettingChoice chOverlays[] = { { N_("off"), "Off", OVM_OFF }, { "generated", "Generated", OVM_GENERATED }, { "custom", "Custom", OVM_CUSTOM } };
 static const SettingChoice chOvlScreens[] = { { "both", "Both screens", OVL_BOTH }, { "top", "Top screen", OVL_TOP }, { "bottom", "Bottom screen", OVL_BOTTOM } };
@@ -554,6 +559,7 @@ static const Setting settingsTable[] = {
 	{ "screen_placement", "Screen placement", SF_STR, OFFB(screenPlace), ARR(chPlace), 0, 0, 0, NULL, "Pictures in the middle of their screens, or close together." },
 	{ "single_layout", "One display", SF_STR, OFFB(singleLayout), ARR(chSingleLayout), 0, 0, 0, NULL, "With one display: the game alone (flip to the second screen), or both screens on it." },
 	{ "single_size", "Second screen size", SF_STR, OFFB(singleSize), ARR(chSingleSize), 0, 0, 0, NULL, "With both screens on one display: how much of it the second screen gets." },
+	{ "pad_cover", "Controller over the screen", SF_STR, OFFB(padCover), ARR(chPadCover), 0, 0, 0, NULL, "A controller that folds over the bottom of a phone held upright, such as the 8BitDo FlipPad: the screens move up above it. Automatic: while one is plugged in." },
 	{ "overlays", "Overlays", SF_INT, OFFB(overlayMode), ARR(chOverlays), 0, 0, 0, NULL, "GBA DS's bezel, or your own PNGs, round the picture." },
 	{ "overlay_screens", "Overlays on", SF_INT, OFFB(overlays), ARR(chOvlScreens), 0, 0, 0, NULL, "Which screens have them." },
 	{ "bezel_logo", "Bezel logo", SF_BOOL, OFFB(bezelLogo), ARR(chOnOff), 0, 0, 0, NULL, "The GBA DS logo in the generated bezel." },

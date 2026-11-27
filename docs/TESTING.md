@@ -123,6 +123,18 @@ kyannon/gba-ds-tests). The run's summary lists what was picked and why,
 each share's failures, and the releases tested only on their logo; a
 failing share keeps its report as an artifact for 7 days.
 
+The workflow has time limits, so a hung download ends on its own (Nov 25,
+2026, a share sat 47 minutes in its fixtures' fetch): picking the games
+10 minutes (the dependency map's fetch 2, after which shared code runs
+every game, as when it can't be fetched), a share 45, its fixtures'
+download two tries of 5 minutes each (a "Fixtures fetch, attempt N"
+warning per try, then "Fixtures not reachable"; 15 for the step), its
+cases 30. A share that fails on a time limit with no failing case is a
+download, not the code: re-run the failed jobs (`gh api -X POST
+repos/kyannon/gba-ds/actions/runs/RUN_ID/rerun-failed-jobs`), and if it
+fails again, run that share locally (`python3 tools/regress.py GAMES
+--shard N/K`).
+
 ## The leased panel's second screen (Armada, issue #86)
 
 `GBADS_DRM_LEASE=DSI-1 GBADS_DRM_LEASE_TEST=1240x1080,270,/tmp/panel.png` runs the app with a panel of that size and orientation in memory instead of a compositor's lease (nothing is leased), and writes what the panel would show to the PNG at exit: the second screen drawn by the software renderer, turned by the rotation, as the panel scans it out. Use it with `GBADS_WINDOW=1920x1080` and `--input-script`; the regression suite doesn't set it, so its cases run the ordinary path.
