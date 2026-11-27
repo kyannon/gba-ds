@@ -832,16 +832,37 @@ void ui_layout_pictures(void) {
 }
 
 static bool oneDisplay; /* (set by layout_screens) */
-static bool menuFull;   /* the pause menu is up: one screen over the whole display */
+static enum UiFace face = UI_FACE_GAME; /* what is up: decides how one display is cut (GEN-19) */
 
-void ui_menu_full(bool on) {
-	if (on == menuFull) return;
-	menuFull = on;
-	if (oneDisplay && strcmp(cfg->singleLayout, "off")) ui_layout();
+/* GEN-19, the one place that says how one display is cut, by what is up:
+ * - the game: both screens on it as One display says (Game only: one);
+ * - a menu (the pause menu and its screens, the game list's Settings and
+ *   its screens, the update notice): one screen over the whole display;
+ * - the game list: both screens as One display says, as on a two-screen
+ *   device (the list on the touch screen, the game's preview on the
+ *   other), unless the list's part would be too small or the wrong shape
+ *   (list_part_fits): then the list alone.
+ * Two displays (or a window over two panels) aren't cut: this changes nothing there. */
+void ui_face(enum UiFace f) {
+	if (f == face) return;
+	face = f;
+	if (oneDisplay) ui_layout();
+}
+
+enum UiFace ui_face_now(void) {
+	return face;
 }
 
 bool ui_one_display(void) {
 	return oneDisplay;
+}
+
+/* the game list's part of one display is big enough and of a shape its
+ * header, sort bar and tiles are laid out for (they're sized by its height):
+ * at least the RG DS's 640x480 screen, and from a little narrower than
+ * square (a phone held upright, stacked: 1080x1200) to twice as wide as tall */
+static bool list_part_fits(SDL_Rect r) {
+	return r.w >= 640 && r.h >= 480 && r.w * 10 >= r.h * 8 && r.w <= r.h * 2;
 }
 
 /* How many of the window's rows, from the bottom, a controller over the
@@ -944,7 +965,7 @@ static void layout_screens(void) {
 		 * Where the game is (swap) is the player's, as with two screens. */
 		oneDisplay = true;
 		const char* sl = cfg->singleLayout;
-		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && !menuFull;
+		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && face != UI_FACE_MENU;
 		if (together) {
 			bool side = !strcmp(sl, "side") || (!strcmp(sl, "auto") && w >= h);
 			int pct = !strcmp(cfg->singleSize, "small") ? 30 : !strcmp(cfg->singleSize, "medium") ? 40 : 50;
@@ -959,11 +980,14 @@ static void layout_screens(void) {
 				screens[0] = (Screen) { 0, { 0, 0, w, a } };
 				screens[1] = (Screen) { 0, { 0, a, w, h - a } };
 			}
-			static char loggedS[64];
-			char ls[64];
-			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d", w, h, side ? "side" : "stacked", pct, cfg->swap);
+			static char loggedS[96];
+			char ls[96];
+			bool fits = true;
+			if (face == UI_FACE_LIST) fits = list_part_fits(screens[ui_touch_screen()].rect);
+			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d%s", w, h, side ? "side" : "stacked", pct, cfg->swap,
+			         face == UI_FACE_LIST ? (fits ? " (game list)" : " (game list: its part too small, the list alone)") : "");
 			if (strcmp(ls, loggedS)) snprintf(loggedS, sizeof(loggedS), "%s", ls), fprintf(stderr, "screens: both on one display, %s\n", ls);
-			return;
+			if (fits) return;
 		}
 		nScreens = 1;
 		screens[0] = (Screen) { 0, { 0, 0, w, h } };

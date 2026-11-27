@@ -1804,6 +1804,67 @@ static void draw_set_heading(int scr, SDL_Rect p, const char* title, int icon) {
 	ui_label(scr, tx, p.y + px * 11, cap, title, C_TEXT);
 }
 
+/* The settings home's tall buttons (issue #108): one size for all eight, from
+ * the buttons' width (px follows the display's height, too big for a narrow
+ * button), as large as lets every button's picture, name and note fit its
+ * height, wrapped, with no word wider than the button */
+static int home_word_w(int font, int cap, const char* text) {
+	const char* p = tr(text);
+	int w = 0;
+	while (*p) {
+		char word[96];
+		int n = 0;
+		/* (a character of three or more UTF-8 bytes, Chinese or Japanese, is a word of its own:
+		 * the lines break between them) */
+		if ((unsigned char) p[0] >= 0xE0) {
+			n = (unsigned char) p[0] >= 0xF0 ? 4 : 3;
+			memcpy(word, p, n);
+		} else {
+			while (p[n] && p[n] != ' ' && (unsigned char) p[n] < 0xE0 && n < (int) sizeof(word) - 1) word[n] = p[n], ++n;
+		}
+		word[n] = 0;
+		if (n) w = SDL_max(w, ui_font_width_as_is(font, cap, word));
+		p += n;
+		while (*p == ' ') ++p;
+	}
+	return w;
+}
+
+static const char* home_name(int i) {
+	return i < SP_SYSTEM ? setPages[i].name : i == SP_SYSTEM ? "System" : "Back";
+}
+
+static const char* home_sub(int i) {
+#ifdef __ANDROID__
+	if (i == SP_SYSTEM) return N_("Folders, accounts, updates");
+#endif
+	return i < SP_SYSTEM ? setPages[i].sub : i == SP_SYSTEM ? N_("Updates, integrations"): NULL;
+}
+
+static float home_tall_unit(int scr) {
+	SDL_Rect t = set_tile(scr, 0);
+	/* (worked out once per size and language, not every frame) */
+	static int cw, ch;
+	static char clang[16];
+	static float ctp;
+	const char* lang = i18n_code();
+	if (t.w == cw && t.h == ch && !strcmp(lang, clang)) return ctp;
+	float tp = SDL_min(ui_px(scr), t.w / 55.0f);
+	for (; tp > 2; tp *= 0.9f) {
+		int tw = t.w - tp * 10, is = SDL_min(t.h * 3 / 10, (int) (tp * 18));
+		bool fits = true;
+		for (int i = 0; i < 8 && fits; ++i) {
+			const char *name = home_name(i), *sub = home_sub(i);
+			int total = (i <= SP_SYSTEM ? is + (int) (tp * 3) : 0) + ui_font_wrap_height(TF_BOLD, tw, tp * 6, name) + (sub ? ui_font_wrap_height(TF_BODY, tw, tp * 4, sub) : 0);
+			fits = total <= t.h - tp * 8 && home_word_w(TF_BOLD, tp * 6, name) <= tw && (!sub || home_word_w(TF_BODY, tp * 4, sub) <= tw);
+		}
+		if (fits) break;
+	}
+	cw = t.w, ch = t.h, ctp = tp;
+	snprintf(clang, sizeof(clang), "%s", lang);
+	return tp;
+}
+
 static void draw_set_home(int scr, int sel) {
 	int px = (int) ui_px(scr);
 	SDL_Rect p = set_panel(scr);
@@ -1813,11 +1874,28 @@ static void draw_set_home(int scr, int sel) {
 	for (int i = 0; i < 8; ++i) {
 		SDL_Rect t = set_tile(scr, i);
 		ui_key(scr, t, px * 3, i == sel ? KEY_SEL : KEY_PLAIN);
-		const char* name = i < SP_SYSTEM ? setPages[i].name : i == SP_SYSTEM ? "System" : "Back";
-		const char* sub = i < SP_SYSTEM ? setPages[i].sub : i == SP_SYSTEM ? N_("Updates, integrations"): NULL;
-#ifdef __ANDROID__
-		if (i == SP_SYSTEM) sub = N_("Folders, accounts, updates");
-#endif
+		const char *name = home_name(i), *sub = home_sub(i);
+		/* A tall button (a tall display: a tablet or phone held upright) has the
+		 * picture above the text, and the name and note wrapped to the button's
+		 * width, all left-aligned and centred as a block (issue #108: beside the
+		 * picture they were cut off there, with room to spare below) */
+		if (t.w < t.h * 2) {
+			int hasIcon = i <= SP_SYSTEM;
+			float tp = home_tall_unit(scr);
+			int x0 = t.x + tp * 5, tw = t.w - tp * 10, gap = tp * 3, nameCap = tp * 6, subCap = tp * 4;
+			int is = SDL_min(t.h * 3 / 10, (int) (tp * 18));
+			int nh = ui_font_wrap_height(TF_BOLD, tw, nameCap, name), sh = sub ? ui_font_wrap_height(TF_BODY, tw, subCap, sub) : 0;
+			int total = (hasIcon ? is + gap : 0) + nh + sh;
+			int y = t.y + (t.h - total) / 2;
+			if (hasIcon) {
+				SDL_Rect ib = { x0, y, is, is };
+				game_page_icon(scr, i == SP_SYSTEM ? GAME_ICON_SYSTEM : i, ib, i == sel || !ui_theme_light() ? C_TEXT : ui_key_ink(), ui_key_mid(i == sel ? KEY_SEL : KEY_PLAIN));
+				y += is + gap;
+			}
+			y = ui_font_wrap(scr, TF_BOLD, x0, y, tw, nameCap, name, C_TEXT);
+			if (sub) ui_font_wrap(scr, TF_BODY, x0, y, tw, subCap, sub, C_DIM);
+			continue;
+		}
 		/* the pause menu's picture (not on Back), then the text, all left-aligned in the button */
 		int iw = t.h * 6 / 10, gap = px * 3, x0 = t.x + px * 5, tx = x0 + iw + gap;
 		if (i <= SP_SYSTEM) {
@@ -3078,6 +3156,8 @@ void library_language_ask(Config* cfg) {
 
 	bool done = false, waitRelease = true;
 	Uint32 releasedAt = 0;
+	enum UiFace faceWas = ui_face_now();
+	ui_face(UI_FACE_MENU); /* (GEN-19: a menu, over the whole of one display) */
 	while (!done) {
 		if (!ui_events()) break;
 		ui_tick();
@@ -3124,6 +3204,7 @@ void library_language_ask(Config* cfg) {
 		ui_present();
 		SDL_Delay(15);
 	}
+	ui_face(faceWas);
 	if (!done) { /* (the app closed: asked again next time) */
 		i18n_set(cfg->language);
 		ui_language_changed();
@@ -3183,6 +3264,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		if (!strcmp(games[i].path, last)) sel = i;
 	}
 	viewCols = !strcmp(cfg->libraryView, "grid3") ? 3 : !strcmp(cfg->libraryView, "grid") ? 2 : 1;
+	ui_face(UI_FACE_LIST); /* (GEN-19: back from a game, as when the app started) */
 	int ls = ui_touch_screen();
 	int scroll = sel > 0 ? keep_visible(ls, sel, 0) : 0;
 	bool dragging = false, pressed = false;
@@ -3236,6 +3318,23 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		ui_tick();
 		ui_read_buttons();
 		ra_idle(); /* sign-in answers (at start-up, or from Settings) */
+		{
+			/* GEN-19: on one display, Settings and its screens (and the update
+			 * notice) take the whole of it; the list and the preview come back
+			 * when they close */
+			bool menu = settingsOpen || updatesOpen;
+#ifdef __ANDROID__
+			menu |= foldersOpen;
+#endif
+			int was = nScreens;
+			SDL_Rect wasR = screens[ui_touch_screen()].rect;
+			ui_face(menu ? UI_FACE_MENU : UI_FACE_LIST);
+			SDL_Rect nowR = screens[ui_touch_screen()].rect;
+			if (nScreens != was || !SDL_RectEquals(&wasR, &nowR)) {
+				thumbFor = -2; /* (the preview's size) */
+				scroll = sel >= 0 ? keep_visible(ui_touch_screen(), sel, 0) : 0;
+			}
+		}
 		ls = ui_touch_screen();
 		ListGeom g = list_geom(ls);
 

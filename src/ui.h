@@ -74,7 +74,9 @@ uint64_t ui_ticks(void);
 /* The two screens' shapes differ (by more than 2%): screen_match can do
  * something. */
 bool ui_screens_differ(void);
-void ui_menu_full(bool on); /* with both screens on one display (GEN-18): the pause menu and its screens take the whole display while on; the two screens come back when off */
+enum UiFace { UI_FACE_GAME, UI_FACE_LIST, UI_FACE_MENU };
+void ui_face(enum UiFace f); /* what is up, for how one display is cut (GEN-19): the game as One display says, a menu over the whole display, the game list as One display says when its part fits (else the list alone); nothing on two displays */
+enum UiFace ui_face_now(void);
 bool ui_one_display(void); /* the screens are cut from one display's window (not two displays, or a window over two panels): both screens on it are an option (issue #84) */
 /* Works out the screens' picture areas again (screen_match or
  * screen_placement changed). */
