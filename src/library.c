@@ -885,17 +885,21 @@ static void load_thumbs(Config* cfg, int idx) {
  * pixel font lacks is written in Jost at the same size. Too long for one line: up to three, broken after a
  * '/' where one is close enough, the last cut with "...". */
 #define PATH_LINES 3
+/* the pixel font the path is written in: the small one at 1x and 2x, the large one (7 rows to a capital,
+ * not 6) at 3x and 4x, where its font pixels are big enough for the finer letters (the owner's choice) */
+static const PixFont* pathPf = &pixfont_small;
+static const PixFont* path_font(int size) { return size >= 3 ? &pixfont_large : &pixfont_small; }
 static bool path_pixel(const char* s) { /* every character in the pixel font */
 	for (const unsigned char* p = (const unsigned char*) s; *p; ++p)
 		if (*p >= 0x80) return false;
-	return pixfont_has(&pixfont_small, s);
+	return pixfont_has(pathPf, s);
 }
 static int path_width(const char* s, size_t n, bool pix, int scale) {
 	char buf[1100];
 	if (n >= sizeof(buf)) n = sizeof(buf) - 1;
 	memcpy(buf, s, n);
 	buf[n] = 0;
-	return pix ? pixfont_width(&pixfont_small, buf) * scale : ui_font_width_as_is(TF_BODY, pixfont_small.cap * scale, buf);
+	return pix ? pixfont_width(pathPf, buf) * scale : ui_font_width_as_is(TF_BODY, pathPf->cap * scale, buf);
 }
 /* how many bytes of s go on a line maxW wide (at least one character) */
 static size_t path_break(const char* s, int maxW, bool pix, int scale) {
@@ -948,28 +952,49 @@ static int path_lines(const char* path, int maxW, int scale, const char** line, 
 	*cut = *s != 0;
 	return n;
 }
-static bool pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath) */
-static int path_scale(int scr) { return SDL_max(1, (int) ui_px(scr) / 2); } /* (the owner's choice: 2 on the RG DS Plus, as the GitHub link) */
-static int path_line_h(int scr) { return (pixfont_small.height + 2) * path_scale(scr); }
+static int pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath): 0 off, else the font size 1x-4x */
+/* a font pixel at 1x (the owner's choice: 2 on the RG DS Plus, as the GitHub link); the rule's thickness and its gaps */
+static int path_base(int scr) { return SDL_max(1, (int) ui_px(scr) / 2); }
+/* a font pixel at a size: 1x-4x the 1x one, in the large font the nearest whole number of screen pixels that
+ * gives its capitals the small font's height at that size */
+static int path_scale_at(int scr, int size) {
+	int s = path_base(scr) * SDL_max(1, size);
+	if (path_font(size) == &pixfont_large) s = SDL_max(1, (s * pixfont_small.cap + pixfont_large.cap / 2) / pixfont_large.cap);
+	return s;
+}
+static void path_size(int size) { pathStrip = size, pathPf = path_font(size); }
+static int path_scale(int scr) { return path_scale_at(scr, pathStrip); }
+static int path_line_h(int scr) { return (pathPf->height + 2) * path_scale(scr); }
 /* The path's room under the preview's hints: the longest listed path's lines, so the hints above don't
  * jump as the selection moves (worked out again only when the games or the screen change). 0: off. */
-static int path_block_h(int scr) {
-	if (!pathStrip || nGames <= 0) return 0;
-	static unsigned key = 0;
-	static int lines = 1;
-	int w = screens[scr].rect.w, scale = path_scale(scr), maxW = w - (int) (ui_px(scr) * 6) * 2;
-	unsigned k = (unsigned) nGames * 2654435761u ^ (unsigned) w * 40503u;
+static int path_block_h_at(int scr, int size) {
+	if (!size || nGames <= 0) return 0;
+	const PixFont* was = pathPf;
+	pathPf = path_font(size);
+	static unsigned key[5];
+	static int lines[5] = { 1, 1, 1, 1, 1 };
+	int w = screens[scr].rect.w, scale = path_scale_at(scr, size), maxW = w - (int) (ui_px(scr) * 6) * 2;
+	unsigned k = (unsigned) nGames * 2654435761u ^ (unsigned) w * 40503u ^ (unsigned) scale * 97u;
 	for (int i = 0; i < nGames; ++i) k = k * 31u + (unsigned) strlen(games[i].path) + (unsigned char) games[i].path[0];
-	if (k != key) {
-		key = k, lines = 1;
-		for (int i = 0; i < nGames && lines < PATH_LINES; ++i) {
+	if (k != key[size]) {
+		key[size] = k, lines[size] = 1;
+		for (int i = 0; i < nGames && lines[size] < PATH_LINES; ++i) {
 			const char* line[PATH_LINES];
 			size_t len[PATH_LINES];
 			bool cut;
-			lines = SDL_max(lines, path_lines(games[i].path, maxW, scale, line, len, &cut));
+			lines[size] = SDL_max(lines[size], path_lines(games[i].path, maxW, scale, line, len, &cut));
 		}
 	}
-	return path_line_h(scr) * lines - 2 * scale;
+	int h = (pathPf->height + 2) * scale * lines[size] - 2 * scale;
+	pathPf = was;
+	return h;
+}
+static int path_block_h(int scr) { return path_block_h_at(scr, pathStrip); }
+/* how much taller than its own size (UI_STRIP_UNITS, room for the path at 1x) the strip over the list
+ * has to be for the path at the size chosen (GEN-19, GEN-21); 0 when there is no strip */
+static int rompath_strip_extra(void) {
+	if (!ui_list_strip() || pathStrip <= 1) return 0;
+	return SDL_max(0, path_block_h_at(0, pathStrip) - path_block_h_at(0, 1));
 }
 /* the path's lines, left at the preview's margin, the first one's top at y (on the black: no strip) */
 static void draw_path_text(int scr, int y, const char* path, SDL_Color c) {
@@ -996,8 +1021,8 @@ static void draw_path_text(int scr, int y, const char* path, SDL_Color c) {
 			k += 3;
 		}
 		int ly = y + i * lineH;
-		if (pix) pix_draw(scr, &pixfont_small, m, ly, scale, buf, k, c);
-		else ui_font_text_as_is(scr, TF_BODY, m, ly + pixfont_small.cap * scale / 2, pixfont_small.cap * scale, buf, c, -1);
+		if (pix) pix_draw(scr, pathPf, m, ly, scale, buf, k, c);
+		else ui_font_text_as_is(scr, TF_BODY, m, ly + pathPf->cap * scale / 2, pathPf->cap * scale, buf, c, -1);
 	}
 }
 
@@ -1010,7 +1035,109 @@ static bool pix_line(int scr, int x, int y, int scale, const char* text, SDL_Col
 	return true;
 }
 
+/* the note under the game's logo: a romhack, or a modified ROM (GEN-8), patched by a patch
+ * file beside it or not (GEN-9); "" for none */
+static void game_note(GameEntry* g, char* line, size_t n) {
+	line[0] = 0;
+	uint32_t crc;
+	int patch = PATCH_NONE;
+	if (!game_crc(g, &crc, &patch)) return;
+	const char* name;
+	const char* from = patch == PATCH_APPLIED ? tr(" (patch)") : "";
+	if (patch == PATCH_PARTIAL) {
+		snprintf(line, n, tr("Patched, but a patch was left out: see Patches in the game's menu"));
+	} else if (patch == PATCH_WRONG_ROM) {
+		snprintf(line, n, tr("Patch not applied: %s is for another ROM"), g->patch);
+	} else if (patch == PATCH_UNREADABLE) {
+		snprintf(line, n, tr("Patch not applied: %s can't be read"), g->patch);
+	} else if (profile_code_is_gb(g->code)) {
+		/* (a Game Boy game: no second screen to lose, GB-14) */
+		if (!profile_gb_dump_known(crc)) snprintf(line, n, "%s", patch == PATCH_APPLIED ? tr("Patched ROM: not a known dump") : tr("Modified ROM: not a known dump"));
+	} else {
+		switch (profile_dump(g->code, crc, &name)) {
+		case DUMP_MOD_TESTED: snprintf(line, n, tr("Romhack: %s%s"), name, from); break;
+		case DUMP_MOD: snprintf(line, n, tr("Romhack: %s%s, untested"), name, from); break;
+		case DUMP_MODIFIED:
+			if (patch == PATCH_APPLIED) snprintf(line, n, tr("Patched: the second screen may not work"));
+			else snprintf(line, n, tr("Modified ROM: the second screen may not work"));
+			break;
+		default: break;
+		}
+	}
+}
+
+/* The other screen as a strip over the list (GEN-19: one display where the list would
+ * otherwise be alone, Game only included): everything draw_preview shows but the resume
+ * point's picture, which is one line instead. Its unit is a 256th of the width (ui.c), so it
+ * sits across the display as the RG DS Plus's other screen does; UI_STRIP_UNITS tall. */
+static void draw_preview_compact(Config* cfg, int scr, int sel) {
+	path_size(cfg->romPath);
+	ui_list_strip_extra(rompath_strip_extra()); /* (taller for a larger path: the layout is cut again if it changed) */
+	SDL_Rect r = screens[scr].rect;
+	float px = ui_px(scr);
+	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 0, 0, 0, 255 });
+	load_brand();
+	int m = px * 6, headH = px * 21;
+	int ourW = draw_brand(scr, BRAND_LOGO, m, m, headH);
+	int vpx = SDL_max(1, px / 2);
+	pix_line(scr, m + px * 2, m + headH + px * 2, vpx, "github.com/kyannon/gba-ds", C_DIM, false);
+	/* the path at the bottom under its rule, as on the preview */
+	path_size(cfg->romPath);
+	int pathH = path_block_h(scr), rowBottom = r.h - px * 4;
+	if (pathH) {
+		int ps = path_base(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
+		ui_fill(scr, (SDL_Rect) { m, ruleY, r.w - m * 2, ps }, C_DIM);
+		if (sel >= 0 && sel < nGames) draw_path_text(scr, pathY, games[sel].path, C_DIM);
+		rowBottom = ruleY - 3 * ps;
+	}
+	/* the hints row just above the rule: A Play, B Quit, the version on the right */
+	int d = px * 10, gy = rowBottom - d, cy = gy + d / 2, bx = m, cap = px * 5, wordW = px * 18;
+	bx += draw_brand(scr, BRAND_BTN_A, bx, gy, d) + px * 2;
+	{
+		int ww = SDL_max(wordW, ui_label_width(scr, cap, "Play"));
+		ui_label(scr, bx + ww / 2, cy, cap, "Play", C_TEXT);
+		bx += ww + px * 8;
+	}
+	bx += draw_brand(scr, BRAND_BTN_B, bx, gy, d) + px * 2;
+	ui_label(scr, bx + SDL_max(wordW, ui_label_width(scr, cap, "Quit")) / 2, cy, cap, "Quit", C_TEXT);
+	{
+		const char* v = "v" GBADS_VERSION;
+		if (!pix_line(scr, r.w - m, cy - vpx * pixfont_large.cap / 2, vpx, v, C_DIM, true))
+			ui_text(scr, r.w - m - ui_text_width("V" GBADS_VERSION, vpx), cy - vpx * 7 / 2, vpx, "V" GBADS_VERSION, C_DIM);
+	}
+	if (nGames == 0 || sel < 0) {
+		ui_label(scr, r.w / 2, m + headH / 2, px * 6, "No games found", C_TEXT);
+		return;
+	}
+	GameEntry* g = &games[sel];
+	load_thumbs(cfg, sel);
+	/* the game's logo top right, a little taller than ours */
+	int gameH = px * 26, maxW = r.w - ourW - m * 3;
+	if (logoTex[0] || logoTex[1]) {
+		int w = logoW * gameH / logoH, h = gameH;
+		if (w > maxW) w = maxW, h = logoH * maxW / logoW;
+		SDL_Rect a = { r.w - m - w, m + (gameH - h) / 2, w, h };
+		ui_image(scr, logoTex, logoW, logoH, "stretch", &a);
+	} else if (g->supported) {
+		const MapProfile* prof = profile_find(g->code);
+		if (prof && prof->title) ui_title_block(scr, (SDL_Rect) { r.w - m - maxW, m, maxW, gameH }, prof->title, px * 7, C_TEXT);
+	}
+	if (!g->supported) ui_font_text(scr, TF_BODY, r.w - m, m + headH / 2, px * 5, "Single screen only: plays normally", C_DIM, 1);
+	/* the line between the logos and the hints: the save state on the left (in place of its
+	 * picture), a romhack / modified ROM note on the right */
+	int ly = (m + gameH + gy) / 2 + px;
+	char note[400];
+	game_note(g, note, sizeof(note));
+	bool has = thumbTex[0] || thumbTex[1];
+	ui_font_text(scr, TF_BODY, m, ly, px * 5, has ? "Save state: picks up where you left off" : "No save state yet", has ? C_TEXT : C_DIM, -1);
+	if (note[0]) ui_font_text(scr, TF_BODY, r.w - m, ly, px * 4, note, C_DIM, 1);
+}
+
 static void draw_preview(Config* cfg, int scr, int sel) {
+	if (ui_list_strip() && scr == 0) {
+		draw_preview_compact(cfg, scr, sel);
+		return;
+	}
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 0, 0, 0, 255 }); /* black, like the logos */
@@ -1029,12 +1156,12 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	}
 
 	/* the selected game's path at the bottom (Settings > System, GEN-21), the hints above it */
-	pathStrip = cfg->romPath;
+	path_size(cfg->romPath);
 	int pathH = path_block_h(scr), ty = r.h - px * 11;
 	if (pathH) {
 		/* a rule above it, one font pixel thick, two font pixels of black either side (the hints' icons above,
 		 * the path below), in the same grey, margin to margin */
-		int ps = path_scale(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
+		int ps = path_base(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
 		ui_fill(scr, (SDL_Rect) { m, ruleY, r.w - m * 2, ps }, C_DIM);
 		if (sel >= 0 && sel < nGames) draw_path_text(scr, pathY, games[sel].path, C_DIM);
 		ty = ruleY - 2 * ps - (int) (px * 17 / 2); /* (the icons' bottom is ty + 8.5 units) */
@@ -1082,34 +1209,9 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	if (!g->supported) ui_font_text(scr, TF_BODY, r.w - m, m + headH / 2, px * 5, "Single screen only: plays normally", C_DIM, 1);
 	/* a romhack, or a modified ROM, under the game's logo (GEN-8), patched
 	 * by a patch file beside it or not (GEN-9) */
-	uint32_t crc;
-	int patch = PATCH_NONE;
-	if (game_crc(g, &crc, &patch)) {
-		const char* name;
-		const char* from = patch == PATCH_APPLIED ? tr(" (patch)") : "";
-		char line[400] = "";
-		if (patch == PATCH_PARTIAL) {
-			snprintf(line, sizeof(line), tr("Patched, but a patch was left out: see Patches in the game's menu"));
-		} else if (patch == PATCH_WRONG_ROM) {
-			snprintf(line, sizeof(line), tr("Patch not applied: %s is for another ROM"), g->patch);
-		} else if (patch == PATCH_UNREADABLE) {
-			snprintf(line, sizeof(line), tr("Patch not applied: %s can't be read"), g->patch);
-		} else if (profile_code_is_gb(g->code)) {
-			/* (a Game Boy game: no second screen to lose, GB-14) */
-			if (!profile_gb_dump_known(crc)) snprintf(line, sizeof(line), "%s", patch == PATCH_APPLIED ? tr("Patched ROM: not a known dump") : tr("Modified ROM: not a known dump"));
-		} else {
-			switch (profile_dump(g->code, crc, &name)) {
-			case DUMP_MOD_TESTED: snprintf(line, sizeof(line), tr("Romhack: %s%s"), name, from); break;
-			case DUMP_MOD: snprintf(line, sizeof(line), tr("Romhack: %s%s, untested"), name, from); break;
-			case DUMP_MODIFIED:
-				if (patch == PATCH_APPLIED) snprintf(line, sizeof(line), tr("Patched: the second screen may not work"));
-				else snprintf(line, sizeof(line), tr("Modified ROM: the second screen may not work"));
-				break;
-			default: break;
-			}
-		}
-		if (line[0]) ui_font_text(scr, TF_BODY, r.w - m, m + headH * 2 + px * 7, px * 4, line, C_DIM, 1);
-	}
+	char line[400];
+	game_note(g, line, sizeof(line));
+	if (line[0]) ui_font_text(scr, TF_BODY, r.w - m, m + headH * 2 + px * 7, px * 4, line, C_DIM, 1);
 
 	/* the resume point (the game screen only), or a note that there isn't one,
 	 * with clear space above (below the game's logo) and below (above the hints) */
@@ -1426,7 +1528,7 @@ static void save_library_cfg(const Config* cfg) {
 	/* (Settings > GBA BIOS: the player's own, off unless switched on; issue #78) */
 	fprintf(f, "gba_bios = %d\n", cfg->gbaBios ? 1 : 0);
 	/* (Settings > Show ROM Path on Game List) */
-	fprintf(f, "show_rom_path = %d\n", cfg->romPath ? 1 : 0);
+	fprintf(f, "show_rom_path = %d\n", SDL_clamp(cfg->romPath, 0, 4));
 #ifdef __ANDROID__
 	fprintf(f, "rom_dir = %s\n", cfg->romDir);
 	/* (Settings > Folders; empty: next to the games) */
@@ -1499,7 +1601,7 @@ static void storage_check(const Config* cfg) {
 }
 
 static void draw_list(Config* cfg, int scr, int sel, int scroll) {
-	pathStrip = cfg->romPath;
+	path_size(cfg->romPath);
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	ListGeom g = list_geom(scr);
@@ -1613,10 +1715,10 @@ static int updatesSel;
 /* Settings > System: a column of rows, each with its note beside Back (settings_rows says which).
  * Linux: Language, Updates, Save States | RetroArch's State Folder, GBA DS in BananaOS's list or in
  * EmulationStation where there's one (not in a side build), GBA BIOS, Show ROM Path, Reset | Delete.
- * Android: Language, Updates, GBA DS in ES-DE, Folders, RetroAchievements, Rotation (one display),
- * GBA BIOS, Show ROM Path, Reset | Delete. (Map Buttons and Hotkeys are Controls' rows; Performance
- * is Speed and sound's.) */
-#define SETTINGS_MAX 12 /* (Android's ten at most, with room) */
+ * Android: Language, Updates, GBA DS in ES-DE, Folders, Save States | RetroArch's State Folder,
+ * RetroAchievements, Rotation (one display), GBA BIOS, Show ROM Path, Reset | Delete. (Map Buttons and
+ * Hotkeys are Controls' rows; Performance is Speed and sound's.) */
+#define SETTINGS_MAX 14 /* (Android's twelve at most, with room) */
 static int nRows = 1; /* rows shown (Back is row nRows) */
 enum { ROW_BANANA, ROW_ES, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE, ROW_BIOS, ROW_ROMPATH };
 static int rowKind[SETTINGS_MAX];
@@ -1684,13 +1786,21 @@ static const char* bios_note(const Config* cfg, SDL_Color* col) {
 }
 
 /* System's Show ROM Path on Game List row: the selected game's file under the preview's hints (draw_path_text) */
-static const char* rompath_label(const Config* cfg) { return cfg->romPath ? N_("Show ROM Path on Game List: On") : N_("Show ROM Path on Game List: Off"); }
+static const char* rompath_label(const Config* cfg) {
+	static const char* const label[5] = { N_("Show ROM Path on Game List: Off"), N_("Show ROM Path on Game List: On (Font size: 1x)"),
+	                                      N_("Show ROM Path on Game List: On (Font size: 2x)"), N_("Show ROM Path on Game List: On (Font size: 3x)"),
+	                                      N_("Show ROM Path on Game List: On (Font size: 4x)") };
+	return label[SDL_clamp(cfg->romPath, 0, 4)];
+}
 static const char* rompath_note(void) { return N_("Shows the selected game's folder and file name under Play and Quit on the game list's other screen."); }
 static void rompath_switch(Config* cfg) {
-	cfg->romPath = !cfg->romPath;
-	pathStrip = cfg->romPath;
+	/* Off, then On at 1x, 2x, 3x, 4x, then Off again */
+	cfg->romPath = (SDL_clamp(cfg->romPath, 0, 4) + 1) % 5;
+	path_size(cfg->romPath);
 	save_library_cfg(cfg);
-	fprintf(stderr, "library: ROM path on the game list %s\n", cfg->romPath ? "on" : "off");
+	if (cfg->romPath) fprintf(stderr, "library: ROM path on the game list on (font size %dx)\n", cfg->romPath);
+	else fprintf(stderr, "library: ROM path on the game list off\n");
+	ui_list_strip_extra(rompath_strip_extra()); /* (the strip over the list grows with it, GEN-19) */
 }
 
 #ifdef __ANDROID__
@@ -1714,6 +1824,10 @@ static void settings_rows(const Config* cfg) {
 	if (esde_present()) rowKind[nRows++] = ROW_ESDE;
 	for (size_t i = 0; i < sizeof(android) / sizeof(android[0]); ++i) {
 		rowKind[nRows++] = android[i];
+		if (android[i] == ROW_FOLDERS) {
+			rowKind[nRows++] = ROW_STATES; /* (save states shared with RetroArch: issue #111) */
+			rowKind[nRows++] = ROW_STATES_DIR;
+		}
 		/* one display (a phone, a Surface Duo): hold the window portrait or landscape (issue #60) */
 		if (android[i] == ROW_RA && android_one_display()) rowKind[nRows++] = ROW_ROTATION;
 	}
@@ -2315,6 +2429,125 @@ static bool settings_pages_input(Config* cfg, int ls) {
 	return true;
 }
 
+/* Settings > Save States (issue #39): slots 0-9 and the automatic state in
+ * GBA DS's own folder, or shared with RetroArch (its own files, in its
+ * folder: a game goes on in either). The folder shown is the selected
+ * game's (RetroArch's can depend on the game's). */
+/* a long path's last parts (…/savestates/gba; whole up to 40 characters), for a line of text */
+static const char* path_tail(const char* path) {
+	const char* p = path;
+	int parts = 0;
+	for (const char* c = path + strlen(path); strlen(path) > 40 && c > path; --c) {
+		if (*c == '/' && ++parts == 3) {
+			p = c;
+			break;
+		}
+	}
+	static char out[1100];
+	snprintf(out, sizeof(out), "%s%s", p != path ? "\xe2\x80\xa6" : "", p);
+	return out;
+}
+static const char* states_rom(void) {
+	return thumbFor >= 0 && thumbFor < nGames ? games[thumbFor].path : NULL; /* (the game shown in the list) */
+}
+static void states_text(const Config* cfg, char* out, size_t n) {
+	char dir[1024];
+	bool compress;
+	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
+	if (!found)
+		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."));
+	else if (strcmp(cfg->stateFolder, "retroarch"))
+		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."), path_tail(dir));
+	else
+		snprintf(out, n, tr("Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."), path_tail(dir));
+}
+/* Settings > RetroArch's Folder: its state folder chosen by hand (kept as
+ * retroarch_state_dir in library.cfg), or found from its settings again
+ * (Automatic). Choosing one shares the states with RetroArch. */
+static void states_dir_pick(Config* cfg) {
+	char dir[1024] = "", chosen[1024];
+	bool compress;
+	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
+	bool byHand = cfg->raStateDir[0] != 0;
+#ifdef __ANDROID__
+	/* (GBA DS's own picker, which lists folders as files: the storage needs All files access) */
+	DIR* top = opendir("/storage/emulated/0");
+	if (!top) {
+		snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+		         tr("GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."));
+		return;
+	}
+	closedir(top);
+	const char* start = found ? dir : "/storage/emulated/0/RetroArch/states";
+#else
+	/* (opens at the folder now, else where ROCKNIX or BananaOS keep RetroArch's states; else home) */
+	const char* start = found ? dir : file_exists("/storage/roms") ? "/storage/roms/savestates" : "/data/states";
+#endif
+	FolderPick r = folder_pick("RetroArch's State Folder", start, ".state", true, byHand ? "Automatic" : NULL, chosen,
+	                           sizeof(chosen));
+	if (r == FOLDER_CANCEL) return;
+	if (r == FOLDER_CHOSEN) {
+		if (strlen(chosen) >= sizeof(cfg->raStateDir)) { /* (a cut-off path would be another folder) */
+			snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("That folder's path is too long."));
+			return;
+		}
+#ifdef __ANDROID__
+		/* (another app's own folder: Android 11 and later keep it from GBA DS, All files access or not) */
+		if (strstr(chosen, "/Android/data/") || access(chosen, R_OK | W_OK) != 0) {
+			snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+			         tr("GBA DS can't use that folder. In RetroArch, set Settings > Directory > Save States to a folder on your "
+			            "storage (not in Android/data), then choose it here."));
+			return;
+		}
+#endif
+		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
+		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
+		snprintf(settingsMsg, sizeof(settingsMsg), tr("Slots 0-9 and the automatic state are now shared with RetroArch, in %s."), path_tail(chosen));
+	} else {
+		cfg->raStateDir[0] = 0;
+		if (retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
+			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's state folder is found from its settings again: %s."), path_tail(dir));
+		} else {
+			snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "gbads");
+			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."));
+		}
+	}
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: RetroArch's state folder %s%s, states %s\n", cfg->raStateDir[0] ? "chosen: " : "from its settings",
+	        cfg->raStateDir, strcmp(cfg->stateFolder, "retroarch") ? "GBA DS's own" : "shared");
+}
+/* RetroArch's State Folder's note: the folder, and where it came from */
+static void states_dir_text(const Config* cfg, char* out, size_t n) {
+	char dir[1024];
+	bool compress;
+	if (!retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress))
+#ifdef __ANDROID__
+		snprintf(out, n, "%s",
+		         tr("RetroArch's states weren't found. In RetroArch, set Settings > Directory > Save States to a folder on your "
+		            "storage (not in Android/data), then choose it here."));
+#else
+		snprintf(out, n, tr("RetroArch's settings weren't found here: choose the folder where it keeps its save states."));
+#endif
+	else
+		snprintf(out, n, tr("%s %s. Choose another if RetroArch keeps its states somewhere else."),
+		         cfg->raStateDir[0] ? tr("Chosen here:"): tr("From RetroArch's settings:"), path_tail(dir));
+}
+static void states_switch(Config* cfg) {
+	char dir[1024];
+	bool compress;
+	bool shared = !strcmp(cfg->stateFolder, "retroarch");
+	if (!shared && !retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
+		/* (RetroArch's settings not found: where are its states?) */
+		states_dir_pick(cfg);
+		return;
+	}
+	snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "%s", shared ? "gbads" : "retroarch");
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: save states %s\n", shared ? "in GBA DS's own folder" : "shared with RetroArch");
+	snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+	         shared ? tr("Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."): tr("Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."));
+}
+
 #ifdef __ANDROID__
 /* Android: the ROM and save folders (Folders, a panel of its own), chosen
  * with Android's folder picker (android.c), kept in <state_dir>/library.cfg;
@@ -2360,6 +2593,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		          : k == ROW_ROMPATH ? rompath_label(cfg)
 		          : k == ROW_ESDE    ? (esde_integration_on() ? N_("GBA DS in ES-DE: On"): N_("GBA DS in ES-DE: Off"))
 		          : k == ROW_FOLDERS ? "Folders"
+		          : k == ROW_STATES  ? (!strcmp(cfg->stateFolder, "retroarch") ? N_("Save States: Shared with RetroArch"): N_("Save States: GBA DS's Own"))
+		          : k == ROW_STATES_DIR ? "RetroArch's State Folder"
 		          : k == ROW_RA      ? raLabel
 		          : k == ROW_ROTATION ? (android_rotation_get() == 1 ? N_("Rotation: Portrait"): android_rotation_get() == 2 ? N_("Rotation: Landscape"): N_("Rotation: Auto"))
 		          : k == ROW_RESET   ? (confirmRow == i ? N_("Are you sure? Reset settings"): N_("Reset settings to defaults"))
@@ -2391,6 +2626,14 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		break;
 	case ROW_ROTATION:
 		text = android_rotation_get() == 1 ? N_("Held upright: the two screens one above the other. Either way up."): android_rotation_get() == 2 ? N_("Held on its side: the two screens side by side. Either way round."): N_("Follows how you hold the phone, and Android's own rotation lock.");
+		break;
+	case ROW_STATES:
+		states_text(cfg, line, sizeof(line));
+		text = line;
+		break;
+	case ROW_STATES_DIR:
+		states_dir_text(cfg, line, sizeof(line));
+		text = line;
 		break;
 	case ROW_FOLDERS:
 		text = cfg->saveDir[0] ? N_("Where games are read from, and the folder their saves are kept in."): N_("Where games are read from. Their saves are kept next to them.");
@@ -2450,6 +2693,12 @@ static void settings_activate(Config* cfg, int row) {
 		return;
 	case ROW_FOLDERS:
 		foldersOpen = true, foldersSel = 0;
+		return;
+	case ROW_STATES:
+		states_switch(cfg);
+		return;
+	case ROW_STATES_DIR:
+		states_dir_pick(cfg);
 		return;
 	case ROW_UPDATES:
 		updatesOpen = true, updatesNotice = false, updatesSel = 0;
@@ -2698,98 +2947,6 @@ static bool folders_input(Config* cfg, int ls) {
 }
 #else
 static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
-
-/* Settings > Save States (issue #39): slots 0-9 and the automatic state in
- * GBA DS's own folder, or shared with RetroArch (its own files, in its
- * folder: a game goes on in either). The folder shown is the selected
- * game's (RetroArch's can depend on the game's). */
-/* a long path's last parts (…/savestates/gba; whole up to 40 characters), for a line of text */
-static const char* path_tail(const char* path) {
-	const char* p = path;
-	int parts = 0;
-	for (const char* c = path + strlen(path); strlen(path) > 40 && c > path; --c) {
-		if (*c == '/' && ++parts == 3) {
-			p = c;
-			break;
-		}
-	}
-	static char out[1100];
-	snprintf(out, sizeof(out), "%s%s", p != path ? "\xe2\x80\xa6" : "", p);
-	return out;
-}
-static const char* states_rom(void) {
-	return thumbFor >= 0 && thumbFor < nGames ? games[thumbFor].path : NULL; /* (the game shown in the list) */
-}
-static void states_text(const Config* cfg, char* out, size_t n) {
-	char dir[1024];
-	bool compress;
-	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
-	if (!found)
-		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."));
-	else if (strcmp(cfg->stateFolder, "retroarch"))
-		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."), path_tail(dir));
-	else
-		snprintf(out, n, tr("Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."), path_tail(dir));
-}
-/* Settings > RetroArch's Folder: its state folder chosen by hand (kept as
- * retroarch_state_dir in library.cfg), or found from its settings again
- * (Automatic). Choosing one shares the states with RetroArch. */
-static void states_dir_pick(Config* cfg) {
-	char dir[1024] = "", chosen[1024];
-	bool compress;
-	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
-	bool byHand = cfg->raStateDir[0] != 0;
-	/* (opens at the folder now, else where ROCKNIX or BananaOS keep RetroArch's states; else home) */
-	const char* start = found ? dir : file_exists("/storage/roms") ? "/storage/roms/savestates" : "/data/states";
-	FolderPick r = folder_pick("RetroArch's State Folder", start, ".state", true, byHand ? "Automatic" : NULL, chosen,
-	                           sizeof(chosen));
-	if (r == FOLDER_CANCEL) return;
-	if (r == FOLDER_CHOSEN) {
-		if (strlen(chosen) >= sizeof(cfg->raStateDir)) { /* (a cut-off path would be another folder) */
-			snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("That folder's path is too long."));
-			return;
-		}
-		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
-		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
-		snprintf(settingsMsg, sizeof(settingsMsg), tr("Slots 0-9 and the automatic state are now shared with RetroArch, in %s."), path_tail(chosen));
-	} else {
-		cfg->raStateDir[0] = 0;
-		if (retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
-			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's state folder is found from its settings again: %s."), path_tail(dir));
-		} else {
-			snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "gbads");
-			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."));
-		}
-	}
-	save_library_cfg(cfg);
-	fprintf(stderr, "library: RetroArch's state folder %s%s, states %s\n", cfg->raStateDir[0] ? "chosen: " : "from its settings",
-	        cfg->raStateDir, strcmp(cfg->stateFolder, "retroarch") ? "GBA DS's own" : "shared");
-}
-/* RetroArch's State Folder's note: the folder, and where it came from */
-static void states_dir_text(const Config* cfg, char* out, size_t n) {
-	char dir[1024];
-	bool compress;
-	if (!retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress))
-		snprintf(out, n, tr("RetroArch's settings weren't found here: choose the folder where it keeps its save states."));
-	else
-		snprintf(out, n, tr("%s %s. Choose another if RetroArch keeps its states somewhere else."),
-		         cfg->raStateDir[0] ? tr("Chosen here:"): tr("From RetroArch's settings:"), path_tail(dir));
-}
-static void states_switch(Config* cfg) {
-	char dir[1024];
-	bool compress;
-	bool shared = !strcmp(cfg->stateFolder, "retroarch");
-	if (!shared && !retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
-		/* (RetroArch's settings not found: where are its states?) */
-		states_dir_pick(cfg);
-		return;
-	}
-	snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "%s", shared ? "gbads" : "retroarch");
-	save_library_cfg(cfg);
-	fprintf(stderr, "library: save states %s\n", shared ? "in GBA DS's own folder" : "shared with RetroArch");
-	snprintf(settingsMsg, sizeof(settingsMsg), "%s",
-	         shared ? tr("Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."): tr("Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."));
-}
 
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	if (sel != confirmRow) confirmRow = -1; /* moved off the row: no longer asked */
@@ -3397,7 +3554,7 @@ void library_language_ask(Config* cfg) {
 }
 
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
-	pathStrip = cfg->romPath; /* (the preview's room for the ROM path, GEN-21) */
+	path_size(cfg->romPath); /* (the preview's room for the ROM path, GEN-21) */
 	if (!cfg->languageAsked) library_language_ask(cfg); /* (a first install, issue #92) */
 	storage_check(cfg);
 	sortMode = !strcmp(cfg->librarySort, "recent") ? 1 : 0;

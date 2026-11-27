@@ -24,6 +24,12 @@ msgstr " ms"
 msgid " s"
 msgstr " s"
 
+msgid "GBA DS can't use that folder. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "O GBA DS não consegue usar essa pasta. No RetroArch, defina Settings > Directory > Save States como uma pasta do seu armazenamento (fora de Android/data) e depois escolha-a aqui."
+
+msgid "RetroArch's states weren't found. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "Os estados do RetroArch não foram encontrados. No RetroArch, defina Settings > Directory > Save States como uma pasta do seu armazenamento (fora de Android/data) e depois escolha-a aqui."
+
 msgid "\"Swipe up for quick menu\" at a game's start."
 msgstr "\"Deslize para cima para o menu rápido\" ao iniciar um jogo."
 
@@ -538,6 +544,9 @@ msgstr "Baixando"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "Ganhe conquistas no modo casual com sua conta do retroachievements.org. O GBA DS guarda um token de login, não a sua senha."
+
+msgid "Edge stretch"
+msgstr "Esticar bordas"
 
 msgid "English"
 msgstr "English"
@@ -1458,6 +1467,9 @@ msgstr "Os saves ficarão lá."
 
 msgid "Scale, shader, theme, color"
 msgstr "Escala, shader, tema, cor"
+
+msgid "Scale: Edge stretch"
+msgstr "Escala: esticar bordas"
 
 msgid "Scale: Full Width"
 msgstr "Escala: largura total"

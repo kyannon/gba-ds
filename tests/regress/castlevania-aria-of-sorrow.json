@@ -582,7 +582,7 @@
    "id": "cva-us-single-library-small",
    "kind": "library",
    "rom": "A2CE",
-   "desc": "both screens on one small display (640x480, automatic: side by side): the list's half would be too narrow, so the game list is the list alone; the game still has both",
+   "desc": "both screens on one small display (640x480, automatic: side by side): the list's half would be too narrow, so the game list is the list under the strip with the selected game's details (GEN-19: never the list alone); the game still has both",
    "rules": [
     "GEN-19"
    ],
@@ -595,22 +595,161 @@
     "GBADS_WINDOW": "640x480"
    },
    "shots": {
-    "list": 30
+    "list-strip": 30
    },
    "golden_mask": [
     [
      480,
-     200,
+     120,
      640,
-     240
+     148
     ]
    ],
    "checks": [
     {
      "rule": "GEN-19",
-     "what": "the list alone",
+     "what": "its part too small: the strip over the list",
      "type": "log",
-     "match": "640x480 side 50% swap 0 \\(game list: its part too small, the list alone\\)"
+     "match": "640x480 side 50% swap 0 \\(game list: its part too small, the strip over the list\\)"
+    },
+    {
+     "rule": "GEN-19",
+     "what": "the strip's size",
+     "type": "log",
+     "match": "screens: game list strip, 640x480, strip 152"
+    }
+   ]
+  },
+  {
+   "id": "cva-us-single-library-strip",
+   "kind": "library",
+   "rom": "A2CE",
+   "desc": "a phone held upright (1080x2400) with One display on Game only and Show ROM Path on: the game list is the list under a strip with GBA DS's logo, the game's logo, the save state line, A Play / B Quit, the version and the ROM path (GEN-19, GEN-21); the list's sizes follow its width, so the header's buttons and \"Touch or use the D-Pad\" fit",
+   "rules": [
+    "GEN-19",
+    "GEN-21"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "off",
+    "show_rom_path": 1,
+    "update_check": 0
+   },
+   "env": {
+    "GBADS_WINDOW": "1080x2400"
+   },
+   "shots": {
+    "list": 30
+   },
+   "golden_mask": [
+    [
+     880,
+     235,
+     1080,
+     280
+    ],
+    [
+     0,
+     285,
+     1080,
+     305
+    ]
+   ],
+   "checks": [
+    {
+     "rule": "GEN-19",
+     "what": "Game only: the strip over the list",
+     "type": "log",
+     "match": "screens: game list strip, 1080x2400, strip 320"
+    },
+    {
+     "rule": "GEN-21",
+     "what": "the path written in the strip, under its rule",
+     "type": "not_uniform",
+     "shot": "list",
+     "screen": "game",
+     "rect": [
+      24,
+      287,
+      700,
+      303
+     ],
+     "color": "000000",
+     "frac": 0.999
+    },
+    {
+     "rule": "GEN-21",
+     "what": "black under the path, to the strip's end",
+     "type": "uniform",
+     "shot": "list",
+     "screen": "game",
+     "rect": [
+      0,
+      304,
+      1024,
+      319
+     ],
+     "color": "000000",
+     "frac": 0.999
+    }
+   ]
+  },
+  {
+   "id": "cva-us-single-library-strip-4x",
+   "kind": "library",
+   "rom": "A2CE",
+   "desc": "the phone of cva-us-single-library-strip with Show ROM Path on at 4x: the path in letters four times the size, broken after a folder onto a second line, and the strip over the list taller by as much as that needs (GEN-21, GEN-19)",
+   "rules": [
+    "GEN-21",
+    "GEN-19"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "off",
+    "show_rom_path": 4,
+    "update_check": 0
+   },
+   "env": {
+    "GBADS_WINDOW": "1080x2400"
+   },
+   "shots": {
+    "list": 30
+   },
+   "golden_mask": [
+    [
+     880,
+     235,
+     1080,
+     280
+    ],
+    [
+     0,
+     286,
+     1080,
+     520
+    ]
+   ],
+   "checks": [
+    {
+     "rule": "GEN-21",
+     "what": "4x: the strip taller than at 1x (320)",
+     "type": "log",
+     "match": "screens: game list strip, 1080x2400, strip (3[3-9][0-9]|[4-9][0-9][0-9])"
+    },
+    {
+     "rule": "GEN-21",
+     "what": "4x: the path's letters in the strip",
+     "type": "not_uniform",
+     "shot": "list",
+     "screen": "game",
+     "rect": [
+      24,
+      290,
+      1024,
+      510
+     ],
+     "color": "000000",
+     "frac": 0.99
     }
    ]
   }

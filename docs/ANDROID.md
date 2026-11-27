@@ -122,6 +122,17 @@ it from the Actions tab and sideloads it.
   session generates the keystore (keytool is available) and hands it to the
   owner to add under Settings > Secrets and variables > Actions; the
   keystore itself is never committed.
+- **Maven Central's HTTP 429** ("Too Many Requests" while Gradle resolves a
+  dependency) is a rate limit on GitHub's shared runners, not the code.
+  Since Nov 27, 2026 (branch `android-fix-rate-limiting`) the workflow keeps
+  Gradle's downloads in a cache on every branch (`cache-read-only: false`:
+  setup-gradle otherwise saves only on `main`, where the workflow never
+  runs, so every run downloaded everything), and the Build step tries once
+  more after 90 seconds when the log shows a 429 (a "Maven Central rate
+  limit" warning on the run). A new branch's first run still starts with an
+  empty cache. If a run still fails on a 429 after both tries, re-run it:
+  `gh api -X POST repos/kyannon/gba-ds/actions/runs/<id>/rerun-failed-jobs`.
+  The job stops after 20 minutes (a normal run takes 2-3).
 
 ## First milestone (proof of concept)
 
@@ -743,7 +754,26 @@ task on either display), and the Duo opens a new task on one screen.
 - Two displays: unchanged (GbaDsActivity in its own task on display 0).
 - launch.log says "one display: starting the game in the launcher's task".
 
-## To pick up: save states shared with RetroArch (issue #39; planned Nov 16, 2026)
+## Save states shared with RetroArch (issues #39, #111)
+
+**Done on `android` (Nov 27, 2026, issue #111):** the Save States and
+RetroArch's State Folder rows are in Android's Settings (library.c
+`settings_rows`, after Folders, side by side as on Linux; the states_*
+functions are shared now). The folder row opens GBA DS's own picker
+(`folderpick.c`, not Android's: it works with the D-pad, counts `.state`
+files and keeps Automatic), which needs All files access (checked first:
+opendir of `/storage/emulated/0`, else the All files access message). A
+chosen folder under `Android/data/` or one GBA DS can't read and write is
+refused with a message pointing to RetroArch's Settings > Directory > Save
+States. `retroarch_state_dir` (paths.c) on Android: retroarch.cfg in the
+`Android/data/com.retroarch*` folders or `RetroArch/retroarch.cfg` (mostly
+unreadable on 11+), else `<storage>/RetroArch/states/mGBA` when
+`RetroArch/states` exists. No SAF: paths only, as GBA DS's other folders.
+Still to check on a device: the picker with touch and the D-pad on the
+Thor, the RG DS Plus (GammaOS) and a phone; a save in GBA DS loaded in
+RetroArch and back.
+
+The plan from Nov 16, kept for the reasons:
 
 Done for Linux on the branch `retroarch-states` (going into `dev`): the
 pause menu's slots 0-9 and the resume point can be RetroArch's own
@@ -803,7 +833,7 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
-(Empty: Rotation and Performance went into v1.5.5's changelog.)
+- **Save states shared with RetroArch on Android too** (issue #111): the game list's Settings now has **Save States: Shared with RetroArch** and **RetroArch's State Folder**, as on Linux, so the pause menu's slots 0 to 9 and the resume point can be RetroArch's own (save in one, go on in the other, or on another device you sync the folder with). GBA DS finds them in `RetroArch/states/mGBA` on your storage; choose another folder with **RetroArch's State Folder** (needs All files access). Known: RetroArch builds that keep their states inside `Android/data` can't share them, as Android keeps other apps out of that folder: set RetroArch's Settings > Directory > Save States to a folder on your storage first.
 
 Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays were read once at start; a display added or taken away later is picked up since issue #90 (a restart with the new layout: see "Notes for sessions: second display hot-plug" below; its line is in CHANGELOG.md's v1.6.2 Fixes).
 

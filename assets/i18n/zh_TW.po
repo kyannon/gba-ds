@@ -24,6 +24,12 @@ msgstr " 毫秒"
 msgid " s"
 msgstr " 秒"
 
+msgid "GBA DS can't use that folder. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "GBA DS 無法使用那個資料夾。請在 RetroArch 裡把 Settings > Directory > Save States 設為儲存空間裡的一個資料夾（不要在 Android/data 裡），再在這裡選擇它。"
+
+msgid "RetroArch's states weren't found. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "沒找到 RetroArch 的即時存檔。請在 RetroArch 裡把 Settings > Directory > Save States 設為儲存空間裡的一個資料夾（不要在 Android/data 裡），再在這裡選擇它。"
+
 msgid "\"Swipe up for quick menu\" at a game's start."
 msgstr "遊戲開始時顯示“上滑開啟快捷選單”。"
 
@@ -534,6 +540,9 @@ msgstr "正在下載"
 
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "用你的 retroachievements.org 賬號在休閒模式下獲得成就。GBA DS 只儲存登入令牌，不儲存密碼。"
+
+msgid "Edge stretch"
+msgstr "邊緣拉伸"
 
 msgid "English"
 msgstr "英語"
@@ -1451,6 +1460,9 @@ msgstr "存檔會儲存在那裡。"
 
 msgid "Scale, shader, theme, color"
 msgstr "縮放、濾鏡、主題、顏色"
+
+msgid "Scale: Edge stretch"
+msgstr "縮放：邊緣拉伸"
 
 msgid "Scale: Full Width"
 msgstr "縮放：全寬"

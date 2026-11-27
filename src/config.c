@@ -309,7 +309,11 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("ra_system_cfg", raSystemCfg)
 	STR("ra_host", raHost)
 	BOOL("gba_bios", gbaBios)
-	BOOL("show_rom_path", romPath)
+	if (!strcmp(key, "show_rom_path")) { /* 0 off, 1-4 the font size (GEN-21); on / true as 1x */
+		c->romPath = isdigit((unsigned char) val[0]) ? atoi(val) : (parse_bool(val) ? 1 : 0);
+		if (c->romPath < 0 || c->romPath > 4) c->romPath = c->romPath > 4 ? 4 : 0;
+		return true;
+	}
 	BOOL("update_check", updateCheck)
 	STR("update_url", updateUrl)
 	STR("load_state", loadState)
@@ -499,7 +503,7 @@ static const SettingChoice chOnOff[] = { { "0", "Off", 0 }, { "1", "On", 1 } };
 static const SettingChoice chShown[] = { { "0", "Supported games only", 0 }, { "1", "All games", 1 } };
 static const SettingChoice chTags[] = { { "0", "Plain", 0 }, { "1", "With tags, like (USA)", 1 } };
 static const SettingChoice chLogos[] = { { "pixelated", "Pixelated", CL_PIXELATED }, { "full", "Full detail", CL_FULL }, { N_("off"), "Not used", CL_OFF } };
-static const SettingChoice chScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Full Width", 0 }, { "zoom", "Zoom", 0 }, { "stretch", "Stretch", 0 } };
+static const SettingChoice chScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Full Width", 0 }, { "zoom", "Zoom", 0 }, { "stretch", "Stretch", 0 }, { "edges", "Edge stretch", 0 } };
 static const SettingChoice chGbSize[] = { { "gba", "GBA frame", 0 }, { "native", "Game Boy screen", 0 } };
 static const SettingChoice chGbScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Fit", 0 }, { "stretch", "Stretch", 0 } };
 static const SettingChoice chGbPalette[] = {

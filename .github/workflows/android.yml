@@ -15,6 +15,9 @@ on:
 jobs:
   apk:
     runs-on: ubuntu-24.04
+    # A normal run takes 2-3 minutes; this covers a run with an empty Gradle
+    # cache and the second attempt below, and ends a hung download.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
 
@@ -23,9 +26,17 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # Gradle's downloads (the Android Gradle plugin, its dependencies, Gradle
+      # itself) are kept between runs. By default setup-gradle only saves its
+      # cache on the default branch (main), where this workflow never runs, so
+      # every run downloaded everything from Maven Central again, and Maven
+      # Central sometimes refuses GitHub's shared runners with HTTP 429.
+      # Saving on every branch: a branch's later runs, and dev's and android's,
+      # start from their own cache (a new branch's first run can't see dev's).
       - uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: "8.10.2"
+          cache-read-only: false
 
       - name: Signing key
         env:
@@ -43,10 +54,20 @@ jobs:
           GBADS_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           GBADS_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           GBADS_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        # One more try after a wait when Maven Central (or the plugin portal,
+        # which relays to it) answered HTTP 429 "Too Many Requests": a rate
+        # limit on GitHub's shared runners, not a fault in the code. Any other
+        # failure, or a second 429, fails the run as before.
         run: |
           export ANDROID_NDK_HOME="${ANDROID_NDK_LATEST_HOME}"
           set -o pipefail
-          scripts/build-android.sh 2>&1 | tee "$RUNNER_TEMP/build.log"
+          log="$RUNNER_TEMP/build.log"
+          if scripts/build-android.sh 2>&1 | tee "$log"; then exit 0; fi
+          if ! grep -qE "status code 429|Too Many Requests" "$log"; then exit 1; fi
+          echo "::warning title=Maven Central rate limit::A download got HTTP 429 (Too Many Requests); trying the build once more in 90 seconds."
+          cp "$log" "$RUNNER_TEMP/build-attempt1.log"
+          sleep 90
+          scripts/build-android.sh 2>&1 | tee "$log"
 
       # The end of the log as an annotation, readable from the run page (and
       # the public API) without downloading the logs.

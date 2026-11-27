@@ -253,6 +253,16 @@ static bool ra_cfg_bool(const char* text, const char* key, bool def) {
 #define ROCKNIX_RA_CFG "/storage/.config/retroarch/retroarch.cfg"
 #define ROCKNIX_ROMS "/storage/roms"
 
+#ifdef __ANDROID__
+/* Android's shared storage (the one All files access opens) */
+#define ANDROID_STORAGE "/storage/emulated/0"
+
+static bool dir_exists(const char* p) {
+	struct stat st;
+	return stat(p, &st) == 0 && S_ISDIR(st.st_mode);
+}
+#endif
+
 /* retroarch.cfg: gba-ds.cfg's retroarch_cfg, else ROCKNIX's, BananaOS's
  * (its own copy, or the one it starts from before RetroArch's first
  * start), the usual one in the home folder or Flatpak's */
@@ -268,8 +278,19 @@ static bool ra_cfg_find(const Config* cfg, char* out, size_t n, bool* rocknix) {
 		return true;
 	}
 	const char* home = getenv("HOME");
+#ifdef __ANDROID__
+	/* (Android: RetroArch's builds keep it in their own Android/data folder, which
+	 * Android 11 and later don't let other apps read, so it's mostly not found:
+	 * then retroarch_state_dir looks for the shared states folder itself) */
+	const char* const paths[] = { ANDROID_STORAGE "/Android/data/com.retroarch/files/retroarch.cfg",
+		                          ANDROID_STORAGE "/Android/data/com.retroarch.aarch64/files/retroarch.cfg",
+		                          ANDROID_STORAGE "/Android/data/com.retroarch.ra32/files/retroarch.cfg",
+		                          ANDROID_STORAGE "/Android/data/com.retroarch.plus/files/retroarch.cfg",
+		                          ANDROID_STORAGE "/RetroArch/retroarch.cfg" };
+#else
 	const char* const paths[] = { "/data/retroarch/retroarch.cfg", "/etc/banana/retroarch.cfg", "~/.config/retroarch/retroarch.cfg",
 		                          "~/.var/app/org.libretro.RetroArch/config/retroarch/retroarch.cfg" };
+#endif
 	for (size_t i = 0; i < sizeof(paths) / sizeof(paths[0]); ++i) {
 		if (paths[i][0] == '~') {
 			if (!home) continue;
@@ -291,6 +312,14 @@ bool retroarch_state_dir(const Config* cfg, const char* rom, char* out, size_t n
 		snprintf(out, n, "%s", cfg->raStateDir);
 		return true;
 	}
+#ifdef __ANDROID__
+	/* (no settings to read: the shared folder RetroArch uses when it can write
+	 * to the storage, <storage>/RetroArch/states, sorted by core as it is by default) */
+	if (!text && dir_exists(ANDROID_STORAGE "/RetroArch/states")) {
+		snprintf(out, n, "%s", ANDROID_STORAGE "/RetroArch/states/mGBA");
+		return true;
+	}
+#endif
 	if (!text) return false;
 	char cfgDir[1024], romDir[1024] = "", romFolder[256] = "";
 	snprintf(cfgDir, sizeof(cfgDir), "%s", cfgPath);
