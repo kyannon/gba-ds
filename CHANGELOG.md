@@ -2,11 +2,22 @@
 
 ## v1.6.5 (not yet released)
 
+### Widescreen patches
+- **Widescreen patches.** A game with a GBA DS widescreen patch can be played wider (16:9, 16:10) or taller (4:3), at your screen's shape, showing more of the game at its sides (or above and below), drawn by the game itself. Where GBA DS has a patch for your game and your screen, the game's Patches menu offers to download it and switch it on (A, then A again); once downloaded it's a patch like any other, and only one widescreen patch is on at a time. The picture keeps its shape whatever the game screen scale (Pixel Perfect stays Pixel Perfect, every other scale shows it at Full Width), and the second screen stays as it was. No game has one yet: they'll come game by game, starting from a test ROM. Known: pictures of resume points and bug reports show the middle 240×160 only; LCD ghosting and run-ahead act on the middle only; the new menu text isn't translated yet; downloads haven't been tried on Android, and the web player has none.
+- **The web player's wide view**, at kyannon.github.io/gba-ds/wide: the web player with one more setting in its bar, Wide view (16:9, 16:10, 4:3 or off), that draws any game wider or taller than the GBA's screen, changing as you pick, to see what a game shows past its edges. Everything else is the web player as you know it, with the same settings and saves.
+
 ### Single displays
 - **The game list always shows the selected game** (issue #84). On a tablet, a phone or another single display, the game list used to show the list alone with One display on Game only, or where the display was too small or the wrong shape for two screens, so the selected game's details (and the ROM path) never showed. Now the list sits under a short strip across the top with GBA DS's logo, the game's logo, whether it has a save state, Play and Quit, the version, any romhack or modified ROM note and, with Show ROM Path on, the game's file. Where the display has room for both screens, nothing changes. On a tall, narrow display the list's buttons now fit across it too.
 
 ### Menus
 - **The ROM path on the game list can be bigger.** Settings > System > Show ROM Path on Game List now steps through Off and On at four font sizes, 1x (as before) to 4x, for reading the path on a big display or from further away. At the larger sizes a long path takes more lines, and on the RG DS Plus the save state's picture above it gets smaller to make room. If you had it on, it stays on at 1x.
+
+### Fixes
+- **The game list shows every game in a big folder.** With All on and more than 256 games, the list stopped drawing after the 256th: the rest could still be picked, but their rows were blank. Every game is shown now, in the list and in both grids.
+- **When no supported games are found**, the game list now says to tap Supported to see every game, instead of pointing to a line in the settings file.
+- **A few more words translated:** "(patch)" after a patched game's name, and "Downloading", "Installing" and "Installed" on the Updates screen.
+- **Game Boy games in the web player** could overwrite a little of the player's memory as they started (GBA cartridge rumble was being set up for them too). Fixed; on handhelds and Android it did no harm.
+- **A game that fails to load** no longer leaves its memory in use until GBA DS is closed.
 
 ## v1.6.4 (2026-11-26)
 

@@ -808,6 +808,7 @@
   },
   {
    "id": "gb-palette-own",
+   "driver": true,
    "rom": "g14u",
    "desc": "A plain Game Boy game with Display > Game Boy palette = Game's own (a game the colour table has no entry for: grey)",
    "rules": [

@@ -17,6 +17,7 @@
   },
   {
    "id": "th2-us-run",
+   "driver": true,
    "rom": "ATHE",
    "state": "tony-hawks-pro-skater-2/us-menu.ss",
    "desc": "from the main menu into a Free Skate run (RIGHT, then A through the menus)",

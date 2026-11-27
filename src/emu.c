@@ -148,6 +148,8 @@ static struct VFile* async_save_open(const char* path) {
 
 static void split_resync(Emu* e);
 static void split_release(Emu* e);
+static void wide_resync(Emu* e);
+static void wide_release(Emu* e);
 
 /* ---------------------------------------------- patches (GEN-9) */
 /* Which patches the game applies (emu_patch_plan): every core that opens
@@ -362,6 +364,29 @@ static void rtc_pin(Emu* e) {
 	if (!t) return;
 	e->core->rtc.override = RTC_FIXED;
 	e->core->rtc.value = atoll(t) * 1000;
+}
+
+/* Background work done on the caller's thread, with no thread of its own:
+ * map captures (mapcap.c, run in mapcap_request), logo extraction (logo.c),
+ * the profiles' own workers (profiles.c: Mega Man Battle Network's map,
+ * Baldur's Gate's, Mario Pinball Land's counters) and the climb copy's
+ * pictures, each waited for (climb.c). Exact and repeatable (the same
+ * pictures at the same frames), at the cost of frames that take longer:
+ * the regression tests run so, and a libretro core can choose it (run-ahead,
+ * or a frontend that wants no threads). Off unless set; GBADS_SYNC=1 sets it
+ * at the start (as the tests do). (The battery save's writer, emu.c, and the
+ * Pinball copies' workers, workers.c, run as they always do: the copies'
+ * frames are waited for each frame either way.) */
+static int syncWork = -1;
+void emu_set_sync_work(bool on) {
+	syncWork = on;
+}
+bool emu_sync_work(void) {
+	if (syncWork < 0) {
+		const char* e = getenv("GBADS_SYNC");
+		syncWork = e && atoi(e);
+	}
+	return syncWork;
 }
 
 /* Does the cartridge have a sun sensor (Boktai 1, 2 and 3)? mGBA sets the flag from its
@@ -687,6 +712,7 @@ void emu_close(Emu* e) {
 	if (e->core) {
 		if (rewindOwner == e) emu_rewind_deinit();
 		split_release(e);
+		wide_release(e);
 		hide_release(e);
 		mCoreConfigDeinit(&e->core->config);
 		e->core->deinit(e->core);
@@ -784,6 +810,7 @@ void emu_reset(Emu* e) {
 	e->core->reset(e->core);
 	if (e->gbBorder) gb_border_snapshot(e);
 	split_resync(e);
+	wide_resync(e);
 }
 
 size_t emu_state_size(Emu* e) {
@@ -810,6 +837,7 @@ bool emu_state_load(Emu* e, const void* buf) {
 	bool ok = e->core->loadState(e->core, buf);
 	rtc_pin(e);
 	split_resync(e);
+	wide_resync(e);
 	return ok;
 }
 
@@ -838,6 +866,7 @@ void emu_rewind_append(Emu* e) {
 bool emu_rewind_step(Emu* e) {
 	if (rewindOwner != e || !mCoreRewindRestore(&rewindCtx, e->core, 1)) return false;
 	split_resync(e);
+	wide_resync(e);
 	return true;
 }
 
@@ -1038,9 +1067,10 @@ static uint8_t* retroarch_wrap(const uint8_t* core, size_t n, bool compress, siz
 #endif
 }
 
-bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t extraN, StateFormat fmt) {
+uint8_t* emu_state_save_mem(Emu* e, const void* extra, size_t extraN, size_t* outN) {
+	*outN = 0;
 	struct VFile* vf = VFileMemChunk(NULL, 0);
-	if (!vf) return false;
+	if (!vf) return NULL;
 	bool ok = mCoreSaveStateNamed(e->core, vf, SAVESTATE_SAVEDATA | SAVESTATE_RTC | SAVESTATE_METADATA);
 	if (ok && extra) {
 		/* GBA DS's own data, put in with mGBA's (other emulators skip it) */
@@ -1063,6 +1093,18 @@ bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t 
 	uint8_t* core = n ? malloc(n) : NULL;
 	ok = core && vf->seek(vf, 0, SEEK_SET) == 0 && vf->read(vf, core, n) == (ssize_t) n;
 	vf->close(vf);
+	if (!ok) {
+		free(core);
+		return NULL;
+	}
+	*outN = n;
+	return core;
+}
+
+bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t extraN, StateFormat fmt) {
+	size_t n;
+	uint8_t* core = emu_state_save_mem(e, extra, extraN, &n);
+	bool ok = core != NULL;
 	uint8_t* out = core;
 	size_t outN = n;
 	if (ok && fmt != STATE_FORMAT_MGBA) ok = (out = retroarch_wrap(core, n, fmt == STATE_FORMAT_RETROARCH_RZIP, &outN)) != NULL;
@@ -1076,21 +1118,25 @@ bool emu_state_save_file(Emu* e, const char* path) {
 	return emu_state_save_file_as(e, path, NULL, 0, STATE_FORMAT_MGBA);
 }
 
+bool emu_state_load_mem(Emu* e, const void* b, size_t n) {
+	bool ok = false;
+	struct VFile* vf = VFileFromConstMemory(b, n);
+	if (vf) {
+		ok = mCoreLoadStateNamed(e->core, vf, SAVESTATE_RTC);
+		rtc_pin(e);
+		vf->close(vf);
+	}
+	split_resync(e);
+	wide_resync(e);
+	return ok;
+}
+
 bool emu_state_load_file(Emu* e, const char* path) {
 	size_t n;
 	StateFileKind kind;
 	uint8_t* b = state_file_read(path, &n, &kind);
 	if (!b) return false;
-	bool ok = false;
-	if (kind == STATE_FILE_MGBA || kind == STATE_FILE_RETROARCH) {
-		struct VFile* vf = VFileFromConstMemory(b, n);
-		if (vf) {
-			ok = mCoreLoadStateNamed(e->core, vf, SAVESTATE_RTC);
-			rtc_pin(e);
-			vf->close(vf);
-		}
-		split_resync(e);
-	}
+	bool ok = (kind == STATE_FILE_MGBA || kind == STATE_FILE_RETROARCH) && emu_state_load_mem(e, b, n);
 	free(b);
 	return ok;
 }
@@ -1150,16 +1196,10 @@ bool emu_state_file_rom_crc(const char* path, uint32_t* crc) {
 	return ok;
 }
 
-void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
+void* emu_state_mem_get_extra(Emu* e, const void* b, size_t bn, size_t* n) {
 	*n = 0;
-	size_t bn;
-	StateFileKind kind;
-	uint8_t* b = state_file_read(path, &bn, &kind);
 	struct VFile* vf = b ? VFileFromConstMemory(b, bn) : NULL;
-	if (!vf) {
-		free(b);
-		return NULL;
-	}
+	if (!vf) return NULL;
 	struct mStateExtdata ext;
 	mStateExtdataInit(&ext);
 	void* out = NULL;
@@ -1170,6 +1210,15 @@ void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
 	}
 	mStateExtdataDeinit(&ext);
 	vf->close(vf);
+	return out;
+}
+
+void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
+	*n = 0;
+	size_t bn;
+	StateFileKind kind;
+	uint8_t* b = state_file_read(path, &bn, &kind);
+	void* out = emu_state_mem_get_extra(e, b, bn, n);
 	free(b);
 	return out;
 }
@@ -1327,6 +1376,23 @@ uint8_t* emu_rom_read_all(const char* path, size_t* size) {
 	}
 	if (archive) archive->close(archive);
 	return buf;
+}
+
+bool emu_save_memory(Emu* e, void* buf, size_t size) {
+	struct VFile* vf = buf && size ? VFileFromMemory(buf, size) : NULL;
+	if (!vf) return false;
+	if (!e->core->loadSave(e->core, vf)) {
+		vf->close(vf);
+		return false;
+	}
+	return true;
+}
+
+size_t emu_save_memory_size(Emu* e) {
+	struct GBA* gba = gba_of(e);
+	if (gba) return gba->memory.savedata.type == GBA_SAVEDATA_AUTODETECT ? GBA_SIZE_FLASH1M : GBASavedataSize(&gba->memory.savedata);
+	if (e->core && e->platform == mPLATFORM_GB) return ((struct GB*) e->core->board)->sramSize;
+	return 0;
 }
 
 uint8_t* emu_memory(Emu* e, int region, size_t* size) {
@@ -2176,4 +2242,347 @@ int emu_cheats_add(Emu* e, const char* name, const char* const* codes, int n, in
 	set->enabled = true;
 	mCheatAddSet(device, set);
 	return added;
+}
+
+/* ------------------------------------------------------------ widescreen (docs/WIDESCREEN.md)
+ *
+ * A GBA DS widescreen patch (docs/WIDESCREEN.md) puts a 32-byte marker in the
+ * ROM: "GBADS-WIDESCREEN", a version, the aspect ratio's two numbers and the
+ * picture's size (284 x 160 for 16:9, 256 x 160 for 16:10, 240 x 180 for 4:3).
+ * The game's own picture stays mGBA's 240 x 160; the margins around it come
+ * from two more software renderers fed the same writes as the game's, each
+ * looking a margin's width to one side: text backgrounds through mGBA's own
+ * layer offsets, sprites through their own copy of OAM with the positions
+ * moved, affine backgrounds through their reference points moved, windows
+ * through their edges moved (a window to the screen's edge reaches the
+ * margin's). What the margins show is the game's own drawing past the edge;
+ * the patch makes the game draw it properly (scenery loaded that far,
+ * sprites not culled at 240). One axis at a time: a wider or a taller
+ * picture. Only the game's own core (emu_wide_on); the hidden copies, logos
+ * and captures stay 240 x 160. */
+
+#define WIDE_MAGIC "GBADS-WIDESCREEN"
+
+bool emu_wide_parse(const uint8_t* rom, size_t size, EmuWide* out) {
+	memset(out, 0, sizeof(*out));
+	if (!rom || size < 32) return false;
+	for (size_t at = 0; at + 32 <= size; at += 16) {
+		const uint8_t* p = rom + at;
+		if (p[0] != 'G' || memcmp(p, WIDE_MAGIC, 16)) continue;
+		int ver = p[16], num = p[17], den = p[18];
+		int w = p[20] | p[21] << 8, h = p[22] | p[23] << 8;
+		if (ver != 1 || !num || !den) continue;
+		if (w < GBA_W || h < GBA_H || (w - GBA_W) % 2 || (h - GBA_H) % 2) continue;
+		if (w > GBA_W + 2 * WIDE_MARGIN_MAX || h > GBA_H + 2 * WIDE_MARGIN_MAX) continue;
+		if (w > GBA_W && h > GBA_H) continue; /* (one axis at a time) */
+		out->found = true;
+		out->num = num, out->den = den, out->w = w, out->h = h;
+		out->offset = (uint32_t) at;
+		return true;
+	}
+	return false;
+}
+
+bool emu_wide_ratio(int num, int den, EmuWide* out) {
+	memset(out, 0, sizeof(*out));
+	if (num <= 0 || den <= 0 || num > 255 || den > 255) return false;
+	int w = GBA_W, h = GBA_H;
+	if (num * GBA_H >= den * GBA_W) {
+		w = (GBA_H * num * 2 + den) / (2 * den); /* (rounded) */
+		w -= (w - GBA_W) % 2;
+	} else {
+		h = (GBA_W * den * 2 + num) / (2 * num);
+		h -= (h - GBA_H) % 2;
+	}
+	if (w > GBA_W + 2 * WIDE_MARGIN_MAX || h > GBA_H + 2 * WIDE_MARGIN_MAX) return false;
+	*out = (EmuWide) { .found = true, .num = num, .den = den, .w = w, .h = h };
+	return true;
+}
+
+bool emu_wide_find(const Emu* e, EmuWide* out) {
+	struct GBA* gba = gba_of(e);
+	memset(out, 0, sizeof(*out));
+	if (!gba || !gba->memory.rom) return false;
+	return emu_wide_parse((const uint8_t*) gba->memory.rom, gba->memory.romSize, out);
+}
+
+typedef struct {
+	bool installed;
+	bool on; /* drawing the margins (installed stays: emu_wide_set off keeps the hooks, idle) */
+	struct GBA* gba;
+	struct GBAVideoRenderer* main;
+	int w, h, mx, my;
+	bool vert;                            /* a taller picture, instead of a wider one */
+	int d[2];                             /* [0] left / top, [1] right / bottom: what the game has at a column (row) of that renderer, less the column (row) */
+	struct GBAVideoSoftwareRenderer ext[2];
+	union GBAOAM oam[2];
+	uint32_t* buf[2];                     /* their pictures, GBA_W x GBA_H */
+	uint32_t* out;                        /* the whole picture, w x h */
+	int32_t ref[2][2];                    /* BG2, BG3: X, Y as the game wrote them */
+	int16_t pa[2], pb[2], pc[2], pd[2];
+	uint16_t (*writeVideoRegister)(struct GBAVideoRenderer*, uint32_t, uint16_t);
+	void (*writeVRAM)(struct GBAVideoRenderer*, uint32_t);
+	void (*writePalette)(struct GBAVideoRenderer*, uint32_t, uint16_t);
+	void (*writeOAM)(struct GBAVideoRenderer*, uint32_t);
+	void (*drawScanline)(struct GBAVideoRenderer*, int);
+	void (*finishFrame)(struct GBAVideoRenderer*);
+	void (*reset)(struct GBAVideoRenderer*);
+} Wide;
+static Wide wide;
+
+/* a window's edges (start << 8 | end, as WINxH / WINxV) moved by d: an edge at
+ * the screen's own edge stays there, so a window across the screen covers the
+ * margins too */
+static int wide_clamp(int v, int lo, int hi) {
+	return v < lo ? lo : v > hi ? hi : v;
+}
+static uint16_t wide_win(uint16_t v, int d, int lim) {
+	int s = v >> 8, e = v & 0xFF;
+	if (e > lim) e = lim;
+	if (s > e) return v; /* (wrapping round: left as it is) */
+	int s2 = s == 0 ? 0 : wide_clamp(s - d, 0, lim);
+	int e2 = e >= lim ? lim : wide_clamp(e - d, 0, lim);
+	if (s2 >= e2) s2 = e2 = lim; /* (nothing of it in this renderer's view) */
+	return (uint16_t) (s2 << 8 | e2);
+}
+
+static void wide_ref_write(int k, int bg, int axis) {
+	struct GBAVideoRenderer* x = &wide.ext[k].d;
+	int i = bg - 2, d = wide.d[k];
+	int32_t v = wide.ref[i][axis];
+	if (!wide.vert) v += d * (axis ? wide.pc[i] : wide.pa[i]);
+	else v += d * (axis ? wide.pd[i] : wide.pb[i]);
+	uint32_t a = 0x28 + (uint32_t) i * 0x10 + (uint32_t) axis * 4;
+	x->writeVideoRegister(x, a, (uint16_t) (v & 0xFFFF));
+	x->writeVideoRegister(x, a + 2, (uint16_t) ((v >> 16) & 0x0FFF));
+}
+
+static void wide_ext_reg(int k, uint32_t a, uint16_t v) {
+	struct GBAVideoRenderer* x = &wide.ext[k].d;
+	if (a >= 0x20 && a < 0x40) {
+		int i = (int) (a - 0x20) / 0x10, r = (int) (a & 0xF);
+		switch (r) {
+		case 0x0: wide.pa[i] = (int16_t) v; break;
+		case 0x2: wide.pb[i] = (int16_t) v; break;
+		case 0x4: wide.pc[i] = (int16_t) v; break;
+		case 0x6: wide.pd[i] = (int16_t) v; break;
+		default: {
+			int axis = r >= 0xC;
+			uint32_t u = (uint32_t) wide.ref[i][axis];
+			u = (r & 2) ? (u & 0xFFFF) | ((uint32_t) v << 16) : (u & 0xFFFF0000u) | v;
+			wide.ref[i][axis] = (int32_t) (u << 4) >> 4;
+			wide_ref_write(k, i + 2, axis);
+			return;
+		}
+		}
+		x->writeVideoRegister(x, a, v);
+		return;
+	}
+	if (!wide.vert && (a == 0x40 || a == 0x42)) v = wide_win(v, wide.d[k], GBA_W);
+	if (wide.vert && (a == 0x44 || a == 0x46)) v = wide_win(v, wide.d[k], GBA_H);
+	x->writeVideoRegister(x, a, v);
+}
+
+static void wide_oam_copy(int k, uint32_t i) {
+	uint16_t v = wide.gba->video.oam.raw[i];
+	if (!wide.vert && (i & 3) == 1) v = (uint16_t) ((v & ~0x1FF) | ((v - wide.d[k]) & 0x1FF));
+	if (wide.vert && (i & 3) == 0) v = (uint16_t) ((v & ~0xFF) | ((v - wide.d[k]) & 0xFF));
+	wide.oam[k].raw[i] = v;
+}
+
+static uint16_t wide_reg(struct GBAVideoRenderer* r, uint32_t a, uint16_t v) {
+	uint16_t out = wide.writeVideoRegister(r, a, v);
+	/* (the affine copies are the game's; written once, then moved for each) */
+	for (int k = 0; k < 2; ++k) {
+		if (k && a >= 0x20 && a < 0x40) {
+			int i = (int) (a - 0x20) / 0x10, rr = (int) (a & 0xF);
+			if (rr >= 0x8) wide_ref_write(1, i + 2, rr >= 0xC);
+			else wide.ext[1].d.writeVideoRegister(&wide.ext[1].d, a, v);
+			continue;
+		}
+		wide_ext_reg(k, a, v);
+	}
+	return out;
+}
+static void wide_vram(struct GBAVideoRenderer* r, uint32_t a) {
+	wide.writeVRAM(r, a);
+	for (int k = 0; k < 2; ++k) wide.ext[k].d.writeVRAM(&wide.ext[k].d, a);
+}
+static void wide_palette(struct GBAVideoRenderer* r, uint32_t a, uint16_t v) {
+	wide.writePalette(r, a, v);
+	for (int k = 0; k < 2; ++k) wide.ext[k].d.writePalette(&wide.ext[k].d, a, v);
+}
+static void wide_oam(struct GBAVideoRenderer* r, uint32_t i) {
+	wide.writeOAM(r, i);
+	for (int k = 0; k < 2; ++k) {
+		wide_oam_copy(k, i & 511);
+		wide.ext[k].d.writeOAM(&wide.ext[k].d, i);
+	}
+}
+static void wide_draw(struct GBAVideoRenderer* r, int y) {
+	wide.drawScanline(r, y);
+	for (int k = 0; wide.on && k < 2; ++k) {
+		/* the top margin's renderer is needed only for its rows; each
+		 * frame starts it again (finishFrame) */
+		if (wide.vert && k == 0 && y >= wide.my) continue;
+		struct GBAVideoRenderer* x = &wide.ext[k].d;
+		for (int i = 0; i < 4; ++i) x->disableBG[i] = r->disableBG[i]; /* (a HUD moved off the game: off the margins too) */
+		x->disableOBJ = r->disableOBJ;
+		x->drawScanline(x, y);
+	}
+}
+static void wide_finish(struct GBAVideoRenderer* r) {
+	wide.finishFrame(r);
+	for (int k = 0; k < 2; ++k) wide.ext[k].d.finishFrame(&wide.ext[k].d);
+}
+
+/* mGBA's layer offsets for text backgrounds (reset clears them) */
+static void wide_offsets(void) {
+	for (int k = 0; k < 2; ++k) {
+		for (int i = 0; i < 4; ++i) {
+			wide.ext[k].bg[i].offsetX = wide.vert ? 0 : (int16_t) -wide.d[k];
+			wide.ext[k].bg[i].offsetY = wide.vert ? (int16_t) -wide.d[k] : 0;
+		}
+	}
+}
+
+/* the margins' renderers take on the video state as it is now */
+static void wide_resync(Emu* e) {
+	struct GBA* gba = gba_of(e);
+	if (!gba || !wide.installed || gba != wide.gba) return;
+	for (int k = 0; k < 2; ++k) {
+		struct GBAVideoRenderer* x = &wide.ext[k].d;
+		x->reset(x);
+	}
+	wide_offsets();
+	for (uint32_t a = 0; a <= 0x56; a += 2) {
+		uint16_t v = gba->memory.io[a >> 1];
+		for (int k = 0; k < 2; ++k) {
+			if (k && a >= 0x20 && a < 0x40) {
+				int i = (int) (a - 0x20) / 0x10, rr = (int) (a & 0xF);
+				if (rr >= 0x8) wide_ref_write(1, i + 2, rr >= 0xC);
+				else wide.ext[1].d.writeVideoRegister(&wide.ext[1].d, a, v);
+				continue;
+			}
+			wide_ext_reg(k, a, v);
+		}
+	}
+	for (int k = 0; k < 2; ++k) {
+		struct GBAVideoRenderer* x = &wide.ext[k].d;
+		for (uint32_t a = 0; a < 0x400; a += 2) x->writePalette(x, a, gba->video.palette[a >> 1]);
+		for (uint32_t i = 0; i < 512; ++i) wide_oam_copy(k, i), x->writeOAM(x, i);
+		wide.ext[k].oamDirty = true;
+	}
+}
+static void wide_reset(struct GBAVideoRenderer* r) {
+	wide.reset(r);
+	for (int k = 0; k < 2; ++k) wide.ext[k].d.reset(&wide.ext[k].d);
+	wide_offsets();
+}
+
+/* the picture's size and the margins' looks (the hooks as they are) */
+static bool wide_size(const EmuWide* w) {
+	uint32_t* out = calloc((size_t) w->w * (size_t) w->h, sizeof(uint32_t));
+	if (!out) return false;
+	free(wide.out);
+	wide.out = out;
+	wide.w = w->w, wide.h = w->h;
+	wide.mx = (w->w - GBA_W) / 2, wide.my = (w->h - GBA_H) / 2;
+	wide.vert = wide.my > 0;
+	int m = wide.vert ? wide.my : wide.mx;
+	wide.d[0] = -m, wide.d[1] = m;
+	return true;
+}
+
+bool emu_wide_on(Emu* e, const EmuWide* w) {
+	struct GBA* gba = gba_of(e);
+	struct GBAVideoRenderer* r = gba ? gba->video.renderer : NULL;
+	if (!r || wide.installed || !w || !w->found || e->gbBorder) return false;
+	memset(&wide, 0, sizeof(wide));
+	for (int k = 0; k < 2; ++k) wide.buf[k] = calloc(GBA_W * GBA_H, sizeof(uint32_t));
+	if (!wide.buf[0] || !wide.buf[1] || !wide_size(w)) {
+		free(wide.out), free(wide.buf[0]), free(wide.buf[1]);
+		memset(&wide, 0, sizeof(wide));
+		return false;
+	}
+	int m = wide.vert ? wide.my : wide.mx;
+	for (int k = 0; k < 2; ++k) {
+		GBAVideoSoftwareRendererCreate(&wide.ext[k]);
+		wide.ext[k].outputBuffer = (mColor*) wide.buf[k];
+		wide.ext[k].outputBufferStride = GBA_W;
+		struct GBAVideoRenderer* x = &wide.ext[k].d;
+		x->palette = gba->video.palette;
+		x->vram = gba->video.vram;
+		x->oam = &wide.oam[k];
+		x->cache = NULL;
+		x->init(x);
+	}
+	wide.gba = gba;
+	wide.main = r;
+	wide.writeVideoRegister = r->writeVideoRegister, r->writeVideoRegister = wide_reg;
+	wide.writeVRAM = r->writeVRAM, r->writeVRAM = wide_vram;
+	wide.writePalette = r->writePalette, r->writePalette = wide_palette;
+	wide.writeOAM = r->writeOAM, r->writeOAM = wide_oam;
+	wide.drawScanline = r->drawScanline, r->drawScanline = wide_draw;
+	wide.finishFrame = r->finishFrame, r->finishFrame = wide_finish;
+	wide.reset = r->reset, r->reset = wide_reset;
+	wide.installed = wide.on = true;
+	wide_resync(e);
+	fprintf(stderr, "widescreen: %d:%d, %d x %d (margins %d)\n", w->num, w->den, w->w, w->h, m);
+	return true;
+}
+
+bool emu_wide_set(Emu* e, const EmuWide* w) {
+	bool want = w && w->found;
+	if (!wide.installed) return want ? emu_wide_on(e, w) : true;
+	struct GBA* gba = gba_of(e);
+	if (!gba || gba != wide.gba) return false;
+	if (!want) {
+		wide.on = false;
+		fprintf(stderr, "widescreen: off\n");
+		return true;
+	}
+	if (!wide_size(w)) return false;
+	wide.on = true;
+	wide_resync(e); /* (the margins' renderers looking their new width from here) */
+	fprintf(stderr, "widescreen: %d:%d, %d x %d (margins %d)\n", w->num, w->den, w->w, w->h, wide.vert ? wide.my : wide.mx);
+	return true;
+}
+
+bool emu_wide_active(void) {
+	return wide.installed && wide.on;
+}
+int emu_wide_w(void) {
+	return emu_wide_active() ? wide.w : GBA_W;
+}
+int emu_wide_h(void) {
+	return emu_wide_active() ? wide.h : GBA_H;
+}
+
+const uint32_t* emu_wide_compose(const uint32_t* centre) {
+	if (!emu_wide_active()) return centre;
+	int W = wide.w;
+	if (!wide.vert) {
+		int m = wide.mx;
+		for (int y = 0; y < GBA_H; ++y) {
+			uint32_t* o = wide.out + (size_t) y * (size_t) W;
+			memcpy(o, wide.buf[0] + y * GBA_W, (size_t) m * 4);
+			memcpy(o + m, centre + y * GBA_W, GBA_W * 4);
+			memcpy(o + m + GBA_W, wide.buf[1] + y * GBA_W + GBA_W - m, (size_t) m * 4);
+		}
+	} else {
+		int m = wide.my;
+		memcpy(wide.out, wide.buf[0], (size_t) m * GBA_W * 4);
+		memcpy(wide.out + (size_t) m * GBA_W, centre, GBA_W * GBA_H * 4);
+		memcpy(wide.out + (size_t) (m + GBA_H) * GBA_W, wide.buf[1] + (GBA_H - m) * GBA_W, (size_t) m * GBA_W * 4);
+	}
+	return wide.out;
+}
+
+static void wide_release(Emu* e) {
+	struct GBA* gba = gba_of(e);
+	if (!gba || !wide.installed || gba != wide.gba) return;
+	for (int k = 0; k < 2; ++k) wide.ext[k].d.deinit(&wide.ext[k].d);
+	free(wide.out), free(wide.buf[0]), free(wide.buf[1]);
+	memset(&wide, 0, sizeof(wide));
 }

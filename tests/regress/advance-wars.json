@@ -229,6 +229,7 @@
   },
   {
    "id": "aw-us-co-screen",
+   "driver": true,
    "rom": "AWRE",
    "state": "advance-wars/us-co-screen.ss",
    "desc": "the CO dossier open on army 2's turn in a two-player Versus game: the logo (AW-4's known limitation: a later army's turn is taken for the computer's)",
@@ -349,6 +350,7 @@
   },
   {
    "id": "aw-us-exit-map",
+   "driver": true,
    "rom": "AWRE",
    "state": "advance-wars/us-cursor-empty.ss",
    "desc": "the Battle Intel taken, then a map quit (Options > Exit Map) to the mode menu (a player's bug report)",

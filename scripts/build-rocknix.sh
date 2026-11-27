@@ -92,9 +92,18 @@ if [ -n "$SIDE" ]; then
 fi
 
 # --- gba-ds ---------------------------------------------------------------
+# the widescreen patches the app offers (WS-6): a release's from main, a -dev
+# version's from dev, a side build's from its own branch
+WIDE_REF=main
+case "$(cat VERSION)" in *-dev*) WIDE_REF=dev ;; esac
+if [ -n "$SIDE" ]; then
+	BR="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+	[ -n "$BR" ] && [ "$BR" != HEAD ] && WIDE_REF="$BR"
+fi
+echo "widescreen patches from: $WIDE_REF"
 BUILD_OUT=build/aarch64${SIDE:+-$SIDE}${GBADS_LANG_ASK:+-ask$GBADS_LANG_ASK}
 make CROSS="$CROSS" MGBA_SRC="$DEPS/mgba" MGBA_BUILD="$DEPS/mgba/build-aarch64" \
-	SDL_PREFIX="$DEPS/sdl-aarch64" OUT="$BUILD_OUT" OPTFLAGS="-O2 -mcpu=cortex-a55" SIDE="$SIDE" SIDE_CODES="$SIDE_CODES" LANG_ASK="${GBADS_LANG_ASK:-}"
+	SDL_PREFIX="$DEPS/sdl-aarch64" OUT="$BUILD_OUT" OPTFLAGS="-O2 -mcpu=cortex-a55" SIDE="$SIDE" SIDE_CODES="$SIDE_CODES" LANG_ASK="${GBADS_LANG_ASK:-}" WIDE_REF="$WIDE_REF"
 
 # --- package ---------------------------------------------------------------
 VERSION=$(cat VERSION)

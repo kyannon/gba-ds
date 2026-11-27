@@ -556,10 +556,10 @@ static void enqueue(const char* romPath, const char* gameCode, uint32_t crc, con
 		while (*tail) tail = &(*tail)->next;
 	}
 	*tail = j;
-	/* (GBADS_SYNC=1, regression tests: inline too, like the web build) */
-	if (!running && !(getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC")))) running = pthread_create(&thread, NULL, worker, NULL) == 0;
+	/* (emu_sync_work: the regression tests, a core's choice: inline too, like the web build) */
+	if (!running && !emu_sync_work()) running = pthread_create(&thread, NULL, worker, NULL) == 0;
 	if (!running) {
-		/* no threads (the web build), or GBADS_SYNC: the work now */
+		/* no threads (the web build), or emu_sync_work: the work now */
 #ifdef __wasi__
 		/* (the web build: only a game's own logo, asked for while it's
 		 * played; the rest one a frame, logo_step, so the game list shows

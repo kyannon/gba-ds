@@ -846,13 +846,11 @@ MapCapture* mapcap_create(const char* romPath, const char* gameCode, bool tight)
 	return mc;
 }
 
-/* GBADS_SYNC=1 (regression tests): captures run in mapcap_request, the
- * game waiting for them, as in the web build, so every run gives the same
- * pictures at the same frames. */
+/* emu_sync_work (the regression tests' GBADS_SYNC=1, a core's choice):
+ * captures run in mapcap_request, the game waiting for them, as in the web
+ * build, so every run gives the same pictures at the same frames. */
 static void start_thread(MapCapture* mc) {
-	static int sync = -1;
-	if (sync < 0) sync = getenv("GBADS_SYNC") && atoi(getenv("GBADS_SYNC"));
-	if (sync) mc->noThread = true;
+	if (emu_sync_work()) mc->noThread = true;
 	if (!mc->running && !mc->noThread) {
 		mc->running = true;
 		if (pthread_create(&mc->thread, NULL, worker, mc) != 0) mc->running = false, mc->noThread = true;

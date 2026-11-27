@@ -61,6 +61,8 @@ The log's every-5-seconds report says whether the sound ran out (underruns) and 
 
 **My RetroArch progress isn't there.** On the first launch of a game GBA DS copies `Game.srm` to `Game.sav` next to the ROM. After that the two are separate: progress in GBA DS is in the `.sav`. To bring newer RetroArch progress over, copy the `.srm` over the `.sav` while GBA DS isn't running.
 
+**RetroArch on Steam doesn't load GBA DS's save states.** Its mGBA core comes through Steam and can be older than GBA DS's, and an older mGBA doesn't load states from a newer one. Use RetroArch from retroarch.com (see [Playing](Playing#save-states-shared-with-retroarch)).
+
 **A resume point is broken** (for instance after a cheat): delete `states/<game>.auto.state` and the game starts from its battery save.
 
 ## Android

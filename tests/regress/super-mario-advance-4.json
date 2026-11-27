@@ -1920,6 +1920,7 @@
   },
   {
    "id": "sm4-eu-vc-worlde-into-castle",
+   "driver": true,
    "rom": "AX4P+vc",
    "state": "super-mario-advance-4/eu-vc-worlde-map.ss",
    "desc": "World-e's map: Mario walks to the castle and goes in; the logo from the map's closing circle on",

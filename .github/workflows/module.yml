@@ -1,0 +1,58 @@
+# The second-screen module without SDL (discussion #75): `make module-check` builds
+# the module and the core it runs on with no SDL include path, links them with no SDL
+# library and runs the result, so they stay what a libretro core can compile; then
+# tools/module_settings.py checks docs/LIBRETRO.md's settings list against the code.
+name: Module without SDL
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'tools/module_check.c'
+      - 'tools/module_settings.py'
+      - 'docs/LIBRETRO.md'
+      - 'Makefile'
+      - 'scripts/mgba-options.sh'
+      - '.github/workflows/module.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tools/module_check.c'
+      - 'tools/module_settings.py'
+      - 'docs/LIBRETRO.md'
+      - 'Makefile'
+      - 'scripts/mgba-options.sh'
+      - '.github/workflows/module.yml'
+  workflow_dispatch:
+
+jobs:
+  module-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake > /dev/null
+
+      # The regression workflow's mGBA build, when it's cached (only read here: this job
+      # builds no SDL, so a cache saved from it would be missing what that workflow needs)
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            deps/mgba
+            deps/SDL2
+            deps/sdl-host
+          key: host-deps-${{ runner.os }}-${{ hashFiles('scripts/mgba-options.sh', 'scripts/setup-host.sh') }}
+
+      - name: mGBA
+        run: |
+          . scripts/mgba-options.sh
+          [ -d deps/mgba ] || { git clone -q https://github.com/mgba-emu/mgba.git deps/mgba && git -C deps/mgba checkout -q "$MGBA_COMMIT"; }
+          cmake -S deps/mgba -B deps/mgba/build-host "${MGBA_OPTS[@]}" > mgba.log 2>&1 || { tail -n 40 mgba.log; exit 1; }
+          make -C deps/mgba/build-host -j"$(nproc)" mgba zlibstatic >> mgba.log 2>&1 || { tail -n 40 mgba.log; exit 1; }
+
+      - name: Build and run without SDL
+        run: make module-check

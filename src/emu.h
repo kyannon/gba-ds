@@ -130,6 +130,11 @@ float emu_rumble_level(const Emu* e);
  * a hidden copy. */
 void emu_frame_blind(Emu* e, uint32_t keys);
 /* the cartridge has a sun sensor (Boktai) */
+/* background work on the caller's thread (map captures, logo extraction, the
+ * profiles' workers, the climb copy's pictures waited for): exact runs.
+ * Off unless set (or GBADS_SYNC=1 at the start). See emu.c. */
+void emu_set_sync_work(bool on);
+bool emu_sync_work(void);
 bool emu_has_solar(Emu* e);
 /* The cartridge's gyro reading for the frames to come, in mGBA's units (WarioWare: Twisted!):
  * 0 is at rest, 2^21 a count of the cartridge's 12-bit sample. Only that game reads it. */
@@ -190,6 +195,14 @@ BiosRefusal emu_state_file_bios_refusal(Emu* e, const char* path);
 bool emu_state_file_rom_crc(const char* path, uint32_t* crc);
 /* GBA DS's own data kept inside a state file, as a malloc'd copy (NULL: none) */
 void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n);
+/* The same in memory (a libretro core's retro_serialize / retro_unserialize):
+ * the bytes of a state file in mGBA's format (STATE_FORMAT_MGBA, extra kept
+ * inside as there), malloc'd, *n bytes, NULL on failure; loading them, as
+ * emu_state_load_file loads a file (its battery save left as it is); and the
+ * extra data inside such bytes, malloc'd (NULL: none). */
+uint8_t* emu_state_save_mem(Emu* e, const void* extra, size_t extraN, size_t* n);
+bool emu_state_load_mem(Emu* e, const void* b, size_t n);
+void* emu_state_mem_get_extra(Emu* e, const void* b, size_t bn, size_t* n);
 
 /* The whole ROM file (inside a .zip / .7z too), malloc'd; NULL on failure. */
 uint8_t* emu_rom_read_all(const char* path, size_t* size);
@@ -210,6 +223,14 @@ void emu_patch_plan(const char* rom, char files[][1024], int n);
 /* The ROM with the patches given applied, in order (the game list's
  * checksum of each game as it would be played) */
 uint8_t* emu_rom_read_patched(const char* path, char files[][1024], int n, size_t* size, int* patch, char* patchName);
+/* The battery save in memory (a libretro core's RETRO_MEMORY_SAVE_RAM, as
+ * mGBA's libretro core keeps it): the game opened with no savePath, then
+ * before its first frame given buf (size bytes: 128 KB, GBA_SIZE_FLASH1M, set
+ * to 0xFF and filled from the frontend's save), which the game reads and
+ * writes in place. emu_save_memory_size: how much of it is the save (all of
+ * it until the game's save type is known), as that core reports it. */
+bool emu_save_memory(Emu* e, void* buf, size_t size);
+size_t emu_save_memory_size(Emu* e);
 /* A memory region of the running game (GBA address >> 24: 2 EWRAM, 3 IWRAM,
  * 0xE save RAM), or NULL. */
 uint8_t* emu_memory(Emu* e, int region, size_t* size);
@@ -238,6 +259,32 @@ void emu_hide_exact(Emu* e, const uint16_t (*attrs)[3], int n);
 /* Which layers are drawn: bits 0-3 BG0-3, bit 4 sprites (0x1F = all). Takes
  * effect when the display registers are next written (e.g. a state load). */
 void emu_layers(Emu* e, unsigned mask);
+/* Widescreen patches (docs/WIDESCREEN.md): the marker a GBA DS
+ * widescreen patch puts in the ROM, and the wider (or taller) picture it asks
+ * for. */
+#define WIDE_MARGIN_MAX 64
+typedef struct {
+	bool found;
+	int num, den;    /* the aspect ratio, as the patch names it (16:9) */
+	int w, h;        /* the picture: 284 x 160 for 16:9 */
+	uint32_t offset; /* where the marker is in the ROM */
+} EmuWide;
+bool emu_wide_parse(const uint8_t* rom, size_t size, EmuWide* out);
+/* the picture for a ratio (as tools/widescreen.py's): one axis the GBA's */
+bool emu_wide_ratio(int num, int den, EmuWide* out);
+/* the game's ROM as loaded (patched) */
+bool emu_wide_find(const Emu* e, EmuWide* out);
+/* Draws the margins from now on (the game's own core, once per open). */
+bool emu_wide_on(Emu* e, const EmuWide* w);
+/* On with another picture, or off (w NULL or not found), while the game runs
+ * (the wide web player's choice). */
+bool emu_wide_set(Emu* e, const EmuWide* w);
+bool emu_wide_active(void);
+int emu_wide_w(void);
+int emu_wide_h(void);
+/* The whole picture: centre (GBA_W x GBA_H, the game's frame as shown) with
+ * the margins around it; emu_wide_w() pixels a row. centre itself when off. */
+const uint32_t* emu_wide_compose(const uint32_t* centre);
 /* HUD split (Mario Kart): while on, the BG layers in bgMask (bit 0 = BG0)
  * and the sprites matching any of objs are left out of the game picture and
  * drawn alone into hud (GBA_W x GBA_H, kept by the caller while the core is

@@ -192,8 +192,29 @@ BPS or xdelta) beside its ROM, named as the ROM with the patch's extension, so t
 applies it as the game starts (GEN-9). `"patch_folder": [FILE, ...]` puts
 fixtures in the game's own patches folder (`<work>/patches/<release name>`,
 the release's No-Intro name as `profile_release_name` gives it), and
-`"patch_on": "FILE"` switches one on there (writing `<rom>.patches`; a list switches on several, in the order they're applied; `"patch_separate": false` turns the separate battery save and states switches off). Every
+`"widescreen_list": true` serves the repository's `widescreen/` folder (the widescreen patches' list and files, WS-6) to the case from a local server, as `GBADS_WIDE_URL`; every other case gets an address nothing answers, so none reaches GitHub. `"patch_on": "FILE"` switches one on there (writing `<rom>.patches`; a list switches on several, in the order they're applied; `"patch_separate": false` turns the separate battery save and states switches off). Every
 app case runs with its own `--patch_dir`.
+
+A case with `"driver": true` (or every case, with `--driver`) also checks the second-screen
+module alone against the app (discussion #75): the app runs with `GBADS_MODULE_TRACE`, which
+writes every call it makes into the module (second.c's `second_trace_begin`: open, each frame's
+`second_frame_start` / `second_run_frame` / `second_step`, state loads with the file loaded,
+`second_new_subject`, `toggle_press`, close) and, at each screenshot, what the second screen
+shows (`NAME.second`: `second_shown`'s kind, dim, and the picture) and the game's picture
+(`NAME.game`); then `build/host/second-driver` (tools/second_driver.c, `make tools`) replays
+that trace with only the module and the emulator core, no SDL and none of the app, and writes
+the same. The check ("MODULE") passes when its trace and every picture are the app's, byte for
+byte: a difference means the app changes the module's state outside its calls, which a libretro
+core couldn't. Left out by design (the host's choices, not the module's): ROM patches (the
+driver opens the plain ROM), the player's own or a scraped logo (the driver's is the extracted
+one), Game Boy palettes and the restart prompt (it starts the game again in the same run).
+Two settings in a case's `env` (or the shell's) make the driver work as a libretro core
+would: `GBADS_DRIVER_SAVE_MEM=1` gives the game its battery save in memory
+(`emu_save_memory`, a core's `RETRO_MEMORY_SAVE_RAM`) instead of a file, and
+`GBADS_DRIVER_SERIALIZE=1` saves the game's state and loads it back in memory after every
+frame (`emu_state_save_mem` / `emu_state_load_mem`, `retro_serialize` /
+`retro_unserialize`); the app ignores both, so the pictures must still be the app's.
+`to-us-resume` (a battery save, no state) runs with both.
 
 ## Writing a case
 
