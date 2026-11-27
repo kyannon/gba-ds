@@ -13,6 +13,7 @@
 
 ### Fixes
 - **A translation or romhack GBA DS knows now has its own logo** (pull request #102 by cmyksoda). With the Japanese game and its English translation both in your game list, each now shows its own title, in the list and on the second screen, instead of both showing whichever logo was made first: F-Zero Climax, Fire Emblem: The Binding Blade, Shin Megami Tensei and Densetsu no Stafy 1 to 3. A translation shows the Japanese game's logo until you've selected it once in the list. A logo made from a translation before this update stays on the Japanese game until you delete that game's logo file in the `states/logos/` folder (`BFTJ.png` for F-Zero Climax, named by the game code).
+- **One display: the game list keeps both screens after you close a game** (issue #108). With One display set to show both screens, closing a game from the pause menu brought the game list back over the whole display, without the selected game's screen. Now the game list always shows like a two-screen device, the list on one screen and the selected game on the other, unless your display is too small or the wrong shape for that, where it shows the list alone. The game list's Settings now takes the whole display while it's open, like the pause menu.
 - **RG DS Plus on the Stock Linux OS: the left stick's left and right are no longer swapped** (issue #104). The controls GBA DS ships for that system had the stick's left and right the wrong way round, in the menus and in games. A mapping you made yourself with Map Buttons still comes first.
 
 ## v1.6.3 (2026-11-25)

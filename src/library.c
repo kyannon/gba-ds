@@ -3066,6 +3066,8 @@ void library_language_ask(Config* cfg) {
 
 	bool done = false, waitRelease = true;
 	Uint32 releasedAt = 0;
+	enum UiFace faceWas = ui_face_now();
+	ui_face(UI_FACE_MENU); /* (GEN-19: a menu, over the whole of one display) */
 	while (!done) {
 		if (!ui_events()) break;
 		ui_tick();
@@ -3112,6 +3114,7 @@ void library_language_ask(Config* cfg) {
 		ui_present();
 		SDL_Delay(15);
 	}
+	ui_face(faceWas);
 	if (!done) { /* (the app closed: asked again next time) */
 		i18n_set(cfg->language);
 		ui_language_changed();
@@ -3171,6 +3174,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		if (!strcmp(games[i].path, last)) sel = i;
 	}
 	viewCols = !strcmp(cfg->libraryView, "grid3") ? 3 : !strcmp(cfg->libraryView, "grid") ? 2 : 1;
+	ui_face(UI_FACE_LIST); /* (GEN-19: back from a game, as when the app started) */
 	int ls = ui_touch_screen();
 	int scroll = sel > 0 ? keep_visible(ls, sel, 0) : 0;
 	bool dragging = false, pressed = false;
@@ -3224,6 +3228,23 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 		ui_tick();
 		ui_read_buttons();
 		ra_idle(); /* sign-in answers (at start-up, or from Settings) */
+		{
+			/* GEN-19: on one display, Settings and its screens (and the update
+			 * notice) take the whole of it; the list and the preview come back
+			 * when they close */
+			bool menu = settingsOpen || updatesOpen;
+#ifdef __ANDROID__
+			menu |= foldersOpen;
+#endif
+			int was = nScreens;
+			SDL_Rect wasR = screens[ui_touch_screen()].rect;
+			ui_face(menu ? UI_FACE_MENU : UI_FACE_LIST);
+			SDL_Rect nowR = screens[ui_touch_screen()].rect;
+			if (nScreens != was || !SDL_RectEquals(&wasR, &nowR)) {
+				thumbFor = -2; /* (the preview's size) */
+				scroll = sel >= 0 ? keep_visible(ui_touch_screen(), sel, 0) : 0;
+			}
+		}
 		ls = ui_touch_screen();
 		ListGeom g = list_geom(ls);
 
