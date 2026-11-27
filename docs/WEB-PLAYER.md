@@ -103,6 +103,82 @@ Games are never published: players bring their own.
   with CDP `Input.dispatchTouchEvent` (one finger, two, a slide, a
   diagonal). Not yet tried on a real phone.
 
+## A second window (two monitors)
+
+Issue #93 (Nov 25, 2026): one of the two screens in a window of its own, to
+put on another monitor. The toolbar's two-windows button (computers only:
+hidden on touchscreens, `w2Possible`) opens it while a game plays; it shows
+the bottom screen (the touchscreen) or the top one (Settings > Screens >
+Second window, `win2Screen`), and the page then shows only the other screen,
+as large as it fits (`placeOne`). Pressed again, or the window closed, the
+screen comes back. The page closes it when it goes (`pagehide`).
+
+- **Drawing**: the window is an `about:blank` pop-up the page writes into
+  with the DOM (no file of its own: the one-file player has none to give,
+  and its packer rewrites a literal `</body>`, so no `document.write`). Its
+  canvas goes to the worker (`view2`, or `canvas2` in `boot`) as a second
+  OffscreenCanvas with a WebGL2 context of its own (worker.js `VIEWS[1]`):
+  each frame is uploaded to both. Opening or closing it doesn't restart the
+  game; a restart (device, resolution, build) gives it a new canvas, as it
+  does the page.
+- **Where it opens**: the screen's shape, about 60 % of the monitor's height.
+  Where the browser has Window Management (Chrome and Edge on computers) and
+  `screen.isExtended`, it opens centred on another monitor: placed at once
+  when the permission is already given, else the browser asks after it opens
+  and it is moved there (a prompt first would use up the click that may open
+  a pop-up).
+- **Input**: the page's key listeners are added to the window too
+  (`KEY_LISTENERS`); controllers are read through both windows'
+  `getGamepads()` (`pads()`: some browsers give a controller's buttons only
+  to the focused window), and the window's frames run the input loop too
+  (`tickOnce`), as a page that can't be seen gets none. Touches: the bottom
+  screen in whichever window has it (`bindTouch(canvas, rect)`).
+- **Full screen**: a Full screen button at the window's top right, shown
+  while the mouse moves (a hint says so for 5 s), and a double-click when
+  the window has the top screen (on the bottom one the clicks are touches:
+  `gbadsDblclick`); the page's own Full screen button as before. Both are a
+  script of the window's own (`W2_FULL_SCREEN`, put in as a `<script>`
+  element): Firefox on macOS refused full screen from a double-click
+  listener of the page's attached to the window (the owner's test, Nov 25,
+  2026). Headless Chromium refuses full screen in every pop-up, so this is
+  tested with Chromium under `xvfb-run` (`headless=False`): the button and
+  the top screen's double-click both work there. Firefox isn't in sessions.
+- **Pause when hidden** pauses only when both the page and the window are
+  hidden (`allHidden`).
+
+Tested headless (Playwright, one file and folder, Nov 25, 2026): the window
+opens with the bottom screen, keys pressed in it and a click on it reach the
+game (the click as a touch at the screen's middle), the top screen there
+instead, a restart with it open, closing it, a phone (no button) and a reload
+(it closes). Headless Chromium has one screen, so placing it on another
+monitor is checked in a real browser.
+
+## The Scaling filter's upscalers and Edge stretch
+
+Nov 27, 2026 (branch `stretch-curve`): the web build draws with SDL's software
+renderer, so it had no OpenGL for Display > Scaling filter's upscalers
+(Scale2x to OmniScale), which were greyed. Now `upscale.c`'s `__wasi__` branch
+reads the game's picture back and hands each pass to the import `web_gl_pass`:
+`worker.js` (`glUpscaleImports`, given to the runtime as `opts.imports`, a hook
+in `gbads-runtime.js`) runs the pass's shader, the same one a device runs
+(GLSL ES 1.00, else 3.00, with the same headers, uniforms and quad), in a
+WebGL2 context of its own (an OffscreenCanvas, not the one that shows the
+window), and writes the result back into the app's memory. A shader that
+declares its own output in GLSL 3.00 (xBR) gets the 3.00 header without
+`compat_FragColor`: WebGL2 refuses two outputs without locations, which the
+device's Mali lets by. The heavy filters show the untried-chip warning. The
+State Saver page doesn't pass the hook, so `web_gl_ok` answers 0 there and the
+filters stay greyed. Each pass is two copies (in and back), so they're slower
+than on a device; not measured.
+
+The scale **Edge stretch** (`edges`) draws in strips on a GPU, but SDL's
+software renderer samples those nearest only (pixels dropped and doubled), so
+on it `ui.c` resamples the picture on the CPU instead (`curve_sw`: Sharp is an
+area average, Smooth linear; with an LCD shader, from the picture with the
+grid drawn in; with an upscaler, from its result). Tested headless in
+Chromium (SwiftShader) with every filter, Sharp and Smooth on the AYN Thor's
+resolution, and by the owner in the web player.
+
 ## How it works
 
 - `player.js` (the page): files dropped or chosen (`takeFiles`: a dev zip,
@@ -197,7 +273,17 @@ Games are never published: players bring their own.
   comparing `cc -E -P` of mapcap.c, main.c and game.c before and after).
   The buffers carrying snapshots and pictures go round and come back
   (`stateSpare`, `outSpare`), so an update makes no garbage for the browser
-  to collect. With `?debug`, the live worker logs each frame more than
+  to collect. DK: King of Swing's level above the game's screen (climb.c) has
+  the same shape, a second copy of the build with `GBADS_CLIMB_SERVE=CODE`
+  (`climb_web_serve`), started by the page on the first job (the game has
+  `GBADS_CLIMB_OFFLOAD=1`; with one hardware thread, or `?noclimbw`, it has
+  `GBADS_CLIMB_INSTEP=1` and runs the copy in step in its own frame): each
+  frame the game leaves its state, the keys, the camera and its sprite table
+  (`web_climb_job`), the page hands them over and the picture comes back
+  (`web_climb_inbox`, `web_climb_deliver`) a frame behind, moved with the
+  camera by the game (docs/games/dk-king-of-swing.md). One job at a time: the
+  game hands over a newer state only once the last one's picture is back.
+  `web_climb_offload(0)` is the failure: the game on one screen. With `?debug`, the live worker logs each frame more than
   40 ms after the last, with the game's own work in it and what came
   before ("request", "update"): a slow frame whose own work is small was
   waiting for the CPU or the browser, not the game.
@@ -216,11 +302,12 @@ Games are never published: players bring their own.
   app's Map Buttons. Kept in localStorage (`gbadsPlayer.controls`).
 - Touches: the bottom screen only, as fractions of the app's window
   (`web_touch`). Pause when hidden (on by default) pauses the run.
-- `window.gbadsPlayer` (`P`, `S`, `sound`, `capture` (with `jobs` /
+- `window.gbadsPlayer` (`P`, `S`, `sound`, `capture` and `climb` (with `jobs` /
   `results` counts), `currentMask()`) is there for tests and the console.
   Page addresses: `?debug` runs both copies with `GBADS_DEBUG=1` (capture
-  times in the log, the capture worker's lines marked `[capture]`);
-  `?nocapw` runs captures in the game, to compare.
+  times in the log, the capture worker's lines marked `[capture]`, the climb
+  worker's `[climb]`); `?nocapw` runs captures in the game, `?noclimbw` DK's
+  copy, to compare.
 
 Needs WebAssembly, WebGL2, OffscreenCanvas and AudioWorklet: Firefox 105,
 Chrome 69, Safari 17 and later.

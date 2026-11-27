@@ -861,6 +861,36 @@ float android_display_ppi(int view) {
 	return view == 0 || view == 1 ? displayPpi[view] : 0;
 }
 
+/* ---- A display came or went while a game runs (issue #90): the activity
+ * restarts the game with the new layout. Whatever the player's Save on quit
+ * and Auto-load say, that restart keeps their place: nativeRelayout() (called
+ * just before the quit) makes the quit save, and relayout.flag in the app's
+ * own storage (written before the quit, read and removed once at the next
+ * start) makes that start load. */
+static volatile bool relayoutQuit;
+
+JNIEXPORT void JNICALL Java_io_github_kyannon_gbads_GbaDsActivity_nativeRelayout(JNIEnv* env, jclass cls) {
+	relayoutQuit = true;
+}
+
+bool android_relayout_save(void) {
+	return relayoutQuit;
+}
+
+bool android_relayout_resume(void) {
+	static int known = -1;
+	if (known < 0) {
+		const char* files = getenv("GBADS_APP_FILES");
+		char path[1100];
+		known = 0;
+		if (files && *files) {
+			snprintf(path, sizeof(path), "%s/relayout.flag", files);
+			if (access(path, F_OK) == 0) known = 1, remove(path);
+		}
+	}
+	return known == 1;
+}
+
 /* Called on the UI thread; holding the lock means the native side is done
  * with the old surface before Java lets it go. */
 JNIEXPORT void JNICALL Java_io_github_kyannon_gbads_SecondScreen_nativeSetSurface(JNIEnv* env, jclass cls, jobject surface) {

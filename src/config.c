@@ -9,6 +9,7 @@
 #include <string.h>
 #include <strings.h>
 
+const char* const filterNames[FILTER_COUNT] = { "0", "1", "scale2x", "scale4x", "hq2x", "mmpx", "xbr-lv2", "xbr-lv3", "omniscale" }; /* gba-ds.cfg's "smooth" */
 const char* const shaderNames[SH_COUNT] = { N_("off"), "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
 const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader", "toggle",
 	                                          "rewind_toggle", "fast_forward_toggle" };
@@ -34,10 +35,15 @@ void config_defaults(Config* c) {
 	strcpy(c->cheatDir, "/config/retroarch/cheats:/storage/.config/retroarch/cheats");
 	strcpy(c->esConfigDir, "/storage/.config/emulationstation");
 	strcpy(c->libraryView, "list");
+	strcpy(c->librarySort, "alpha");
 	strcpy(c->touchScreen, "second");
 	strcpy(c->topScreen, "auto");
 	strcpy(c->screenMatch, "keep");
 	strcpy(c->screenPlace, "center");
+	strcpy(c->singleLayout, "off");
+	strcpy(c->singleSize, "equal");
+	strcpy(c->padCover, "auto");
+	c->padCoverMm = 64;
 	strcpy(c->touchMap, "window");
 	c->touchRotate = -1;
 	c->map = true;
@@ -60,6 +66,7 @@ void config_defaults(Config* c) {
 	c->keepSound = true;
 	c->ffSpeed = 3;
 	c->fastForward = true;
+	c->ffMute = true;
 	c->pinCores = false; /* tried on the RG DS Plus: no better (docs/ANDROID.md) */
 	c->autoSave = true;
 	c->autoLoad = true;
@@ -82,8 +89,10 @@ void config_defaults(Config* c) {
 	strcpy(c->gbGhosting, "same");
 	strcpy(c->gbShader, "same");
 	strcpy(c->gbDual, "colour");
+	strcpy(c->gbBorder, "none");
 	strcpy(c->borderColor, "000000");
 	strcpy(c->language, "auto");
+	c->languageAsked = true;
 }
 
 static bool parse_bool(const char* v) {
@@ -117,7 +126,15 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("gb_ghosting", gbGhosting)
 	STR("gb_shader", gbShader)
 	STR("gb_dual", gbDual)
-	BOOL("smooth", smooth)
+	STR("gb_border", gbBorder)
+	if (!strcmp(key, "smooth")) {
+		/* 0 / 1 before the upscalers (issue #89), so still sharp / smooth */
+		c->filter = parse_bool(val) ? FILTER_SMOOTH : FILTER_SHARP;
+		for (int i = 0; i < FILTER_COUNT; ++i) {
+			if (!strcasecmp(val, filterNames[i])) c->filter = i;
+		}
+		return true;
+	}
 	if (!strcmp(key, "shader")) {
 		for (int i = 0; i < SH_COUNT; ++i) {
 			if (!strcasecmp(val, shaderNames[i])) c->shader = i;
@@ -165,6 +182,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	}
 	STR("border_color", borderColor)
 	STR("language", language)
+	BOOL("language_asked", languageAsked)
 	INT("lcd_strength", lcdStrength)
 	BOOL("vsync", vsync)
 	BOOL("pin_cores", pinCores)
@@ -220,6 +238,7 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	INT("audio_latency", audioLatency)
 	INT("ff_speed", ffSpeed)
 	BOOL("fast_forward", fastForward)
+	BOOL("ff_mute", ffMute)
 	STR("save_dir", saveDir)
 	STR("save_ext", saveExt)
 	STR("save_from", saveFrom)
@@ -245,6 +264,10 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("top_screen", topScreen)
 	STR("screen_match", screenMatch)
 	STR("screen_placement", screenPlace)
+	STR("single_layout", singleLayout)
+	STR("single_size", singleSize)
+	STR("pad_cover", padCover)
+	INT("pad_cover_mm", padCoverMm)
 	STR("screen_ppi", screenPpi)
 	STR("touch_map", touchMap)
 	STR("touch_device", touchDevice)
@@ -286,12 +309,14 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("ra_system_cfg", raSystemCfg)
 	STR("ra_host", raHost)
 	BOOL("gba_bios", gbaBios)
+	BOOL("show_rom_path", romPath)
 	BOOL("update_check", updateCheck)
 	STR("update_url", updateUrl)
 	STR("load_state", loadState)
 	INT("quit_after", quitAfter)
 	STR("es_config_dir", esConfigDir)
 	STR("library_view", libraryView)
+	STR("library_sort", librarySort)
 	STR("input_script", inputScript)
 	return false;
 #undef STR
@@ -308,10 +333,10 @@ static int nCliKeys;
  * (folders, accounts, updates, how the screens are found, hotkeys, the
  * touch panel) is for all games. */
 static const char* const perGameKeys[] = {
-	"swap", "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_correction", "gb_ghosting", "gb_shader", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
+	"swap", "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_border", "gb_correction", "gb_ghosting", "gb_shader", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
 	"map_interval", "custom_logos", "pinball_live", "toggle", "auto_rotate", "toggle_button", "rewind", "rewind_seconds",
-	"fast_forward", "ff_speed", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
+	"fast_forward", "ff_speed", "ff_mute", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
 	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "rumble_strength", "brightness_top", "brightness_bottom", "button_right", "button_bottom", "button_top", "button_left",
 	"button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right",
 };
@@ -430,7 +455,7 @@ void config_usage(const char* argv0) {
 	        "                         subpixels-light, subpixels, subpixels-strong\n"
 	        "                         (--lcd-strength=0..100 for the first three)\n"
 	        "  --lcd-ghosting         each frame blended with the one before, as on a GBA's LCD\n"
-	        "  --smooth               plain linear filtering\n"
+	        "  --smooth=FILTER         scaling filter: 0 sharp, 1 linear, scale2x, scale4x, hq2x, mmpx, xbr-lv2, xbr-lv3, omniscale\n"
 	        "  --vsync                sync presentation to the display\n"
 	        "  --no-map               disable the map screen\n"
 	        "  --map-interval=N       frames between map refreshes (90)\n"
@@ -474,12 +499,13 @@ static const SettingChoice chOnOff[] = { { "0", "Off", 0 }, { "1", "On", 1 } };
 static const SettingChoice chShown[] = { { "0", "Supported games only", 0 }, { "1", "All games", 1 } };
 static const SettingChoice chTags[] = { { "0", "Plain", 0 }, { "1", "With tags, like (USA)", 1 } };
 static const SettingChoice chLogos[] = { { "pixelated", "Pixelated", CL_PIXELATED }, { "full", "Full detail", CL_FULL }, { N_("off"), "Not used", CL_OFF } };
-static const SettingChoice chScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Full Width", 0 }, { "zoom", "Zoom", 0 }, { "stretch", "Stretch", 0 } };
+static const SettingChoice chScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Full Width", 0 }, { "zoom", "Zoom", 0 }, { "stretch", "Stretch", 0 }, { "edges", "Edge stretch", 0 } };
 static const SettingChoice chGbSize[] = { { "gba", "GBA frame", 0 }, { "native", "Game Boy screen", 0 } };
 static const SettingChoice chGbScale[] = { { "integer", "Pixel Perfect", 0 }, { "fit", "Fit", 0 }, { "stretch", "Stretch", 0 } };
 static const SettingChoice chGbPalette[] = {
 	{ "own", "Game's own", 0 }, { "dmg", "DMG", 0 }, { "pocket", "Pocket", 0 }, { "light", "Light", 0 }, { "gray", "Grayscale", 0 }, { "sgb", "Super Game Boy", 0 },
 };
+static const SettingChoice chGbBorder[] = { { "none", "None", 0 }, { "sgb", "Super Game Boy", 0 } };
 static const SettingChoice chGbDual[] = { { "colour", "In colour", 0 }, { "mono", "In monochrome", 0 } };
 static const SettingChoice chGbCorrection[] = { { "same", "As GBA", 0 }, { "off", "Off", 0 }, { "gbc", "Game Boy Color", 0 }, { "gba", "Game Boy Advance", 0 } };
 static const SettingChoice chGbGhosting[] = { { "same", "As GBA", 0 }, { "off", "Off", 0 }, { "light", "Light", 0 }, { "smart", "Smart", 0 }, { "strong", "Strong", 0 } };
@@ -488,10 +514,18 @@ static const SettingChoice chShader[] = {
 	{ N_("off"), "Off", SH_OFF }, { "grid", "LCD Grid", SH_GRID }, { "scanlines", "Scanlines", SH_SCANLINES }, { "soft", "Soft Cells", SH_SOFT },
 	{ "subpixels-light", "Subpixels (Light)", SH_SUB_LIGHT }, { "subpixels", "Subpixels", SH_SUB }, { "subpixels-strong", "Subpixels (Strong)", SH_SUB_STRONG },
 };
+static const SettingChoice chFilter[] = {
+	{ "0", "Sharp", FILTER_SHARP }, { "1", "Smooth", FILTER_SMOOTH }, { "scale2x", "Scale2x", FILTER_SCALE2X }, { "scale4x", "Scale4x", FILTER_SCALE4X },
+	{ "hq2x", "hq2x", FILTER_HQ2X }, { "mmpx", "MMPX", FILTER_MMPX }, { "xbr-lv2", "xBR-lv2", FILTER_XBR_LV2 }, { "xbr-lv3", "xBR-lv3", FILTER_XBR_LV3 },
+	{ "omniscale", "OmniScale", FILTER_OMNISCALE },
+};
 static const SettingChoice chSwap[] = { { "0", "Game on top", 0 }, { "1", "Game below", 1 } };
 static const SettingChoice chMatch[] = { { "keep", "Keep device shapes", 0 }, { "aspect", "Match aspect ratios", 0 }, { "size", "Match sizes and shapes", 0 } };
 static const SettingChoice chToggleBtn[] = { { "left", "Left", 0 }, { "center", "Center", 0 }, { "right", "Right", 0 }, { "off", "Off", 0 } };
 static const SettingChoice chPlace[] = { { "center", "Centered", 0 }, { "no_gap", "Closest to gap", 0 } };
+static const SettingChoice chSingleLayout[] = { { "off", "Game only", 0 }, { "auto", "Both, automatic", 0 }, { "side", "Side by side", 0 }, { "stacked", "Stacked", 0 } };
+static const SettingChoice chPadCover[] = { { "auto", "Automatic", 0 }, { "on", "On", 0 }, { "off", "Off", 0 } };
+static const SettingChoice chSingleSize[] = { { "equal", "Equal", 0 }, { "medium", "Medium", 0 }, { "small", "Small", 0 } };
 static const SettingChoice chOverlays[] = { { N_("off"), "Off", OVM_OFF }, { "generated", "Generated", OVM_GENERATED }, { "custom", "Custom", OVM_CUSTOM } };
 static const SettingChoice chOvlScreens[] = { { "both", "Both screens", OVL_BOTH }, { "top", "Top screen", OVL_TOP }, { "bottom", "Bottom screen", OVL_BOTTOM } };
 static const SettingChoice chAB[] = { { "0", "Like a GBA", 0 }, { "1", "Swapped", 1 } };
@@ -526,16 +560,20 @@ static const Setting settingsTable[] = {
 	{ "gb_correction", "Game Boy color correction", SF_STR, OFFB(gbCorrection), ARR(chGbCorrection), 0, 0, 0, NULL, "Colors of a Game Boy game: as set for GBA games, none, or as a Game Boy Color or a Game Boy Advance screen showed them." },
 	{ "gb_ghosting", "Game Boy ghosting", SF_STR, OFFB(gbGhosting), ARR(chGbGhosting), 0, 0, 0, NULL, "Moving things leave a trail on a Game Boy game: as set for GBA games, none, a light one, only for flicker, or a long one." },
 	{ "gb_shader", "Game Boy shader", SF_STR, OFFB(gbShader), ARR(chGbShader), 0, 0, 0, NULL, "The pattern over a Game Boy game: as set for GBA games, none, a grid, scanlines, soft cells, or a Game Boy's dot matrix with its shadows." },
+	{ "gb_border", "Game Boy border", SF_STR, OFFB(gbBorder), ARR(chGbBorder), 0, 0, 0, NULL, "The border a Super Game Boy showed around a game that supports it: none, or the game's own. Counts from the next start of the game." },
 	{ "gb_dual", "Dual-mode games", SF_STR, OFFB(gbDual), ARR(chGbDual), 0, 0, 0, NULL, "Games made for both a Game Boy and a Game Boy Color: in colour, or as on a Game Boy. Counts from the next start." },
 	{ "shader", "Shader", SF_INT, OFFB(shader), ARR(chShader), 0, 0, 0, NULL, "A pattern over every pixel, on both screens." },
 	{ "lcd_strength", "Pattern strength", SF_INT, OFFB(lcdStrength), NULL, 0, 0, 100, 5, "%", "How dark the grid, scanlines and soft cells are." },
 	{ "color_correction", "Color correction", SF_BOOL, OFFB(colorCorrection), ARR(chOnOff), 0, 0, 0, NULL, "Colors as a Game Boy Advance's screen showed them." },
 	{ "lcd_ghosting", "LCD ghosting", SF_BOOL, OFFB(ghosting), ARR(chOnOff), 0, 0, 0, NULL, "Moving things leave a short trail, as on a GBA." },
-	{ "smooth", "Smooth scaling", SF_BOOL, OFFB(smooth), ARR(chOnOff), 0, 0, 0, NULL, "Blurry instead of sharp: usually leave off." },
+	{ "smooth", "Scaling filter", SF_INT, OFFB(filter), ARR(chFilter), 0, 0, 0, NULL, "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off." },
 
 	{ "swap", "Screens", SF_BOOL, OFFB(swap), ARR(chSwap), 0, 0, 0, NULL, "Which screen the game is on." },
 	{ "screen_match", "Screen shapes", SF_STR, OFFB(screenMatch), ARR(chMatch), 0, 0, 0, NULL, "Only when your two screens differ in shape. Experimental." },
 	{ "screen_placement", "Screen placement", SF_STR, OFFB(screenPlace), ARR(chPlace), 0, 0, 0, NULL, "Pictures in the middle of their screens, or close together." },
+	{ "single_layout", "One display", SF_STR, OFFB(singleLayout), ARR(chSingleLayout), 0, 0, 0, NULL, "With one display: the game alone (flip to the second screen), or both screens on it." },
+	{ "single_size", "Second screen size", SF_STR, OFFB(singleSize), ARR(chSingleSize), 0, 0, 0, NULL, "With both screens on one display: how much of it the second screen gets." },
+	{ "pad_cover", "Controller over the screen", SF_STR, OFFB(padCover), ARR(chPadCover), 0, 0, 0, NULL, "A controller that folds over the bottom of a phone held upright, such as the 8BitDo FlipPad: the screens move up above it. Automatic: while one is plugged in." },
 	{ "overlays", "Overlays", SF_INT, OFFB(overlayMode), ARR(chOverlays), 0, 0, 0, NULL, "GBA DS's bezel, or your own PNGs, round the picture." },
 	{ "overlay_screens", "Overlays on", SF_INT, OFFB(overlays), ARR(chOvlScreens), 0, 0, 0, NULL, "Which screens have them." },
 	{ "bezel_logo", "Bezel logo", SF_BOOL, OFFB(bezelLogo), ARR(chOnOff), 0, 0, 0, NULL, "The GBA DS logo in the generated bezel." },
@@ -565,6 +603,7 @@ static const Setting settingsTable[] = {
 	{ "rewind", "Rewind", SF_BOOL, OFFB(rewind), ARR(chOnOff), 0, 0, 0, NULL, "Hold L2 to go back in time." },
 	{ "rewind_seconds", "Rewind length", SF_INT, OFFB(rewindSeconds), ARR(chRewind), 0, 0, 0, N_(" s"), "How far back it goes." },
 	{ "fast_forward", "Fast forward", SF_FF, OFFB(fastForward), ARR(chFF), 0, 0, 0, NULL, "Hold R2 to play faster." },
+	{ "ff_mute", "Mute while fast forwarding", SF_BOOL, OFFB(ffMute), ARR(chOnOff), 0, 0, 0, NULL, "No sound while the game is fast-forwarded." },
 	{ "audio_latency", "Sound delay", SF_INT, OFFB(audioLatency), ARR(chLatency), 0, 0, 0, N_(" ms"), "Raise it if the sound crackles." },
 	{ "performance", "Performance", SF_BOOL, OFFB(perfMax), ARR(chPerf), 0, 0, 0, NULL, "Max: full speed, a warmer device and a shorter battery." },
 

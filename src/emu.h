@@ -57,6 +57,12 @@ typedef struct Emu {
 	/* The core's platform (mPlatform: mPLATFORM_GBA, mPLATFORM_GB). A Game Boy / Game Boy Color game
 	 * (issue #77) draws its 160x144 picture centred in the same GBA_W x GBA_H frame, at (picX, picY),
 	 * so the rest of the app sees a GBA-sized picture; for a GBA game it is the whole frame. */
+	bool gbBorder;    /* running as a Super Game Boy with its border (GB-12): the core draws the 256x224 picture into sgbFb */
+	uint8_t* gbBorderDefault; /* mGBA's own frame's memory as the core starts it: the border is black while the game has not sent its own */
+	bool gbBorderOwn;         /* the game has sent its own border */
+	uint32_t* sgbFb;  /* SGB_W x SGB_H, the border with the game's window in it (fb has the window alone, as ever) */
+	bool gbSgbHeader; /* the cartridge supports the Super Game Boy (0x146 = 3, not Game Boy Color alone) */
+	bool gbSgb; /* a Game Boy game running as a Super Game Boy (GB-11): it supports one and its colours are the SGB's */
 	int gbKind; /* a Game Boy game: 0 made for the plain Game Boy, 1 for either (dual-mode), 2 for the Game Boy Color alone */
 	int platform;
 	int picX, picY, picW, picH;
@@ -68,6 +74,7 @@ typedef struct Emu {
 	uint32_t fileCrc; /* the ROM file's own CRC32, before the patch */
 	bool audio;
 	void* rumble; /* the live game's rumble (emu_rumble_level), NULL for the hidden copies */
+	void* gyro; /* the cartridge's gyro source (emu_set_gyro): every GBA core has one, resting until it is given a value */
 	unsigned long frames; /* frames run (emu_frame), for timing the captures */
 	/* a hidden copy's capture called off (mapcap_cancel): while it's set,
 	 * frames don't run, so whatever the capture waits for gives up at
@@ -77,6 +84,10 @@ typedef struct Emu {
 
 /* savePath may be NULL (no battery save attached). */
 bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio);
+/* While on, this thread's emu_open loads the ROM file as it is: no patch
+ * beside it, none planned (the logo of a game whose logos are per ROM file
+ * is its unpatched file's). */
+void emu_open_unpatched(bool on);
 /* ROMs may also be in a .zip or .7z (the first GBA ROM inside is used). */
 bool emu_is_rom_name(const char* name);   /* .gba, .gb, .gbc (.sgb .dmg .cgb), .zip, .7z */
 bool emu_is_archive_name(const char* name); /* .zip, .7z */
@@ -90,7 +101,20 @@ bool emu_rom_header(const char* path, uint8_t* out, size_t n);
 /* Is the game a Game Boy / Game Boy Color one (issue #77)? */
 bool emu_is_gb(const Emu* e);
 int emu_gb_kind(const Emu* e); /* Emu.gbKind */
+bool emu_gb_sgb(const Emu* e);  /* Emu.gbSgb */
+bool emu_gb_sgb_header(const Emu* e); /* Emu.gbSgbHeader */
+/* the Super Game Boy's picture (GB-12): 256x224, the game's 160x144 window at (48, 40) */
+#define SGB_W 256
+#define SGB_H 224
+#define SGB_WIN_X 48
+#define SGB_WIN_Y 40
+void emu_gb_border_wanted(bool on); /* before emu_open: Display > Game Boy border = Super Game Boy */
+bool emu_gb_border(const Emu* e);   /* the game runs with its border (Emu.gbBorder) */
+const uint32_t* emu_gb_border_px(const Emu* e); /* SGB_W x SGB_H, or NULL */
 bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
+/* emu_rom_code for the ROM file at path; a GBA header with no code (4 zero bytes) gets the code
+ * its dump is filed under, if the whole file's CRC32 is a known one (profile_codeless) */
+bool emu_rom_file_code(const char* path, char code[5]);
 void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
 void emu_frame(Emu* e, uint32_t keys);
@@ -107,11 +131,16 @@ float emu_rumble_level(const Emu* e);
 void emu_frame_blind(Emu* e, uint32_t keys);
 /* the cartridge has a sun sensor (Boktai) */
 bool emu_has_solar(Emu* e);
+/* The cartridge's gyro reading for the frames to come, in mGBA's units (WarioWare: Twisted!):
+ * 0 is at rest, 2^21 a count of the cartridge's 12-bit sample. Only that game reads it. */
+void emu_set_gyro(Emu* e, int32_t value);
 /* true while this core's capture has been called off (Emu.cancel) */
 bool emu_cancelled(const Emu* e);
 void emu_reset(Emu* e);
 
 size_t emu_state_size(Emu* e);
+/* a word of EWRAM or IWRAM in a saved state set to `word`, only if it holds `orig` */
+bool emu_state_patch32(Emu* e, void* state, uint32_t addr, uint32_t orig, uint32_t word);
 bool emu_state_save(Emu* e, void* buf);
 bool emu_state_load(Emu* e, const void* buf);
 /* Rewind (mGBA's, one buffer of `entries` states for one core): append a
@@ -265,6 +294,15 @@ void emu_hud_rows(int rows);
 /* The HUD split also draws the sprites with exactly these attributes 0-2
  * (the game's picture keeps them); n = 0: none. */
 void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n);
+/* The HUD's sprites drawn elsewhere in its picture (only there: the game's sprite table
+ * and screen are left as they are), by their number in the sprite table: how[i] 0 as the
+ * game has it, 1 with attributes 0 and 1 (place, shape, size) ab[i] (its picture and
+ * palette still the game's), 2 left out. NULL: as the game has them. Mario Pinball Land:
+ * the counters where the game puts them when paused (MPL-3). */
+void emu_hud_place(const uint8_t how[128], const uint16_t ab[128][2]);
+/* The HUD split draws the sprites in OAM slots oamIndex[i] with tile tile[i] instead of their own
+ * (the game's picture and its memory are untouched); n = 0: none. */
+void emu_hud_retile(const int* oamIndex, const uint16_t* tile, int n);
 /* The lines the band was on in the last frame drawn split; false if none. */
 bool emu_hud_band_rows(int* y0, int* y1);
 /* An I/O register as last written (also the write-only ones: MOSAIC). */

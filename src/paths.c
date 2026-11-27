@@ -35,7 +35,10 @@ void mkdirs(const char* path) {
 	mkdir(tmp, 0755);
 }
 
-bool copy_file(const char* from, const char* to) {
+/* a file's bytes copied (with times, when given: the pause menu shows when a
+ * state was saved); false if reading or writing any of it failed */
+static bool copy_data(const char* from, const char* to, const struct stat* times, bool* started) {
+	if (started) *started = false;
 	FILE* in = fopen(from, "rb");
 	if (!in) return false;
 	FILE* out = fopen(to, "wb");
@@ -43,12 +46,28 @@ bool copy_file(const char* from, const char* to) {
 		fclose(in);
 		return false;
 	}
-	char buf[8192];
+	if (started) *started = true;
+	char buf[1 << 16];
 	size_t n;
-	while ((n = fread(buf, 1, sizeof(buf), in)) > 0) fwrite(buf, 1, n, out);
+	bool ok = true;
+	while (ok && (n = fread(buf, 1, sizeof(buf), in)) > 0) ok = fwrite(buf, 1, n, out) == n;
+	if (ferror(in)) ok = false;
 	fclose(in);
-	fclose(out);
-	return true;
+	if (fclose(out) != 0) ok = false;
+	if (times) {
+		struct utimbuf ut = { times->st_atime, times->st_mtime };
+		utime(to, &ut);
+	}
+	return ok;
+}
+
+/* a copy of a file; one that couldn't be written whole (a full card) is
+ * removed, so a battery save is never left cut short */
+static bool copy_file(const char* from, const char* to) {
+	bool started;
+	if (copy_data(from, to, NULL, &started)) return true;
+	if (started) remove(to); /* (only a copy begun here: never a file that couldn't be opened) */
+	return false;
 }
 
 /* two files with the same bytes */
@@ -66,6 +85,13 @@ static bool same_file_data(const char* a, const char* b) {
 	return same;
 }
 
+/* GBA DS's own state files for a game: the quick state, slots 0-9, the auto state */
+static void own_state_paths(GamePaths* o, const char* dir, const char* base) {
+	snprintf(o->quick, sizeof(o->quick), "%s/%s.quick.state", dir, base);
+	for (int i = 0; i < 10; ++i) snprintf(o->slot[i], sizeof(o->slot[i]), "%s/%s.slot%d.state", dir, base, i);
+	snprintf(o->autoState, sizeof(o->autoState), "%s/%s.auto.state", dir, base);
+}
+
 void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 	char a[1024], b[1024];
 	snprintf(a, sizeof(a), "%s", rom);
@@ -80,9 +106,7 @@ void game_paths(const Config* cfg, const char* rom, GamePaths* o) {
 	mkdirs(cfg->stateDir);
 	const char* ext = cfg->saveExt[0] ? cfg->saveExt : "sav";
 	snprintf(o->sav, sizeof(o->sav), "%s/%s.%s", saveDir, o->base, ext);
-	snprintf(o->quick, sizeof(o->quick), "%s/%s.quick.state", cfg->stateDir, o->base);
-	for (int i = 0; i < 10; ++i) snprintf(o->slot[i], sizeof(o->slot[i]), "%s/%s.slot%d.state", cfg->stateDir, o->base, i);
-	snprintf(o->autoState, sizeof(o->autoState), "%s/%s.auto.state", cfg->stateDir, o->base);
+	own_state_paths(o, cfg->stateDir, o->base);
 	snprintf(o->thumb, sizeof(o->thumb), "%s/%s.game.bmp", cfg->stateDir, o->base);
 	snprintf(o->mapThumb, sizeof(o->mapThumb), "%s/%s.map.bmp", cfg->stateDir, o->base);
 	snprintf(o->cheats, sizeof(o->cheats), "%s/%s.cheats", cfg->stateDir, o->base);
@@ -229,6 +253,16 @@ static bool ra_cfg_bool(const char* text, const char* key, bool def) {
 #define ROCKNIX_RA_CFG "/storage/.config/retroarch/retroarch.cfg"
 #define ROCKNIX_ROMS "/storage/roms"
 
+#ifdef __ANDROID__
+/* Android's shared storage (the one All files access opens) */
+#define ANDROID_STORAGE "/storage/emulated/0"
+
+static bool dir_exists(const char* p) {
+	struct stat st;
+	return stat(p, &st) == 0 && S_ISDIR(st.st_mode);
+}
+#endif
+
 /* retroarch.cfg: gba-ds.cfg's retroarch_cfg, else ROCKNIX's, BananaOS's
  * (its own copy, or the one it starts from before RetroArch's first
  * start), the usual one in the home folder or Flatpak's */
@@ -244,8 +278,19 @@ static bool ra_cfg_find(const Config* cfg, char* out, size_t n, bool* rocknix) {
 		return true;
 	}
 	const char* home = getenv("HOME");
+#ifdef __ANDROID__
+	/* (Android: RetroArch's builds keep it in their own Android/data folder, which
+	 * Android 11 and later don't let other apps read, so it's mostly not found:
+	 * then retroarch_state_dir looks for the shared states folder itself) */
+	const char* const paths[] = { ANDROID_STORAGE "/Android/data/com.retroarch/files/retroarch.cfg",
+		                          ANDROID_STORAGE "/Android/data/com.retroarch.aarch64/files/retroarch.cfg",
+		                          ANDROID_STORAGE "/Android/data/com.retroarch.ra32/files/retroarch.cfg",
+		                          ANDROID_STORAGE "/Android/data/com.retroarch.plus/files/retroarch.cfg",
+		                          ANDROID_STORAGE "/RetroArch/retroarch.cfg" };
+#else
 	const char* const paths[] = { "/data/retroarch/retroarch.cfg", "/etc/banana/retroarch.cfg", "~/.config/retroarch/retroarch.cfg",
 		                          "~/.var/app/org.libretro.RetroArch/config/retroarch/retroarch.cfg" };
+#endif
 	for (size_t i = 0; i < sizeof(paths) / sizeof(paths[0]); ++i) {
 		if (paths[i][0] == '~') {
 			if (!home) continue;
@@ -267,6 +312,14 @@ bool retroarch_state_dir(const Config* cfg, const char* rom, char* out, size_t n
 		snprintf(out, n, "%s", cfg->raStateDir);
 		return true;
 	}
+#ifdef __ANDROID__
+	/* (no settings to read: the shared folder RetroArch uses when it can write
+	 * to the storage, <storage>/RetroArch/states, sorted by core as it is by default) */
+	if (!text && dir_exists(ANDROID_STORAGE "/RetroArch/states")) {
+		snprintf(out, n, "%s", ANDROID_STORAGE "/RetroArch/states/mGBA");
+		return true;
+	}
+#endif
 	if (!text) return false;
 	char cfgDir[1024], romDir[1024] = "", romFolder[256] = "";
 	snprintf(cfgDir, sizeof(cfgDir), "%s", cfgPath);
@@ -419,9 +472,7 @@ void game_paths_patched(const Config* cfg, GamePaths* o, const PatchChoice* c) {
 		/* (GBA DS's own folder even when states are shared with RetroArch:
 		 * RetroArch has no states of its own for a patched game) */
 		o->raDir[0] = 0;
-		snprintf(o->quick, sizeof(o->quick), "%s/%s.quick.state", cfg->stateDir, base);
-		for (int i = 0; i < 10; ++i) snprintf(o->slot[i], sizeof(o->slot[i]), "%s/%s.slot%d.state", cfg->stateDir, base, i);
-		snprintf(o->autoState, sizeof(o->autoState), "%s/%s.auto.state", cfg->stateDir, base);
+		own_state_paths(o, cfg->stateDir, base);
 	}
 }
 
@@ -471,9 +522,13 @@ bool kv_set(const char* file, const char* key, const char* val, const char* head
 				len += snprintf(text + len, sizeof(text) - len, "%s = %s\n", key, val);
 			} else {
 				len += snprintf(text + len, sizeof(text) - len, "%s", line);
-				if (len && text[len - 1] != '\n' && len < sizeof(text) - 1) text[len++] = '\n', text[len] = 0;
 			}
-			if (len >= sizeof(text)) return false;
+			/* (too long to keep whole: the file is left as it is) */
+			if (len >= sizeof(text) - 1) {
+				fclose(f);
+				return false;
+			}
+			if (len && text[len - 1] != '\n') text[len++] = '\n', text[len] = 0;
 		}
 		fclose(f);
 	} else if (header) {
@@ -573,23 +628,7 @@ static bool copy_tree(const char* from, const char* to) {
 		return ok;
 	}
 	if (!S_ISREG(st.st_mode)) return true; /* (links and the like: left out) */
-	FILE* in = fopen(from, "rb");
-	if (!in) return false;
-	FILE* out = fopen(to, "wb");
-	if (!out) {
-		fclose(in);
-		return false;
-	}
-	char buf[1 << 16];
-	size_t n;
-	bool ok = true;
-	while (ok && (n = fread(buf, 1, sizeof(buf), in)) > 0) ok = fwrite(buf, 1, n, out) == n;
-	if (ferror(in)) ok = false;
-	fclose(in);
-	if (fclose(out) != 0) ok = false;
-	struct utimbuf ut = { st.st_atime, st.st_mtime };
-	utime(to, &ut);
-	return ok;
+	return copy_data(from, to, &st, NULL);
 }
 
 /* from moved to to: renamed, or copied and then deleted (another card or
@@ -737,6 +776,7 @@ void data_dir_setup(const char* defDir, const char* record, const char* want, bo
 						rmdir(now);
 					}
 				} else {
+					/* (from 1: states, the first, went over above) */
 					for (size_t i = 1; i < sizeof(dataEntries) / sizeof(dataEntries[0]); ++i) {
 						snprintf(a, sizeof(a), "%s/%s", now, dataEntries[i]);
 						snprintf(b, sizeof(b), "%s/%s", to, dataEntries[i]);

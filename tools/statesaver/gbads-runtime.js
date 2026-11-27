@@ -351,6 +351,9 @@ const GBADS = (() => {
       },
       system() { return -1; },
     };
+    // opts.imports(exports): more env functions (the web player's WebGL2
+    // upscaler); exports() is the instance's exports once it has started
+    if (opts.imports) Object.assign(env, opts.imports(() => X));
     let scratch = 0;
     // opts.wasm: the bytes, or a WebAssembly.Module compiled once
     const made = await WebAssembly.instantiate(opts.wasm, { wasi_snapshot_preview1: wasiImports, env: new Proxy(env, { get: (t, k) => t[k] || (() => 0) }) });

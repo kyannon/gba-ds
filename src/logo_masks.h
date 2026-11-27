@@ -45,5 +45,9 @@ extern const LogoMask logoMaskMVDK, logoMaskMVDKJ;
 extern const LogoMask logoMaskBGD;
 /* Rebelstar: Tactical Command (USA, Europe) */
 extern const LogoMask logoMaskRS;
+/* Shantae Advance: Risky Revolution (the 2024 cartridge) */
+extern const LogoMask logoMaskSAR;
+/* Cruis'n Velocity (USA, Europe) */
+extern const LogoMask logoMaskCRV;
 
 #endif

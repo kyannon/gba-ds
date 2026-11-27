@@ -31,6 +31,12 @@ ifneq ($(SIDE_CODES),)
 SIDE_DEF   += -DGBADS_SIDE_CODES='"$(SIDE_CODES)"'
 endif
 endif
+# LANG_ASK=1: this build asks the language on a first install (issue #92; library.c
+# library_language_ask_built). Without it, only a release version (no -dev) asks; 0 never.
+LANG_ASK   ?=
+ifneq ($(LANG_ASK),)
+SIDE_DEF   += -DGBADS_LANG_ASK=$(LANG_ASK)
+endif
 OPTFLAGS   ?= -O2 -g
 # RZIP version 2 save states (zstd): libretro-common's rzstd decoder (MIT), vendored in third_party/rzstd
 RZSTD_DIR  := third_party/rzstd
@@ -43,7 +49,11 @@ LDFLAGS    += -L$(SDL_PREFIX)/lib -Wl,-rpath-link,$(SDL_PREFIX)/lib
 ZLIB_A     := $(wildcard $(MGBA_BUILD)/zlib/libz.a)
 LIBS       := $(MGBA_BUILD)/libmgba.a $(ZLIB_A) -lSDL2 -lpthread -lm
 
-CORE_SRC   := src/emu.c src/patch.c src/mapcap.c src/profiles.c src/logo_masks.c src/trace.c
+# The second screen on a leased panel (src/drmlease.c): Wayland's client
+# headers and the drm-lease protocol, vendored in third_party/wayland
+WL_DIR     := third_party/wayland
+WL_SRC     := $(WL_DIR)/drm-lease-v1-protocol.c
+CORE_SRC   := src/emu.c src/patch.c src/mapcap.c src/profiles.c src/logo_masks.c src/climb.c src/trace.c
 # RetroAchievements: rcheevos (MIT), vendored in third_party/rcheevos
 RC_DIR     := third_party/rcheevos
 RC_SRC     := $(wildcard $(RC_DIR)/src/*.c $(RC_DIR)/src/rapi/*.c $(RC_DIR)/src/rcheevos/*.c) $(RC_DIR)/src/rhash/md5.c
@@ -53,13 +63,13 @@ WEBP_DIR   := third_party/libwebp
 WEBP_SRC   := $(wildcard $(WEBP_DIR)/src/dec/*.c $(WEBP_DIR)/src/dsp/*.c $(WEBP_DIR)/src/utils/*.c)
 WEBP_OBJ   := $(patsubst $(WEBP_DIR)/src/%.c,$(OUT)/libwebp/%.o,$(WEBP_SRC))
 
-APP_SRC    := src/main.c src/config.c src/i18n.c src/i18n_data.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/folderpick.c src/game.c src/paths.c src/image.c src/brand_data.c src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/pixfont.c src/fonts_data.c src/ra.c src/http.c src/sha256.c src/update.c src/clocks.c $(CORE_SRC)
+APP_SRC    := src/main.c src/config.c src/i18n.c src/i18n_data.c src/font.c src/ui.c src/library.c src/mapper.c src/hotkeys.c src/folderpick.c src/game.c src/paths.c src/image.c src/brand_data.c src/bezel.c src/bezel_logo.c src/logo.c src/cheats.c src/esinteg.c src/textfont.c src/pixfont.c src/fonts_data.c src/ra.c src/http.c src/sha256.c src/update.c src/clocks.c src/drmlease.c src/upscale.c src/upscale_shaders.c $(WL_SRC) $(CORE_SRC)
 
 all: $(OUT)/gba-ds
 
-$(OUT)/gba-ds: $(APP_SRC) src/*.h VERSION $(MGBA_BUILD)/libmgba.a $(RC_OBJ) $(WEBP_OBJ) $(RZSTD_OBJ)
+$(OUT)/gba-ds: $(APP_SRC) src/*.h $(WL_DIR)/*.h VERSION $(MGBA_BUILD)/libmgba.a $(RC_OBJ) $(WEBP_OBJ) $(RZSTD_OBJ)
 	@mkdir -p $(OUT)
-	$(CC) $(CFLAGS) -DGBADS_RA -I$(RC_DIR)/include -I$(RC_DIR)/src -I$(WEBP_DIR) -o $@ $(APP_SRC) $(RC_OBJ) $(WEBP_OBJ) $(RZSTD_OBJ) $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -DGBADS_RA -I$(WL_DIR) -I$(RC_DIR)/include -I$(RC_DIR)/src -I$(WEBP_DIR) -o $@ $(APP_SRC) $(RC_OBJ) $(WEBP_OBJ) $(RZSTD_OBJ) $(LDFLAGS) $(LIBS)
 
 $(OUT)/rcheevos/%.o: $(RC_DIR)/src/%.c $(wildcard $(RC_DIR)/include/*.h)
 	@mkdir -p $(dir $@)

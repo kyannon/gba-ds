@@ -174,11 +174,34 @@ def run_app(case, args, workdir):
         return r
     statedir = os.path.join(workdir, "state")
     os.makedirs(statedir)
+    # "state_files" {a name in the state folder: a fixture under states/, or "text:..." for its content}:
+    # what an earlier play left there (the auto state and its ".colours" note, GB-6: the resume logic)
+    for name, spec in case.get("state_files", {}).items():
+        dst = os.path.join(statedir, name)
+        if spec.startswith("text:"):
+            with open(dst, "w") as f:
+                f.write(spec[5:])
+        else:
+            src = os.path.join(args.fixtures, "states", spec)
+            if not os.path.exists(src):
+                r.error = "missing state fixture states/%s" % spec
+                return r
+            shutil.copy(src, dst)  # (a copy: GBA DS saves over it on leaving)
     # the ROM in a folder of the case's own: the game writes its battery save
     # beside it, so nothing lands in the fixtures and every run starts clean
     romdir = os.path.join(workdir, "rom")
     os.makedirs(romdir)
     os.symlink(rom, os.path.join(romdir, case["rom"] + ".zip"))
+    # "rom_files" {a file name in the game list's folder: a ROM fixture's name}: other ROMs listed beside it
+    for name, other in case.get("rom_files", {}).items():
+        src = os.path.join(args.fixtures, "roms", other + ".zip")
+        if not os.path.exists(src):
+            r.error = "missing ROM fixture roms/%s.zip" % other
+            return r
+        r.error = dump_error(dict(case, rom=other), src)
+        if r.error:
+            return r
+        os.symlink(src, os.path.join(romdir, name))
     if case.get("patch"):  # a patch file beside the ROM (GEN-9), from the fixtures' patches/
         pf = os.path.join(args.fixtures, "patches", case["patch"])
         if not os.path.exists(pf):
@@ -335,7 +358,10 @@ def run_app(case, args, workdir):
                # time zone, so a game that draws its clock (Boktai's, BT-8) read 12:00 on
                # a session's container (New York) and 17:00 on GitHub's UTC runners: the
                # zone is pinned (POSIX "EST5": five hours behind, no DST, no tzdata needed)
-               TZ="EST5")
+               TZ="EST5",
+               # the first-run language question (issue #92, GEN-18) is never asked unless a case
+               # asks for it (a release version's build would ask it in every fresh state folder)
+               GBADS_LANG_ASK="0")
     if not args.paced:
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)
@@ -402,6 +428,12 @@ def check(run, chk):
         with open(path, "rb") as f:
             head = f.read(max(len(want), 8))
         return head.startswith(want), "%s starts %r" % (chk["path"], head)
+    if t == "image_size":  # a picture the app saved (a BMP or PNG: the resume picture, GB-13) has this size
+        path = os.path.join(run.ra_states or run.dir, chk["path"])
+        if not os.path.exists(path):
+            return False, "no %s" % chk["path"]
+        size = Image.open(path).size
+        return list(size) == list(chk["size"]), "%s is %dx%d (need %dx%d)" % (chk["path"], size[0], size[1], chk["size"][0], chk["size"][1])
     if t == "no_log":
         m = re.search(chk["match"], run.log, re.M)
         return m is None, "log has %r" % m.group(0) if m else "log lacks /%s/" % chk["match"]
@@ -696,6 +728,8 @@ def main():
         need = set()
         for c in cases:
             need.add("roms/%s.zip" % c["rom"])
+            for other in c.get("rom_files", {}).values():
+                need.add("roms/%s.zip" % other)
             need.add("golden/%s/%s/" % (c["slug"], c["id"]))
             if c.get("state"):
                 need.add("states/" + c["state"])
@@ -714,6 +748,9 @@ def main():
                 need.add("bios/" + c["bios"])
             for f in c.get("cheat_files", {}).values():  # (GEN-17's cheat files)
                 need.add("cheats/" + f)
+            for f in c.get("state_files", {}).values():  # (an earlier play's auto state: GB-6's resume note)
+                if not f.startswith("text:"):
+                    need.add("states/" + f)
         print("\n".join(sorted(need)))
         return
     if args.list:

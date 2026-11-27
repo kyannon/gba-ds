@@ -4,7 +4,7 @@ full-screen title picture rather than drawn on a layer of their own.
 
     GBADS_LOGO_DEBUG=1 build/host/harness THPS2.gba out logo.txt   # 'logo logo'
     (writes out/logo.png.fg.png: the exact title frame GBA DS renders)
-    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...] [AMW=...]
+    tools/make_logo_masks.py THPS2=THPS2-frame.png [SK8=SK8-frame.png] [THPS3=...] [AMW=...] [SAR=...]
 
 Masks not named on the command line are kept as they are in
 src/logo_masks.c, so one can be redone without the other games' ROMs.
@@ -517,13 +517,91 @@ def rs(a):
     return big.reshape(H, ss, W, ss).mean(axis=(1, 3)) >= 0.5
 
 
+def sar(a):
+    """Shantae Advance: Risky Revolution: the lettering, its red swoosh and "Risky Revolution!" over
+    the title's purple gradient, all one layer with the menu and copyright from row 114 (the
+    "y" of "Risky" reaches row 113). The gradient is the colours on the frame's sides and top above
+    that row: what they reach from the edges is out (its 26 shades are too many for edgeClear)."""
+    top = a[:114]
+    key = lambda p: (p[..., 0] << 16) | (p[..., 1] << 8) | p[..., 2]
+    sides = np.concatenate([key(top[:, :2]).ravel(), key(top[:, -2:]).ravel(), key(top[0]).ravel()])
+    bgc = np.isin(key(a), np.unique(sides))
+    bgc[114:] = True
+    lab, _ = ndimage.label(bgc)
+    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    return ~np.isin(lab, list(edge))
+
+
+CRV_ARM = [(216, 91), (224, 84), (230.5, 80), (232.5, 82.5), (218, 97), (214.5, 94.5)]
+
+
+def crv(a):
+    """Cruis'n Velocity (USA, Europe): Cruis'n and VELOCITY over the title's grey and light
+    burst. What those reach from the edges is out, then the pale glow and grey shadow along the
+    script's strokes are peeled off, so it ends on its own yellow and orange; the Y's white arm stays."""
+    from PIL import ImageDraw
+    mx, mn = a.max(axis=2), a.min(axis=2)
+    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1), 0)
+    luma = 0.3 * a[..., 0] + 0.59 * a[..., 1] + 0.11 * a[..., 2]
+    rows = np.mgrid[0:H, 0:W][0]
+    poly = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(poly).polygon(CRV_ARM, fill=255)
+    arm = np.asarray(poly) > 0
+    arm_px = arm & ((luma >= 200) | (luma < 100) | (sat > 0.15))
+    bgc = (sat < 0.18) & (luma >= 112) & ~arm_px
+    bgc[118:] = True
+    lab, _ = ndimage.label(bgc)
+    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    reached = np.isin(lab, list(edge))
+    logo = ~reached
+    shut, n = ndimage.label(bgc & ~reached)
+    for i, size in enumerate(ndimage.sum(bgc & ~reached, shut, range(1, n + 1))):
+        if size >= 50:
+            logo[shut == i + 1] = False
+    logo[118:] = False
+    logo = comps(logo, 30)
+    # the glow and shadow: pale or grey pixels by a yellow / orange stroke, and dark grey ones above and below the letters
+    neutral = (mx - mn) <= 28
+    warm = (sat >= 0.55) & (luma >= 100) & (a[..., 0] >= 200)
+    strong = (sat >= 0.55) & (luma >= 55)
+    near = ndimage.distance_transform_edt(~warm) <= 4
+    glow = ((~strong & (luma >= 130)) | (neutral & (luma >= 34) & (luma < 130))) & near
+    dark = neutral & (luma >= 34) & (luma < 100) & ((rows < 72) | (rows >= 104))
+    bar = neutral & (luma >= 34) & (luma < 200) & (rows >= 105)
+    peelable = (glow | dark | bar) & ~ndimage.binary_dilation(arm, iterations=1)
+    # small pale pieces shut in by the strokes (the o's counter) are background
+    lab, n = ndimage.label(~strong & (luma >= 130) & logo & ~arm)
+    for i in range(1, n + 1):
+        piece = lab == i
+        if piece.sum() <= 30 and (ndimage.distance_transform_edt(~warm)[piece] <= 1.5).mean() >= 0.8:
+            logo[piece] = False
+    four = ndimage.generate_binary_structure(2, 1)
+    for _ in range(7):
+        peel = ndimage.binary_dilation(~logo, structure=four) & logo & peelable
+        if not peel.any():
+            break
+        logo &= ~peel
+    # no spurs: a pixel with fewer than two 4-neighbours goes, twice
+    for _ in range(2):
+        nb = ndimage.convolve(logo.astype(int), np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]]), mode="constant")
+        logo &= nb >= 2
+    # the base bar: its three rows over the orange line (silver dashes and all) are the title's own,
+    # the grey shadow under the line is not
+    orange = (a[..., 0] >= 200) & (a[..., 1] >= 80) & (a[..., 1] <= 140) & (a[..., 2] <= 90)
+    line = 105 + int(orange[105:118].sum(axis=1).argmax())
+    ends = np.nonzero(orange[line])[0]
+    logo[line - 3:line, ends.min():ends.max() + 2] = True
+    logo[line + 1:] = False
+    return comps(logo, 30)
+
+
 MASKS = (("THPS2", thps2), ("SK8", sk8), ("THPS3", thps3), ("DBZ", dbz),
          ("GS2E", gs2), ("GS2D", gs2_dial), ("GS2F", gs2_dial), ("GS2I", gs2), ("GS2S", gs2_dial),
          ("GS2J", gs2), ("CNK", cnk), ("CNKJ", cnk_jpn),
          ("DBZ2", dbz2), ("DBZ2J", dbz2_jpn), ("BF", bf),
          ("VR3", vr3), ("VR3J", vr3), ("GT3", gt3), ("GT3J", gt3_jpn),
          ("NFO", nfo), ("NFOP", nfo_eur), ("AMW", amw), ("ER", er),
-         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn), ("BGD", bgd), ("RS", rs))
+         ("MVDK", mvdk), ("MVDKJ", mvdk_jpn), ("BGD", bgd), ("RS", rs), ("SAR", sar), ("CRV", crv))
 
 
 def runs(mask):

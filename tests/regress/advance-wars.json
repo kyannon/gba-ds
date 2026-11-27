@@ -1875,6 +1875,169 @@
    ]
   },
   {
+   "id": "aw-rom-path-list",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On, and back on the game list the other screen shows the ROM's path under the Play / Quit hints, on black",
+   "rules": [
+    "GEN-21"
+   ],
+   "input": [
+    [
+     30,
+     "SELECT"
+    ],
+    [
+     36,
+     "-"
+    ],
+    [
+     44,
+     "DOWN"
+    ],
+    [
+     48,
+     "-"
+    ],
+    [
+     52,
+     "DOWN"
+    ],
+    [
+     56,
+     "-"
+    ],
+    [
+     60,
+     "DOWN"
+    ],
+    [
+     64,
+     "-"
+    ],
+    [
+     70,
+     "A"
+    ],
+    [
+     74,
+     "-"
+    ],
+    [
+     78,
+     "DOWN"
+    ],
+    [
+     82,
+     "-"
+    ],
+    [
+     86,
+     "DOWN"
+    ],
+    [
+     90,
+     "-"
+    ],
+    [
+     94,
+     "DOWN"
+    ],
+    [
+     98,
+     "-"
+    ],
+    [
+     102,
+     "DOWN"
+    ],
+    [
+     106,
+     "-"
+    ],
+    [
+     130,
+     "A"
+    ],
+    [
+     134,
+     "-"
+    ],
+    [
+     160,
+     "B"
+    ],
+    [
+     164,
+     "-"
+    ],
+    [
+     172,
+     "B"
+    ],
+    [
+     176,
+     "-"
+    ]
+   ],
+   "shots": {
+    "system-rom-path-on": 150,
+    "list-rom-path": 200
+   },
+   "golden_mask": [
+    [
+     870,
+     600,
+     1024,
+     750
+    ],
+    [
+     0,
+     600,
+     1024,
+     768
+    ]
+   ],
+   "checks": [
+    {
+     "type": "log",
+     "match": "library: ROM path on the game list on",
+     "rule": "GEN-21",
+     "what": "switched on from the System page"
+    },
+    {
+     "type": "not_uniform",
+     "shot": "list-rom-path",
+     "screen": "game",
+     "rect": [
+      24,
+      734,
+      700,
+      754
+     ],
+     "color": "000000",
+     "frac": 0.999,
+     "rule": "GEN-21",
+     "what": "the path written under the hints, on the black"
+    },
+    {
+     "type": "uniform",
+     "shot": "list-rom-path",
+     "screen": "game",
+     "rect": [
+      0,
+      755,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.999,
+     "rule": "GEN-21",
+     "what": "no coloured strip: black below the path"
+    }
+   ]
+  },
+  {
    "id": "aw-us-toggle-unavailable",
    "rom": "AWRE",
    "state": "advance-wars/us-title.ss",
@@ -1915,6 +2078,168 @@
      70
     ]
    ]
+  },
+  {
+   "id": "aw-lang-first-run",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "a first install on a system that reports Chinese (issue #92): before the game list, the language screen in Chinese, Automatic picked; English picked, both screens redraw in English; A again keeps it and the game list opens in English",
+   "rules": [
+    "GEN-18"
+   ],
+   "env": {
+    "GBADS_LANG_ASK": "1",
+    "LANG": "zh_CN.UTF-8",
+    "LC_ALL": "",
+    "LC_MESSAGES": "",
+    "LANGUAGE": ""
+   },
+   "input": [
+    [
+     40,
+     "DOWN"
+    ],
+    [
+     44,
+     "-"
+    ],
+    [
+     50,
+     "A"
+    ],
+    [
+     54,
+     "-"
+    ],
+    [
+     80,
+     "A"
+    ],
+    [
+     84,
+     "-"
+    ]
+   ],
+   "shots": {
+    "lang-ask": 30,
+    "lang-ask-english": 70,
+    "lang-kept": 110
+   },
+   "checks": [
+    {
+     "type": "log",
+     "rule": "GEN-18",
+     "what": "asked on a first install",
+     "match": "^language: asking \\(first run\\), now auto \\(zh_CN\\)"
+    },
+    {
+     "type": "log",
+     "rule": "GEN-18",
+     "what": "English kept",
+     "match": "^language: kept en \\(en\\)"
+    }
+   ],
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ]
+   ]
+  },
+  {
+   "id": "aw-lang-first-pause",
+   "rom": "AWRE",
+   "desc": "a first install launched straight into a game (issue #92): the game starts at once; the first pause asks the language before the menu, and A on the language picked (Automatic, Chinese) keeps it and opens the pause menu",
+   "rules": [
+    "GEN-18"
+   ],
+   "env": {
+    "GBADS_LANG_ASK": "1",
+    "LANG": "zh_CN.UTF-8",
+    "LC_ALL": "",
+    "LC_MESSAGES": "",
+    "LANGUAGE": ""
+   },
+   "input": [
+    [
+     200,
+     "SWIPE:0.5,0.99,0.5,0.85"
+    ],
+    [
+     220,
+     "TAP:0.5,0.864"
+    ],
+    [
+     260,
+     "A"
+    ],
+    [
+     264,
+     "-"
+    ]
+   ],
+   "shots": {
+    "lang-game": 190,
+    "lang-pause-ask": 250,
+    "lang-pause-menu": 290
+   },
+   "checks": [
+    {
+     "type": "log",
+     "rule": "GEN-18",
+     "what": "asked at the first pause",
+     "match": "^language: asking \\(first run\\)"
+    },
+    {
+     "type": "log",
+     "rule": "GEN-18",
+     "what": "Automatic kept",
+     "match": "^language: kept auto \\(zh_CN\\)"
+    }
+   ],
+   "golden_mask": [
+    [
+     870,
+     725,
+     1010,
+     750
+    ],
+    [
+     0,
+     0,
+     140,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "aw-lang-not-asked",
+   "kind": "library",
+   "rom": "AWRE",
+   "desc": "a test build (no GBADS_LANG_ASK) on a fresh install: no language question, the game list straight away (issue #92: only releases and the final dev build ask)",
+   "rules": [
+    "GEN-18"
+   ],
+   "env": {
+    "LANG": "zh_CN.UTF-8",
+    "LC_ALL": "",
+    "LC_MESSAGES": "",
+    "LANGUAGE": ""
+   },
+   "shots": {
+    "end": 40
+   },
+   "checks": [
+    {
+     "type": "no_log",
+     "rule": "GEN-18",
+     "what": "not asked",
+     "match": "^language: asking"
+    }
+   ],
+   "golden": []
   }
  ]
 }

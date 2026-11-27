@@ -161,9 +161,12 @@ it lives here:
      fixtures have; say in the checklist where a region has none.
      `tools/make_device_states.py [--games a,b]` makes `build/device-states/`
      (`<name>.slotN.state` and `TEST-STATES.txt`, stopping on a missing
-     fixture or a name that isn't a dump); `GBADS_DEVICE_STATES=build/device-states
+     fixture or a name that isn't a dump); `GBADS_DEVICE_STATES=build/device-states GBADS_LANG_ASK=1
      GBADS_WEB_WORK=<scratch>/wasm scripts/build-rocknix.sh` puts them in the
-     zip's `states/` folder (dev versions only). They replace those slot
+     zip's `states/` folder (dev versions only); `GBADS_LANG_ASK=1` makes it
+     ask the language on a first install, as the release will (GEN-18: the
+     owner's rule, Nov 25, 2026, is that only builds a main session makes for
+     a release ask; other test builds don't). They replace those slot
      files on the owner's install; say so, and that a state shows only when
      the ROM file is named as the game is.
   4. **Tests**: as for any test build, the cases the changes can affect
@@ -285,6 +288,8 @@ release zip, which replaces the main install.
   `X.Y.Z-dev+<slug>`, there are no updates and no EmulationStation / BananaOS
   integration. Say in the note that it is a side build, and that it can be
   deleted (folder and Ports entry) once the issue or branch is merged.
+- **It doesn't ask the language on a first install** (GEN-18): only releases
+  and builds with `GBADS_LANG_ASK=1` (the final dev build) do, so leave it out.
 - **Unzipping it can't touch the main install**, so the test note doesn't need
   "back up your settings" for it. The final dev build, built from `dev`, still
   replaces the install (and its test states replace slot files: say so).
@@ -306,12 +311,18 @@ release zip, which replaces the main install.
   `src/fonts_data.c` by `tools/embed_fonts.py`) with stb_truetype
   (`src/textfont.c`): `ui_label` (bold, centred), `ui_font_text` /
   `ui_font_wrap` (TF_BOLD or TF_BODY, any UTF-8). New text is just a string;
-  write it in normal sentence case. The pixel font (`ui_text`) is left for
-  the FPS counter and version number.
+  write it in normal sentence case. The old pixel font (`ui_text`, capitals
+  only) is left for the FPS counter (and the version number where the quick
+  bar's pixel font lacks a character); the game list's GitHub link, version
+  number and ROM path strip (GEN-21) use the quick bar's Jost-like pixel font
+  (`pixfont.h`, library.c `pix_draw`).
 - Generated sources: `src/fonts_data.c` (above), `src/brand_data.c` (artwork
   only: the logo, button prompts and flags; `tools/make_brand.py` needs the
   Futura Bold Italic and Gamecuben fonts, which aren't in the repo: ask the
-  owner for them), `src/logo_masks.c` (`tools/make_logo_masks.py`) and
+  owner for them), `src/logo_masks.c` (`tools/make_logo_masks.py`), `src/upscale_shaders.c`
+  (`tools/embed_shaders.py`: the Scaling filter's upscalers, mGBA's shader
+  packs in `third_party/mgba-shaders`, run by `src/upscale.c` on SDL's
+  OpenGL ES context; issue #89) and
   `src/dumps_data.h` with the rules files' Dumps rows (`tools/make_dumps.py
   --dat DAT`: every official dump of each release by CRC32, from No-Intro's
   list in libretro-database (fetched with git, see the tool), the fixtures'
@@ -494,7 +505,13 @@ release zip, which replaces the main install.
   (and the releases tested only on their logo). `--changed` runs only the
   games a change touches (docs/TESTING.md); GitHub runs that on every push
   to dev / android / game/* (`.github/workflows/regress.yml`; the full
-  suite only for "Run workflow" with "full", once per release). `GBADS_SYNC=1`
+  suite only for "Run workflow" with "full", once per release). The
+  workflow has time limits (`select` 10 min, a shard 45, the fixtures'
+  download two tries of 5 min, the cases 30): a shard that fails on a time
+  limit with no failing case is a download, not the code: re-run the failed
+  jobs (`gh api -X POST repos/kyannon/gba-ds/actions/runs/RUN_ID/rerun-failed-jobs`),
+  and if it fails again, run that shard locally (`python3 tools/regress.py
+  GAMES --shard N/K`); docs/TESTING.md, "On GitHub". `GBADS_SYNC=1`
   makes captures and logo extraction run inline, so runs are exact; the app
   draws with SDL's software renderer (`SDL_RENDER_DRIVER=software`, set by
   regress.py), the same on every machine (through Mesa's OpenGL, blended
@@ -537,7 +554,7 @@ release zip, which replaces the main install.
   the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
   second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
   shared with RetroArch (`state_folder = retroarch`, game list Settings >
-  Save States, Linux): paths.c `retroarch_state_dir` works out RetroArch's
+  Save States, Linux and, since issue #111, Android: docs/ANDROID.md): paths.c `retroarch_state_dir` works out RetroArch's
   folder from its retroarch.cfg as RetroArch does (ROCKNIX: setsettings.sh's
   `/storage/roms/savestates/<system>`), game_paths points slots 0-9 and the
   auto state at `.state`, `.state1`-`.state9`, `.state.auto` there
@@ -561,7 +578,7 @@ release zip, which replaces the main install.
   map, screen and memory probes, crops, captureHide/underHide sprite rules,
   logo extraction, regional variants (`variants[]` + patch functions), and
   for logo-only games (Tony Hawk's Pro Skater 2) the `snap` screen copy and
-  `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens as one tall view (game.c update_tall), its top row min(the game's view, rows - 320): the top screen the game as it is while that's its view, else a copy held at rows - 320 with the game's screen-fixed things laid over it (BG0 and the sprites found fixed, drawn by the HUD split: emu_hud_keep_exact); the bottom screen a second copy held 160 rows below the view's top (twins[], run_frame: every frame each copy is taken from the game's state from before the frame before, held at its row (camera stores NOPed, its own pans compensated, twin_jump) and run that frame and this one, on worker threads beside the game: a copy left on its own fell behind the game's logic); sprites alike the game's hidden only when fixed to the screen or wrapped round (twin_hide); paused, the Mart or a message: the game's whole screen on the bottom one (PP-11). See docs/PINBALL.md. Sonic Pinball Party uses the same with `tall.live.carry` (its camera is a row, its table tiles stream through a vblank queue): each copy keeps its own BG0 tile ring, scroll vars and queued ring copies from its last frame (carry_take / carry_put) and walks its camera to its row; the game's own picture is used wherever it has the rows; docs/games/sonic-pinball-party.md has its addresses, tools/scout/sjump.c the experiment. A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Other profile switches: `logoIf` / `logoIfOr` (the logo while they match,
+  `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens as one tall view (game.c update_tall), its top row min(the game's view, rows - 320): the top screen the game as it is while that's its view, else a copy held at rows - 320 with the game's screen-fixed things laid over it (BG0 and the sprites found fixed, drawn by the HUD split: emu_hud_keep_exact); the bottom screen a second copy held 160 rows below the view's top (twins[], run_frame: every frame each copy is taken from the game's state from before the frame before, held at its row (camera stores NOPed, its own pans compensated, twin_jump) and run that frame and this one, on worker threads beside the game: a copy left on its own fell behind the game's logic); sprites alike the game's hidden only when fixed to the screen or wrapped round (twin_hide); paused, the Mart or a message: the game's whole screen on the bottom one (PP-11). See docs/PINBALL.md. Sonic Pinball Party uses the same with `tall.live.carry` (its camera is a row, its table tiles stream through a vblank queue): each copy keeps its own BG0 tile ring, scroll vars and queued ring copies from its last frame (carry_take / carry_put) and walks its camera to its row; the game's own picture is used wherever it has the rows; docs/games/sonic-pinball-party.md has its addresses, tools/scout/sjump.c the experiment. DK: King of Swing (logo-only) has `climb` (climb.c, game.c `update_climb`): in a level the game on the bottom screen and the level above it on the top, drawn by one copy of the game taken from its state every frame with its camera rows lowered 160 and its camera code patched (the profile's `patch`, re-applied with `emu_state_patch32` for IWRAM code), run on its own thread (in step with the game on one core, its pace dropping when the device can't keep up: `climb_pace`); the web player runs it in a worker of its own (docs/WEB-PLAYER.md). `pinball_live = 0` turns it off. A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Other profile switches: `logoIf` / `logoIfOr` (the logo while they match,
   map and HUD kept for after; Super Mario Advance 4's World-e castle hall;
   the logo stays until a new HUD picture is drawn, at most a second),
   `hud.freeze` (the HUD picture held as it is while they match: SMA4's
@@ -609,8 +626,8 @@ release zip, which replaces the main install.
   months first (from Oct 13, 2026: Apr 13, 2027, unless they take libmgba as
   the parent emulator); the plan and the rules page's checklist are in the
   project's `claude/issue-82-progress.md`. Every state load goes through
-  game.c `state_load`, which refuses in hardcore; rewind and cheats are
-  gated beside it (`cheats_sync`). The regression suite doesn't cover RA
+  game.c `state_load`, which refuses in hardcore; rewind, fast forward (`canFF`)
+  and cheats are gated beside it (`cheats_sync`). The regression suite doesn't cover RA
   (no mock server in regress.py): test with `tools/ra_mock.py` and
   `--ra_hardcore=1` (run it with `--update_check=0` from the game list: a
   host run once updated itself over `build/host`). The compliance document for
@@ -624,13 +641,20 @@ release zip, which replaces the main install.
   unlock and leaderboard entry rc_client sends is kept (without the token) until the server
   answers, then replayed at the next sign-in before the game loads
   (`pending_track` / `pending_replay`; `replayBusy` holds `begin_load`).
+- `drmlease.c` (Linux; issue #86): the second screen on a panel leased from gamescope. ui.c opens it when there's one display and `GBADS_DRM_LEASE` is set (`drmlease_open`: the lease through libwayland-client opened at run time, headers and drm-lease protocol code in `third_party/wayland`, MIT; the panel lit by one atomic commit; two dumb buffers flipped on the leased plane, turned by the panel's orientation; kernel ioctls, no libdrm), makes views[1] a software view (`create_software_view`, retained: drawn only when it changes, `UI_RETAINED`) and `drmlease_present` puts its surface on the panel each frame. The touchscreen's turn comes from the panel's orientation (`touch_rotate`), and `evdev_touch_poll` opens its device with the `openat` system call (Steam's preloaded overlay made `open` fail on it). Test without a panel: docs/TESTING.md, "The leased panel's second screen". Licence: the lease request is a port of Azahar-Enhanced's (GPLv2 or later), noted in the file, `wiki/Licenses.md` and the zip's licenses folder.
 - `mapper.c` Settings > Map Buttons (Linux): asks for each button, builds an SDL mapping for that controller, kept in `<state_dir>/controllers.txt` and logged (bake device ones into `dist/gamecontrollerdb.txt`). Input scripts drive it with a virtual pad: `JOYBTN:n`, `JOYHAT:v`, `JOYAXIS:n,v`, `JOYBTN:-`.
 - `update.c` updates (Linux): GitHub's latest release, the notice and
   Settings > Updates (library.c), download through `http.c` (curl, or
   libcurl), SHA-256 check (`sha256.c`), install over the app's folder via
   `.new` files and rename (gba-ds.cfg kept), then main() execs the new
   binary. Test offline with `tools/update_mock.py` (docs/TESTING.md).
-- `library.c` the game list and its Settings screen (and the selected
+- `library.c` the first-run language question (GEN-18, issue #92:
+  `library_language_ask`, before the game list and from game.c at the first
+  pause; `library_language_ask_built` says which builds ask: a version
+  without `-dev`, or `GBADS_LANG_ASK` (Makefile `LANG_ASK`, build-rocknix.sh
+  and the environment), never `__wasi__`; main.c marks a first install,
+  an empty states folder, with `language_asked = 0`; regress.py sets
+  `GBADS_LANG_ASK=0` unless a case asks), the game list and its Settings screen (and the selected
   game's ROM checksum, read once per file on a worker thread and kept in
   `<state_dir>/roms.cache`: "Romhack: ..." / "Modified ROM" under its logo,
   GEN-8; regress.py's `"kind": "library"` cases). The scan (issue #49):
@@ -699,6 +723,7 @@ release zip, which replaces the main install.
   with each launcher's `run-` written `run''-` (the same to the shell), and
   the games GBA DS doesn't support play without Banana's panel (a known
   issue; a per-game hook was asked of Banana's developers).
+- **Armada** (github.com/armada-os/armada, the AYN Thor's own system; issue #86, PR #96 by cerroverb): in **Game Mode** gamescope shows only the top panel and leases the bottom one (DSI-1) to a program that asks through the Wayland protocol `wp_drm_lease_device_v1`; on the desktop both panels are KDE's and GBA DS makes a window on each. `dist/launch.sh` (its "another system" branch) reads `/usr/libexec/armada/device-env` for `ARMADA_SECONDARY_CONNECTOR` / `ARMADA_SECONDARY_TOUCHSCREEN`, passes the touchscreen as `--touch-device` and, when Game Mode's `gamescope-primary` socket exists, sets `GBADS_DRM_LEASE` (the connector) and `GAMESCOPE_WAYLAND_DISPLAY=gamescope-primary`; its first log lines say what it found ("Armada: bottom panel ..."). `src/drmlease.c` does the rest (below). Tried by the contributor on a Thor in Game Mode from a Steam shortcut; the owner's own device is the RG DS Plus.
 - **The Stock Linux OS** (Anbernic's own) on the RG DS Plus (Buildroot, weston, two
   windows): launch.sh's "another system" branch. Ports in `/mnt/mmc/Ports`,
   ROMs `/mnt/mmc/Roms/GBA`. Touch: `anbernic_misc/tpctrl` 0 (on) for the run

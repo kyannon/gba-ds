@@ -23,6 +23,12 @@ msgstr " ms"
 msgid " s"
 msgstr " s"
 
+msgid "GBA DS can't use that folder. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "GBA DS no puede usar esa carpeta. En RetroArch, pon Settings > Directory > Save States en una carpeta de tu almacenamiento (no en Android/data) y luego elígela aquí."
+
+msgid "RetroArch's states weren't found. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "No se encontraron los estados de RetroArch. En RetroArch, pon Settings > Directory > Save States en una carpeta de tu almacenamiento (no en Android/data) y luego elígela aquí."
+
 msgid "\"Swipe up for quick menu\" at a game's start."
 msgstr "«Desliza hacia arriba para el menú rápido» al empezar un juego."
 
@@ -66,9 +72,6 @@ msgstr "%s %s. Elige otra si RetroArch guarda sus estados en otro sitio."
 
 msgid "%s (beside the ROM)"
 msgstr "%s (junto a la ROM)"
-
-msgid "%s as the hotkey button, with Start, R1, L1, X, Y and B"
-msgstr "%s como botón de atajos, con Start, R1, L1, X, Y y B"
 
 msgid "%s has no button now"
 msgstr "%s ya no tiene botón"
@@ -147,9 +150,6 @@ msgstr "Botón A (derecha)"
 
 msgid "A and B buttons"
 msgstr "Botones A y B"
-
-msgid "A dark line under each row of pixels"
-msgstr "Una línea oscura bajo cada fila de píxeles"
 
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr "Si ya hay una partida guardada junto al juego, o del otro tipo, se copia la primera vez que lo juegas. .srm es el tipo que usa RetroArch: elige también su carpeta de partidas guardadas para compartir cada una con él."
@@ -250,9 +250,6 @@ msgstr "Como al iniciar el juego"
 msgid "Aug"
 msgstr "Ago"
 
-msgid "Auto"
-msgstr "Auto"
-
 msgid "Auto-load"
 msgstr "Carga automática"
 
@@ -294,9 +291,6 @@ msgstr "Logo del marco"
 
 msgid "Blue"
 msgstr "Azul"
-
-msgid "Blurry instead of sharp: usually leave off."
-msgstr "Borroso en lugar de nítido: normalmente déjalo desactivado."
 
 msgid "Both screens"
 msgstr "Ambas pantallas"
@@ -547,11 +541,11 @@ msgstr "Abajo"
 msgid "Downloading"
 msgstr "Descargando"
 
-msgid "Each pixel a little darker toward its edges"
-msgstr "Cada píxel un poco más oscuro hacia los bordes"
-
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "Consigue logros en modo casual con tu cuenta de retroachievements.org. GBA DS guarda un token de sesión, no tu contraseña."
+
+msgid "Edge stretch"
+msgstr "Estirar bordes"
 
 msgid "English"
 msgstr "English"
@@ -919,14 +913,8 @@ msgstr "Modo claro/oscuro"
 msgid "Like a GBA"
 msgstr "Como una GBA"
 
-msgid "Lines between the pixels, like a GBA's screen"
-msgstr "Líneas entre los píxeles, como en la pantalla de una GBA"
-
 msgid "Load failed"
 msgstr "Error al cargar"
-
-msgid "Load failed."
-msgstr "Error al cargar."
 
 msgid "Load State"
 msgstr "Cargar estado"
@@ -1315,15 +1303,6 @@ msgstr "Súbelo si el sonido cruje."
 msgid "Red"
 msgstr "Rojo"
 
-msgid "Red, green and blue stripes, gentle: for dim screens"
-msgstr "Franjas rojas, verdes y azules, suaves: para pantallas tenues"
-
-msgid "Red, green and blue stripes, like a GBA's screen"
-msgstr "Franjas rojas, verdes y azules, como la pantalla de una GBA"
-
-msgid "Red, green and blue stripes, strong: for bright screens"
-msgstr "Franjas rojas, verdes y azules, fuertes: para pantallas brillantes"
-
 msgid "Reset"
 msgstr "Restablecer"
 
@@ -1485,6 +1464,9 @@ msgstr "Las partidas se guardarán ahí."
 
 msgid "Scale, shader, theme, color"
 msgstr "Escala, shader, tema, color"
+
+msgid "Scale: Edge stretch"
+msgstr "Escala: estirar bordes"
 
 msgid "Scale: Full Width"
 msgstr "Escala: ancho completo"
@@ -1663,14 +1645,8 @@ msgstr "Las ranuras 0-9 y el punto de reanudación son de RetroArch (su núcleo 
 msgid "Slow (10 a second)"
 msgstr "Lenta (10 por segundo)"
 
-msgid "Smooth scaling"
-msgstr "Escalado suave"
-
 msgid "Smoother, one frame more input delay."
 msgstr "Más suave, un fotograma más de retardo de entrada."
-
-msgid "SNES"
-msgstr "SNES"
 
 msgid "Soft Cells"
 msgstr "Celdas suaves"
@@ -1801,9 +1777,6 @@ msgstr "el botón que abre el menú de GBA DS (Home, Menu o Function)"
 msgid "the game"
 msgstr "el juego"
 
-msgid "The game's pixels as they are"
-msgstr "Los píxeles del juego tal cual"
-
 msgid "The GBA DS logo in the generated bezel."
 msgstr "El logo de GBA DS en el marco generado."
 
@@ -1854,6 +1827,9 @@ msgstr "el botón superior"
 
 msgid "This folder can't be opened"
 msgstr "No se puede abrir esta carpeta"
+
+msgid "GBA DS can't save in this folder: choose another"
+msgstr "GBA DS no puede guardar en esta carpeta: elige otra"
 
 msgid "This game"
 msgstr "Este juego"
@@ -2080,3 +2056,100 @@ msgstr "traducción automática"
 #, c-format
 msgid "Sound delay raised to %d ms: the sound kept breaking up"
 msgstr "Retardo del sonido subido a %d ms: el sonido se cortaba"
+
+msgid "Android couldn't install the update."
+msgstr "Android no pudo instalar la actualización."
+
+msgid "Android couldn't install the update: %s."
+msgstr "Android no pudo instalar la actualización: %s."
+
+msgid "Android won't install v%s over this copy of GBA DS: it was signed with another key (a test build?). Uninstall GBA DS, then install the new version from github.com/kyannon/gba-ds/releases. Your files in the GBA DS folder are kept."
+msgstr "Android no instala la v%s sobre esta copia de GBA DS: se firmó con otra clave (¿una versión de prueba?). Desinstala GBA DS y luego instala la nueva versión desde github.com/kyannon/gba-ds/releases. Tus archivos de la carpeta de GBA DS se conservan."
+
+msgid "Android won't install v%s over this copy of GBA DS: this copy is a test build made after it, and Android doesn't go back to an earlier build. Keep this one, or uninstall GBA DS and install v%s from github.com/kyannon/gba-ds/releases (your files in the GBA DS folder are kept)."
+msgstr "Android no instala la v%s sobre esta copia de GBA DS: esta copia es una versión de prueba posterior, y Android no vuelve a una versión anterior. Quédate con esta, o desinstala GBA DS e instala la v%s desde github.com/kyannon/gba-ds/releases (tus archivos de la carpeta de GBA DS se conservan)."
+
+msgid "Couldn't check for updates."
+msgstr "No se pudo buscar actualizaciones."
+
+msgid "Couldn't check for updates: %s."
+msgstr "No se pudo buscar actualizaciones: %s."
+
+msgid "Couldn't download the update: %s."
+msgstr "No se pudo descargar la actualización: %s."
+
+msgid "Couldn't install the update: %s."
+msgstr "No se pudo instalar la actualización: %s."
+
+msgid "Couldn't start installing the update: %s."
+msgstr "No se pudo empezar a instalar la actualización: %s."
+
+msgid "Couldn't start the download."
+msgstr "No se pudo iniciar la descarga."
+
+msgid "The download didn't match its checksum. Try again."
+msgstr "La descarga no coincide con su suma de comprobación. Inténtalo de nuevo."
+
+msgid "The download was incomplete. Try again."
+msgstr "La descarga quedó incompleta. Inténtalo de nuevo."
+
+msgid "There isn't enough storage free to install the update."
+msgstr "No hay suficiente espacio libre para instalar la actualización."
+
+# issue 92: the first-run language screen
+msgid "Choose the language for GBA DS's menus."
+msgstr "Elige el idioma de los menús de GBA DS."
+
+# issue 92: the first-run language screen
+msgid "You can change it later in Settings > System."
+msgstr "Puedes cambiarlo más tarde en Ajustes > Sistema."
+
+# issue 92: the first-run language screen
+msgid "Choose"
+msgstr "Elegir"
+
+# issue 92: the first-run language screen
+msgid "Continue"
+msgstr "Continuar"
+
+# issue 92: the first-run language screen
+#, c-format
+msgid "System: %s"
+msgstr "Sistema: %s"
+
+msgid "Scaling filter"
+msgstr "Filtro de escalado"
+
+msgid "Sharp"
+msgstr "Nítido"
+
+msgid "Smooth"
+msgstr "Suave"
+
+msgid "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off."
+msgstr "Cómo se amplían los píxeles del juego: nítidos, borrosos o redibujados con bordes redondeados por un filtro de ampliación. Un filtro de ampliación desactiva cualquier shader."
+
+msgid "Heavy: not yet tried on this device's graphics chip, so it may not run at full speed."
+msgstr "Exigente: aún no probado en el chip gráfico de este dispositivo, así que puede que no vaya a velocidad completa."
+
+msgid "Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it."
+msgstr "Demasiado exigente para el chip gráfico de este dispositivo: aquí se muestra como Nítido. Se guarda para un dispositivo que pueda usarlo."
+
+msgid "Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp."
+msgstr "Necesita OpenGL ES, que GBA DS no usa aquí para dibujar: se muestra como Nítido."
+
+msgid "Off while an upscaling filter is on"
+msgstr "Desactivado mientras haya un filtro de ampliación"
+
+msgid "Shader: Off (scaling filter)"
+msgstr "Shader: No (filtro de escalado)"
+
+# issue 109: mute while fast forwarding
+msgid "Mute while fast forwarding"
+msgstr "Silenciar al avanzar rápido"
+
+msgid "No sound while the game is fast-forwarded."
+msgstr "Sin sonido mientras el juego avanza rápido."
+
+msgid "Turn on fast forward first"
+msgstr "Activa primero el avance rápido"
