@@ -1878,7 +1878,7 @@
    "id": "aw-rom-path-list",
    "kind": "library",
    "rom": "AWRE",
-   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On, and back in the list the other screen has the header-coloured strip with the ROM's path along its bottom, the hints above it",
+   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On, and back on the game list a header-coloured strip along its bottom holds the ROM's path",
    "rules": [
     "GEN-21"
    ],
@@ -1993,9 +1993,9 @@
     ],
     [
      0,
-     560,
+     1400,
      1024,
-     768
+     1536
     ]
    ],
    "checks": [
@@ -2008,7 +2008,7 @@
     {
      "type": "pixels",
      "shot": "list-rom-path",
-     "screen": "game",
+     "screen": "second",
      "probes": [
       [
        2,
@@ -2022,7 +2022,7 @@
       ]
      ],
      "rule": "GEN-21",
-     "what": "the strip along the other screen's bottom, the header's colour"
+     "what": "the strip along the game list's bottom, the header's colour"
     }
    ]
   },
