@@ -884,7 +884,7 @@ static void load_thumbs(Config* cfg, int idx) {
 
 /* Settings > System > Show ROM Path on Game List (GEN-21): the selected game's full path and file name in a
  * strip along the bottom of the game list, in the header's colour, written in the quick bar's small pixel
- * font (pixfont.h) at one font pixel to a layout unit, as the quick bar is drawn. A path with a letter the
+ * font (pixfont.h) at half a layout unit to a font pixel (2 screen pixels on the RG DS Plus), as the GitHub link. A path with a letter the
  * pixel font lacks is written in Jost at the same size. Too long for one line: up to three, broken after a
  * '/' where one is close enough, the last cut with "...". */
 #define PATH_LINES 3
@@ -952,7 +952,7 @@ static int path_lines(const char* path, int maxW, int scale, const char** line, 
 	return n;
 }
 static bool pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath), for list_geom */
-static int path_scale(int scr) { return SDL_max(1, (int) ui_px(scr)); }
+static int path_scale(int scr) { return SDL_max(1, (int) ui_px(scr) / 2); } /* (the owner's choice: 2 on the RG DS Plus, as the GitHub link) */
 /* The strip's height on the list screen: room for the longest path's lines, so it doesn't jump
  * as the selection moves (worked out again only when the games or the screen change). 0: off. */
 static int path_strip_h(int scr) {
@@ -971,7 +971,7 @@ static int path_strip_h(int scr) {
 			lines = SDL_max(lines, path_lines(games[i].path, maxW, scale, line, len, &cut));
 		}
 	}
-	int pad = (int) ui_px(scr) * 3;
+	int pad = (int) ui_px(scr) * 2;
 	return pad * 2 + (pixfont_small.height + 2) * scale * lines - 2 * scale;
 }
 /* the strip along the list screen's bottom, h high, the header's colour, the path's lines centred in it */
