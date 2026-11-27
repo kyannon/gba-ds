@@ -11,8 +11,6 @@
 #undef GBA_H
 #include "emu.h"
 
-#include <mgba/flags.h>
-
 #include <mgba/core/core.h>
 #include <mgba/core/cheats.h>
 #include <mgba/core/serialize.h>
@@ -55,7 +53,6 @@ static struct mLogger quietLogger = { .log = quiet_log };
  * Linux too since v1.5.3 (issue #50): on ROCKNIX an SD card, or the merged
  * /storage/roms folder, can hold an fsync just as long. */
 #include <unistd.h>
-#include <sys/stat.h>
 #ifdef __ANDROID__
 #include "android.h"
 #endif
@@ -252,8 +249,9 @@ static uint8_t* patched_with(const char* romPath, char files[][1024], int n, siz
 	if (!n) return NULL;
 	char key[sizeof(patched.key)];
 	struct stat st;
-	int k = snprintf(key, sizeof(key), "%s|%lld|%lld", romPath, stat(romPath, &st) ? -1LL : (long long) st.st_size,
-	                 stat(romPath, &st) ? -1LL : (long long) st.st_mtime);
+	bool romOk = stat(romPath, &st) == 0;
+	int k = snprintf(key, sizeof(key), "%s|%lld|%lld", romPath, romOk ? (long long) st.st_size : -1LL,
+	                 romOk ? (long long) st.st_mtime : -1LL);
 	for (int i = 0; i < n && k < (int) sizeof(key); ++i) {
 		bool ok = stat(files[i], &st) == 0;
 		k += snprintf(key + k, sizeof(key) - (size_t) k, "|%s|%lld|%lld", files[i], ok ? (long long) st.st_size : -1LL,
@@ -566,6 +564,10 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	mCoreLoadConfig(e->core);
 
 	e->fb = calloc(GBA_W * GBA_H, sizeof(uint32_t));
+	if (!e->fb) {
+		emu_close(e);
+		return false;
+	}
 	e->picX = e->picY = 0, e->picW = GBA_W, e->picH = GBA_H;
 	if (e->platform == mPLATFORM_GB) { /* (160x144: not baseVideoSize, which is the Super Game Boy border's 256x224; borders are off) */
 		e->picW = 160, e->picH = 144;
@@ -573,6 +575,10 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	}
 	if (e->gbBorder) { /* (GB-12) the core draws the border and the window in a 256x224 picture of its own */
 		e->sgbFb = calloc(SGB_W * SGB_H, sizeof(uint32_t));
+		if (!e->sgbFb) {
+			emu_close(e);
+			return false;
+		}
 		e->core->setVideoBuffer(e->core, (mColor*) e->sgbFb, SGB_W);
 	} else {
 		e->core->setVideoBuffer(e->core, (mColor*) (e->fb + e->picY * GBA_W + e->picX), GBA_W);
@@ -594,14 +600,16 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 			r->integrator.setRumble = emu_rumble_set;
 			e->rumble = r;
 			e->core->setPeripheral(e->core, mPERIPH_RUMBLE, &r->integrator.d);
-			struct ARMCore* cpu = ((struct GBA*) e->core->board)->cpu;
-			if (!mgbaStore8) mgbaStore8 = cpu->memory.store8, mgbaStore16 = cpu->memory.store16;
-			cpu->memory.store8 = gpio_store8;
-			cpu->memory.store16 = gpio_store16;
+			/* (the cartridge's GPIO pins: a GBA cartridge's only. A Game Boy core's board is a struct GB,
+			 * whose CPU is mGBA's 200-byte SM83Core: an ARMCore's store hooks are past its end) */
+			if (e->platform == mPLATFORM_GBA) {
+				struct ARMCore* cpu = ((struct GBA*) e->core->board)->cpu;
+				if (!mgbaStore8) mgbaStore8 = cpu->memory.store8, mgbaStore16 = cpu->memory.store16;
+				cpu->memory.store8 = gpio_store8;
+				cpu->memory.store16 = gpio_store16;
+			}
 		}
 	}
-	/* (testing: GBADS_RTC_FIXED=<unix seconds> holds the cartridge clock still, for games
-	 * that look at the time of day: Boktai's areas change with it) */
 	rtc_pin(e);
 	e->audio = audio;
 	if (audio) {
@@ -616,10 +624,12 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 		if (!vf || !e->core->loadROM(e->core, vf)) {
 			if (vf) vf->close(vf);
 			fprintf(stderr, "could not load the patched ROM %s\n", romPath);
+			emu_close(e); /* (callers don't: a game that failed went back to the list with its core open) */
 			return false;
 		}
 	} else if (!mCoreLoadFile(e->core, romPath)) {
 		fprintf(stderr, "could not load ROM %s\n", romPath);
+		emu_close(e);
 		return false;
 	}
 	if (savePath) {
@@ -712,6 +722,7 @@ static void gb_border_snapshot(Emu* e) {
 	if (!ch || !mp) { e->gbBorderOwn = true; return; } /* nothing to compare: show whatever the core draws */
 	free(e->gbBorderDefault);
 	e->gbBorderDefault = malloc(SGB_SIZE_CHAR_RAM + SGB_SIZE_MAP_RAM);
+	if (!e->gbBorderDefault) { e->gbBorderOwn = true; return; } /* (as with nothing to compare) */
 	memcpy(e->gbBorderDefault, ch, SGB_SIZE_CHAR_RAM);
 	memcpy(e->gbBorderDefault + SGB_SIZE_CHAR_RAM, mp, SGB_SIZE_MAP_RAM);
 	e->gbBorderOwn = false;
