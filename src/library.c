@@ -951,28 +951,38 @@ static int path_lines(const char* path, int maxW, int scale, const char** line, 
 	*cut = *s != 0;
 	return n;
 }
-static bool pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath) */
-static int path_scale(int scr) { return SDL_max(1, (int) ui_px(scr) / 2); } /* (the owner's choice: 2 on the RG DS Plus, as the GitHub link) */
+static int pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath): 0 off, else the font size 1x-4x */
+/* a font pixel at 1x (the owner's choice: 2 on the RG DS Plus, as the GitHub link); the rule's thickness and its gaps */
+static int path_base(int scr) { return SDL_max(1, (int) ui_px(scr) / 2); }
+static int path_scale_at(int scr, int size) { return path_base(scr) * SDL_max(1, size); }
+static int path_scale(int scr) { return path_scale_at(scr, pathStrip); }
 static int path_line_h(int scr) { return (pixfont_small.height + 2) * path_scale(scr); }
 /* The path's room under the preview's hints: the longest listed path's lines, so the hints above don't
  * jump as the selection moves (worked out again only when the games or the screen change). 0: off. */
-static int path_block_h(int scr) {
-	if (!pathStrip || nGames <= 0) return 0;
-	static unsigned key = 0;
-	static int lines = 1;
-	int w = screens[scr].rect.w, scale = path_scale(scr), maxW = w - (int) (ui_px(scr) * 6) * 2;
-	unsigned k = (unsigned) nGames * 2654435761u ^ (unsigned) w * 40503u;
+static int path_block_h_at(int scr, int size) {
+	if (!size || nGames <= 0) return 0;
+	static unsigned key[5];
+	static int lines[5] = { 1, 1, 1, 1, 1 };
+	int w = screens[scr].rect.w, scale = path_scale_at(scr, size), maxW = w - (int) (ui_px(scr) * 6) * 2;
+	unsigned k = (unsigned) nGames * 2654435761u ^ (unsigned) w * 40503u ^ (unsigned) scale * 97u;
 	for (int i = 0; i < nGames; ++i) k = k * 31u + (unsigned) strlen(games[i].path) + (unsigned char) games[i].path[0];
-	if (k != key) {
-		key = k, lines = 1;
-		for (int i = 0; i < nGames && lines < PATH_LINES; ++i) {
+	if (k != key[size]) {
+		key[size] = k, lines[size] = 1;
+		for (int i = 0; i < nGames && lines[size] < PATH_LINES; ++i) {
 			const char* line[PATH_LINES];
 			size_t len[PATH_LINES];
 			bool cut;
-			lines = SDL_max(lines, path_lines(games[i].path, maxW, scale, line, len, &cut));
+			lines[size] = SDL_max(lines[size], path_lines(games[i].path, maxW, scale, line, len, &cut));
 		}
 	}
-	return path_line_h(scr) * lines - 2 * scale;
+	return (pixfont_small.height + 2) * scale * lines[size] - 2 * scale;
+}
+static int path_block_h(int scr) { return path_block_h_at(scr, pathStrip); }
+/* how much taller than its own size (UI_STRIP_UNITS, room for the path at 1x) the strip over the list
+ * has to be for the path at the size chosen (GEN-19, GEN-21); 0 when there is no strip */
+static int rompath_strip_extra(void) {
+	if (!ui_list_strip() || pathStrip <= 1) return 0;
+	return SDL_max(0, path_block_h_at(0, pathStrip) - path_block_h_at(0, 1));
 }
 /* the path's lines, left at the preview's margin, the first one's top at y (on the black: no strip) */
 static void draw_path_text(int scr, int y, const char* path, SDL_Color c) {
@@ -1049,6 +1059,8 @@ static void game_note(GameEntry* g, char* line, size_t n) {
  * point's picture, which is one line instead. Its unit is a 256th of the width (ui.c), so it
  * sits across the display as the RG DS Plus's other screen does; UI_STRIP_UNITS tall. */
 static void draw_preview_compact(Config* cfg, int scr, int sel) {
+	pathStrip = cfg->romPath;
+	ui_list_strip_extra(rompath_strip_extra()); /* (taller for a larger path: the layout is cut again if it changed) */
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, (SDL_Color) { 0, 0, 0, 255 });
@@ -1061,7 +1073,7 @@ static void draw_preview_compact(Config* cfg, int scr, int sel) {
 	pathStrip = cfg->romPath;
 	int pathH = path_block_h(scr), rowBottom = r.h - px * 4;
 	if (pathH) {
-		int ps = path_scale(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
+		int ps = path_base(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
 		ui_fill(scr, (SDL_Rect) { m, ruleY, r.w - m * 2, ps }, C_DIM);
 		if (sel >= 0 && sel < nGames) draw_path_text(scr, pathY, games[sel].path, C_DIM);
 		rowBottom = ruleY - 3 * ps;
@@ -1137,7 +1149,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	if (pathH) {
 		/* a rule above it, one font pixel thick, two font pixels of black either side (the hints' icons above,
 		 * the path below), in the same grey, margin to margin */
-		int ps = path_scale(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
+		int ps = path_base(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
 		ui_fill(scr, (SDL_Rect) { m, ruleY, r.w - m * 2, ps }, C_DIM);
 		if (sel >= 0 && sel < nGames) draw_path_text(scr, pathY, games[sel].path, C_DIM);
 		ty = ruleY - 2 * ps - (int) (px * 17 / 2); /* (the icons' bottom is ty + 8.5 units) */
@@ -1490,7 +1502,7 @@ static void save_library_cfg(const Config* cfg) {
 	/* (Settings > GBA BIOS: the player's own, off unless switched on; issue #78) */
 	fprintf(f, "gba_bios = %d\n", cfg->gbaBios ? 1 : 0);
 	/* (Settings > Show ROM Path on Game List) */
-	fprintf(f, "show_rom_path = %d\n", cfg->romPath ? 1 : 0);
+	fprintf(f, "show_rom_path = %d\n", SDL_clamp(cfg->romPath, 0, 4));
 #ifdef __ANDROID__
 	fprintf(f, "rom_dir = %s\n", cfg->romDir);
 	/* (Settings > Folders; empty: next to the games) */
@@ -1745,13 +1757,21 @@ static const char* bios_note(const Config* cfg, SDL_Color* col) {
 }
 
 /* System's Show ROM Path on Game List row: the selected game's file under the preview's hints (draw_path_text) */
-static const char* rompath_label(const Config* cfg) { return cfg->romPath ? N_("Show ROM Path on Game List: On") : N_("Show ROM Path on Game List: Off"); }
+static const char* rompath_label(const Config* cfg) {
+	static const char* const label[5] = { N_("Show ROM Path on Game List: Off"), N_("Show ROM Path on Game List: On (Font size: 1x)"),
+	                                      N_("Show ROM Path on Game List: On (Font size: 2x)"), N_("Show ROM Path on Game List: On (Font size: 3x)"),
+	                                      N_("Show ROM Path on Game List: On (Font size: 4x)") };
+	return label[SDL_clamp(cfg->romPath, 0, 4)];
+}
 static const char* rompath_note(void) { return N_("Shows the selected game's folder and file name under Play and Quit on the game list's other screen."); }
 static void rompath_switch(Config* cfg) {
-	cfg->romPath = !cfg->romPath;
+	/* Off, then On at 1x, 2x, 3x, 4x, then Off again */
+	cfg->romPath = (SDL_clamp(cfg->romPath, 0, 4) + 1) % 5;
 	pathStrip = cfg->romPath;
 	save_library_cfg(cfg);
-	fprintf(stderr, "library: ROM path on the game list %s\n", cfg->romPath ? "on" : "off");
+	if (cfg->romPath) fprintf(stderr, "library: ROM path on the game list on (font size %dx)\n", cfg->romPath);
+	else fprintf(stderr, "library: ROM path on the game list off\n");
+	ui_list_strip_extra(rompath_strip_extra()); /* (the strip over the list grows with it, GEN-19) */
 }
 
 #ifdef __ANDROID__

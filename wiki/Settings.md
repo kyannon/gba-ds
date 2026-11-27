@@ -28,7 +28,7 @@ In the game list's Settings > System, **Reset settings to defaults** puts every 
 | `quick_bar_pinned` | `0` | The quick bar stays up, as with its pin (top right of the bar) on; the pin sets this too. |
 | `auto_load` | `1` | Pick up from the resume point when you start a game. Also in the pause menu. (`auto_resume`, from older versions, sets both.) |
 | `gba_bios` | `0` | `1` runs games with your own GBA BIOS (`bios/gba_bios.bin` in the data folder) instead of the built-in one; if the file isn't a usable BIOS, the built-in one is used. Set by Settings > System > GBA BIOS in the game list (kept in `library.cfg`, which only switches it on when the file is there). See [[Playing#a-state-saved-with-a-gba-bios]]. |
-| `show_rom_path` | `0` | `1` shows the selected game's full path and file name under the Play / Quit hints on the game list's other screen. Set by Settings > System > Show ROM Path on Game List in the game list (kept in `library.cfg`). |
+| `show_rom_path` | `0` | `1` to `4` show the selected game's full path and file name under the Play / Quit hints on the game list's other screen, its letters at 1x (small) to 4x their size; `0` is off. Set by Settings > System > Show ROM Path on Game List in the game list (kept in `library.cfg`). |
 | `update_check` | `1` | Look for a new release once a day when the game list opens, and ask before downloading it. The **Automatic checks** switch in Settings > Updates overrides this (kept in `states/update.cfg`). See [[Playing#updates]]. |
 
 ## Screens

@@ -309,7 +309,11 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	STR("ra_system_cfg", raSystemCfg)
 	STR("ra_host", raHost)
 	BOOL("gba_bios", gbaBios)
-	BOOL("show_rom_path", romPath)
+	if (!strcmp(key, "show_rom_path")) { /* 0 off, 1-4 the font size (GEN-21); on / true as 1x */
+		c->romPath = isdigit((unsigned char) val[0]) ? atoi(val) : (parse_bool(val) ? 1 : 0);
+		if (c->romPath < 0 || c->romPath > 4) c->romPath = c->romPath > 4 ? 4 : 0;
+		return true;
+	}
 	BOOL("update_check", updateCheck)
 	STR("update_url", updateUrl)
 	STR("load_state", loadState)
