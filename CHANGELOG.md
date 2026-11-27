@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.4 (not yet released)
+## v1.6.4 (2026-11-26)
 
 ### New games
 - **Cruis'n Velocity** (USA, Europe; pull request #98 by cmyksoda): in a race, the second screen shows the time and the lap box, where the game draws them, over the logo; the speed, gear, rev bar, your place and the start lights stay on the game screen. Paused, the second screen keeps the time and lap as they were. After the finish, where the game clears its time box to zeros, the box shows the race's total time instead, in the game's own digits (right even where the game's results page misprints it), until you leave the results. Known: the cup's podium after a race won in a cup, the tracks after Vegas and Multi Player haven't been tried.
