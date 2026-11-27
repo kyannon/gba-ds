@@ -10,6 +10,7 @@
 #include "logo.h"
 #include "rgba.h"
 #include "paths.h"
+#include "upscale.h"
 #include "profiles.h"
 #include "emu.h"
 #include "i18n.h"
@@ -550,7 +551,7 @@ bool ui_init(Config* c, bool wantDual) {
 	cfg = c;
 	debug = getenv("GBADS_DEBUG") != NULL;
 	SDL_SetHint(SDL_HINT_APP_NAME, "GBA DS");
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->smooth ? "linear" : "nearest");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, cfg->filter == FILTER_SMOOTH ? "linear" : "nearest");
 #ifdef __ANDROID__
 	SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft");
 	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1"); /* BACK opens the menu instead of closing the app */
@@ -703,7 +704,7 @@ void ui_shutdown(void) {
 	drmlease_close();
 #endif
 	for (int i = 0; i < nViews; ++i) {
-		if (i == 0 || views[i].ren != views[0].ren) SDL_DestroyRenderer(views[i].ren);
+		if (i == 0 || views[i].ren != views[0].ren) upscale_forget(views[i].ren), SDL_DestroyRenderer(views[i].ren);
 		if (views[i].win) SDL_DestroyWindow(views[i].win);
 		if (views[i].surf) SDL_FreeSurface(views[i].surf);
 		views[i] = (View) { 0 };
@@ -832,16 +833,37 @@ void ui_layout_pictures(void) {
 }
 
 static bool oneDisplay; /* (set by layout_screens) */
-static bool menuFull;   /* the pause menu is up: one screen over the whole display */
+static enum UiFace face = UI_FACE_GAME; /* what is up: decides how one display is cut (GEN-19) */
 
-void ui_menu_full(bool on) {
-	if (on == menuFull) return;
-	menuFull = on;
-	if (oneDisplay && strcmp(cfg->singleLayout, "off")) ui_layout();
+/* GEN-19, the one place that says how one display is cut, by what is up:
+ * - the game: both screens on it as One display says (Game only: one);
+ * - a menu (the pause menu and its screens, the game list's Settings and
+ *   its screens, the update notice): one screen over the whole display;
+ * - the game list: both screens as One display says, as on a two-screen
+ *   device (the list on the touch screen, the game's preview on the
+ *   other), unless the list's part would be too small or the wrong shape
+ *   (list_part_fits): then the list alone.
+ * Two displays (or a window over two panels) aren't cut: this changes nothing there. */
+void ui_face(enum UiFace f) {
+	if (f == face) return;
+	face = f;
+	if (oneDisplay) ui_layout();
+}
+
+enum UiFace ui_face_now(void) {
+	return face;
 }
 
 bool ui_one_display(void) {
 	return oneDisplay;
+}
+
+/* the game list's part of one display is big enough and of a shape its
+ * header, sort bar and tiles are laid out for (they're sized by its height):
+ * at least the RG DS's 640x480 screen, and from a little narrower than
+ * square (a phone held upright, stacked: 1080x1200) to twice as wide as tall */
+static bool list_part_fits(SDL_Rect r) {
+	return r.w >= 640 && r.h >= 480 && r.w * 10 >= r.h * 8 && r.w <= r.h * 2;
 }
 
 /* How many of the window's rows, from the bottom, a controller over the
@@ -944,7 +966,7 @@ static void layout_screens(void) {
 		 * Where the game is (swap) is the player's, as with two screens. */
 		oneDisplay = true;
 		const char* sl = cfg->singleLayout;
-		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && !menuFull;
+		bool together = strcmp(sl, "off") != 0 && strcmp(sl, "single") != 0 && face != UI_FACE_MENU;
 		if (together) {
 			bool side = !strcmp(sl, "side") || (!strcmp(sl, "auto") && w >= h);
 			int pct = !strcmp(cfg->singleSize, "small") ? 30 : !strcmp(cfg->singleSize, "medium") ? 40 : 50;
@@ -959,11 +981,14 @@ static void layout_screens(void) {
 				screens[0] = (Screen) { 0, { 0, 0, w, a } };
 				screens[1] = (Screen) { 0, { 0, a, w, h - a } };
 			}
-			static char loggedS[64];
-			char ls[64];
-			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d", w, h, side ? "side" : "stacked", pct, cfg->swap);
+			static char loggedS[96];
+			char ls[96];
+			bool fits = true;
+			if (face == UI_FACE_LIST) fits = list_part_fits(screens[ui_touch_screen()].rect);
+			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d%s", w, h, side ? "side" : "stacked", pct, cfg->swap,
+			         face == UI_FACE_LIST ? (fits ? " (game list)" : " (game list: its part too small, the list alone)") : "");
 			if (strcmp(ls, loggedS)) snprintf(loggedS, sizeof(loggedS), "%s", ls), fprintf(stderr, "screens: both on one display, %s\n", ls);
-			return;
+			if (fits) return;
 		}
 		nScreens = 1;
 		screens[0] = (Screen) { 0, { 0, 0, w, h } };
@@ -1599,6 +1624,20 @@ void ui_shader(int sh) {
 	ccGain = uiShader >= SH_SUB_LIGHT ? subPresets[uiShader - SH_SUB_LIGHT].gain : 100;
 	cc_refresh();
 }
+int ui_filter_fit(int filter) {
+	return upscale_fit(nViews > 0 ? views[0].ren : NULL, filter);
+}
+const char* ui_filter_note(int filter, bool* grey) {
+	int fit = ui_filter_fit(filter);
+	*grey = fit == UPSCALE_TOO_HEAVY || fit == UPSCALE_NO_GL;
+	if (fit == UPSCALE_TOO_HEAVY) return N_("Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it.");
+	if (fit == UPSCALE_NO_GL) return N_("Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp.");
+	if (fit == UPSCALE_UNTRIED) return N_("Heavy: not yet tried on this device's graphics chip, so it may not run at full speed.");
+	return NULL;
+}
+bool ui_upscaling(void) {
+	return upscale_factor(cfg->filter) && nViews > 0 && views[0].ren && upscale_filter_ready(views[0].ren, cfg->filter);
+}
 /* the pattern the pictures are drawn with: the session's (ui_shader), else Display > Shader's */
 static int shader_choice(void) {
 	return uiShaderGame ? uiShader : cfg->shader;
@@ -1740,7 +1779,7 @@ static uint64_t ops_sig(const Retained* rv) {
 	h = (h ^ (uint64_t) rv->nOps) * 1099511628211ull;
 	h = (h ^ (uint64_t) cfg->lcdStrength) * 1099511628211ull;
 	h = (h ^ (uint64_t) shader_choice()) * 1099511628211ull;
-	return h ^ (cfg->smooth ? 0x9e3779b97f4a7c15ull : 0);
+	return h ^ ((uint64_t) cfg->filter * 0x9e3779b97f4a7c15ull);
 }
 
 /* a screenshot wants a view's pixels (only readable while it's being drawn) */
@@ -2334,12 +2373,29 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 /* ui_image_pixels' drawing, into dst on the current (screen) target. */
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd) {
 	SDL_Rect dst = *dstp;
+	bool game = lcd & UI_PIX_GAME;
+	lcd &= ~UI_PIX_GAME;
+	int up = game ? upscale_factor(cfg->filter) : 0;
+	if (up) {
+		/* the scaling filter's upscaler (issue #89): the game's picture made
+		 * 2x / 4x on the GPU, then scaled to its place (linear unless it is
+		 * already the size), without the grid. Where the renderer can't
+		 * (not OpenGL ES 2), the picture is drawn as with Sharp. */
+		SDL_Texture* big = upscale_run(ren, src, w, h, cfg->filter);
+		if (big) {
+			bool same = dst.w == w * up && dst.h == h * up;
+			SDL_SetTextureScaleMode(big, same ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
+			SDL_RenderCopy(ren, big, NULL, &dst);
+			return;
+		}
+	}
+	bool smooth = cfg->filter == FILTER_SMOOTH;
 	int k = SDL_max(1, SDL_min(dst.w / w, dst.h / h));
 	bool exact = dst.w == w * k && dst.h == h * k;
 	int c = lcd > 1 ? lcd : 1; /* source pixels per grid cell, each way */
 	int gw = w / c, gh = h / c;
-	if (!lcd && (exact || cfg->smooth)) {
-		SDL_SetTextureScaleMode(src, cfg->smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+	if (!lcd && (exact || smooth)) {
+		SDL_SetTextureScaleMode(src, smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
 		SDL_RenderCopy(ren, src, NULL, &dst);
 		return;
 	}

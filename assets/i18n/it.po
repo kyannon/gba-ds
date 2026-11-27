@@ -287,9 +287,6 @@ msgstr "Logo della cornice"
 msgid "Blue"
 msgstr "Blu"
 
-msgid "Blurry instead of sharp: usually leave off."
-msgstr "Sfocato invece che nitido: di solito lascialo disattivato."
-
 msgid "Both screens"
 msgstr "Entrambi gli schermi"
 
@@ -1640,9 +1637,6 @@ msgstr "Gli slot 0-9 e il punto di ripresa sono di RetroArch (il suo core GBA im
 msgid "Slow (10 a second)"
 msgstr "Lenta (10 al secondo)"
 
-msgid "Smooth scaling"
-msgstr "Scalatura morbida"
-
 msgid "Smoother, one frame more input delay."
 msgstr "Più morbido, un fotogramma in più di ritardo di input."
 
@@ -2111,3 +2105,40 @@ msgstr "Continua"
 #, c-format
 msgid "System: %s"
 msgstr "Sistema: %s"
+
+msgid "Scaling filter"
+msgstr "Filtro di scalatura"
+
+msgid "Sharp"
+msgstr "Nitido"
+
+msgid "Smooth"
+msgstr "Morbido"
+
+msgid "How the game's pixels are enlarged: sharp, blurry, or redrawn with rounded edges by an upscaling filter. An upscaling filter turns every shader off."
+msgstr "Come vengono ingranditi i pixel del gioco: nitidi, sfocati o ridisegnati con bordi arrotondati da un filtro di ingrandimento. Un filtro di ingrandimento disattiva ogni shader."
+
+msgid "Heavy: not yet tried on this device's graphics chip, so it may not run at full speed."
+msgstr "Pesante: non ancora provato sul chip grafico di questo dispositivo, quindi potrebbe non andare a piena velocità."
+
+msgid "Too heavy for this device's graphics chip: drawn as Sharp here. Kept for a device that can run it."
+msgstr "Troppo pesante per il chip grafico di questo dispositivo: qui viene mostrato come Nitido. Resta salvato per un dispositivo in grado di usarlo."
+
+msgid "Needs OpenGL ES, which GBA DS isn't drawing with here: drawn as Sharp."
+msgstr "Richiede OpenGL ES, che GBA DS qui non usa per disegnare: viene mostrato come Nitido."
+
+msgid "Off while an upscaling filter is on"
+msgstr "Disattivato mentre è attivo un filtro di ingrandimento"
+
+msgid "Shader: Off (scaling filter)"
+msgstr "Shader: No (filtro di scalatura)"
+
+# issue 109: mute while fast forwarding
+msgid "Mute while fast forwarding"
+msgstr "Muto durante l'avanzamento rapido"
+
+msgid "No sound while the game is fast-forwarded."
+msgstr "Nessun suono durante l'avanzamento rapido del gioco."
+
+msgid "Turn on fast forward first"
+msgstr "Attiva prima l'avanzamento rapido"

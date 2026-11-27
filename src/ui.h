@@ -74,7 +74,9 @@ uint64_t ui_ticks(void);
 /* The two screens' shapes differ (by more than 2%): screen_match can do
  * something. */
 bool ui_screens_differ(void);
-void ui_menu_full(bool on); /* with both screens on one display (GEN-18): the pause menu and its screens take the whole display while on; the two screens come back when off */
+enum UiFace { UI_FACE_GAME, UI_FACE_LIST, UI_FACE_MENU };
+void ui_face(enum UiFace f); /* what is up, for how one display is cut (GEN-19): the game as One display says, a menu over the whole display, the game list as One display says when its part fits (else the list alone); nothing on two displays */
+enum UiFace ui_face_now(void);
 bool ui_one_display(void); /* the screens are cut from one display's window (not two displays, or a window over two panels): both screens on it are an option (issue #84) */
 /* Works out the screens' picture areas again (screen_match or
  * screen_placement changed). */
@@ -132,7 +134,18 @@ void ui_image(int screen, SDL_Texture* const* texPerView, int w, int h, const ch
 /* Pixel-art drawing for the game and map: whole-number prescale (sharp at any
  * size), optional LCD grid, then filtered to the final size on the GPU.
  * lcd: 0 no grid, 1 a cell per pixel, n a cell per n x n pixels (a picture
- * made at n times the GBA's resolution, like Mario Kart's HUD screen). */
+ * made at n times the GBA's resolution, like Mario Kart's HUD screen).
+ * | UI_PIX_GAME: the game's own picture, which the scaling filter's
+ * upscalers (upscale.c) enlarge. */
+#define UI_PIX_GAME 0x100
+/* Whether the scaling filter is an upscaler that runs here (an OpenGL ES 2
+ * renderer): then every shader counts as Off (issue #89). */
+bool ui_upscaling(void);
+/* Settings > Scaling filter on this device (upscale_fit): the row's note for
+ * a filter that is greyed (*grey: drawn as Sharp here) or only warned about,
+ * or NULL for one that just runs. */
+int ui_filter_fit(int filter);
+const char* ui_filter_note(int filter, bool* grey);
 void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, int lcd);
 /* Where ui_image_pixels puts a w x h image on a screen (screen-local coords). */
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode);
