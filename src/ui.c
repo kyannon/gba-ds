@@ -832,6 +832,9 @@ void ui_layout_pictures(void) {
 }
 
 static bool oneDisplay; /* (set by layout_screens) */
+static bool stripMode; /* the game list's strip over the list (GEN-19; set by layout_screens) */
+static float stripPx;  /* the strip's layout unit */
+bool ui_list_strip(void) { return stripMode; }
 static enum UiFace face = UI_FACE_GAME; /* what is up: decides how one display is cut (GEN-19) */
 
 /* GEN-19, the one place that says how one display is cut, by what is up:
@@ -883,6 +886,7 @@ static int pad_cover(int w, int h) {
 
 static void layout_screens(void) {
 	oneDisplay = false;
+	stripMode = false;
 	if (nViews == 2) {
 		nScreens = 2;
 #ifdef __ANDROID__
@@ -985,12 +989,28 @@ static void layout_screens(void) {
 			bool fits = true;
 			if (face == UI_FACE_LIST) fits = list_part_fits(screens[ui_touch_screen()].rect);
 			snprintf(ls, sizeof(ls), "%dx%d %s %d%% swap %d%s", w, h, side ? "side" : "stacked", pct, cfg->swap,
-			         face == UI_FACE_LIST ? (fits ? " (game list)" : " (game list: its part too small, the list alone)") : "");
+			         face == UI_FACE_LIST ? (fits ? " (game list)" : " (game list: its part too small, the strip over the list)") : "");
 			if (strcmp(ls, loggedS)) snprintf(loggedS, sizeof(loggedS), "%s", ls), fprintf(stderr, "screens: both on one display, %s\n", ls);
 			if (fits) return;
 		}
 		nScreens = 1;
 		screens[0] = (Screen) { 0, { 0, 0, w, h } };
+		if (face == UI_FACE_LIST) {
+			/* GEN-19: never the list alone on one display: the selected game's details
+			 * in a strip across the top (a unit of a 256th of the width, as the RG DS
+			 * Plus's other screen is across, the strip at most a quarter of the height),
+			 * the list under it */
+			stripPx = SDL_max(2.0f, SDL_min(w / 256.0f, h / 4.0f / UI_STRIP_UNITS));
+			int s = (int) (stripPx * UI_STRIP_UNITS);
+			nScreens = 2;
+			stripMode = true;
+			screens[0] = (Screen) { 0, { 0, 0, w, s } };
+			screens[1] = (Screen) { 0, { 0, s, w, h - s } };
+			static char loggedS[64];
+			char ls[64];
+			snprintf(ls, sizeof(ls), "%dx%d, strip %d", w, h, s);
+			if (strcmp(ls, loggedS)) snprintf(loggedS, sizeof(loggedS), "%s", ls), fprintf(stderr, "screens: game list strip, %s\n", ls);
+		}
 	}
 }
 
@@ -1014,6 +1034,7 @@ uint64_t ui_ticks(void) {
 
 int ui_touch_screen(void) {
 	if (nScreens < 2) return 0;
+	if (stripMode) return 1; /* (the list, under the strip) */
 #ifdef __ANDROID__
 	if (lastTouchScreen >= 0 && lastTouchScreen < nScreens) return lastTouchScreen;
 #endif
@@ -2689,6 +2710,11 @@ void ui_dim(int screen, Uint8 alpha) {
 }
 
 float ui_px(int screen) {
+	if (stripMode && screen == 0) return stripPx;
+	/* the game list on one display: on a part much taller than wide its sizes follow the
+	 * width, so the header's buttons fit (GEN-19) */
+	if (oneDisplay && face == UI_FACE_LIST && screen == ui_touch_screen())
+		return SDL_max(2.0f, SDL_min(screens[screen].rect.h / 192.0f, screens[screen].rect.w / 160.0f));
 	return SDL_max(2.0f, screens[screen].rect.h / 192.0f);
 }
 
