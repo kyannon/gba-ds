@@ -2109,7 +2109,7 @@ SDL_Renderer* ui_ren(int screen) {
 
 /* align: where a picture shorter than the area goes (Screen.align) */
 static void fit_rect_at(const SDL_Rect* area, int w, int h, const char* mode, int align, SDL_Rect* out) {
-	if (!strcmp(mode, "stretch") || !strcmp(mode, "curve")) {
+	if (!strcmp(mode, "stretch") || !strcmp(mode, "edges")) {
 		*out = *area;
 		return;
 	}
@@ -2341,15 +2341,15 @@ static SDL_Texture* shader_mask(int v, int dw, int dh, int gw, int gh, int kc) {
 
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd);
 
-/* Scale "curve", Stretch (gentle curve): the picture fills its area as with
- * Stretch, but the stretch is uneven along the one direction that would have
- * had black bars (across on a wide screen, down on a 4:3 one): the middle gets
- * about half of the average stretch and the edges the rest, so what the eye
- * is on keeps closer to its shape. The source position for v in [-1, 1] along
- * that direction is g(v) = A v - (A - 1) v^3 (g(1) = 1; the stretch at the
- * middle is the average / A, at the edges the average / (3 - 2A)). Set by
- * ui_image_pixels for draw_pixels, whose copies onto the screen go through
- * put_pic. */
+/* Scale "edges", Edge stretch (a non-linear stretch, as TVs had for 4:3 on
+ * 16:9): the picture fills its area as with Stretch, but the stretch is
+ * uneven along the one direction that would have had black bars (across on a
+ * wide screen, down on a 4:3 one): the middle gets about half of the average
+ * stretch and the edges the rest, so what the eye is on keeps closer to its
+ * shape. The source position for v in [-1, 1] along that direction is
+ * g(v) = A v - (A - 1) v^3 (g(1) = 1; the stretch at the middle is the
+ * average / A, at the edges the average / (3 - 2A)). Set by ui_image_pixels
+ * for draw_pixels, whose copies onto the screen go through put_pic. */
 #define CURVE_MID_SHARE 0.54 /* the middle's share of the extra stretch: 16:9 -> 1.10x in the middle, 1.40x at the edges */
 #define CURVE_STEPS 64       /* strips the picture is drawn in */
 static int curveAxis;        /* 0 none, 1 across, 2 down */
@@ -2582,7 +2582,7 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 		if (hadClip) SDL_IntersectRect(&prev, &s->rect, &c); /* inside an existing ui_clip */
 		SDL_RenderSetClipRect(ren, &c);
 	}
-	if (!strcmp(mode, "curve")) curve_setup(&pic, w, h);
+	if (!strcmp(mode, "edges")) curve_setup(&pic, w, h);
 	draw_pixels(ren, v, src, w, h, &dst, lcd);
 	curveAxis = 0;
 	if (clip) SDL_RenderSetClipRect(ren, hadClip ? &prev : NULL);

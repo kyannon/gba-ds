@@ -3907,7 +3907,7 @@ static const char* scale_label(const char* scale) {
 	return !strcmp(scale, "fit")       ? N_("Scale: Full Width"):
 	       !strcmp(scale, "zoom")      ? N_("Scale: Zoom"):
 	       !strcmp(scale, "stretch")   ? N_("Scale: Stretch"):
-	       !strcmp(scale, "curve")     ? N_("Scale: Stretch (gentle curve)"): N_("Scale: Pixel Perfect");
+	       !strcmp(scale, "edges")     ? N_("Scale: Edge stretch"): N_("Scale: Pixel Perfect");
 }
 
 /* ---------------------------------------------------------------- settings pages
