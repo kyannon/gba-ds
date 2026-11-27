@@ -106,6 +106,7 @@ NOSDL_SRC    := $(MODULE_SRC) $(CORE_SRC) src/logo.c
 NOSDL_CFLAGS  = $(filter-out -I$(SDL_PREFIX)/include/SDL2,$(CFLAGS)) -Werror=implicit-function-declaration
 module-check: $(OUT)/module-check $(OUT)/second-driver
 	$(OUT)/module-check
+	python3 tools/module_settings.py
 
 # the module's reference driver (tools/second_driver.c): replays a trace of the app's calls into the
 # module (GBADS_MODULE_TRACE) with only the module; regress.py's "driver" cases compare it with the app

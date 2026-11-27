@@ -1,6 +1,7 @@
 # The second-screen module without SDL (discussion #75): `make module-check` builds
 # the module and the core it runs on with no SDL include path, links them with no SDL
-# library and runs the result, so they stay what a libretro core can compile.
+# library and runs the result, so they stay what a libretro core can compile; then
+# tools/module_settings.py checks docs/LIBRETRO.md's settings list against the code.
 name: Module without SDL
 
 on:
@@ -8,6 +9,8 @@ on:
     paths:
       - 'src/**'
       - 'tools/module_check.c'
+      - 'tools/module_settings.py'
+      - 'docs/LIBRETRO.md'
       - 'Makefile'
       - 'scripts/mgba-options.sh'
       - '.github/workflows/module.yml'
@@ -15,6 +18,8 @@ on:
     paths:
       - 'src/**'
       - 'tools/module_check.c'
+      - 'tools/module_settings.py'
+      - 'docs/LIBRETRO.md'
       - 'Makefile'
       - 'scripts/mgba-options.sh'
       - '.github/workflows/module.yml'

@@ -305,7 +305,10 @@ release zip, which replaces the main install.
   libretro core can compile (discussion #75). CI runs it on every push that
   touches `src/` (`.github/workflows/module.yml`, mGBA only, no SDL). A module
   file that includes SDL, calls it, or calls back into the app (`game.c`,
-  `ui.c`) fails it.
+  `ui.c`) fails it. It then runs `tools/module_settings.py`: `docs/LIBRETRO.md`
+  lists the `Config` fields and emu.h `extern`s the module reads (a core's
+  options, with their defaults), and a read the list lacks, or a row nothing
+  reads, fails it.
 - `make tools` also builds `build/host/second-driver` (tools/second_driver.c,
   no SDL): the module's reference driver, which replays a trace of the app's
   calls into the module (`GBADS_MODULE_TRACE`) with only the module, for
