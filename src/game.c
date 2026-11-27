@@ -3608,7 +3608,6 @@ static void tall_show(const uint32_t* second) {
 	for (int i = 0; i < nViews; ++i) ui_update_texture(mapTex[i], second, GBA_W * 4);
 }
 
-/* (update_snapshot: second.c) */
 
 /* ---------------------------------------------------------- control scheme
  * Games with a four-face-button layout (profile `controls`): a picker on the
@@ -4694,7 +4693,6 @@ static void on_foreground(void) {
 
 /* (upload_map_frame: second.c) */
 
-/* (compose_still: second.c) */
 
 /* After a fresh capture: rebuild the still map. A capture that only differs
  * from the one on screen where the markers animate (a pulse caught at
@@ -6114,7 +6112,6 @@ static SDL_AudioDeviceID open_game_audio(SDL_AudioSpec* want) {
  * state load or a rewind sets mr.forceMap. (Was inline in game_run_inner.) */
 /* (its state: sec.refresh, second.h) */
 
-/* (map_refresh_step: second.c) */
 
 /* (second.h hook) the second screen's picture, put up as it is */
 static void show_picture(const uint32_t* px) {

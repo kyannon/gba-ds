@@ -247,7 +247,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   them). Don't approve goldens of other games' or shared cases from the
   branch (that broke `dev`'s cases until the merge): if the game's change
   alters a shared picture, give it a new shot name instead. Keep to the game's profile and its own composer: a change to shared
-  code (`game.c`, `emu.c`, `mapcap.c`, `logo.c`, other games' profiles) is
+  code (`game.c`, `second.c`, `hud.c`, `twins.c`, `emu.c`, `mapcap.c`, `logo.c`, other games' profiles) is
   for `dev`. If the game really needs one, keep it small, say so in the
   commit message, and say at the merge which shared-code cases have to run.
 - **Don't edit CHANGELOG.md, README.md or the wiki's game list on the
@@ -473,7 +473,7 @@ release zip, which replaces the main install.
   per release.
   - *Game work* (a new game, or compatibility work on one): the game's own
     cases, including new ones for its new rules, plus the cases of any
-    shared code the work changed (`game.c`, `emu.c`, `mapcap.c`, `logo.c`,
+    shared code the work changed (`game.c`, `second.c`, `hud.c`, `emu.c`, `mapcap.c`, `logo.c`,
     `ui.c`, shared parts of `profiles.c`...).
   - *GitHub issues and PRs*: only the cases that involve shared code the
     fix changed; a fix that touches none runs none.
@@ -585,9 +585,9 @@ release zip, which replaces the main install.
   status bar sliding off), `hud.offAfter` (the HUD off from when they match
   until `on[0]` stops: Superstar Saga's results and level-ups, to the
   battle's end). A profile whose `composePages` gives pages that turn on a timer (a status screen's three pages, the party's members) sets `pages` (not a marker's blinking frames: they restart with each capture, pages keep their place); it is also what a Toggle row `pages` means (GEN-14), and toggle.c's `second_page()` is the one place that says which page is up. Adding a game mostly means a profile.
-- `workers.c` (the copies' worker threads), `twins.c` (the Pinball copies and the tall view's composer, `update_tall`, handed game.c's state in a `TallEnv` with callbacks for the texture and the logo) and `toggle.c` (the contextual toggle's state machine and `second_page()`): moved out of game.c without SDL for a libretro core (discussion #75, branch `libretro-core`; the project's `claude/discussion-75-extraction-log.md`). game.c's state they share is declared in twins.h / toggle.h for now.
+- **The second-screen module**, moved out of game.c without SDL so a libretro core can call it as the app does (discussion #75, branch `libretro-core`; every step in the project's `claude/discussion-75-extraction-log.md`): `second.c` / `second.h` (its state, `SecondState sec`: the capture's pictures, the refresh, the still, the screen copy, the climb view, the toggle's state; and its calls), `hud.c` / `hud.h` (the HUD split and the fights' picture, `HudState hud`), `twins.c` (the Pinball copies and the tall view's composer, `update_tall`, handed the app's state in a `TallEnv`), `toggle.c` (the contextual toggle's state machine and `second_page()`), `workers.c` (the copies' worker threads), `rgba.c` (`rgba_resample`, also ui.c's) and `clamp.h` (SDL's own min / max / clamp macro text, so moved code computes exactly as before: they're type-generic, int stand-ins truncated the HUD's float scaling). What a core calls, in order: set `sec.emu / cfg / debug / romPath`, `sec.hooks` (present, presentGba, logoLoad, logoFree) and `hud.hooks` (presentHud, presentCombat, hasCombat, saveBmp); `second_open(rom, code, screens)` once the game is open; `second_step(screens)` after every frame; `second_state_save` / `second_state_load` with states and `second_new_subject()` after a load or rewind; `second_idle_picture` / `logo_draw` for the logo; `second_close()` before the game's emulator is closed (a compilation's switch: `second_drop()` then `second_open`). game.c's `ss_setup` / `ss_switch` and the end of a game call the same, with the app's own parts around them (controls, button settings, WarioWare's sensor, Android pinning, swallow keys, rewind, rumble). Keep anything only the module uses `static` in its own file; the headers are the module's interface.
 - `mapcap.c` map capture on a hidden second core in a background thread.
-  A `room` key change starts one once it has held 3 frames (game.c), calling
+  A `room` key change starts one once it has held 3 frames (second.c `map_refresh_step`), calling
   off one still running (`mapcap_cancel`: the shadow's frames stop running,
   `emu_cancelled`, composers keep nothing); `aw_run` waits draw only their
   last two frames (`emu_frame_blind`). `GBADS_DEBUG=1` logs each capture's
@@ -599,9 +599,10 @@ release zip, which replaces the main install.
   else the bezel in its default colours), on `overlay_screens`. `tools/make_overlays.py` is the
   design's reference (the master images, a set for every device in `docs/devices.csv` to check
   against) and `--embed` makes `src/bezel_logo.c`. regress.py runs with `--overlays=off`.
-- `game.c` a play session: input, the second screen (map, logo, THPS2
-  snapshot), the quick bar (Controls picker, buttons, bug reports), pause
-  menu, cheats screen, screenshots.
+- `game.c` a play session: input, the second screen's textures and drawing
+  (its pictures come from the module above: map, logo, THPS2 snapshot, HUD),
+  the quick bar (Controls picker, buttons, bug reports), pause menu, cheats
+  screen, screenshots.
   The contextual toggle (GEN-14, issue #37; settings `toggle`, `auto_rotate`,
   `toggle_button`, hotkey action `HK_TOGGLE`, HOME + A; the state machine and `second_page()` are in `toggle.c`, the button in game.c): `toggle_ready()` is the one
   gate, `toggle_press()` / `toggle_step()` the state machine (a turn that waits

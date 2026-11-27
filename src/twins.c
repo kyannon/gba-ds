@@ -6,6 +6,41 @@
 #include <string.h>
 #include "clamp.h"
 
+/* (only this file's: declared here so their order in the file doesn't matter) */
+static bool twinNoObj;
+static bool twinRun;
+static void* twinStates[2];
+static uint32_t twinKeys[2];
+static int twinHave, twinCur;
+static const MapProfile* twinProf;
+static bool tallTrace;
+static int twinShakeNow, twinShakeNext;
+static bool tallMsg, tallGameTop;
+static bool tallTopLogo;
+static bool tallFixedBot;
+static int tallFixedHold;
+static uint32_t lastTop[GBA_W * GBA_H];
+static bool haveLastTop;
+static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y);
+static bool tall_carry(const MapProfile* p);
+static int tall_rows_of(const MapProfile* p, Emu* e);
+static int tall_top_of(const MapProfile* p);
+static int tall_view(const MapProfile* p, Emu* e);
+static int tall_shake(const MapProfile* p, Emu* e);
+static int obj_height(uint16_t a0, uint16_t a1);
+static int obj_width(uint16_t a0, uint16_t a1);
+static uint16_t tallFixed[128][3];
+static int nTallFixed;
+static int tallBandY0, tallBandY1;
+static uint16_t tallBandFixed[128][3];
+static int nTallBandFixed;
+static void game_oam_take(void);
+static void twin_hide(Twin* tw);
+static void twin_first(void* arg);
+static uint32_t twinFrameKeys;
+static void twin_second(void* arg);
+static void twin_step(void);
+
 
 
 /* profile tall.live: two more copies of the game drawing the table's rows
@@ -25,23 +60,23 @@
 Twin twins[TWINS];
 bool twinOpen;
 uint64_t twinSeq; /* counts run_frame calls; jumps on a load or rewind (bug_reset) */
-bool twinNoObj; /* (carry) the copies draw no sprites (profile carry.noObj, in the game) */
-bool twinRun;       /* the copies are to run (a table they know, its sweep over, a ball) */
+static bool twinNoObj; /* (carry) the copies draw no sprites (profile carry.noObj, in the game) */
+static bool twinRun;       /* the copies are to run (a table they know, its sweep over, a ball) */
 static int twinArmed;      /* frames on a table they know, with no sweep of the table going on */
-void* twinStates[2]; /* the game's state from before each of the last two frames */
-uint32_t twinKeys[2];
-int twinHave, twinCur; /* how many of them there are; the latest */
-const MapProfile* twinProf;
-bool tallTrace; /* GBADS_TALL_TRACE: a line a frame about the live view */
-int twinShakeNow, twinShakeNext; /* the game's screen shake in this frame's picture / the next's */
-bool tallMsg, tallGameTop; /* (for the log: PP-11's screen, the top screen's picture) */
-bool tallTopLogo; /* PP-11's screen up with no table rows above it: the logo on the top screen */
-bool tallFixedBot; /* PP-10: the game's banners on the bottom screen (the ball's there) */
-int tallFixedHold; /* frames the banners stay where they went with none shown */
-uint32_t lastTop[GBA_W * GBA_H]; /* the top screen before PP-11's screen came up */
-bool haveLastTop;
+static void* twinStates[2]; /* the game's state from before each of the last two frames */
+static uint32_t twinKeys[2];
+static int twinHave, twinCur; /* how many of them there are; the latest */
+static const MapProfile* twinProf;
+static bool tallTrace; /* GBADS_TALL_TRACE: a line a frame about the live view */
+static int twinShakeNow, twinShakeNext; /* the game's screen shake in this frame's picture / the next's */
+static bool tallMsg, tallGameTop; /* (for the log: PP-11's screen, the top screen's picture) */
+static bool tallTopLogo; /* PP-11's screen up with no table rows above it: the logo on the top screen */
+static bool tallFixedBot; /* PP-10: the game's banners on the bottom screen (the ball's there) */
+static int tallFixedHold; /* frames the banners stay where they went with none shown */
+static uint32_t lastTop[GBA_W * GBA_H]; /* the top screen before PP-11's screen came up */
+static bool haveLastTop;
 
-bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
+static bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
 	uint32_t b = emu_read32(e, S + twinProf->tall.live.ball);
 	if (b < 0x02000000 || b >= 0x02040000) return false;
 	*x = (int32_t) emu_read32(e, b + 0x34), *y = (int32_t) emu_read32(e, b + 0x38);
@@ -50,20 +85,20 @@ bool twin_ball(Emu* e, uint32_t S, int32_t* x, int32_t* y) {
 
 /* The table's rows: all of them, or (carry) the visible ones of the table
  * up now; the view's top row at its highest; the screen shake */
-bool tall_carry(const MapProfile* p) { return p && p->tall.live.carry.cam; }
-int tall_rows_of(const MapProfile* p, Emu* e) {
+static bool tall_carry(const MapProfile* p) { return p && p->tall.live.carry.cam; }
+static int tall_rows_of(const MapProfile* p, Emu* e) {
 	const typeof(p->tall.live.carry)* C = &p->tall.live.carry;
 	if (!C->cam || !C->rowsAt) return p->tall.rows;
 	int h = emu_read16(e, C->rowsAt) - C->bottomLess;
 	return h > 2 * GBA_H + C->top && h < 1024 ? h : 2 * GBA_H + C->top;
 }
-int tall_top_of(const MapProfile* p) { return p->tall.live.carry.cam ? p->tall.live.carry.top : 0; }
+static int tall_top_of(const MapProfile* p) { return p->tall.live.carry.cam ? p->tall.live.carry.top : 0; }
 /* the view's row as the game keeps it (the next frame's BG VOFS; carry:
  * less viewOff, Muppet Pinball Mayhem's camera being 16 rows below it) */
-int tall_view(const MapProfile* p, Emu* e) {
+static int tall_view(const MapProfile* p, Emu* e) {
 	return (int16_t) emu_read16(e, p->tall.live.view) - p->tall.live.carry.viewOff;
 }
-int tall_shake(const MapProfile* p, Emu* e) {
+static int tall_shake(const MapProfile* p, Emu* e) {
 	const typeof(p->tall.live)* L = &p->tall.live;
 	if (L->carry.cam) return L->carry.shakeAt ? (int16_t) emu_read16(e, L->carry.shakeAt) : 0;
 	uint32_t S = emu_read32(e, L->state);
@@ -93,13 +128,13 @@ static void twin_jump(Emu* e, uint32_t T, int row) {
 
 /* A sprite's height from its attribute 0 and 1 (double for an affine one
  * drawn double size). */
-int obj_height(uint16_t a0, uint16_t a1) {
+static int obj_height(uint16_t a0, uint16_t a1) {
 	static const uint8_t h[3][4] = { { 8, 16, 32, 64 }, { 8, 8, 16, 32 }, { 16, 32, 32, 64 } };
 	int s = a0 >> 14;
 	int v = s < 3 ? h[s][a1 >> 14] : 8;
 	return (a0 & 0x0300) == 0x0300 ? v * 2 : v;
 }
-int obj_width(uint16_t a0, uint16_t a1) {
+static int obj_width(uint16_t a0, uint16_t a1) {
 	static const uint8_t w[3][4] = { { 8, 16, 32, 64 }, { 16, 32, 32, 64 }, { 8, 8, 16, 32 } };
 	int s = a0 >> 14;
 	int v = s < 3 ? w[s][a1 >> 14] : 8;
@@ -108,18 +143,18 @@ int obj_width(uint16_t a0, uint16_t a1) {
 /* the game's sprites at the same place on the screen whatever the camera,
  * this frame (found against twins[0]; drawn by the HUD split, to be laid
  * over the top screen) */
-uint16_t tallFixed[128][3];
-int nTallFixed;
+static uint16_t tallFixed[128][3];
+static int nTallFixed;
 /* (carry) the rows where the score bar's layers drew something over the
  * table last frame (a box, a banner; -1: none): only the fixed sprites
  * there go to the top screen with it */
-int tallBandY0 = -1, tallBandY1 = -1;
-uint16_t tallBandFixed[128][3];
-int nTallBandFixed;
+static int tallBandY0 = -1, tallBandY1 = -1;
+static uint16_t tallBandFixed[128][3];
+static int nTallBandFixed;
 
 static uint8_t gameOam[1024]; /* the game's shadow sprite table and view before this frame (run_frame) */
 static int gameView;
-void game_oam_take(void) {
+static void game_oam_take(void) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	for (int i = 0; i < 1024; i += 2) { uint16_t v = emu_read16(&(*sec.emu), L->oam + i); gameOam[i] = v & 0xFF, gameOam[i + 1] = v >> 8; }
 	gameView = tall_view(twinProf, &(*sec.emu));
@@ -135,7 +170,7 @@ void game_oam_take(void) {
  * position round (a message's letters); or at the same place on the screen
  * whatever the camera (a banner, the Mart's items): left out, the game's
  * picture shows it. */
-void twin_hide(Twin* tw) {
+static void twin_hide(Twin* tw) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	uint32_t o = L->oam;
 	int gs = gameView, cs = tall_view(twinProf, &tw->e);
@@ -337,7 +372,7 @@ static void twin_first_carry(Twin* tw) {
 
 /* Before the game's frame: the frame before again, from the game's state
  * then, held at its row (which gives it this frame's sprites and scroll) */
-void twin_first(void* arg) {
+static void twin_first(void* arg) {
 	Twin* tw = arg;
 	if (tall_carry(twinProf)) {
 		tw->up = false;
@@ -371,8 +406,8 @@ void twin_first(void* arg) {
 	tw->up = true;
 }
 /* With the game's frame: this frame, whose picture it shows */
-uint32_t twinFrameKeys;
-void twin_second(void* arg) {
+static uint32_t twinFrameKeys;
+static void twin_second(void* arg) {
 	Twin* tw = arg;
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	/* (carry: its own sprites as it last drew them, not the game's. The
@@ -400,7 +435,7 @@ void twin_second(void* arg) {
  * rows below the game's view (its pans included; less the shake k, which
  * the copies add alike), or below rows - 320 once the game's is further
  * down. The game itself is never changed. */
-void twin_step(void) {
+static void twin_step(void) {
 	const typeof(twinProf->tall.live)* L = &twinProf->tall.live;
 	if (tall_carry(twinProf)) {
 		/* (the same, for a game whose camera is a row and whose table's

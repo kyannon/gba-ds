@@ -8,6 +8,10 @@
 #include <string.h>
 #include "clamp.h"
 
+/* (only this file's) */
+static bool tg_view_mode(const MapProfile* hp);
+static void toggle_apply(int page);
+
 
 /* which of the second screen's pictures shows now: the map's frames turn
  * every frameStep frames from mapAnimStart (a marker's blinking, or pages:
@@ -42,7 +46,7 @@ int second_page(void) {
 #define TG_HOLD_PRESS_MAX 600 /* (capture on press: a capture can take seconds) */
 
 /* a press turns the view (captured on the press) rather than a page: the profile's views, unless its picture is pages (Mother 3's Status where there's no map) and the other view isn't up */
-bool tg_view_mode(const MapProfile* hp) {
+static bool tg_view_mode(const MapProfile* hp) {
 	if (!hp || !hp->onPress) return false;
 	const bool paged = sec.mapRes.pages && sec.mapRes.nFrames >= 2;
 	if (!paged) return true;
@@ -66,7 +70,7 @@ bool toggle_ready(void) {
 }
 
 /* the page shows, the timer (auto-rotate) starting again from it */
-void toggle_apply(int page) {
+static void toggle_apply(int page) {
 	if (sec.cfg->autoRotate) sec.mapAnimStart = sec.frame;
 	sec.pageOffset = page;
 	sec.overDirty = true;

@@ -14,6 +14,26 @@
 #include <string.h>
 #include "clamp.h"
 
+/* (only this file's: the steps second_open / second_step / second_close run) */
+/* the still map for "Map Animations: Off" into out (r->w * r->h), the pixels
+ * that animate marked in mask; pick is the profile's stillPick (STILL_*) */
+static void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* mask);
+/* the picture faded to level (0 .. 256) */
+static const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
+/* once a frame, after the game's frame: when to capture the map, picking up a
+ * finished capture, the pages, the profile's hideWhen / logoIf / liveView */
+static void map_refresh_step(void);
+/* a new map picture is in sec.mapRes (fresh: a capture; else kept with a state) */
+static void map_show_new(bool fresh);
+/* a logo-only game's screen copy (sec.snapProf), once a frame */
+static void update_snapshot(void);
+/* A game's set-up, in second_open: second_reset first; once the capture
+ * exists (sec.mc), hud_setup (hud.h), then second_map_setup */
+static void second_reset(void);
+static void second_map_setup(const char* code, bool logoOnly);
+/* the frame is mostly dark (a fade) */
+static bool frame_is_dark(const uint32_t* fb);
+
 SecondState sec = { .mapW = GBA_W, .mapH = GBA_H, .mapShownIdx = -1, .fadeLevel = 256, .tgWait = -1 };
 
 void second_new_subject(void) {
@@ -40,7 +60,7 @@ static int cmp_u32(const void* a, const void* b) {
  * has red in it, or with STILL_COVER the state that
  * covers the most pixels unlike the spot's surroundings, ties going to the
  * one with the most contrast. */
-void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* mask) {
+static void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* mask) {
 	int n = r->nFrames, w = r->w, h = r->h, wh = w * h;
 	memcpy(out, r->frames[0], (size_t) wh * 4);
 	memset(mask, 0, (size_t) wh);
@@ -141,7 +161,7 @@ void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* m
 /* A turn that waits (GEN-14): the picture at fade level (0 black .. 256 as
  * it is), in a buffer of its own kept between calls; px itself if there's
  * no room for one. (Was inline in game.c's upload_map_frame.) */
-const uint32_t* second_fade(const uint32_t* px, size_t n, int level) {
+static const uint32_t* second_fade(const uint32_t* px, size_t n, int level) {
 	static uint32_t* fadeBuf;
 	static size_t fadeN;
 	if (n > fadeN) fadeBuf = realloc(fadeBuf, n * 4), fadeN = fadeBuf ? n : 0;
@@ -168,7 +188,7 @@ bool frame_is_flat(const uint32_t* fb) {
 	return off * 20 < n; /* 95% within 12 a channel of the average */
 }
 
-bool frame_is_dark(const uint32_t* fb) {
+static bool frame_is_dark(const uint32_t* fb) {
 	int bright = 0, total = 0;
 	for (int i = 0; i < GBA_W * GBA_H; i += 7) {
 		uint32_t c = fb[i];
@@ -226,7 +246,7 @@ static bool update_still(void) {
 /* A new map picture in mapRes (a capture; or one kept with a save state,
  * `fresh` false: the level name above the HUD isn't taken from it, it's
  * kept on its own) */
-void map_show_new(bool fresh) {
+static void map_show_new(bool fresh) {
 	sec.mapInactive = false;
 	if (!fresh || sec.capSubject) sec.capSubject = false, toggle_new_subject();
 	hud_new_map(fresh); /* (what the HUD split keeps of it: hud.c) */
@@ -251,7 +271,7 @@ const uint32_t* map_px(int idx) {
 	return idx == STILL_IDX ? (sec.stillValid ? sec.stillPx : NULL) : sec.mapRes.frames[idx];
 }
 
-void map_refresh_step(void) {
+static void map_refresh_step(void) {
 	{
 		/* (logoIf: the logo for now, SM4-11; a logo-only game's from its HUD's profile) */
 		const MapProfile* lp = sec.mc ? mapcap_profile(sec.mc) : hud.hudProf;
@@ -569,7 +589,7 @@ void second_state_load(const uint8_t* b, size_t n) {
 	                   blob_find(b, n, "HELD", &sz) ? " held" : "");
 }
 
-void update_snapshot(void) {
+static void update_snapshot(void) {
 	const typeof(sec.snapProf->snap)* sn = &sec.snapProf->snap;
 	int tol = sn->tol ? sn->tol : 12;
 	if (probes_hit((*sec.emu).fb, sn->show, tol) >= sn->showMin) {
@@ -615,7 +635,7 @@ void update_snapshot(void) {
 
 /* The second screen as it is before a game's set-up: no picture, no map,
  * no screen copy, no HUD. (Was at the top of game.c's ss_setup.) */
-void second_reset(void) {
+static void second_reset(void) {
 	sec.mapW = GBA_W;
 	sec.mapH = GBA_H;
 	memset(&sec.mapRes, 0, sizeof(sec.mapRes));
@@ -633,7 +653,7 @@ void second_reset(void) {
  * the game's sprites to hide (its corner mini-map: the full map is always up),
  * switched by hideWhen or not, and the picture's size. (Was inline in game.c's
  * ss_setup.) */
-void second_map_setup(const char* code, bool logoOnly) {
+static void second_map_setup(const char* code, bool logoOnly) {
 	sec.hideWhenProf = NULL;
 	if (sec.mc) {
 		fprintf(stderr, "map profile: %s\n", mapcap_title(sec.mc));

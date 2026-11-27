@@ -13,9 +13,7 @@
 /* the toggle (state machine: TG_IDLE, TG_FADE_OUT, TG_HOLD, TG_FADE_IN) */
 enum { TG_IDLE, TG_FADE_OUT, TG_HOLD, TG_FADE_IN };
 int second_page(void);
-bool tg_view_mode(const MapProfile* hp);
 bool toggle_ready(void);
-void toggle_apply(int page);
 void toggle_press(void);
 void toggle_new_subject(void);
 void toggle_step(void);

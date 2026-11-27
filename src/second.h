@@ -9,12 +9,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* the still map for "Map Animations: Off" into out (r->w * r->h), the pixels
- * that animate marked in mask; pick is the profile's stillPick (STILL_*) */
-void compose_still(const MapResult* r, int pick, uint32_t* out, unsigned char* mask);
-/* the picture faded to level (0 .. 256) */
-const uint32_t* second_fade(const uint32_t* px, size_t n, int level);
-
 /* "Map Animations: Off" shows the composed still (sec.stillPx) as this index */
 #define STILL_IDX MAP_MAX_FRAMES
 /* the logo drawn idle on the second screen: at half strength */
@@ -118,57 +112,46 @@ typedef struct {
 } SecondState;
 extern SecondState sec;
 
+/* ---- What a core calls (the app's game.c does the same, beside its own parts).
+ * Once the game is open and sec.emu / cfg / debug / romPath, sec.hooks and
+ * hud.hooks are set: second_open (code: the profile in use, the game's or for
+ * a compilation the game running in it, sec.subCode; screens: how many there
+ * are). A compilation whose game changes: second_drop, then second_open for the
+ * new one. Each frame, after the game's: second_step. As the game ends, before
+ * its emulator is closed: second_close. */
+void second_open(const char* rom, const char* code, int screens);
+void second_drop(void);
+void second_step(int screens);
+void second_close(void);
+
 /* A new subject: a state loaded, a rewind. The map is captured again as soon
  * as it can be (and the toggle's pages and views start again). */
 void second_new_subject(void);
-/* the map's frames animate (Map Animations, not a still map) */
-bool map_anim(void);
-/* once a frame, after the game's frame: when to capture the map, picking up a
- * finished capture, the pages, the profile's hideWhen / logoIf / liveView */
-void map_refresh_step(void);
-/* the second screen's whole part of a frame, after the game's frame: the map
- * refresh, the screen copy, the tall view, the HUD, the fights (screens: how
- * many the app has now) */
-void second_step(int screens);
-/* picture idx of the second screen (STILL_IDX: the still), NULL if none */
-const uint32_t* map_px(int idx);
-/* put picture idx up (unless it is up already and nothing changed: overDirty) */
-void upload_map_frame(int idx);
-/* a new map picture is in sec.mapRes (fresh: a capture; else kept with a state) */
-void map_show_new(bool fresh);
-/* a logo-only game's screen copy (sec.snapProf), once a frame */
-void update_snapshot(void);
-/* the game's logo onto a cw x ch canvas, k canvas pixels to a logo pixel,
- * blended at alpha (LOGO_IDLE: idle), centred below `top` rows; false if
- * there's no logo (or no room) */
-bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
-/* the idle second screen's picture (the logo on grey, or plain grey for a
- * Game Boy game): IDLE_PIC with *px (malloc'd, *w x *h, *sub pixels per GBA
- * pixel); IDLE_NOPIC a logo but no picture (too big: *sub set); IDLE_NONE no logo */
-enum { IDLE_NONE, IDLE_NOPIC, IDLE_PIC };
-int second_idle_picture(uint32_t** px, int* w, int* h, int* sub);
 /* The second screen kept with save states (GBA DS's block inside the state:
  * EXTDATA_GBADS): made now (malloc'd, *n bytes; NULL if nothing), and put
  * back from a loaded state's block (b may be NULL: none; the title card and
  * the level name kept from before go either way) */
 void* second_state_save(size_t* n);
-/* A game's set-up (game.c ss_setup calls these, in this order, with its own
- * set-up between): second_reset first; once the capture exists (sec.mc),
- * hud_setup (hud.h), then second_map_setup */
-void second_reset(void);
-void second_map_setup(const char* code, bool logoOnly);
-/* A game's second screen set up from nothing (second_reset, the capture,
- * hud_setup, second_map_setup, in that order), and taken down for another
- * game (a compilation's): what a core calls; the app's ss_setup / ss_switch
- * call them beside its own set-up. */
-void second_open(const char* rom, const char* code, int screens);
-void second_drop(void);
-/* The second screen taken down as the game ends (the capture, the copies,
- * the pictures and the still): before the game's emulator is closed. */
-void second_close(void);
 void second_state_load(const uint8_t* b, size_t n);
-/* the frame is mostly dark / one colour nearly all over (a fade, a blank screen) */
-bool frame_is_dark(const uint32_t* fb);
+
+/* the idle second screen's picture (the logo on grey, or plain grey for a
+ * Game Boy game): IDLE_PIC with *px (malloc'd, *w x *h, *sub pixels per GBA
+ * pixel); IDLE_NOPIC a logo but no picture (too big: *sub set); IDLE_NONE no logo */
+enum { IDLE_NONE, IDLE_NOPIC, IDLE_PIC };
+int second_idle_picture(uint32_t** px, int* w, int* h, int* sub);
+/* the game's logo onto a cw x ch canvas, k canvas pixels to a logo pixel,
+ * blended at alpha (LOGO_IDLE: idle), centred below `top` rows; false if
+ * there's no logo (or no room) */
+bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
+
+/* ---- Used by the app's other parts (and hud.c, twins.c) */
+/* the map's frames animate (Map Animations, not a still map) */
+bool map_anim(void);
+/* picture idx of the second screen (STILL_IDX: the still), NULL if none */
+const uint32_t* map_px(int idx);
+/* put picture idx up (unless it is up already and nothing changed: overDirty) */
+void upload_map_frame(int idx);
+/* the frame is one colour nearly all over (a blank screen) */
 bool frame_is_flat(const uint32_t* fb);
 /* how many of the probes (up to 8) the frame matches, each colour within tol */
 int probes_hit(const uint32_t* fb, const Probe* p, int tol);
