@@ -28,9 +28,10 @@
  *     uniforms at their defaults. (libmgba itself is built without that
  *     renderer: scripts/mgba-options.sh.)
  * Each program is built the first time its filter is used; one that doesn't
- * build leaves its filter drawing as Sharp (logged once). MMPX, xBR-lv3 and
- * OmniScale are heavy: on a GPU in tooWeak they aren't run at all (greyed in
- * the menus, drawn as Sharp), on one not tried they run with a warning. */
+ * build leaves its filter drawing as Sharp (logged once). MMPX, xBR-lv2,
+ * xBR-lv3 and OmniScale are heavy: on a GPU in tooWeak they aren't run at all
+ * (greyed in the menus, drawn as Sharp), on one not tried they run with a
+ * warning. */
 #include "upscale.h"
 #include "upscale_shaders.h"
 
@@ -48,7 +49,7 @@ static const struct {
 	[FILTER_SCALE4X] = { PROG_SCALE2X, 2, 2 },
 	[FILTER_HQ2X] = { PROG_PACK0 + UP_PACK_HQ2X, 2, 1 },
 	[FILTER_MMPX] = { PROG_PACK0 + UP_PACK_MMPX, 2, 1, true },
-	[FILTER_XBR_LV2] = { PROG_PACK0 + UP_PACK_XBR_LV2, 4, 1 },
+	[FILTER_XBR_LV2] = { PROG_PACK0 + UP_PACK_XBR_LV2, 4, 1, true },
 	[FILTER_XBR_LV3] = { PROG_PACK0 + UP_PACK_XBR_LV3, 4, 1, true },
 	[FILTER_OMNISCALE] = { PROG_PACK0 + UP_PACK_OMNISCALE, 4, 1, true },
 };
@@ -60,7 +61,8 @@ static const struct {
  * full speed). On a GPU in neither list they're allowed, with a warning. */
 static const char* const tooWeak[] = {
 	"Mali-G52", /* RG DS Plus (BananaOS, Panfrost), Nov 26, 2026: MMPX and xBR-lv3
-	             * about 200 ms a frame, OmniScale about 60 */
+	             * about 200 ms a frame, OmniScale about 60; xBR-lv2 about 40 fps
+	             * even in a light game (Ninja Five-O) */
 };
 /* GPUs they were tried on at full speed (none yet) */
 static const char* const triedFine[] = { NULL };

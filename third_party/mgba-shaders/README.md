@@ -27,6 +27,7 @@ zip's licenses folder) and `wiki/Licenses.md`.
 
 Scale2x and Scale4x are GBA DS's own (`src/upscale.c`).
 
-MMPX, xBR-lv3 and OmniScale are heavy: on the RG DS Plus's Mali-G52 they took
-about 200, 200 and 60 ms a frame (Nov 26, 2026), so `upscale.c` greys them out
+MMPX, xBR-lv2, xBR-lv3 and OmniScale are heavy: on the RG DS Plus's Mali-G52
+MMPX, xBR-lv3 and OmniScale took about 200, 200 and 60 ms a frame and xBR-lv2
+held only about 40 fps (Nov 26, 2026), so `upscale.c` greys them out
 on GPUs in its `tooWeak` list and warns on GPUs it hasn't been told about.
