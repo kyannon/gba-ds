@@ -803,6 +803,29 @@ int second_shown(bool* dim) {
 	return SHOWN_LOGO;
 }
 
+/* The game was restarted (after second_jump): the logo until the next map.
+ * (Was in game.c's restart_game.) */
+void second_restarted(void) {
+	trace("restarted"); /* (the host reset the game, emu_reset: a replay resets it here) */
+	sec.mapShownIdx = -1; /* back to the logo until the next map */
+}
+
+/* The logo changed (it finished extracting, or the player's own or a scraped
+ * one was switched: GEN-11): every picture it's in is made again, the HUD's,
+ * the card's, the fights' and the map's logo behind. (Was in game.c's
+ * logo_refresh, after the app's own logo textures.) */
+void second_logo_changed(void) {
+	trace("logo_changed");
+	hud.hudLogoBelowDone = hud.hudLogoDone = false; /* the HUD's pictures with it */
+	hud.cardLogoMade = false;
+	if (hud.combatMade) {
+		/* and the fight picture (and the map picture's logo behind) */
+		make_combat_canvas();
+		sec.overDirty = true;
+		if (sec.mapShownIdx >= 0) upload_map_frame(sec.mapShownIdx);
+	}
+}
+
 /* The game's second screen taken down before second_open sets it up for
  * another game (a compilation: the game running in it changed, game.c's
  * ss_switch): the old game's HUD split and hidden sprites off, its capture and

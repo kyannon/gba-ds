@@ -60,6 +60,7 @@
     }
    ]
   },
+  {"id": "fe-us-restart", "driver": true, "rom": "AE7E", "state": "fire-emblem/us-hud.ss", "desc": "the pause menu's Restart Game (chosen twice): the game starts again from the top and the second screen goes back to the logo until the next map", "rules": ["GEN-1"], "input": [[30, "-"], [40, "TAP:0.5,0.75"], [60, "TAP:0.744,0.580"], [80, "TAP:0.744,0.580"]], "shots": {"before": 35, "restarted": 200}, "golden_mask": [[0, 1470, 520, 1536]], "checks": [{"rule": "GEN-1", "what": "before: the unit's status, not the logo", "type": "not_uniform", "shot": "before", "screen": "second", "rect": [32, 64, 992, 704], "color": "303030", "frac": 0.05}, {"rule": "GEN-1", "what": "restarted: the logo on dark grey", "type": "uniform", "shot": "restarted", "screen": "second", "rect": [32, 64, 992, 704], "color": "303030", "frac": 0.5}, {"rule": "GEN-1", "what": "the game was restarted", "type": "log", "match": "game restarted"}]},
   {
    "id": "fe-us-enemy-status",
    "rom": "AE7E",

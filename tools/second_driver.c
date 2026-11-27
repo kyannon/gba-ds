@@ -169,6 +169,8 @@ int main(int argc, char** argv) {
 		else if (!strcmp(line, "close")) second_close();
 		else if (!strcmp(line, "game_start")) second_game_start();
 		else if (!strcmp(line, "toggle_press")) toggle_press();
+		else if (!strcmp(line, "restarted")) emu_reset(&emu), second_restarted(); /* (the app reset the game, then second_jump: traced before this) */
+		else if (!strcmp(line, "logo_changed")) second_logo_changed();
 		else if (!strcmp(line, "loop_start")) second_loop_start();
 		else if (sscanf(line, "shot %259s", a) == 1) second_trace_shot(a);
 		else {

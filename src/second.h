@@ -141,6 +141,10 @@ void second_new_subject(void);
  * taken over; NULL: none) is put back by the next second_frame_start, called
  * at the start of each frame before the game's. Then second_new_subject. */
 void second_jump(void);
+/* the game restarted (after second_jump), and the logo changed (the host's
+ * logoLoad now gives another: extracted at last, or switched) */
+void second_restarted(void);
+void second_logo_changed(void);
 void second_state_loaded(uint8_t* block, size_t n);
 void second_frame_start(void);
 /* The second screen kept with save states (GBA DS's block inside the state:

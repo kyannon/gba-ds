@@ -865,7 +865,7 @@ static void restart_game(void) {
 	aheadReady = false;
 	bug_reset();
 	ra_reset();
-	sec.mapShownIdx = -1; /* back to the logo until the next map */
+	second_restarted(); /* (second.c: back to the logo until the next map) */
 }
 
 static void toggle_cheat(int row) {
@@ -5904,14 +5904,7 @@ static void logo_refresh(void) {
 	logoProvisional = ui_logo_provisional();
 	if (!got) return;
 	make_logo_canvas();
-	hud.hudLogoBelowDone = hud.hudLogoDone = false; /* the HUD's pictures with it */
-	hud.cardLogoMade = false;
-	if (hud.combatMade) {
-		/* and the fight picture (and the map picture's logo behind) */
-		make_combat_canvas();
-		sec.overDirty = true;
-		if (sec.mapShownIdx >= 0) upload_map_frame(sec.mapShownIdx);
-	}
+	second_logo_changed(); /* (second.c: every picture the logo is in made again) */
 }
 
 /* The 5-second health report and the sound delay's automatic raising. One per
