@@ -1,4 +1,4 @@
-/* A folder picker (Linux, issue #39): a screen of its own listing the
+/* A folder picker (Linux, issue #39; Android too, with All files access, issue #111): a screen of its own listing the
  * folders in one, until one is chosen or it's left. The D-pad (or a tap)
  * picks a folder and A opens it, B goes up a folder, "Use This Folder"
  * chooses the one shown. Hidden folders aren't listed. */

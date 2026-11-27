@@ -565,7 +565,7 @@ release zip, which replaces the main install.
   the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
   second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
   shared with RetroArch (`state_folder = retroarch`, game list Settings >
-  Save States, Linux): paths.c `retroarch_state_dir` works out RetroArch's
+  Save States, Linux and, since issue #111, Android: docs/ANDROID.md): paths.c `retroarch_state_dir` works out RetroArch's
   folder from its retroarch.cfg as RetroArch does (ROCKNIX: setsettings.sh's
   `/storage/roms/savestates/<system>`), game_paths points slots 0-9 and the
   auto state at `.state`, `.state1`-`.state9`, `.state.auto` there

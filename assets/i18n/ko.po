@@ -24,6 +24,12 @@ msgstr " ms"
 msgid " s"
 msgstr " s"
 
+msgid "GBA DS can't use that folder. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "GBA DS가 그 폴더를 사용할 수 없습니다. RetroArch에서 Settings > Directory > Save States를 저장소의 폴더(Android/data 밖)로 설정한 다음 여기서 선택하세요."
+
+msgid "RetroArch's states weren't found. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "RetroArch 상태를 찾을 수 없습니다. RetroArch에서 Settings > Directory > Save States를 저장소의 폴더(Android/data 밖)로 설정한 다음 여기서 선택하세요."
+
 msgid "\"Swipe up for quick menu\" at a game's start."
 msgstr "게임을 시작할 때 \"위로 스와이프하여 빠른 메뉴\"."
 
