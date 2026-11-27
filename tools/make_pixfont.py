@@ -114,6 +114,22 @@ for ch, kind, pic in [
     (')', 'P0', "X.\n.X\n.X\n.X\n.X\n.X\nX."),
     ('%', 'P0', "XX..X\nXX.X.\n...X.\n..X..\n.X...\n.X.XX\nX..XX"),
     ('_', 'P8', "XXXXX"),
+    ('&', 'P0', ".XX..\nX..X.\nX..X.\n.XX..\nX..XX\nX..X.\n.XX.X"),
+    ('#', 'P0', ".X.X.\n.X.X.\nXXXXX\n.X.X.\nXXXXX\n.X.X.\n.X.X."),
+    ('$', 'P0', "..X..\n.XXXX\nX.X..\n.XXX.\n..X.X\nXXXX.\n..X.."),
+    ('*', 'P1', "X.X\n.X.\nX.X"),
+    ('<', 'P1', "..X\n.X.\nX..\n.X.\n..X"),
+    ('>', 'P1', "X..\n.X.\n..X\n.X.\nX.."),
+    ('@', 'P0', ".XXXX.\nX....X\nX.XX.X\nX.X.XX\nX..XX.\nX.....\n.XXXX."),
+    ('[', 'P0', "XX\nX.\nX.\nX.\nX.\nX.\nXX"),
+    (']', 'P0', "XX\n.X\n.X\n.X\n.X\n.X\nXX"),
+    ('\\', 'P0', "X..\nX..\n.X.\n.X.\n.X.\n..X\n..X"),
+    ('^', 'P0', ".X.\nX.X"),
+    ('`', 'P0', "X.\n.X"),
+    ('{', 'P0', ".XX\n.X.\n.X.\nX..\n.X.\n.X.\n.XX"),
+    ('}', 'P0', "XX.\n.X.\n.X.\n..X\n.X.\n.X.\nXX."),
+    ('|', 'P0', "X\nX\nX\nX\nX\nX\nX\nX\nX"),
+    ('~', 'P3', ".X.X\nX.X."),
     (' ', 'P0', ""),
 ]:
     if ch == ' ':
@@ -200,6 +216,22 @@ for ch, kind, pic in [
     (')', 'P0', "X.\n.X\n.X\n.X\n.X\nX."),
     ('%', 'P0', "XX..X\nXX.X.\n...X.\n..X..\n.X.XX\nX..XX"),
     ('_', 'P7', "XXXX"),
+    ('&', 'P0', ".XX..\nX..X.\n.XX..\nX..XX\nX..X.\n.XX.X"),
+    ('#', 'P0', ".X.X.\nXXXXX\n.X.X.\n.X.X.\nXXXXX\n.X.X."),
+    ('$', 'P0', ".XXXX\nX.X..\n.XXX.\n..X.X\nXXXX.\n..X.."),
+    ('*', 'P1', "X.X\n.X.\nX.X"),
+    ('<', 'P1', "..X\n.X.\nX..\n.X.\n..X"),
+    ('>', 'P1', "X..\n.X.\n..X\n.X.\nX.."),
+    ('@', 'P0', ".XXX.\nX...X\nX.XXX\nX.XXX\nX....\n.XXX."),
+    ('[', 'P0', "XX\nX.\nX.\nX.\nX.\nXX"),
+    (']', 'P0', "XX\n.X\n.X\n.X\n.X\nXX"),
+    ('\\', 'P0', "X..\nX..\n.X.\n.X.\n..X\n..X"),
+    ('^', 'P0', ".X.\nX.X"),
+    ('`', 'P0', "X.\n.X"),
+    ('{', 'P0', ".XX\n.X.\n.X.\nX..\n.X.\n.X.\n.XX"),
+    ('}', 'P0', "XX.\n.X.\n.X.\n..X\n.X.\n.X.\nXX."),
+    ('|', 'P0', "X\nX\nX\nX\nX\nX\nX\nX"),
+    ('~', 'P2', ".X.X\nX.X."),
 ]:
     g(S, ch, kind, pic)
 
@@ -288,7 +320,7 @@ def emit(path):
 def preview(path, scale=6):
     from PIL import Image
     samples = [
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", "0123456789 .,:;!?'\"-+=/()%_",
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", "0123456789 .,:;!?'\"-+=/()%_", "&#$*<>@[]\\^`{}|~ Mario & Luigi [T+Eng] (v1.1)",
         "State saved. No quick state yet.", "Tap again to close GBA DS.", "14:29  57.1 FPS  98%",
         "This state was saved with Super Mario World Color Restoration v0.91: it may not work",
         "Controls  GBA  SNES  Auto  Hawk's Pro Skater",
