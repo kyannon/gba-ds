@@ -513,11 +513,18 @@ typedef struct MapProfile {
 			MemProbe heldWhen[2];
 		} alt;
 		SpriteRule objs[12]; /* the sprites that move with it */
-		/* `on` turns it on only while a sprite like onWith shows; then `on` alone keeps it
-		 * on, till onLost frames without one (Densetsu no Stafy 3: the HUD's face, which
-		 * a stage's opening conversation doesn't have and a later one hides) */
+		/* `on` turns it on only while a sprite like onWith shows (its box, tiles, priority, palettes
+		 * and shapes); then `on` alone keeps it on, till onLost frames without one (counted again
+		 * from a state load) (Mario Pinball Land: a room, by its item slot's frame; Densetsu no
+		 * Stafy 3: the HUD's face, which a stage's opening conversation doesn't have and a later
+		 * one hides) */
 		SpriteRule onWith;
 		int onLost;
+		/* Every frame, on the main thread, with whether the split is on (false also at a state
+		 * load): the profile may draw the HUD's sprites elsewhere in its picture
+		 * (emu_hud_place). rom: the game's file, for a copy of its own (Mario Pinball Land:
+		 * the counters where the game puts them paused, from a paused copy: MPL-3) */
+		void (*place)(Emu* live, const char* rom, bool on);
 		/* While every `layout` probe matches (racing, not the results):
 		 * HUD pixels in `sign` stay on the game screen when the HUD has
 		 * nothing else on those rows within 40 pixels either side (Mario
@@ -928,6 +935,8 @@ typedef enum {
 } DumpKind;
 /* name: No-Intro's name of the dump, or the mod's (NULL when not known) */
 DumpKind profile_dump(const char* gameCode, uint32_t crc, const char** name);
+/* A mod in the game's Mods row: it keeps a logo of its own (GEN-20) */
+bool profile_known_mod(const char* gameCode, uint32_t crc);
 /* A Game Boy / Game Boy Color game (its code is the app's own, lower case: emu_rom_code), and whether
  * its ROM's CRC32 is in No-Intro's Game Boy / Game Boy Color lists (src/dumps_gb_data.h, GB-14) */
 bool profile_code_is_gb(const char* gameCode);
@@ -935,6 +944,10 @@ bool profile_gb_dump_known(uint32_t crc);
 /* The release's No-Intro name, without a revision's or reissue's mark
  * ("Mario & Luigi - Superstar Saga (USA)"); false if it has no list of dumps */
 bool profile_release_name(const char* gameCode, char* out, size_t size);
+/* A dump with no game code in its header: the code it's filed under, if its
+ * CRC32 is a known one (NULL if not); _size: a file that size might be one */
+const char* profile_codeless(uint32_t crc);
+bool profile_codeless_size(long long size);
 /* The ROM being played (its code and CRC32; NULL: none): a known colour
  * patch's result gets its profile with the colours it changes swapped */
 void profile_set_rom(const char* gameCode, uint32_t crc);

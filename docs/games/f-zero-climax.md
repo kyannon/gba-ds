@@ -35,15 +35,11 @@ It runs on F-Zero: GP Legend's engine, and its second screen is GP Legend's ([FZ
 
 **FZC-8. Other modes.** Grand Prix is checked at Novice: Mute City to the finish, and Sand Ocean and Big Blue racing. Time Attack and Survival open only once the game's story has gone far enough, so they weren't checked in a session; the player who contributed the game support has tried them, and Course Edit's TEST RUN, and reports that all three work well (Nov 23, 2026). Their races run on the same engine, so the HUD's pieces they share with Grand Prix move the same way, and any piece of their own stays on the game screen (RANK moves only when it's there). No fixtures or cases for these modes: the checks are the player's.
 
-**FZC-9. The English translation.** On the English Patch 1.1 (as a patched ROM or with its IPS on the Japanese ROM, GEN-9) FZC-1 to FZC-8 hold as they are: the race HUD is the Japanese game's, sprite for sprite. Its logo is the translation's own title, F-ZERO CLIMAX without the katakana line, taken the same way.
+**FZC-9. The English translation.** On the English Patch 1.1 (as a patched ROM or with its IPS on the Japanese ROM, GEN-9) FZC-1 to FZC-8 hold as they are: the race HUD is the Japanese game's, sprite for sprite. Its logo is the translation's own title, F-ZERO CLIMAX without the katakana line, taken the same way and kept apart from the Japanese game's (GEN-20), so with both in the game list each shows its own. (Until GEN-20 both showed the logo made first.)
 
 ## Exceptions
 
 - The course map drawn twice as big (as GP Legend's and Mario Kart's): a GBA pixel per 2x2 of the second screen's GBA screen, so still the game's own picture at its own resolution.
-
-## Known issues
-
-- With both the Japanese game and the English Patch 1.1 in the game list, both show the logo made first, as GBA DS keeps one logo per game code (FZC-9's own logo shows when it's the only one played); each will show its own once logos are kept per ROM.
 
 ## Not covered yet
 

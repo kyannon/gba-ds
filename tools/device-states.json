@@ -1280,6 +1280,142 @@
     "3": ["jpn-own-quest.ss", "The game's own Quest Data open: logo (MPA-6)"],
     "4": ["jpn-title.ss", "The title: logo (MPA-7)"]
    }
+  },
+  "shantae-advance-risky-revolution": {
+   "Shantae Advance - Risky Revolution (World) (Limited Run Games)": {
+    "1": [
+     "play.ss",
+     "The first area: the held item's circle with the magic bar and the hearts at the top left, the gems with the dance indicator at the top right of the second screen, on black with the logo in the middle; none of them on the game screen (SAR-3, SAR-4). Then START: the logo on dark grey while the pause screen is open and closing, no fade; START again: the HUD back on black at once (SAR-6)"
+    ],
+    "2": [
+     "sign.ss",
+     "Beside a signpost, its B prompt on the game screen: press B, the HUD slides off the second screen's top and the logo goes to half strength on dark grey; read the talk out with A, the HUD slides back down (SAR-5)"
+    ],
+    "3": [
+     "boss.ss",
+     "Risky's airship: the HUD on the second screen, the airship's top whole on the game screen where the gem counter was (SAR-3, SAR-4)"
+    ],
+    "4": [
+     "title.ss",
+     "The title: the logo at half strength on dark grey (SAR-7); the game list shows the cartridge with the supported games (SAR-2)"
+    ]
+   }
+  },
+  "mario-pinball-land": {
+   "Mario Pinball Land (USA, Australia)": {
+    "1": [
+     "title.ss",
+     "The title: the logo at half strength on dark grey, the game screen as the game draws it (MPL-1, MPL-5)"
+    ],
+    "2": [
+     "play.ss",
+     "The Fun Fair, a ball just started: the whole HUD on the second screen as when paused (stars, score, lives, coins, blue coins, B button, item slot) on black with the logo in the middle, none of it on the game screen. After a few seconds the game slides the score, lives and blue coins off: they stay on the second screen (MPL-2, MPL-3). Leave it about 30 s: the ball drains down the blue pipe on the game screen, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
+    ],
+    "3": [
+     "paused.ss",
+     "Paused: PAUSED, CONTINUE and SAVE & QUIT on the game screen over the room, the HUD still on the second screen (MPL-4)"
+    ],
+    "4": [
+     "toad.ss",
+     "Toad runs past the bottom right corner in the first second: he stays on the game screen, nothing of him on the second (MPL-6)"
+    ],
+    "5": [
+     "roulette.ss",
+     "The item roulette slides down: its frame, items and A button on the game screen, only the item slot's frame on the second. Press A: the chosen item (an egg) lands in the slot on the second screen, not on the game screen (MPL-6)"
+    ],
+    "6": [
+     "pipe.ss",
+     "After a boss, the ball heading for a ? block: flip it with R as it comes down the right side (about 1 s in). The pipe it gives falls down the right edge of the second screen into the slot, never on the game screen (MPL-6)"
+    ],
+    "7": [
+     "time-attack.ss",
+     "Time Attack: the HUD on the second screen with the timer at the top right, the stars, coins and blue coins with it, no lives; after about 4 s the game slides the stars and coins off, and they stay on the second screen (MPL-7)"
+    ],
+    "8": [
+     "shop.ss",
+     "Toad's shop: the HUD on the second screen, the price with its A and B hints on the game screen (MPL-4)"
+    ],
+    "9": [
+     "bonus.ss",
+     "The ball bonus screen: the logo at half strength (MPL-5). Load slot 2 first, then this one: the HUD leaves the second screen at once rather than staying for half a second (the review's state-load fix)"
+    ]
+   },
+   "Super Mario Ball (Europe)": {
+    "1": [
+     "eu-title.ss",
+     "Europe's title: the logo (SUPER MARIO BALL) at half strength (MPL-1, MPL-5)"
+    ],
+    "2": [
+     "eu-play.ss",
+     "Europe's Fun Fair, a ball just started: the whole HUD on the second screen over the logo as when paused; after a few seconds the game slides the score, lives and blue coins off, and they stay on the second screen (MPL-2, MPL-3). Leave it about 30 s: the ball drains, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
+    ],
+    "3": [
+     "eu-paused.ss",
+     "Europe: paused, the pause words on the game screen, the HUD on the second screen (MPL-4)"
+    ],
+    "4": [
+     "eu-toad.ss",
+     "Europe: Toad runs through the bottom left corner, then (keep the ball up with L and R) the bottom right one: he stays on the game screen (MPL-6)"
+    ],
+    "5": [
+     "eu-roulette.ss",
+     "Europe: the item roulette on the game screen, only the item slot's frame on the second; press A and the item lands in the slot on the second screen (MPL-6)"
+    ],
+    "6": [
+     "eu-shop.ss",
+     "Europe: Toad's shop, the price and its hints on the game screen, the HUD on the second (MPL-4)"
+    ],
+    "7": [
+     "eu-boss.ss",
+     "Europe: Bowser's room, the HUD on the second screen (MPL-2)"
+    ],
+    "8": [
+     "eu-target.ss",
+     "Europe: the target mini game, its counter in the middle of the game screen, the HUD on the second (MPL-2, MPL-4)"
+    ],
+    "9": [
+     "eu-boo.ss",
+     "Europe: the Boo room, the HUD on the second screen (MPL-2)"
+    ]
+   },
+   "Super Mario Ball (Japan)": {
+    "1": [
+     "jp-title.ss",
+     "Japan's title: the logo (SUPER MARIO BALL, with its katakana line) at half strength (MPL-1, MPL-5)"
+    ],
+    "2": [
+     "jp-play.ss",
+     "Japan's Fun Fair, a ball just started: the whole HUD on the second screen over the logo as when paused; after a few seconds the game slides the score, lives and blue coins off, and they stay on the second screen (MPL-2, MPL-3). Leave it about 30 s: the ball drains, then the logo at half strength through the sphere and the ball bonus screen (MPL-5)"
+    ],
+    "3": [
+     "jp-paused.ss",
+     "Japan: paused, the pause words (in Japanese) on the game screen, the HUD on the second screen (MPL-4)"
+    ],
+    "4": [
+     "jp-toad.ss",
+     "Japan: Toad runs through the bottom left corner, then (keep the ball up with L and R) the bottom right one: he stays on the game screen (MPL-6)"
+    ],
+    "5": [
+     "jp-roulette.ss",
+     "Japan: the item roulette on the game screen, only the item slot's frame on the second; press A and the item lands in the slot on the second screen (MPL-6)"
+    ],
+    "6": [
+     "jp-shop.ss",
+     "Japan: Toad's shop, the price and its hints on the game screen, the HUD on the second (MPL-4)"
+    ],
+    "7": [
+     "jp-boss.ss",
+     "Japan: Bowser's room, the HUD on the second screen (MPL-2)"
+    ],
+    "8": [
+     "jp-target.ss",
+     "Japan: the target mini game, its counter in the middle of the game screen, the HUD on the second (MPL-2, MPL-4)"
+    ],
+    "9": [
+     "jp-boo.ss",
+     "Japan: the Boo room, the HUD on the second screen (MPL-2)"
+    ]
+   }
   }
  }
 }

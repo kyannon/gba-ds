@@ -48,6 +48,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
 | Mario Party Advance | `B8ME` `B8MP` `B8MJ` | on the board: the Map and Quest Data in turn | |
+| Mario Pinball Land (Super Mario Ball in Europe and Japan) | `BMVE` (USA and Australia) `BMVP` `BMVJ` | in a room: the whole HUD, as when paused, with the logo | |
 | Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
 | Mega Man Battle Network 2 (Battle Network Rockman EXE 2 in Japan) | `AE2E` `AM2P` `AE2J` | MegaMan's status (level, HP, style, buster) with your money, in battles too; on the net, a map of the area | |
@@ -61,6 +62,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Pokémon Pinball: Ruby & Sapphire | `BPPE` `BPPP` `BPPJ` (Japan: the original and Rev 1) | the table twice as tall over both screens, live, with the score bar | |
 | Rebelstar: Tactical Command | `BRLE` `BRLP` (no Japanese release) | in battles: the Status of the soldier under the cursor, or the mission's Objectives | |
 | River City Ransom EX (Downtown Nekketsu Monogatari EX in Japan) | `BDTE` `BDTJ` (no European release) | the Status screen, with the top bar moved off the game screen | |
+| Shantae Advance: Risky Revolution | `CSAE` (Limited Run Games' 2024 cartridge, which has no code of its own) | in play: the HUD and the logo | |
 | Shin Megami Tensei | `AAUJ` (Japan only; Gymzatan's English translation v1.3b, with or without its font hack) | the game's automap, taller than the game draws it | Gymzatan's English v1.3b iOS Localized translation, with and without the font hack |
 | Shin Megami Tensei II | `A5TJ` (Japan only; the English translation) | the game's automap, taller than the game draws it | the English translation (port of the Super Famicom translation), as a patched ROM or its `.xdelta` |
 | Sonic Advance | `ASOE` `ASOP` `ASOJ` | the zone card, with the rings, score, time and lives | |
@@ -98,7 +100,7 @@ GBA DS knows a game by its code, which romhacks and patches of a supported game 
 - **Patches GBA DS knows:** besides the tested ones, GBA DS knows a list of colour, voice and translation patches for other games too (some not supported yet), so the Patches menu can name them and say when one is made for another version of the game (a `.ips` file can't say which version it's for, so this is the only warning you'll get).
 - **Patch files:** put the patch (`.ips`, `.ups`, `.bps` or `.xdelta`) in the game's folder in GBA DS's `patches` folder (GBA DS makes it, named after the game: `patches/Mario & Luigi - Superstar Saga (USA)`) and switch it on in the pause menu's Extras → Patches, which says whether it's a tested romhack (see [Patches](Playing#patches)). A ROM you've already patched works too.
 - Save states made on the unchanged game shouldn't be loaded into a mod of it, or the other way round.
-- A romhack with its own title screen still shows the original game's logo on the second screen.
+- A romhack GBA DS doesn't know shares its game's logo, made from whichever of them is started first; a tested one has its own.
 
 ## How the maps work
 
@@ -201,7 +203,6 @@ The Japanese release (the only one), and the Starfy Translation Team's English t
 - A signpost's label, drawn near the bottom of the game screen, stays there.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; each translation shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and a translation (or two translations) both in your game list, all of them show the logo made first.
 - Checked in the first stage. Not tried yet: the map between stages, boss fights and the minigames.
 
 ## Densetsu no Stafy 2
@@ -212,7 +213,6 @@ The Japanese release (the only one), and the English patch v0.9.9 (*The Legendar
 - **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, and the HUD again when you go back to the stage, at once.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and the English patch both in your game list, both show the logo made first.
 - Checked in the first stage. Not tried yet: boss fights, the minigames and signposts' boards.
 
 ## Densetsu no Stafy 3
@@ -225,7 +225,6 @@ The Japanese release (the first release and Rev 1), and the English patch v1.0.5
 - **Signposts:** a signpost's board stays whole on the game screen, with its button prompts.
 - **Elsewhere** (the opening, the title, the file select, the story scenes), the second screen shows the logo; the English patch shows its own title.
 - Playing on one screen, the HUD stays on the game screen.
-- Known: with the Japanese game and the English patch both in your game list, both show the logo made first.
 - Checked in the first stage. Not tried yet: the shop, boss fights and the minigames.
 
 ## DK: King of Swing
@@ -524,6 +523,16 @@ The USA, European and Japanese releases.
 - On the title, the name entry and the main menu, the second screen shows the logo.
 - Tried in Shroom City's Town area (Europe and Japan at a new file's first turn; Europe in English and French). Not tried yet: the minigames, Party Land, Challenge Land and the other areas' boards, a Map with a flag placed.
 
+## Mario Pinball Land
+
+Mario Pinball Land in the USA and Australia, Super Mario Ball in Europe and Japan. Added by cmyksoda (pull request #97).
+
+- **In a room** (a table, a boss's room, Toad's shop, a mini game), in the adventure or in Time Attack, the second screen shows the game's HUD on black with the logo in the middle, each piece where the game draws it: the stars and the score along the top with your lives (Time Attack's timer in their place), the coins and blue coins at the bottom left, the B button and the item slot at the bottom right. An item falling into the slot falls there too. The game screen shows the table alone.
+- **The whole HUD, as when paused.** Playing, the game shows your lives, the score and the blue coins only for a moment after one of them changes, and slides them off again; pausing brings them all in. The second screen always has them where the pause puts them, with the numbers as they are now. What a room leaves out even when paused stays out (the score in Toad's shop, the lives in Time Attack). When a number gains a digit, it can sit a little off for a split second.
+- Toad running round the table, the item roulette, the pause menu, a shop's price and the target game's counter stay on the game screen.
+- **Elsewhere** (the title, the world select, the ball falling through the drain, the bonus screens, Time Attack's level select and best times), the second screen shows the logo.
+- Not tried yet: a boss played through, a Time Attack run won, Time Attack and an item falling into the slot in the European and Japanese releases, and their Virtual Console dumps.
+
 ## Mario vs. Donkey Kong
 
 The USA, European and Japanese releases.
@@ -667,6 +676,18 @@ The USA release and the Japanese one (Downtown Nekketsu Monogatari EX).
 - At the Story / Manage Data menu, the title card and through a story's opening conversation, the second screen shows the logo.
 - With one screen (`layout = single`), the top bar stays where the game draws it.
 - Shops, restaurants and two players haven't been tried yet.
+
+## Shantae Advance: Risky Revolution
+
+Limited Run Games' 2024 cartridge (the game's only release). Its header has no game code, so GBA DS knows the ROM by its checksum: a copy changed in the file itself plays as an unsupported game, while a patch switched on in Extras > Patches keeps the game supported. Added by cmyksoda (pull request #103).
+
+- **In play,** the second screen shows the HUD in the same corners as on the game screen, on black, with the game's logo in the middle: the held item's circle with the magic bar below it and the hearts at the top left, the gems with the dance indicator at the top right. The game screen has none of it.
+- **Talks:** for a signpost or a character, the HUD slides off the top of the second screen as the game slides it away, and back down after; while it's gone, the second screen shows the logo.
+- **The game's own pause screen** stays on the game screen; the second screen shows the logo while it's open, at once (no fade), and the HUD again as you go back to play.
+- **During the airship fight** the airship's top, which the game draws under the gem counter, shows whole on the game screen.
+- **Elsewhere** (the title, the file select, the opening and the town's scenes), the second screen shows the logo.
+- Playing on one screen, the HUD stays on the game screen.
+- Checked in the opening, the first area, the first boss and the town after it. Not tried yet: dances, transformations, dungeons, shops and Battle Mode.
 
 ## Shin Megami Tensei
 

@@ -2678,12 +2678,21 @@ static uint32_t rom_file_crc(const Config* c, const char* rom, bool compute) {
 	return rom_file_crc_ex(c, rom, compute, NULL);
 }
 
-/* The extracted logo's file (whether it exists yet or not): per code, or
- * (profile logoPerRom) per ROM file, so romhacks that share a code each
- * get their own; a patched game is its base ROM file, so it has the base's.
- * False when the ROM file's checksum isn't known yet and isn't being asked
- * for (compute): nothing to look for, or make, yet. */
-static bool extracted_path_for(const Config* c, const char* rom, const char* code, char* path, size_t n, bool compute) {
+/* crc (the ROM's CRC32 as played, 0 if not known yet) if it's a known mod's,
+ * which has a logo of its own (GEN-20), else 0 */
+static uint32_t logo_mod(const char* code, uint32_t crc) {
+	const MapProfile* prof = profile_find(code);
+	return prof && !prof->logoPerRom && profile_known_mod(code, crc) ? crc : 0;
+}
+
+/* The extracted logo's file (whether it exists yet or not): per code (a
+ * known mod's own, GEN-20), or (profile logoPerRom) per ROM file, so
+ * romhacks that share a code each get their own; a patched game is its base
+ * ROM file, so it has the base's. False when the ROM file's checksum isn't
+ * known yet and isn't being asked for (compute): nothing to look for, or
+ * make, yet. */
+static bool extracted_path_for(const Config* c, const char* rom, const char* code, uint32_t crc, char* path, size_t n,
+                               bool compute) {
 	const MapProfile* prof = profile_find(code);
 	if (prof && prof->logoPerRom) {
 		bool pending;
@@ -2698,12 +2707,16 @@ static bool extracted_path_for(const Config* c, const char* rom, const char* cod
 		}
 		if (!compute) return false;
 	}
-	if (prof && prof->logo.rev) snprintf(path, n, "%s/logos/%.4s-r%d.png", c->stateDir, code, prof->logo.rev);
-	else snprintf(path, n, "%s/logos/%.4s.png", c->stateDir, code);
+	uint32_t mod = logo_mod(code, crc);
+	char key[16];
+	if (mod) snprintf(key, sizeof(key), "%.4s-%08X", code, mod);
+	else snprintf(key, sizeof(key), "%.4s", code);
+	if (prof && prof->logo.rev) snprintf(path, n, "%s/logos/%s-r%d.png", c->stateDir, key, prof->logo.rev);
+	else snprintf(path, n, "%s/logos/%s.png", c->stateDir, key);
 	return true;
 }
-static void extracted_path(const Config* c, const char* rom, const char* code, char* path, size_t n) {
-	extracted_path_for(c, rom, code, path, n, true);
+static void extracted_path(const Config* c, const char* rom, const char* code, uint32_t crc, char* path, size_t n) {
+	extracted_path_for(c, rom, code, crc, path, n, true);
 }
 
 /* The player's own logo for the game: <asset_dir>/logos/<CODE>.png|.bmp|.jpg|.webp. */
@@ -2912,9 +2925,10 @@ static bool scrapedProvisional;
  * 1); otherwise LOGO_SUB pixels per GBA pixel, the same size on the screen. */
 #define LOGO_BOX_W 224
 #define LOGO_BOX_H 64
-static SDL_Surface* sized_surface(const Config* c, const char* rom, const char* src, const char* code, int* sub) {
+static SDL_Surface* sized_surface(const Config* c, const char* rom, const char* src, const char* code, uint32_t crc,
+                                  int* sub) {
 	char ref[1200];
-	extracted_path(c, rom, code, ref, sizeof(ref));
+	extracted_path(c, rom, code, crc, ref, sizeof(ref));
 	int refH = 0;
 	SDL_Surface* r = image_load(ref);
 	if (r) refH = r->h, SDL_FreeSurface(r);
@@ -2987,13 +3001,13 @@ void ui_game_prepare(const Config* c, const char* rom) {
 	bool needCrc = !rom_file_crc(c, rom, false);
 	char logoFile[1200] = "";
 	bool needLogo = false;
-	if (!needCrc && ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
+	if (!needCrc && ui_logo_source(c, rom, code, 0, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
 	if (!needCrc && !needLogo) return;
 	ui_notice("Initializing game...", tr("Only the first time for each game"));
 	if (needCrc) {
 		fprintf(stderr, "initializing %s: reading the ROM for its checksum\n", rom);
 		rom_file_crc(c, rom, true);
-		if (ui_logo_source(c, rom, code, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
+		if (ui_logo_source(c, rom, code, 0, logoFile, sizeof(logoFile)) == LOGO_EXTRACTED) needLogo = !file_there(logoFile) && !logo_failed(logoFile);
 	}
 	if (needLogo && logoFile[0]) {
 		char dir[1200];
@@ -3004,12 +3018,12 @@ void ui_game_prepare(const Config* c, const char* rom) {
 	}
 }
 
-void ui_logo_queue(const Config* c, const char* rom, const char* code) {
+void ui_logo_queue(const Config* c, const char* rom, const char* code, uint32_t crc) {
 	char path[1200];
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
-	if (!extracted_path_for(c, rom, code, path, sizeof(path), false)) return; /* (its checksum isn't known yet) */
-	if (!file_there(path)) logo_request(rom, code, path);
+	if (!extracted_path_for(c, rom, code, crc, path, sizeof(path), false)) return; /* (its checksum isn't known yet) */
+	if (!file_there(path)) logo_request(rom, code, logo_mod(code, crc), path);
 }
 
 bool ui_logo_provisional(void) {
@@ -3018,7 +3032,7 @@ bool ui_logo_provisional(void) {
 
 /* The logo's source: the player's own file or a scraped one (path set), or
  * the extracted one (path its file, which may not exist yet). */
-int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n) {
+int ui_logo_source(const Config* c, const char* rom, const char* code, uint32_t crc, char* path, size_t n) {
 	if (c->customLogos != CL_OFF) {
 		/* (one that couldn't be read keeps saying so: sized_surface falls back) */
 		if (own_logo(c, code, path, n)) {
@@ -3040,7 +3054,7 @@ int ui_logo_source(const Config* c, const char* rom, const char* code, char* pat
 			logo_note("the game's own: nothing in %s (%d images) named after %s, and no logos/%.4s.png", c->logoFolder,
 			          logoDir.n, base ? base + 1 : rom ? rom : "?", code);
 	} else logo_note("the game's own (no logos/%.4s.png, logo_folder not set)", code);
-	extracted_path(c, rom, code, path, n);
+	extracted_path(c, rom, code, crc, path, n);
 	return LOGO_EXTRACTED;
 }
 
@@ -3049,44 +3063,52 @@ bool ui_logo_custom(const Config* c, const char* rom, const char* code) {
 	return own_logo(c, code, path, sizeof(path)) || scraped_logo(c, rom, path, sizeof(path));
 }
 
-SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, bool* pixelArt, int* sub) {
+SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, uint32_t crc, bool* pixelArt,
+                             int* sub) {
 	char path[1200];
 	int one;
 	if (!sub) sub = &one;
 	*sub = 1;
 	scrapedProvisional = false;
-	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
+	if (ui_logo_source(c, rom, code, crc, path, sizeof(path)) != LOGO_EXTRACTED) {
 		/* the player's own or a scraped logo, as tall as the extracted one (GEN-11) */
-		SDL_Surface* s = sized_surface(c, rom, path, code, sub);
+		SDL_Surface* s = sized_surface(c, rom, path, code, crc, sub);
 		if (s) {
 			*pixelArt = *sub == 1;
 			return s;
 		}
-		extracted_path(c, rom, code, path, sizeof(path));
+		extracted_path(c, rom, code, crc, path, sizeof(path));
 	}
 	*pixelArt = true;
-	return image_load(path);
+	SDL_Surface* s = image_load(path);
+	if (!s && logo_mod(code, crc)) {
+		/* a known mod's own not made yet: the release's meanwhile (GEN-20) */
+		extracted_path(c, rom, code, 0, path, sizeof(path));
+		s = image_load(path);
+	}
+	return s;
 }
 
-bool ui_load_logo(const Config* c, const char* rom, const char* code, SDL_Texture* tex[2], int* w, int* h,
-                  bool* pixelArt) {
+bool ui_load_logo(const Config* c, const char* rom, const char* code, uint32_t crc, SDL_Texture* tex[2], int* w,
+                  int* h, bool* pixelArt) {
 	char path[1200];
 	scrapedProvisional = false;
 	snprintf(path, sizeof(path), "%s/logos", c->stateDir);
 	mkdirs(path);
 	char ext[1200];
-	extracted_path(c, rom, code, ext, sizeof(ext));
+	extracted_path(c, rom, code, crc, ext, sizeof(ext));
+	uint32_t mod = logo_mod(code, crc);
 	if (!ext[0]) { /* (its ROM's checksum is still being worked out: asked again when it's known) */
 		*pixelArt = true;
 		return false;
 	}
 	/* the player's own logo, else a scraped one: sized from the extracted
 	 * one (made if missing) */
-	if (ui_logo_source(c, rom, code, path, sizeof(path)) != LOGO_EXTRACTED) {
+	if (ui_logo_source(c, rom, code, crc, path, sizeof(path)) != LOGO_EXTRACTED) {
 		int sub = 1;
-		SDL_Surface* s = sized_surface(c, rom, path, code, &sub);
+		SDL_Surface* s = sized_surface(c, rom, path, code, crc, &sub);
 		if (s) {
-			if (scrapedProvisional && rom) logo_request(rom, code, ext);
+			if (scrapedProvisional && rom) logo_request(rom, code, mod, ext);
 			*pixelArt = sub == 1;
 			return textures_from(s, tex, w, h, sub > 1);
 		}
@@ -3094,8 +3116,11 @@ bool ui_load_logo(const Config* c, const char* rom, const char* code, SDL_Textur
 	/* otherwise the one extracted from the game's own title screen */
 	*pixelArt = true;
 	if (ui_load_image(ext, tex, w, h, false)) return true;
-	if (rom) logo_request(rom, code, ext);
-	return false;
+	if (rom) logo_request(rom, code, mod, ext);
+	if (!mod) return false;
+	/* a known mod's own not made yet: the release's meanwhile (GEN-20) */
+	extracted_path(c, rom, code, 0, ext, sizeof(ext));
+	return ui_load_image(ext, tex, w, h, false);
 }
 
 void ui_screenshot(const char* path) {

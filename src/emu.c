@@ -22,6 +22,7 @@
 #include <mgba-util/vfs.h>
 #include <mgba/core/log.h>
 #include "patch.h"
+#include "profiles.h"
 #include <stdarg.h>
 #include <stddef.h>
 #include <sys/stat.h>
@@ -662,6 +663,8 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->gameCode[4] = 0;
 	e->core->checksum(e->core, &e->romCrc, mCHECKSUM_CRC32); /* (worked out by mGBA as it loaded the ROM) */
 	if (e->patch != PATCH_APPLIED && e->patch != PATCH_PARTIAL) e->fileCrc = e->romCrc;
+	const char* codeless = memcmp(info.code, "\0\0\0\0", 4) ? NULL : profile_codeless(e->fileCrc);
+	if (codeless) memcpy(e->gameCode, codeless, 5);
 	return true;
 }
 
@@ -1262,6 +1265,27 @@ bool emu_rom_code(const uint8_t* h, size_t n, char code[5]) {
 	return true;
 }
 
+bool emu_rom_file_code(const char* path, char code[5]) {
+	uint8_t h[EMU_HEADER_MAX];
+	if (!emu_rom_header(path, h, sizeof(h)) || !emu_rom_code(h, sizeof(h), code)) return false;
+	if (memcmp(code, "\0\0\0\0", 4)) return true;
+	struct VDir* archive = emu_is_archive_name(path) ? VDirOpenArchive(path) : NULL;
+	struct VFile* vf = archive ? VDirFindFirst(archive, any_rom) : VFileOpen(path, O_RDONLY);
+	if (vf) {
+		/* (only a file the size of a known one is read whole) */
+		ssize_t n = vf->size(vf);
+		uint8_t* rom = n > 0 && profile_codeless_size(n) ? malloc((size_t) n) : NULL;
+		if (rom && vf->seek(vf, 0, SEEK_SET) == 0 && vf->read(vf, rom, (size_t) n) == n) {
+			const char* c = profile_codeless(doCrc32(rom, (size_t) n));
+			if (c) memcpy(code, c, 5);
+		}
+		free(rom);
+		vf->close(vf);
+	}
+	if (archive) archive->close(archive);
+	return true;
+}
+
 void emu_rom_title(const uint8_t* h, size_t n, char title[17]) {
 	title[0] = 0;
 	size_t at = 0xA0, len = 12;
@@ -1412,6 +1436,15 @@ static void hide_grouped(const HideSlot* s, const struct GBAVideoRendererSprite*
 	}
 }
 
+/* emu_hud_place: the HUD renderer's sprites, by their number in the sprite
+ * table: 0 as the game has them, 1 at placeAB's place (its attributes 0 and
+ * 1: place, shape and size; the picture and palette the game's), 2 left out.
+ * Only that renderer's copy of the table: the game and its own picture keep
+ * theirs. */
+static const struct GBAVideoRenderer* placeRenderer;
+static uint8_t placeHow[128];
+static uint16_t placeAB[128][2];
+
 /* Runs before the software renderer's own scanline code: when the sprite table
  * has changed, build the renderer's sprite list the way it would, minus the
  * hidden sprites, and mark it clean so the renderer uses ours. */
@@ -1420,7 +1453,17 @@ static void filtered_draw_scanline(struct GBAVideoRenderer* renderer, int y) {
 	HideSlot* s = slot_for(renderer);
 	if (!s) return;
 	if ((s->n || s->keepOnly || s->nExact || s->nRetile) && sw->oamDirty) {
-		int n = GBAVideoRendererCleanOAM(sw->d.oam->obj, sw->sprites, sw->objOffsetY);
+		struct GBAObj* table = sw->d.oam->obj;
+		static struct GBAObj placed[128];
+		if (renderer == placeRenderer) {
+			memcpy(placed, table, sizeof(placed));
+			for (int i = 0; i < 128; ++i) {
+				if (placeHow[i] == 1) placed[i].a = placeAB[i][0], placed[i].b = placeAB[i][1];
+				else if (placeHow[i] == 2) placed[i].a = (uint16_t) ((placed[i].a & ~0x0300) | 0x0200);
+			}
+			table = placed;
+		}
+		int n = GBAVideoRendererCleanOAM(table, sw->sprites, sw->objOffsetY);
 		int kept = 0;
 		if (s->grouped && !s->keepOnly) {
 			hide_grouped(s, sw->sprites, n);
@@ -1916,6 +1959,23 @@ void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n) {
 	split.nKeep = hs ? n : 0;
 	if (!split.grabbing) split_layers(split.bgMask, split.nObjs > 0 || split.nKeep > 0);
 	split.hud.oamDirty = true;
+}
+
+void emu_hud_place(const uint8_t how[128], const uint16_t ab[128][2]) {
+	if (!split.installed) return;
+	pthread_mutex_lock(&hideLock);
+	bool changed;
+	if (how) {
+		changed = placeRenderer != &split.hud.d || memcmp(placeHow, how, sizeof(placeHow)) || memcmp(placeAB, ab, sizeof(placeAB));
+		memcpy(placeHow, how, sizeof(placeHow));
+		memcpy(placeAB, ab, sizeof(placeAB));
+		placeRenderer = &split.hud.d;
+	} else {
+		changed = placeRenderer != NULL;
+		placeRenderer = NULL;
+	}
+	pthread_mutex_unlock(&hideLock);
+	if (changed) split.hud.oamDirty = true;
 }
 
 void emu_hud_retile(const int* oamIndex, const uint16_t* tile, int n) {

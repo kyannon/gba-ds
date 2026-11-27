@@ -545,7 +545,7 @@ static void ww_logo_load(void) {
 	ww.logoRetry = frameCount + 30;
 	bool pixelArt = false;
 	int sub = 1;
-	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, &pixelArt, &sub);
+	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, emu.romCrc, &pixelArt, &sub);
 	if (!lg) return;
 	ww.logo = malloc((size_t) lg->w * lg->h * 4);
 	if (ww.logo) {

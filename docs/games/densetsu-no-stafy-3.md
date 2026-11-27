@@ -27,11 +27,7 @@ The game came out only in Japan. The English patch (v1.0.5) is supported as full
 
 **ST3-5. Logo elsewhere.** The second screen shows the logo at half strength on dark grey wherever Starfy isn't in a stage: the opening, the title, the file select and the stage select; and in a stage until the game draws its HUD (the first stage's opening conversation and the walk-off after it, about 280 frames, or a conversation the first moment a stage is loaded in), where the black and the HUD arrive together.
 
-**ST3-6. The English translation.** On the English patch v1.0.5, as the patched ROM or with its `.bps` on the Japanese ROM (GEN-9), ST3-2 to ST3-5 hold as they are: the same screens and RAM as the Japanese game, the HUD's pieces in the translation's own words (TOTAL). Its logo is its own title, THE LEGENDARY STARFY 3, taken the same way.
-
-## Known issues
-
-- With both the Japanese game and the English patch in the game list, both show the logo made first, as GBA DS keeps one logo per game code (ST3-6's own logo shows when it's the only one played); each will show its own once logos are kept per ROM.
+**ST3-6. The English translation.** On the English patch v1.0.5, as the patched ROM or with its `.bps` on the Japanese ROM (GEN-9), ST3-2 to ST3-5 hold as they are: the same screens and RAM as the Japanese game, the HUD's pieces in the translation's own words (TOTAL). Its logo is its own title, THE LEGENDARY STARFY 3, taken the same way. Its logo is kept apart from the Japanese game's (GEN-20), so with both in the game list each shows its own.
 
 ## Not covered yet
 

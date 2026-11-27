@@ -222,18 +222,21 @@ void ui_free_image(SDL_Texture* tex[2]);
 /* A game's title logo: <asset_dir>/logos/<CODE>.png|.bmp|.jpg if the user
  * put one there; else a scraped one in logo_folder named after the ROM file;
  * either sized as the extracted logo is (GEN-11); else the one extracted from the ROM
- * (<state_dir>/logos/<CODE>.png), which is queued for extraction in the
- * background if it doesn't exist yet (watch logo_generation() and call
- * again). pixelArt: one pixel per GBA pixel, drawn with "integer". */
+ * (<state_dir>/logos/<CODE>.png, or a known mod's <CODE>-<CRC32>.png: crc is
+ * the ROM's CRC32 as played, 0 if not known yet, GEN-20), which is queued
+ * for extraction in the background if it doesn't exist yet (watch
+ * logo_generation() and call again). pixelArt: one pixel per GBA pixel,
+ * drawn with "integer". */
 /* A scraped logo not pixelated: LOGO_SUB of its pixels per GBA pixel. */
 #define LOGO_SUB 4
 /* The game's logo as an RGBA32 surface (caller frees): the user's file, a
  * scraped one, or the one extracted from the title screen; NULL if none
  * exists yet. *sub (may be NULL): the surface's pixels per GBA pixel (1,
  * or LOGO_SUB for a scraped logo at full resolution). */
-SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, bool* pixelArt, int* sub);
-bool ui_load_logo(const Config* cfg, const char* rom, const char* code, SDL_Texture* tex[2], int* w, int* h,
-                  bool* pixelArt);
+SDL_Surface* ui_logo_surface(const Config* c, const char* rom, const char* code, uint32_t crc, bool* pixelArt,
+                             int* sub);
+bool ui_load_logo(const Config* cfg, const char* rom, const char* code, uint32_t crc, SDL_Texture* tex[2], int* w,
+                  int* h, bool* pixelArt);
 /* The last logo loaded is a scraped one sized before the extracted logo
  * existed (load it again once logo_generation() changes). */
 bool ui_logo_provisional(void);
@@ -241,12 +244,12 @@ bool ui_logo_provisional(void);
 enum { LOGO_EXTRACTED, LOGO_OWN, LOGO_SCRAPED };
 /* The last logo choice in words (which file, or why a custom one wasn't used). */
 const char* ui_logo_note(void);
-int ui_logo_source(const Config* c, const char* rom, const char* code, char* path, size_t n);
+int ui_logo_source(const Config* c, const char* rom, const char* code, uint32_t crc, char* path, size_t n);
 /* The game has an own or scraped logo, used or not (custom_logos off). */
 bool ui_logo_custom(const Config* c, const char* rom, const char* code);
 /* The extracted logo queued for extraction if it's needed and missing (a
  * scraped logo needs it too: it takes its size from it). */
-void ui_logo_queue(const Config* c, const char* rom, const char* code);
+void ui_logo_queue(const Config* c, const char* rom, const char* code, uint32_t crc);
 /* The game list: a ROM file's checksum (for logos made per file) not known yet is worked out on a
  * thread, not while the list draws; ui_file_crc_generation moves as each is done. */
 void ui_file_crc_async(bool on);

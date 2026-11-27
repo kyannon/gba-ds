@@ -86,7 +86,9 @@ static void failed_mark(const char* outPng, bool failed) {
 	fclose(f);
 }
 
-bool logo_extract(const char* romPath, const char* gameCode, const char* outPng) {
+/* want: the ROM's CRC32 as played must be this known mod's, or (0) not a known
+ * mod's (GEN-20); NULL: any ROM */
+static bool extract(const char* romPath, const char* gameCode, const char* outPng, const uint32_t* want) {
 	const MapProfile* p = profile_find(gameCode);
 	if (!p) return false;
 	Emu e;
@@ -101,6 +103,11 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	 * is the base game: it uses the base's logo, from the unpatched file) */
 	const LogoSpec* L = profile_logo_spec(p, e.fileCrc);
 	if ((!L->wait && !L->steps[0].frames) || (p->logoPerRom && e.romCrc != e.fileCrc)) {
+		emu_close(&e);
+		return false;
+	}
+	if (want && !p->logoPerRom && (*want ? e.romCrc != *want : profile_known_mod(gameCode, e.romCrc))) {
+		fprintf(stderr, "logo: %s is CRC32 %08x as played, not the ROM %s is for\n", romPath, e.romCrc, outPng);
 		emu_close(&e);
 		return false;
 	}
@@ -393,10 +400,15 @@ bool logo_extract(const char* romPath, const char* gameCode, const char* outPng)
 	return ok;
 }
 
+bool logo_extract(const char* romPath, const char* gameCode, const char* outPng) {
+	return extract(romPath, gameCode, outPng, NULL);
+}
+
 /* ------------------------------------------------------------ queue */
 
 typedef struct Job {
 	char rom[1024], code[5], out[1024];
+	uint32_t crc; /* the known mod it's for, or 0 (GEN-20) */
 	bool urgent; /* runs while the queue's paused: the game being started or played */
 	struct Job* next;
 } Job;
@@ -419,7 +431,7 @@ static bool exists(const char* p) {
 /* False: called off (logo_yield), the job kept for later. */
 static bool do_job(Job* j) {
 	if (!exists(j->out)) {
-		logo_extract(j->rom, j->code, j->out);
+		extract(j->rom, j->code, j->out, &j->crc);
 		if (onWorker && cancelJob && !exists(j->out)) return false;
 	}
 	free(j);
@@ -489,7 +501,7 @@ static void* worker(void* arg) {
  * queued again until the next start: each finished job makes the game list
  * reload its logos, which asked for the missing one again, so one failure
  * looped for ever (and "Preparing games" counted up without end). */
-static char (*tried)[1024];
+static char (*tried)[2100];
 static int nTried, capTried;
 
 static bool tried_before(const char* out) {
@@ -498,7 +510,7 @@ static bool tried_before(const char* out) {
 	}
 	if (nTried == capTried) {
 		int cap = capTried ? capTried * 2 : 32;
-		char (*t)[1024] = realloc(tried, sizeof(*tried) * cap);
+		char (*t)[2100] = realloc(tried, sizeof(*tried) * cap);
 		if (!t) return false;
 		tried = t;
 		capTried = cap;
@@ -507,15 +519,20 @@ static bool tried_before(const char* out) {
 	return false;
 }
 
-static void enqueue(const char* romPath, const char* gameCode, const char* outPng) {
+static void enqueue(const char* romPath, const char* gameCode, uint32_t crc, const char* outPng) {
 	pthread_mutex_lock(&qlock);
 	for (Job* j = queue; j; j = j->next) {
-		if (!strcmp(j->out, outPng)) {
+		if (!strcmp(j->out, outPng) && !strcmp(j->rom, romPath)) {
 			pthread_mutex_unlock(&qlock);
 			return;
 		}
 	}
-	if (logo_failed(outPng) || tried_before(outPng)) {
+	/* (per ROM: one refused for being another version leaves the file to the
+	 * others, GEN-20; and apart while a game's played, as its own patches
+	 * apply there) */
+	char key[2100];
+	snprintf(key, sizeof(key), "%s%s|%s", paused ? "game:" : "", outPng, romPath);
+	if (logo_failed(outPng) || tried_before(key)) {
 		pthread_mutex_unlock(&qlock);
 		return;
 	}
@@ -527,6 +544,7 @@ static void enqueue(const char* romPath, const char* gameCode, const char* outPn
 	snprintf(j->rom, sizeof(j->rom), "%s", romPath);
 	snprintf(j->code, sizeof(j->code), "%.4s", gameCode);
 	snprintf(j->out, sizeof(j->out), "%s", outPng);
+	j->crc = crc;
 	j->urgent = paused; /* (asked for by the game being played: its own logo) */
 	if (!pending) finished = 0;
 	++pending;
@@ -589,11 +607,11 @@ void logo_step(void) {
 }
 #endif
 
-void logo_request(const char* romPath, const char* gameCode, const char* outPng) {
+void logo_request(const char* romPath, const char* gameCode, uint32_t crc, const char* outPng) {
 	if (exists(outPng)) return;
 	const MapProfile* p = profile_find(gameCode);
 	if (!p || (!p->logo.wait && !p->logo.steps[0].frames)) return;
-	enqueue(romPath, gameCode, outPng);
+	enqueue(romPath, gameCode, crc, outPng);
 }
 
 void logo_front(const char* gameCode, bool urgent) {

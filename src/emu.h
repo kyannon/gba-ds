@@ -112,6 +112,9 @@ void emu_gb_border_wanted(bool on); /* before emu_open: Display > Game Boy borde
 bool emu_gb_border(const Emu* e);   /* the game runs with its border (Emu.gbBorder) */
 const uint32_t* emu_gb_border_px(const Emu* e); /* SGB_W x SGB_H, or NULL */
 bool emu_rom_code(const uint8_t* h, size_t n, char code[5]);
+/* emu_rom_code for the ROM file at path; a GBA header with no code (4 zero bytes) gets the code
+ * its dump is filed under, if the whole file's CRC32 is a known one (profile_codeless) */
+bool emu_rom_file_code(const char* path, char code[5]);
 void emu_rom_title(const uint8_t* h, size_t n, char title[17]);
 void emu_close(Emu* e);
 void emu_frame(Emu* e, uint32_t keys);
@@ -291,6 +294,12 @@ void emu_hud_rows(int rows);
 /* The HUD split also draws the sprites with exactly these attributes 0-2
  * (the game's picture keeps them); n = 0: none. */
 void emu_hud_keep_exact(const uint16_t (*attrs)[3], int n);
+/* The HUD's sprites drawn elsewhere in its picture (only there: the game's sprite table
+ * and screen are left as they are), by their number in the sprite table: how[i] 0 as the
+ * game has it, 1 with attributes 0 and 1 (place, shape, size) ab[i] (its picture and
+ * palette still the game's), 2 left out. NULL: as the game has them. Mario Pinball Land:
+ * the counters where the game puts them when paused (MPL-3). */
+void emu_hud_place(const uint8_t how[128], const uint16_t ab[128][2]);
 /* The HUD split draws the sprites in OAM slots oamIndex[i] with tile tile[i] instead of their own
  * (the game's picture and its memory are untouched); n = 0: none. */
 void emu_hud_retile(const int* oamIndex, const uint16_t* tile, int n);
