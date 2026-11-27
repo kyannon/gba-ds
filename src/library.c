@@ -888,17 +888,21 @@ static void load_thumbs(Config* cfg, int idx) {
  * pixel font lacks is written in Jost at the same size. Too long for one line: up to three, broken after a
  * '/' where one is close enough, the last cut with "...". */
 #define PATH_LINES 3
+/* the pixel font the path is written in: the small one at 1x and 2x, the large one (7 rows to a capital,
+ * not 6) at 3x and 4x, where its font pixels are big enough for the finer letters (the owner's choice) */
+static const PixFont* pathPf = &pixfont_small;
+static const PixFont* path_font(int size) { return size >= 3 ? &pixfont_large : &pixfont_small; }
 static bool path_pixel(const char* s) { /* every character in the pixel font */
 	for (const unsigned char* p = (const unsigned char*) s; *p; ++p)
 		if (*p >= 0x80) return false;
-	return pixfont_has(&pixfont_small, s);
+	return pixfont_has(pathPf, s);
 }
 static int path_width(const char* s, size_t n, bool pix, int scale) {
 	char buf[1100];
 	if (n >= sizeof(buf)) n = sizeof(buf) - 1;
 	memcpy(buf, s, n);
 	buf[n] = 0;
-	return pix ? pixfont_width(&pixfont_small, buf) * scale : ui_font_width_as_is(TF_BODY, pixfont_small.cap * scale, buf);
+	return pix ? pixfont_width(pathPf, buf) * scale : ui_font_width_as_is(TF_BODY, pathPf->cap * scale, buf);
 }
 /* how many bytes of s go on a line maxW wide (at least one character) */
 static size_t path_break(const char* s, int maxW, bool pix, int scale) {
@@ -954,13 +958,22 @@ static int path_lines(const char* path, int maxW, int scale, const char** line, 
 static int pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath): 0 off, else the font size 1x-4x */
 /* a font pixel at 1x (the owner's choice: 2 on the RG DS Plus, as the GitHub link); the rule's thickness and its gaps */
 static int path_base(int scr) { return SDL_max(1, (int) ui_px(scr) / 2); }
-static int path_scale_at(int scr, int size) { return path_base(scr) * SDL_max(1, size); }
+/* a font pixel at a size: 1x-4x the 1x one, in the large font the nearest whole number of screen pixels that
+ * gives its capitals the small font's height at that size */
+static int path_scale_at(int scr, int size) {
+	int s = path_base(scr) * SDL_max(1, size);
+	if (path_font(size) == &pixfont_large) s = SDL_max(1, (s * pixfont_small.cap + pixfont_large.cap / 2) / pixfont_large.cap);
+	return s;
+}
+static void path_size(int size) { pathStrip = size, pathPf = path_font(size); }
 static int path_scale(int scr) { return path_scale_at(scr, pathStrip); }
-static int path_line_h(int scr) { return (pixfont_small.height + 2) * path_scale(scr); }
+static int path_line_h(int scr) { return (pathPf->height + 2) * path_scale(scr); }
 /* The path's room under the preview's hints: the longest listed path's lines, so the hints above don't
  * jump as the selection moves (worked out again only when the games or the screen change). 0: off. */
 static int path_block_h_at(int scr, int size) {
 	if (!size || nGames <= 0) return 0;
+	const PixFont* was = pathPf;
+	pathPf = path_font(size);
 	static unsigned key[5];
 	static int lines[5] = { 1, 1, 1, 1, 1 };
 	int w = screens[scr].rect.w, scale = path_scale_at(scr, size), maxW = w - (int) (ui_px(scr) * 6) * 2;
@@ -975,7 +988,9 @@ static int path_block_h_at(int scr, int size) {
 			lines[size] = SDL_max(lines[size], path_lines(games[i].path, maxW, scale, line, len, &cut));
 		}
 	}
-	return (pixfont_small.height + 2) * scale * lines[size] - 2 * scale;
+	int h = (pathPf->height + 2) * scale * lines[size] - 2 * scale;
+	pathPf = was;
+	return h;
 }
 static int path_block_h(int scr) { return path_block_h_at(scr, pathStrip); }
 /* how much taller than its own size (UI_STRIP_UNITS, room for the path at 1x) the strip over the list
@@ -1009,8 +1024,8 @@ static void draw_path_text(int scr, int y, const char* path, SDL_Color c) {
 			k += 3;
 		}
 		int ly = y + i * lineH;
-		if (pix) pix_draw(scr, &pixfont_small, m, ly, scale, buf, k, c);
-		else ui_font_text_as_is(scr, TF_BODY, m, ly + pixfont_small.cap * scale / 2, pixfont_small.cap * scale, buf, c, -1);
+		if (pix) pix_draw(scr, pathPf, m, ly, scale, buf, k, c);
+		else ui_font_text_as_is(scr, TF_BODY, m, ly + pathPf->cap * scale / 2, pathPf->cap * scale, buf, c, -1);
 	}
 }
 
@@ -1059,7 +1074,7 @@ static void game_note(GameEntry* g, char* line, size_t n) {
  * point's picture, which is one line instead. Its unit is a 256th of the width (ui.c), so it
  * sits across the display as the RG DS Plus's other screen does; UI_STRIP_UNITS tall. */
 static void draw_preview_compact(Config* cfg, int scr, int sel) {
-	pathStrip = cfg->romPath;
+	path_size(cfg->romPath);
 	ui_list_strip_extra(rompath_strip_extra()); /* (taller for a larger path: the layout is cut again if it changed) */
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
@@ -1070,7 +1085,7 @@ static void draw_preview_compact(Config* cfg, int scr, int sel) {
 	int vpx = SDL_max(1, px / 2);
 	pix_line(scr, m + px * 2, m + headH + px * 2, vpx, "github.com/kyannon/gba-ds", C_DIM, false);
 	/* the path at the bottom under its rule, as on the preview */
-	pathStrip = cfg->romPath;
+	path_size(cfg->romPath);
 	int pathH = path_block_h(scr), rowBottom = r.h - px * 4;
 	if (pathH) {
 		int ps = path_base(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
@@ -1144,7 +1159,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	}
 
 	/* the selected game's path at the bottom (Settings > System, GEN-21), the hints above it */
-	pathStrip = cfg->romPath;
+	path_size(cfg->romPath);
 	int pathH = path_block_h(scr), ty = r.h - px * 11;
 	if (pathH) {
 		/* a rule above it, one font pixel thick, two font pixels of black either side (the hints' icons above,
@@ -1575,7 +1590,7 @@ static void storage_check(const Config* cfg) {
 }
 
 static void draw_list(Config* cfg, int scr, int sel, int scroll) {
-	pathStrip = cfg->romPath;
+	path_size(cfg->romPath);
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	ListGeom g = list_geom(scr);
@@ -1767,7 +1782,7 @@ static const char* rompath_note(void) { return N_("Shows the selected game's fol
 static void rompath_switch(Config* cfg) {
 	/* Off, then On at 1x, 2x, 3x, 4x, then Off again */
 	cfg->romPath = (SDL_clamp(cfg->romPath, 0, 4) + 1) % 5;
-	pathStrip = cfg->romPath;
+	path_size(cfg->romPath);
 	save_library_cfg(cfg);
 	if (cfg->romPath) fprintf(stderr, "library: ROM path on the game list on (font size %dx)\n", cfg->romPath);
 	else fprintf(stderr, "library: ROM path on the game list off\n");
@@ -3535,7 +3550,7 @@ void library_language_ask(Config* cfg) {
 }
 
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
-	pathStrip = cfg->romPath; /* (the preview's room for the ROM path, GEN-21) */
+	path_size(cfg->romPath); /* (the preview's room for the ROM path, GEN-21) */
 	if (!cfg->languageAsked) library_language_ask(cfg); /* (a first install, issue #92) */
 	storage_check(cfg);
 	sortMode = !strcmp(cfg->librarySort, "recent") ? 1 : 0;
