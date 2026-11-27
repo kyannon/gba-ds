@@ -1,6 +1,6 @@
 /* The second screen's contextual toggle (GEN-14, issue #37) and which of its
  * pictures is up: moved unchanged out of game.c (libretro core, discussion
- * #75). No SDL. The state it works on is game.c's, shared through toggle.h. */
+ * #75). No SDL. The state it works on is sec's (second.h). */
 #include "toggle.h"
 #include "second.h"
 #include <stdio.h>
@@ -16,14 +16,14 @@ static void toggle_apply(int page);
 /* which of the second screen's pictures shows now: the map's frames turn
  * every frameStep frames from mapAnimStart (a marker's blinking, or pages:
  * mapRes.pages); never out of range, even with mapAnimStart ahead of
- * frameCount (it once came from the game played before: frames[-1]).
+ * sec.frame (it once came from the game played before: frames[-1]).
  * The one place that says which page is up (the toggle, GEN-14, changes
  * it from here). */
 int second_page(void) {
 	if (sec.mapRes.nFrames < 1 || sec.frame < sec.mapAnimStart) return 0;
 	const MapProfile* hp = sec.mc ? mapcap_profile(sec.mc) : NULL;
 	if (hp && hp->holdPage) {
-		int hold = hp->holdPage(&(*sec.emu)); /* (a page kept up: Pokémon's Party in a battle) */
+		int hold = hp->holdPage(sec.emu); /* (a page kept up: Pokémon's Party in a battle) */
 		if (hold >= 0 && hold < sec.mapRes.nFrames) return hold;
 	}
 	if (hp && hp->views) return sec.cfg->toggle ? sec.pageOffset % sec.mapRes.nFrames : 0; /* (views: the first until the toggle turns to another; no timer) */
@@ -60,11 +60,11 @@ bool toggle_ready(void) {
 	if (tg_view_mode(hp)) {
 		/* the other view is captured on the press: ready when there is one here (or this is it, and the game's own is to come back), a picture is up and the hidden copy is free */
 		if (sec.mapShownIdx < 0 || sec.logoForced || sec.liveOn || sec.mapInactive || sec.pressCap || (sec.capSubject && mapcap_busy(sec.mc))) return false; /* (a refresh still running doesn't count: a press calls it off) */
-		return sec.viewAlt || !hp->altHere || hp->altHere(&(*sec.emu));
+		return sec.viewAlt || !hp->altHere || hp->altHere(sec.emu);
 	}
 	if (!sec.mapRes.pages || sec.mapRes.nFrames < 2 || sec.mapShownIdx < 0 || !map_anim()) return false; /* (one picture, the logo, Map Animations off) */
 	if (sec.logoForced || sec.liveOn || sec.mapInactive) return false;
-	if (hp && hp->holdPage && hp->holdPage(&(*sec.emu)) >= 0) return false; /* (a page kept up: Pokémon's Party in a battle) */
+	if (hp && hp->holdPage && hp->holdPage(sec.emu) >= 0) return false; /* (a page kept up: Pokémon's Party in a battle) */
 	if (sec.capSubject && mapcap_busy(sec.mc)) return false; /* (the next subject's pictures aren't here yet: GEN-6) */
 	return true;
 }

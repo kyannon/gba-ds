@@ -1,4 +1,6 @@
-/* The second screen's picture: the pure pixel steps (see second.c). */
+/* The second screen without SDL (libretro core, discussion #75): its state
+ * (sec), what a core calls (open, step, states, the logo, close) and what the
+ * app's other parts use. See second.c. */
 #ifndef SECOND_H
 #define SECOND_H
 #include "config.h"
@@ -73,7 +75,7 @@ typedef struct {
 	unsigned capDone, tgCapWant;
 	/* the toggle's state machine (toggle.c) */
 	int tgState, tgFrames, tgTarget, tgWait;
-	/* the map refresh (game.c map_refresh_step), set up again for each game */
+	/* the map refresh (map_refresh_step), set up again for each game */
 	struct {
 		uint32_t lastRoomKey;
 		uint32_t seenRoomKey; /* the room key as it is now, and for how many frames it's held */

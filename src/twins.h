@@ -1,7 +1,8 @@
 /* The Pinball copies (profile tall.live): the two extra copies of the game
- * that draw the table's other rows, their worker threads' jobs, and the
- * shared state game.c's run_frame and update_tall read. Moved out of game.c
- * unchanged (libretro core, discussion #75); no SDL in here. */
+ * that draw the table's other rows, run from the app's frame by twins_before /
+ * twins_second_start / twins_after, and the tall view's composer (update_tall,
+ * from second_step). Moved out of game.c unchanged (libretro core, discussion
+ * #75); no SDL in here. What only twins.c uses is static there. */
 #ifndef TWINS_H
 #define TWINS_H
 #include "emu.h"
@@ -43,14 +44,15 @@ extern uint64_t twinSeq;
 void twin_close(void);
 void twin_open(const char* rom, const MapProfile* p);
 
-/* update_tall's inputs from game.c, and its one output: the second screen's
- * picture, handed to show() when it's made (game.c puts it in its textures) */
+/* update_tall's inputs (second_step makes them from sec), and its one output:
+ * the second screen's picture, handed to show() when it's made (the app's
+ * sec.hooks.presentGba) */
 typedef struct {
 	int nScreens;
-	uint64_t frame;               /* frameCount, for the log */
+	uint64_t frame;               /* sec.frame, for the log */
 	bool swap;                    /* the second screen is the top picture */
 	uint32_t* hudPx;              /* the HUD split's picture (emu_hud_split) */
-	int* mapShownIdx;             /* game.c's: set to -1 / 0 to have the second screen shown again */
+	int* mapShownIdx;             /* sec.mapShownIdx: set to -1 / 0 to have the second screen shown again */
 	void (*show)(const uint32_t* second);
 } TallEnv;
 
@@ -62,7 +64,7 @@ extern char tallLog[TALL_LOG][176];
 extern unsigned tallLogN;
 void update_tall(const TallEnv* env);
 
-/* the copies' part of game.c's run_frame, in its order */
+/* the copies' part of the app's frame (game.c run_frame), in its order */
 bool twins_before(uint32_t keys);
 void twins_second_start(uint32_t keys);
 void twins_after(bool live);

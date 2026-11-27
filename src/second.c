@@ -1,8 +1,10 @@
 /* The second screen, without SDL (libretro core, discussion #75): its state
- * (sec, second.h), the per-frame step that decides when to capture the map
- * and picks up what comes in (map_refresh_step), and the pure pixel steps.
- * Moved out of game.c without changing what it does; what still puts the
- * pictures on screen is the app's, through sec.hooks. */
+ * (sec, second.h); a game's set-up and teardown (second_open, second_drop,
+ * second_close); the per-frame step (second_step: when to capture the map and
+ * picking up what comes in, the screen copy, the tall and climb views, the
+ * HUD, the fights); the states' block; the idle logo; the pixel steps. Moved
+ * out of game.c without changing what it does; what puts the pictures on
+ * screen is the app's (or a core's), through sec.hooks and hud.hooks. */
 #include "second.h"
 #include "toggle.h"
 #include "hud.h"
@@ -275,8 +277,8 @@ static void map_refresh_step(void) {
 	{
 		/* (logoIf: the logo for now, SM4-11; a logo-only game's from its HUD's profile) */
 		const MapProfile* lp = sec.mc ? mapcap_profile(sec.mc) : hud.hudProf;
-		bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, &(*sec.emu))) ||
-		                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, &(*sec.emu))));
+		bool lf = lp && ((lp->logoIf[0].addr && memprobes_match(lp->logoIf, 2, sec.emu)) ||
+		                 (lp->logoIfOr[0].addr && memprobes_match(lp->logoIfOr, 2, sec.emu)));
 		if (lf) sec.logoHolding = lp->logoIfLast ? 0 : 60;
 		else if (sec.logoHolding > 0) --sec.logoHolding;
 		lf = lf || sec.logoHolding > 0;
@@ -288,12 +290,12 @@ static void map_refresh_step(void) {
 		/* the profile's sprite hiding, where it's only for some moments
 		 * (hideWhen: Lady Sia's HUD in play, not its credits or pause
 		 * screen); from the next frame drawn */
-		if (sec.hideWhenProf && memprobes_match(sec.hideWhenProf->hideWhen, 2, &(*sec.emu)) != sec.hideWhenOn) {
+		if (sec.hideWhenProf && memprobes_match(sec.hideWhenProf->hideWhen, 2, sec.emu) != sec.hideWhenOn) {
 			sec.hideWhenOn = !sec.hideWhenOn;
-			emu_hide_sprites(&(*sec.emu), sec.hideWhenOn ? sec.hideWhenProf->hideSprites : NULL, sec.hideWhenOn ? sec.hideWhenN : 0);
+			emu_hide_sprites(sec.emu, sec.hideWhenOn ? sec.hideWhenProf->hideSprites : NULL, sec.hideWhenOn ? sec.hideWhenN : 0);
 			if (sec.debug) fprintf(stderr, "frame %llu: sprite hiding %s\n", (unsigned long long) sec.frame, sec.hideWhenOn ? "on" : "off");
 		}
-		bool dark = frame_is_dark((*sec.emu).fb);
+		bool dark = frame_is_dark(sec.emu->fb);
 		if (sec.refresh.wasDark && !dark) sec.refresh.refreshAt = (long) sec.frame + 6;
 		sec.refresh.wasDark = dark;
 		if (sec.refresh.refreshAt >= 0 && (long) sec.frame >= sec.refresh.refreshAt) {
@@ -301,7 +303,7 @@ static void map_refresh_step(void) {
 			sec.refresh.refreshAt = -1;
 			if (sec.debug) fprintf(stderr, "frame %llu: room transition\n", (unsigned long long) sec.frame);
 		}
-		if (sec.mapShownIdx >= 0 && sec.frame % 30 == 0 && mapcap_in_menu(sec.mc, &(*sec.emu))) {
+		if (sec.mapShownIdx >= 0 && sec.frame % 30 == 0 && mapcap_in_menu(sec.mc, sec.emu)) {
 			/* quit to the title: the map belongs to the old session */
 			sec.mapShownIdx = -1;
 			sec.mapInactive = false;
@@ -309,7 +311,7 @@ static void map_refresh_step(void) {
 			/* (always logged: what sends the second screen back to the logo) */
 			fprintf(stderr, "frame %llu: second screen back to the logo (the profile's menu probes matched)\n", (unsigned long long) sec.frame);
 		}
-		uint32_t rk = mapcap_room_key(sec.mc, &(*sec.emu));
+		uint32_t rk = mapcap_room_key(sec.mc, sec.emu);
 		if (rk != sec.refresh.seenRoomKey) sec.refresh.seenRoomKey = rk, sec.refresh.seenRoomFor = 0;
 		else ++sec.refresh.seenRoomFor;
 		/* a change counts once it has held for 3 frames (a cursor
@@ -345,11 +347,11 @@ static void map_refresh_step(void) {
 		 * often than the normal interval */
 		bool due = sec.refresh.sinceMapRequest >= interval || sec.pressCap ||
 		           ((sec.refresh.forceMap || roomChanged) && (!fails || sec.refresh.sinceMapRequest >= every));
-		if (due && !mapcap_busy(sec.mc) && mapcap_live_ok(sec.mc, &(*sec.emu)) && !(sec.viewWait && sec.tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
+		if (due && !mapcap_busy(sec.mc) && mapcap_live_ok(sec.mc, sec.emu) && !(sec.viewWait && sec.tgState == TG_FADE_OUT)) { /* (not while the old view fades out: its picture is still the one up) */
 			/* a new subject (a room, a loaded state) shows the game's own view again */
 			if (roomChanged || sec.refresh.forceMap) sec.viewAlt = false;
 			mapcap_set_alt(sec.viewAlt && sec.cfg->toggle);
-			if (mapcap_request(sec.mc, &(*sec.emu))) {
+			if (mapcap_request(sec.mc, sec.emu)) {
 				sec.refresh.sinceMapRequest = 0;
 				sec.refresh.lastRoomKey = rk;
 				sec.capSubject = roomChanged || sec.refresh.forceMap; /* (not a refresh of the same subject) */
@@ -359,7 +361,7 @@ static void map_refresh_step(void) {
 		}
 		toggle_step();
 		bool fresh = mapcap_poll(sec.mc, sec.mapRes.serial, &sec.mapRes);
-		if (fresh && mapcap_in_menu(sec.mc, &(*sec.emu))) {
+		if (fresh && mapcap_in_menu(sec.mc, sec.emu)) {
 			/* a capture that finished after quitting to the title: drop it */
 		} else if (fresh) {
 			map_show_new(true);
@@ -373,7 +375,7 @@ static void map_refresh_step(void) {
 		 * the net), drawn every frame over whatever was captured; when it
 		 * stops, the captured picture again */
 		const MapProfile* lvp = mapcap_profile(sec.mc);
-		const uint32_t* lv = lvp && lvp->liveView && sec.romPath ? lvp->liveView(&(*sec.emu), sec.romPath) : NULL;
+		const uint32_t* lv = lvp && lvp->liveView && sec.romPath ? lvp->liveView(sec.emu, sec.romPath) : NULL;
 		if (lv) {
 			sec.hooks.present(lv);
 			if (sec.mapShownIdx < 0) sec.mapShownIdx = 0;
@@ -418,31 +420,31 @@ void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRul
 	static void* st;
 	static size_t stSize;
 	static uint32_t raw[GBA_W * GBA_H];
-	size_t sz = emu_state_size(&(*sec.emu));
+	size_t sz = emu_state_size(sec.emu);
 	if (sz > stSize) {
 		free(st);
 		st = malloc(sz);
 		stSize = st ? sz : 0;
 	}
-	if (!st || !emu_state_save(&(*sec.emu), st)) {
-		memcpy(out, (*sec.emu).fb, sizeof(raw));
+	if (!st || !emu_state_save(sec.emu, st)) {
+		memcpy(out, sec.emu->fb, sizeof(raw));
 		return;
 	}
-	memcpy(raw, (*sec.emu).fb, sizeof(raw));
+	memcpy(raw, sec.emu->fb, sizeof(raw));
 	SpriteRule all[12];
 	int na = 0;
 	for (int i = 0; i < nKept && na < 12; ++i) all[na++] = kept[i];
 	for (int i = 0; i < n && na < 12; ++i) all[na++] = hide[i];
-	emu_hide_sprites(&(*sec.emu), all, na);
-	emu_state_load(&(*sec.emu), st);
-	if (pokeAt) emu_write16(&(*sec.emu), pokeAt, pokeV);
-	emu_frame(&(*sec.emu), 0);
-	memcpy(out, (*sec.emu).fb, sizeof(raw));
-	emu_hide_sprites(&(*sec.emu), nKept ? kept : NULL, nKept);
-	emu_state_load(&(*sec.emu), st);
+	emu_hide_sprites(sec.emu, all, na);
+	emu_state_load(sec.emu, st);
+	if (pokeAt) emu_write16(sec.emu, pokeAt, pokeV);
+	emu_frame(sec.emu, 0);
+	memcpy(out, sec.emu->fb, sizeof(raw));
+	emu_hide_sprites(sec.emu, nKept ? kept : NULL, nKept);
+	emu_state_load(sec.emu, st);
 	int16_t drop[2048];
-	while (emu_audio_read(&(*sec.emu), drop, 1024) > 0) {}
-	memcpy((*sec.emu).fb, raw, sizeof(raw));
+	while (emu_audio_read(sec.emu, drop, 1024) > 0) {}
+	memcpy(sec.emu->fb, raw, sizeof(raw));
 }
 
 /* The second screen kept with save states (inside the state file: emu.c
@@ -592,15 +594,15 @@ void second_state_load(const uint8_t* b, size_t n) {
 static void update_snapshot(void) {
 	const typeof(sec.snapProf->snap)* sn = &sec.snapProf->snap;
 	int tol = sn->tol ? sn->tol : 12;
-	if (probes_hit((*sec.emu).fb, sn->show, tol) >= sn->showMin) {
+	if (probes_hit(sec.emu->fb, sn->show, tol) >= sn->showMin) {
 		sec.snapRevert = 0;
 		if (++sec.snapShow >= S_MAX(1, sn->stable)) {
-			const uint32_t* px = (*sec.emu).fb;
+			const uint32_t* px = sec.emu->fb;
 			if (sn->hide[0].x1) {
 				/* only when the picture changes (the sheets are still) */
 				static uint32_t last[GBA_W * GBA_H], clean[GBA_W * GBA_H];
-				if (sec.mapShownIdx < 0 || memcmp(last, (*sec.emu).fb, sizeof(last))) {
-					memcpy(last, (*sec.emu).fb, sizeof(last));
+				if (sec.mapShownIdx < 0 || memcmp(last, sec.emu->fb, sizeof(last))) {
+					memcpy(last, sec.emu->fb, sizeof(last));
 					int n = 0;
 					while (n < 4 && sn->hide[n].x1) ++n;
 					snapshot_hiding_sprites(sn->hide, n, NULL, 0, clean);
@@ -622,7 +624,7 @@ static void update_snapshot(void) {
 	if (sec.mapShownIdx < 0) return;
 	bool menu = false;
 	for (int k = 0; k < 2; ++k) {
-		if (sn->revertMin[k] && probes_hit((*sec.emu).fb, sn->revert[k], tol) >= sn->revertMin[k]) menu = true;
+		if (sn->revertMin[k] && probes_hit(sec.emu->fb, sn->revert[k], tol) >= sn->revertMin[k]) menu = true;
 	}
 	if (!menu) {
 		sec.snapRevert = 0;
@@ -665,8 +667,8 @@ static void second_map_setup(const char* code, bool logoOnly) {
 		/* (with hideWhen: off until the frame loop finds it matching) */
 		sec.hideWhenProf = prof && nRules && prof->hideWhen[0].addr ? prof : NULL;
 		sec.hideWhenN = nRules, sec.hideWhenOn = false;
-		emu_hide_sprites(&(*sec.emu), prof && !sec.hideWhenProf ? prof->hideSprites : NULL, sec.hideWhenProf ? 0 : nRules);
-		emu_hide_grouped(&(*sec.emu), prof && prof->hideGrouped);
+		emu_hide_sprites(sec.emu, prof && !sec.hideWhenProf ? prof->hideSprites : NULL, sec.hideWhenProf ? 0 : nRules);
+		emu_hide_grouped(sec.emu, prof && prof->hideGrouped);
 	} else if (!logoOnly) {
 		fprintf(stderr, "no map profile for %s\n", code);
 	}
@@ -708,6 +710,14 @@ void second_open(const char* rom, const char* code, int screens) {
 	second_map_setup(code, sec.logoOnly);
 }
 
+/* the capture's pictures freed (second_drop, second_close) */
+static void map_frames_free(void) {
+	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
+		free(sec.mapRes.frames[i]);
+		sec.mapRes.frames[i] = NULL;
+	}
+}
+
 /* The game's second screen taken down before second_open sets it up for
  * another game (a compilation: the game running in it changed, game.c's
  * ss_switch): the old game's HUD split and hidden sprites off, its capture and
@@ -718,10 +728,7 @@ void second_drop(void) {
 	sec.hideWhenProf = NULL;
 	mapcap_destroy(sec.mc);
 	sec.mc = NULL;
-	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
-		free(sec.mapRes.frames[i]);
-		sec.mapRes.frames[i] = NULL;
-	}
+	map_frames_free();
 }
 
 /* The game's second screen taken down as the game ends: its capture, the
@@ -733,10 +740,7 @@ void second_close(void) {
 	sec.mc = NULL;
 	twin_close();
 	climb_close();
-	for (int i = 0; i < MAP_MAX_FRAMES; ++i) {
-		free(sec.mapRes.frames[i]);
-		sec.mapRes.frames[i] = NULL;
-	}
+	map_frames_free();
 	free(sec.stillPx);
 	sec.stillPx = NULL;
 	sec.stillValid = false;
@@ -809,14 +813,13 @@ static bool screen_under(const uint32_t* fb, int max) {
 }
 
 /* profile.climb: the game's picture on the bottom screen and the level above
- * it on the top one, from the copy (climb.c; DKKS-3). Called after each frame.
- * (dev's game.c update_climb, Nov 26, 2026, put here with the other views:
- * the texture upload is sec.hooks.presentGba.) */
+ * it on the top one, from the copy (climb.c; DKKS-3). Called after each frame
+ * by second_step; the picture goes up through sec.hooks.presentGba. */
 static void update_climb(void) {
 	static int missing; /* frames in a level with no picture from the copy */
 	static int between; /* frames of black since a level went, with the view still up */
 	static bool blackTop;
-	bool on = memprobes_match(sec.climbProf->climb.on, 3, &(*sec.emu));
+	bool on = memprobes_match(sec.climbProf->climb.on, 3, sec.emu);
 	if (on != sec.climbOn) {
 		sec.climbOn = on;
 		climb_reset();
@@ -828,11 +831,11 @@ static void update_climb(void) {
 		memcpy(tallTop, top, sizeof(tallTop));
 		missing = between = 0;
 		blackTop = false;
-	} else if (on && (++missing <= 4 || (missing <= 90 && (screen_under((*sec.emu).fb, 100) || climb_waiting())))) {
+	} else if (on && (++missing <= 4 || (missing <= 90 && (screen_under(sec.emu->fb, 100) || climb_waiting())))) {
 		/* (a level starting or a state loaded: the copy has none for a frame or two, longer while the camera
 		 * settles in a room's fade-in; black meanwhile, the view kept) */
 		if (!tallLive || blackTop) memset(tallTop, 0, sizeof(tallTop));
-	} else if (!on && tallLive && ++between <= 120 && screen_under((*sec.emu).fb, 6)) {
+	} else if (!on && tallLive && ++between <= 120 && screen_under(sec.emu->fb, 6)) {
 		/* (the game is black between two rooms: the view stays, not the layout flipping to the logo and back) */
 		memset(tallTop, 0, sizeof(tallTop));
 		blackTop = true;
@@ -842,7 +845,7 @@ static void update_climb(void) {
 		blackTop = false;
 		return;
 	}
-	memcpy(tallBot, (*sec.emu).fb, sizeof(tallBot));
+	memcpy(tallBot, sec.emu->fb, sizeof(tallBot));
 	uint32_t* second = sec.cfg->swap ? tallTop : tallBot;
 	sec.hooks.presentGba(second);
 	if (!tallLive) fprintf(stderr, "frame %llu: level over both screens\n", (unsigned long long) sec.frame);
@@ -879,7 +882,7 @@ void second_step(int screens) {
  * make_logo_canvas.) */
 int second_idle_picture(uint32_t** px, int* w, int* h, int* sub) {
 	*px = NULL;
-	if (emu_is_gb(&(*sec.emu))) {
+	if (emu_is_gb(sec.emu)) {
 		uint32_t* grey = malloc((size_t) GBA_W * GBA_H * 4);
 		*sub = 1;
 		if (!grey) return IDLE_NOPIC;
