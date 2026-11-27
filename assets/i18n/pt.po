@@ -1196,12 +1196,6 @@ msgstr "Pausado"
 msgid "Performance"
 msgstr "Desempenho"
 
-msgid "Performance: Let the System Decide"
-msgstr "Desempenho: deixar o sistema decidir"
-
-msgid "Performance: Set to Max"
-msgstr "Desempenho: Máx."
-
 msgid "Pictures in the middle of their screens, or close together."
 msgstr "Imagens no meio das telas, ou juntas."
 
@@ -1796,9 +1790,6 @@ msgstr "o patch ao lado da ROM"
 msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
 msgstr "Os patches não são os de quando o jogo iniciou: reinicie-o para jogar com eles (ou eles são usados a partir da próxima inicialização)"
 
-msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
-msgstr "Processador, memória e gráficos rodam a toda velocidade enquanto o GBA DS está aberto: o jogo mais fluido, mas a bateria acaba mais rápido e o dispositivo esquenta mais."
-
 msgid "the right face button"
 msgstr "o botão da direita"
 
@@ -1810,9 +1801,6 @@ msgstr "o segundo botão de ombro esquerdo"
 
 msgid "the second right shoulder button"
 msgstr "o segundo botão de ombro direito"
-
-msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
-msgstr "O sistema define a velocidade, como para os outros emuladores dele. Se os jogos travarem ou o som falhar, tente Definir no máximo."
 
 msgid "the top face button"
 msgstr "o botão de cima"

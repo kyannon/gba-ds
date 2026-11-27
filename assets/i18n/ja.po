@@ -1192,12 +1192,6 @@ msgstr "一時停止中"
 msgid "Performance"
 msgstr "パフォーマンス"
 
-msgid "Performance: Let the System Decide"
-msgstr "パフォーマンス: システムに任せる"
-
-msgid "Performance: Set to Max"
-msgstr "パフォーマンス: 最大"
-
 msgid "Pictures in the middle of their screens, or close together."
 msgstr "画面の中央に、または寄せて表示します。"
 
@@ -1792,9 +1786,6 @@ msgstr "ROM の隣にあるパッチ"
 msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
 msgstr "パッチがゲーム開始時と異なります。再起動して使ってください (または次回起動時から使われます)"
 
-msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
-msgstr "GBA DS を開いている間、プロセッサ、メモリ、グラフィックスがフルスピードで動作します。最もなめらかですが、バッテリーの消耗が早く、端末も熱くなります。"
-
 msgid "the right face button"
 msgstr "右のフェイスボタン"
 
@@ -1806,9 +1797,6 @@ msgstr "2 つ目の左ショルダーボタン"
 
 msgid "the second right shoulder button"
 msgstr "2 つ目の右ショルダーボタン"
-
-msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
-msgstr "ほかのエミュレータと同様に、システムが速度を決めます。ゲームがカクつく、または音が途切れる場合は「最大にする」を試してください。"
 
 msgid "the top face button"
 msgstr "上のフェイスボタン"

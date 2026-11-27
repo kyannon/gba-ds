@@ -1192,12 +1192,6 @@ msgstr "일시정지됨"
 msgid "Performance"
 msgstr "성능"
 
-msgid "Performance: Let the System Decide"
-msgstr "성능: 시스템이 결정"
-
-msgid "Performance: Set to Max"
-msgstr "성능: 최대"
-
 msgid "Pictures in the middle of their screens, or close together."
 msgstr "화면 가운데 또는 함께 놓는 그림."
 
@@ -1792,9 +1786,6 @@ msgstr "ROM 옆의 패치"
 msgid "The patches aren't as the game started: restart it to play with them (or they're used from the next start)"
 msgstr "패치가 게임을 시작했을 때와 다릅니다: 다시 시작하여 적용하세요 (또는 다음 시작부터 사용됩니다)"
 
-msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
-msgstr "GBA DS가 열려 있는 동안 프로세서, 메모리, 그래픽이 최고 속도로 동작합니다. 게임은 더 부드럽지만 배터리가 더 빨리 닳고 기기가 더 뜨거워집니다."
-
 msgid "the right face button"
 msgstr "오른쪽 버튼"
 
@@ -1806,9 +1797,6 @@ msgstr "두 번째 왼쪽 어깨 버튼"
 
 msgid "the second right shoulder button"
 msgstr "두 번째 오른쪽 어깨 버튼"
-
-msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
-msgstr "시스템이 다른 에뮬레이터와 마찬가지로 속도를 정합니다. 게임이 끊기거나 소리가 불안정하면 최대로 설정을 시도하세요."
 
 msgid "the top face button"
 msgstr "위 버튼"

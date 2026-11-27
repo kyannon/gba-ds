@@ -726,13 +726,10 @@ static void scan_progress(void) {
 		float px = ui_px(scr);
 		ui_fill(scr, (SDL_Rect) { 0, 0, r.w, r.h }, C_BG);
 		ui_label(scr, r.w / 2, r.h / 2 - px * 6, px * 6, "Loading games...", C_TEXT);
-		char line[96];
-	{
-		char files[80], games[80]; /* (two counts, each with its own plural; the language's own joiner puts them together) */
+		char line[96], files[80], games[80]; /* (two counts, each with its own plural; the language's own joiner puts them together) */
 		snprintf(files, sizeof(files), trn("%d file checked", "%d files checked", scanFiles), scanFiles);
 		snprintf(games, sizeof(games), trn("%d game found", "%d games found", nGames), nGames);
 		snprintf(line, sizeof(line), tr("%s, %s"), files, games);
-	}
 		ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 8, px * 4, line, C_DIM, 0);
 	}
 	ui_present();
@@ -1089,7 +1086,7 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 	int patch = PATCH_NONE;
 	if (game_crc(g, &crc, &patch)) {
 		const char* name;
-		const char* from = patch == PATCH_APPLIED ? N_(" (patch)"): "";
+		const char* from = patch == PATCH_APPLIED ? tr(" (patch)") : "";
 		char line[400] = "";
 		if (patch == PATCH_PARTIAL) {
 			snprintf(line, sizeof(line), tr("Patched, but a patch was left out: see Patches in the game's menu"));
@@ -1172,22 +1169,36 @@ static SDL_Rect tile_rect(ListGeom* g, int i, int scroll) {
 	return (SDL_Rect) { g->m + col * (g->tileW + g->gap), g->headerH + g->m + g->barH + row * g->rowH - scroll, g->tileW, g->tileH };
 }
 
-/* each game's logo, loaded on first sight; reloaded when a new one is extracted */
-static SDL_Texture* tileLogo[256][2];
-static int tileLogoW[256], tileLogoH[256];
-static bool tileTried[256];
-static uint32_t tileMod[256]; /* the known mod each was loaded for (GEN-20) */
+/* The grids' logos, loaded on first sight and reloaded when a new one is extracted: a slot per game,
+ * game i in slot i % TILE_SLOTS, so a big library (show_all) keeps no more than that many loaded. A
+ * screen shows a few dozen tiles at most, so the games on it never share a slot. */
+#define TILE_SLOTS 256
+static SDL_Texture* tileLogo[TILE_SLOTS][2];
+static int tileLogoW[TILE_SLOTS], tileLogoH[TILE_SLOTS];
+static bool tileTried[TILE_SLOTS];
+static int tileGame[TILE_SLOTS];        /* the game whose logo the slot holds (when tileTried) */
+static uint32_t tileMod[TILE_SLOTS];    /* the known mod it was loaded for (GEN-20) */
 
 static void free_tiles(void) {
-	for (int i = 0; i < 256; ++i) {
+	for (int i = 0; i < TILE_SLOTS; ++i) {
 		ui_free_image(tileLogo[i]);
 		tileTried[i] = false;
 	}
 }
 
+/* game i's slot, emptied first if it held another game's logo */
+static int tile_slot(int i) {
+	int s = i % TILE_SLOTS;
+	if (tileTried[s] && tileGame[s] != i) {
+		ui_free_image(tileLogo[s]);
+		tileTried[s] = false;
+	}
+	return s;
+}
+
 /* (a ROM file's checksum was worked out: only what has no logo yet needs asking again) */
 static void retry_tiles_without_logo(void) {
-	for (int i = 0; i < 256; ++i)
+	for (int i = 0; i < TILE_SLOTS; ++i)
 		if (!tileLogo[i][0] && !tileLogo[i][1]) tileTried[i] = false;
 	if (!logoTex[0] && !logoTex[1]) thumbFor = -2;
 }
@@ -1195,10 +1206,10 @@ static void retry_tiles_without_logo(void) {
 /* (a ROM's checksum was worked out, GEN-8: a game now known to be a known
  * mod has a logo of its own, GEN-20) */
 static void retry_logos_of_mods(void) {
-	for (int i = 0; i < nGames && i < 256; ++i) {
-		if (!tileTried[i] || tileMod[i] == logo_mod_of(&games[i])) continue;
-		ui_free_image(tileLogo[i]);
-		tileTried[i] = false;
+	for (int s = 0; s < TILE_SLOTS; ++s) {
+		if (!tileTried[s] || tileGame[s] >= nGames || tileMod[s] == logo_mod_of(&games[tileGame[s]])) continue;
+		ui_free_image(tileLogo[s]);
+		tileTried[s] = false;
 	}
 	if (thumbFor >= 0 && thumbFor < nGames && thumbMod != logo_mod_of(&games[thumbFor])) thumbFor = -2;
 }
@@ -1504,7 +1515,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	int done, total;
 	logo_progress(&done, &total);
 	bool extracting = done < total || ui_file_crc_pending(); /* (or a ROM's checksum, for its logo's name) */
-	for (int i = 0; i < nGames && i < 256; ++i) {
+	for (int i = 0; i < nGames; ++i) {
 		SDL_Rect t = tile_rect(&g, i, scroll);
 		if (t.y + t.h <= g.headerH || t.y >= r.h) continue;
 		bool on = i == sel && !barFocus;
@@ -1531,25 +1542,27 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 			ui_font_text(scr, TF_BOLD, t.x + px * 6, t.y + t.h / 2, px * 5, line, C_TEXT, -1);
 			continue;
 		}
-		if (!tileTried[i]) {
-			tileTried[i] = true;
-			tileMod[i] = logo_mod_of(&games[i]);
+		int s = tile_slot(i);
+		if (!tileTried[s]) {
+			tileTried[s] = true;
+			tileGame[s] = i;
+			tileMod[s] = logo_mod_of(&games[i]);
 			bool pixelArt;
-			if (ui_load_logo(cfg, games[i].path, games[i].code, known_crc(&games[i]), tileLogo[i], &tileLogoW[i],
-			                 &tileLogoH[i], &pixelArt)) {
+			if (ui_load_logo(cfg, games[i].path, games[i].code, known_crc(&games[i]), tileLogo[s], &tileLogoW[s],
+			                 &tileLogoH[s], &pixelArt)) {
 				for (int v = 0; v < 2; ++v) {
-					if (tileLogo[i][v]) SDL_SetTextureScaleMode(tileLogo[i][v], SDL_ScaleModeLinear);
+					if (tileLogo[s][v]) SDL_SetTextureScaleMode(tileLogo[s][v], SDL_ScaleModeLinear);
 				}
 			}
 		}
-		if (tileLogo[i][0] || tileLogo[i][1]) {
+		if (tileLogo[s][0] || tileLogo[s][1]) {
 			/* the logo, as large as fits with some padding, keeping its shape */
 			int pad = viewCols == 3 ? px * 4 : px * 5;
 			int aw = t.w - pad * 2, ah = t.h - pad * 2;
-			int w = aw, h = tileLogoH[i] * aw / tileLogoW[i];
-			if (h > ah) h = ah, w = tileLogoW[i] * ah / tileLogoH[i];
+			int w = aw, h = tileLogoH[s] * aw / tileLogoW[s];
+			if (h > ah) h = ah, w = tileLogoW[s] * ah / tileLogoH[s];
 			SDL_Rect a = { t.x + (t.w - w) / 2, t.y + (t.h - h) / 2, w, h };
-			ui_image(scr, tileLogo[i], tileLogoW[i], tileLogoH[i], "stretch", &a);
+			ui_image(scr, tileLogo[s], tileLogoW[s], tileLogoH[s], "stretch", &a);
 		} else if (games[i].supported && extracting) {
 			ui_label(scr, t.x + t.w / 2, t.y + t.h / 2, px * 4, "Loading thumbnail...", C_DIM);
 		} else {
@@ -1596,15 +1609,15 @@ static bool updatesOpen;   /* the Updates panel (Linux), over Settings or the ga
 static bool updatesNotice; /* opened by an automatic check */
 static int updatesSel;
 
-/* Settings: a row of buttons, each with its text below, then Back.
- * Linux: GBA DS in EmulationStation (ROCKNIX) or in BananaOS's list, where
- * there's one; Map Buttons and Hotkeys; Performance, where GBA DS can set
- * the clock governors (clocks.c); Updates. Android: Folders,
- * RetroAchievements, Map Buttons and Hotkeys, Updates. */
-#define SETTINGS_MAX 10
+/* Settings > System: a column of rows, each with its note beside Back (settings_rows says which).
+ * Linux: Language, Updates, Save States | RetroArch's State Folder, GBA DS in BananaOS's list or in
+ * EmulationStation where there's one (not in a side build), GBA BIOS, Show ROM Path, Reset | Delete.
+ * Android: Language, Updates, GBA DS in ES-DE, Folders, RetroAchievements, Rotation (one display),
+ * GBA BIOS, Show ROM Path, Reset | Delete. (Map Buttons and Hotkeys are Controls' rows; Performance
+ * is Speed and sound's.) */
+#define SETTINGS_MAX 12 /* (Android's ten at most, with room) */
 static int nRows = 1; /* rows shown (Back is row nRows) */
-/* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
-enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE, ROW_BIOS, ROW_ROMPATH };
+enum { ROW_BANANA, ROW_ES, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE, ROW_BIOS, ROW_ROMPATH };
 static int rowKind[SETTINGS_MAX];
 
 /* System's top row: the interface's language, stepped on each press (the setting is the one in config.c's table) */
@@ -1761,7 +1774,7 @@ static SettingsGeom settings_geom(int scr) {
 	SettingsGeom g;
 	g.px = ui_px(scr);
 	g.panel = set_panel(scr);
-	int slots = row_slot(nRows) , gaps = 0;
+	int slots = row_slot(nRows), gaps = 0;
 	/* room before the first row after the top ones (Language, Updates), and before Reset */
 	int top = 0;
 	while (top < nRows && (rowKind[top] == ROW_LANGUAGE || rowKind[top] == ROW_UPDATES)) ++top;
@@ -1797,13 +1810,13 @@ static int draw_wrapped(int scr, int x, int y, int width, float px, const char* 
 	return ui_font_wrap(scr, TF_BODY, x, y, width, px * 4, text, c);
 }
 
-/* The panel, its buttons (labels[i] on row i; sel == nRows is Back). */
 /* Shader, Pattern strength and Game Boy shader while the scaling filter is an
  * upscaler that runs here: Off, greyed, not changed (as in the pause menu) */
 static bool shader_row_off(const Setting* st) {
 	return st && (!strcmp(st->key, "shader") || !strcmp(st->key, "lcd_strength") || !strcmp(st->key, "gb_shader")) && ui_upscaling();
 }
 
+/* System's panel, its buttons (labels[i] on row i; sel == nRows is Back). */
 static void draw_settings_frame(int scr, const SettingsGeom* g, int sel, const char* const* labels) {
 	float px = g->px;
 	ui_dim(scr, 200);
@@ -1860,8 +1873,7 @@ static void draw_system_note(int scr, const SettingsGeom* g, const char* text, S
 /* ---- Settings: a page of categories, each a page of rows (docs/MENUS.md).
  * The rows come from config.c's settings table; a change is kept in
  * states/prefs.cfg, for all games (a game's own file is for the pause menu).
- * System is the older panel: GBA DS in EmulationStation / BananaOS's list,
- * Map Buttons, Hotkeys, Updates, and on Android Folders and RetroAchievements. */
+ * System is the older panel (above). */
 enum { SP_HOME = -1, SP_SYSTEM = 6, SP_COUNT = 7 };
 typedef struct {
 	const char* name;
@@ -1926,8 +1938,9 @@ static SDL_Rect set_tile(int scr, int i) {
 }
 
 /* a page: n rows, then Back, at the right of the strip under the rows (the note
- * flows round it). gapAt: a row with a little more room above it (System: before
- * Reset settings), or -1 */
+ * flows round it). gaps: a bit per row with a little more room above it (System:
+ * before its first row under Language and Updates, and before Reset settings);
+ * set_row_gap gives one such row (or -1, none), set_row none */
 static SDL_Rect set_row_gaps(int scr, int n, int i, int gaps) {
 	int px = (int) ui_px(scr);
 	SDL_Rect p = set_panel(scr);
@@ -2795,7 +2808,6 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		          : rowKind[i] == ROW_DELCFG ? (confirmRow == i ? N_("Are you sure? Delete them"): N_("Delete per-game settings"))
 		          : rowKind[i] == ROW_STATES ? (shared ? N_("Save States: Shared with RetroArch"): N_("Save States: GBA DS's Own"))
 		          : rowKind[i] == ROW_STATES_DIR ? "RetroArch's State Folder"
-		          : rowKind[i] == ROW_PERF   ? (cfg->perfMax ? N_("Performance: Set to Max"): N_("Performance: Let the System Decide"))
 		                                     : N_("Updates");
 	}
 	draw_settings_frame(scr, &g, sel, labels);
@@ -2810,11 +2822,7 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 	                         "The other emulators keep working as before."): rowKind[i] == ROW_RESET || rowKind[i] == ROW_DELCFG ? NULL
 	                   : rowKind[i] == ROW_STATES ? statesText
 	                   : rowKind[i] == ROW_STATES_DIR ? statesDirText
-	                   : rowKind[i] == ROW_PERF
-	                       ? (cfg->perfMax ? N_("The processor, memory and graphics run at full speed while GBA DS is open: "
-	                                         "the smoothest play, but the battery runs down faster and the device gets warmer."): N_("The system sets the speed, as for its other emulators. If games stutter or "
-	                                         "the sound breaks up, try Set to Max."))
-	                       : update_blurb();
+	                                                  : update_blurb();
 	SDL_Color biosCol = C_DIM;
 	if (rowKind[i] == ROW_BIOS) text = bios_note(cfg, &biosCol);
 	if (rowKind[i] == ROW_ROMPATH) text = rompath_note();
@@ -2847,11 +2855,6 @@ static void settings_activate(Config* cfg, int row) {
 	else if (rowKind[row] == ROW_ROMPATH) rompath_switch(cfg);
 	else if (rowKind[row] == ROW_STATES) states_switch(cfg);
 	else if (rowKind[row] == ROW_STATES_DIR) states_dir_pick(cfg);
-	else if (rowKind[row] == ROW_PERF) {
-		cfg->perfMax = !cfg->perfMax;
-		clocks_set(cfg->perfMax);
-		prefs_save(cfg);
-	}
 }
 
 static bool settings_poll(Config* cfg) {
@@ -2976,7 +2979,7 @@ static void draw_updates(int scr, int sel) {
 #else
 		const char* what = u.state == UPD_DOWNLOADING ? N_("Downloading"): u.state == UPD_INSTALLING ? N_("Installing"): N_("Installed");
 #endif
-		snprintf(line, sizeof(line), u.state == UPD_DONE ? tr("%s v%s. Restarting..."): "%s v%s...", what, u.version);
+		snprintf(line, sizeof(line), u.state == UPD_DONE ? tr("%s v%s. Restarting..."): "%s v%s...", tr(what), u.version);
 		ui_label(scr, g.panel.x + g.panel.w / 2, g.bar.y - px * 10, px * 5, line, C_TEXT);
 		int pc = u.state == UPD_DOWNLOADING ? u.percent : 100;
 		ui_fill(scr, g.bar, C_ROW);
@@ -3142,7 +3145,7 @@ static SDL_Rect la_rect(int scr, const LangAsk* a, int i) {
 	int top = p.y + px * 22, gap = px * 2;
 	int backW = px * 40, backH = px * 14;
 	if (i >= a->n) return (SDL_Rect) { p.x + p.w - px * 6 - backW, p.y + p.h - px * 5 - backH, backW, backH };
-	int rows = 1 + (a->n - 1 + 1) / 2;
+	int rows = 1 + a->n / 2; /* (Automatic's row, then items 1 to n - 1 two to a row) */
 	int avail = p.y + p.h - px * 5 - backH - px * 4 - top;
 	int h = SDL_min((int) (ui_px(scr) * 19), avail / rows - gap); /* (the unit unrounded: the RG DS's 640x480 screens have 2.67) */
 	int w = p.w - px * 12, half = (w - px * 3) / 2;
