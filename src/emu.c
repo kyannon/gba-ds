@@ -2297,6 +2297,7 @@ bool emu_wide_find(const Emu* e, EmuWide* out) {
 
 typedef struct {
 	bool installed;
+	bool on; /* drawing the margins (installed stays: emu_wide_set off keeps the hooks, idle) */
 	struct GBA* gba;
 	struct GBAVideoRenderer* main;
 	int w, h, mx, my;
@@ -2409,7 +2410,7 @@ static void wide_oam(struct GBAVideoRenderer* r, uint32_t i) {
 }
 static void wide_draw(struct GBAVideoRenderer* r, int y) {
 	wide.drawScanline(r, y);
-	for (int k = 0; k < 2; ++k) {
+	for (int k = 0; wide.on && k < 2; ++k) {
 		/* the top margin's renderer is needed only for its rows; each
 		 * frame starts it again (finishFrame) */
 		if (wide.vert && k == 0 && y >= wide.my) continue;
@@ -2468,23 +2469,32 @@ static void wide_reset(struct GBAVideoRenderer* r) {
 	wide_offsets();
 }
 
-bool emu_wide_on(Emu* e, const EmuWide* w) {
-	struct GBA* gba = gba_of(e);
-	struct GBAVideoRenderer* r = gba ? gba->video.renderer : NULL;
-	if (!r || wide.installed || !w || !w->found || e->gbBorder) return false;
-	memset(&wide, 0, sizeof(wide));
+/* the picture's size and the margins' looks (the hooks as they are) */
+static bool wide_size(const EmuWide* w) {
+	uint32_t* out = calloc((size_t) w->w * (size_t) w->h, sizeof(uint32_t));
+	if (!out) return false;
+	free(wide.out);
+	wide.out = out;
 	wide.w = w->w, wide.h = w->h;
 	wide.mx = (w->w - GBA_W) / 2, wide.my = (w->h - GBA_H) / 2;
 	wide.vert = wide.my > 0;
 	int m = wide.vert ? wide.my : wide.mx;
 	wide.d[0] = -m, wide.d[1] = m;
-	wide.out = calloc((size_t) w->w * (size_t) w->h, sizeof(uint32_t));
+	return true;
+}
+
+bool emu_wide_on(Emu* e, const EmuWide* w) {
+	struct GBA* gba = gba_of(e);
+	struct GBAVideoRenderer* r = gba ? gba->video.renderer : NULL;
+	if (!r || wide.installed || !w || !w->found || e->gbBorder) return false;
+	memset(&wide, 0, sizeof(wide));
 	for (int k = 0; k < 2; ++k) wide.buf[k] = calloc(GBA_W * GBA_H, sizeof(uint32_t));
-	if (!wide.out || !wide.buf[0] || !wide.buf[1]) {
+	if (!wide.buf[0] || !wide.buf[1] || !wide_size(w)) {
 		free(wide.out), free(wide.buf[0]), free(wide.buf[1]);
 		memset(&wide, 0, sizeof(wide));
 		return false;
 	}
+	int m = wide.vert ? wide.my : wide.mx;
 	for (int k = 0; k < 2; ++k) {
 		GBAVideoSoftwareRendererCreate(&wide.ext[k]);
 		wide.ext[k].outputBuffer = (mColor*) wide.buf[k];
@@ -2505,24 +2515,41 @@ bool emu_wide_on(Emu* e, const EmuWide* w) {
 	wide.drawScanline = r->drawScanline, r->drawScanline = wide_draw;
 	wide.finishFrame = r->finishFrame, r->finishFrame = wide_finish;
 	wide.reset = r->reset, r->reset = wide_reset;
-	wide.installed = true;
+	wide.installed = wide.on = true;
 	wide_resync(e);
 	fprintf(stderr, "widescreen: %d:%d, %d x %d (margins %d)\n", w->num, w->den, w->w, w->h, m);
 	return true;
 }
 
+bool emu_wide_set(Emu* e, const EmuWide* w) {
+	bool want = w && w->found;
+	if (!wide.installed) return want ? emu_wide_on(e, w) : true;
+	struct GBA* gba = gba_of(e);
+	if (!gba || gba != wide.gba) return false;
+	if (!want) {
+		wide.on = false;
+		fprintf(stderr, "widescreen: off\n");
+		return true;
+	}
+	if (!wide_size(w)) return false;
+	wide.on = true;
+	wide_resync(e); /* (the margins' renderers looking their new width from here) */
+	fprintf(stderr, "widescreen: %d:%d, %d x %d (margins %d)\n", w->num, w->den, w->w, w->h, wide.vert ? wide.my : wide.mx);
+	return true;
+}
+
 bool emu_wide_active(void) {
-	return wide.installed;
+	return wide.installed && wide.on;
 }
 int emu_wide_w(void) {
-	return wide.installed ? wide.w : GBA_W;
+	return emu_wide_active() ? wide.w : GBA_W;
 }
 int emu_wide_h(void) {
-	return wide.installed ? wide.h : GBA_H;
+	return emu_wide_active() ? wide.h : GBA_H;
 }
 
 const uint32_t* emu_wide_compose(const uint32_t* centre) {
-	if (!wide.installed) return centre;
+	if (!emu_wide_active()) return centre;
 	int W = wide.w;
 	if (!wide.vert) {
 		int m = wide.mx;

@@ -1,4 +1,4 @@
-# The web player on GitHub Pages (https://kyannon.github.io/gba-ds/): built
+# The web player on GitHub Pages (https://kyannon.github.io/gba-ds/, and its wide view at /wide): built
 # from main (each release) and published, with the web build inside; the
 # one-file player is downloadable beside it. Pages must be set to "GitHub
 # Actions" (Settings > Pages > Source) once. docs/WEB-PLAYER.md.
@@ -58,6 +58,11 @@ jobs:
           unzip -q build/web-player/gba-ds-web-player-*.zip -d unpacked
           cp -r unpacked/*/. _site/
           cp build/web-player/gba-ds-web-player-*.html _site/gba-ds-web-player.html
+          # the wide view (docs/WIDESCREEN.md): the same player drawing any game wider, at /wide
+          scripts/build-web-player.sh --wide --build
+          unzip -q build/web-player/gba-ds-wide-player-*.zip -d unpacked-wide
+          mkdir -p _site/wide
+          cp -r unpacked-wide/*/. _site/wide/
           echo "Published GBA DS $(cat VERSION): $(ls _site | wc -l) files" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-pages-artifact@v3

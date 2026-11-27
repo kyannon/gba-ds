@@ -35,10 +35,37 @@ in `-with-VERSION`. Only `web/gba-ds.wasm`, `web/VERSION`, `gba-ds.cfg` and
 `.github/workflows/web-player.yml` builds the web build and the player from
 `main` (each release; or "Run workflow") and publishes the folder version
 to https://kyannon.github.io/gba-ds/, with the one-file player beside it
-(`gba-ds-web-player.html`). Pages must be set to "GitHub Actions" once
+(`gba-ds-web-player.html`) and the wide view in `wide/` (below). Pages must be set to "GitHub Actions" once
 (Settings > Pages > Source: the owner; sessions can't). The workflow shares
 regress.yml's host-deps cache and keeps the WASI toolchain in its own.
 Games are never published: players bring their own.
+
+## The wide view
+
+A second build of the same player, published at
+https://kyannon.github.io/gba-ds/wide (`scripts/build-web-player.sh --wide
+[--build ...]`, `pack.py --wide`: `gba-ds-wide-player-*`), for seeing what a
+game draws past its screen's edges before writing a widescreen patch for it
+(docs/WIDESCREEN.md). The page is marked `<html data-wide="1">`, which shows
+its one extra setting, **Wide view** in the bar (16:9, 16:10, 4:3, or Off,
+the GBA's 3:2): the game screen is drawn wider or taller, as a widescreen
+patch would have it, whatever the game. The choice is kept
+(`localStorage` `gbadsPlayer.wide`), goes to the app at the start as
+`GBADS_WIDE` (from the game's first frame) and, changed while a game plays,
+through the worker's `wide` message to the export `web_wide`, which game.c
+applies between frames (`wide_force_apply`: `emu_wide_set`, the game's
+textures made again at the new size); it holds for every game after it, and
+Off is off even for a game with a widescreen patch on (its marker counts
+again from the page's next start). Everything else is the player's: the
+same origin, so the same settings, kept games, saves and states as the
+normal player's; its own name, Home Screen app and offline copy (the
+service worker's cache is `gba-ds-wide-*`, so neither page's copy deletes
+the other's). The picture fits the device's game screen at its own shape
+(a 16:9 picture on Two GBA screens has bars above and below: pick a 16:9
+device to fill it). A build without `web_wide` (before v1.6.5) says so.
+Tested headless in Chromium (Nov 27, 2026): the test ROM (tools/widetest)
+started at 16:9 and switched to 4:3, 16:10 and Off while playing; the normal
+page has no such setting.
 
 ## Phones
 

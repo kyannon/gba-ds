@@ -276,6 +276,9 @@ bool emu_wide_ratio(int num, int den, EmuWide* out);
 bool emu_wide_find(const Emu* e, EmuWide* out);
 /* Draws the margins from now on (the game's own core, once per open). */
 bool emu_wide_on(Emu* e, const EmuWide* w);
+/* On with another picture, or off (w NULL or not found), while the game runs
+ * (the wide web player's choice). */
+bool emu_wide_set(Emu* e, const EmuWide* w);
 bool emu_wide_active(void);
 int emu_wide_w(void);
 int emu_wide_h(void);
