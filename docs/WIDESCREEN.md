@@ -1,6 +1,6 @@
 # Widescreen patches
 
-Status: on the branch `widescreen` (Nov 27, 2026). Step 1, tried on the device (BananaOS, RG DS Plus; all three test patches at full speed): the wider picture, the marker, the scaling it overrides, a test ROM and its patches. Step 2: GBA DS's own patches kept in the repository and offered for download in a game's Patches menu, for the shape of the player's screens (WS-6), and one widescreen patch on at a time (WS-1).
+Status: merged into `dev` (v1.6.5), Nov 27, 2026, after both steps were checked on the device. Step 1, tried on the device (BananaOS, RG DS Plus; all three test patches at full speed): the wider picture, the marker, the scaling it overrides, a test ROM and its patches. Step 2: GBA DS's own patches kept in the repository and offered for download in a game's Patches menu, for the shape of the player's screens (WS-6), and one widescreen patch on at a time (WS-1).
 
 This is an exception to the first principle (wiki/Philosophy.md: a GBA with two 240×160 screens), asked for by the owner: for a game that has one, a GBA DS widescreen patch shows more of the game to its sides (or above and below), at the shape of the player's screen instead of the GBA's 3:2. It's the player's choice, game by game: nothing changes without a patch, and the patch is switched on like any other (GEN-9). The second screen is unchanged. It's also not covered by "display options are the player's choice" (principle 2): that line is about how the GBA's 240×160 picture is scaled and filtered, and this shows more than a GBA screen would.
 
@@ -74,8 +74,3 @@ One patch per ratio: a game can have a 16:9, a 16:10 and a 4:3 patch, each with 
 2. `widescreen/CODE/dumps.txt`: the CRC32 of each ROM file it fits, one a line (the tested dump from the game's rules file; without the file, any ROM with the code is offered it).
 3. `tools/widescreen.py index`, and commit the patch, `dumps.txt` and `index.txt` together. `tools/widescreen.py index --check` says whether the list is up to date.
 4. A rule for it in the game's rules file, and a case with the patch on.
-
-## For the merge
-
-- Changelog (What's new): *Widescreen patches: a game with a GBA DS widescreen patch can be played wider (16:9, 16:10) or taller (4:3), showing more of the game at its sides (or above and below), at your screen's shape. Where GBA DS has one for your game and your screen, its Patches menu offers to download it and switch it on. No game has one yet: they'll come game by game.*
-- wiki/Philosophy.md's list of exceptions: done on the branch.

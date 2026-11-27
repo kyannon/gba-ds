@@ -566,7 +566,7 @@ release zip, which replaces the main install.
   `emu_hud_band`, also the layers whose BGxCNT has given values on a line:
   Advance Wars' conversations). The harness has `split BGMASK PRIO` /
   `split off` and `hudshot NAME`.
-  Widescreen patches (docs/WIDESCREEN.md, rules WS-n; branch `widescreen`): a
+  Widescreen patches (docs/WIDESCREEN.md, rules WS-n; merged Nov 27, 2026, v1.6.5): a
   patch's 32-byte marker `GBADS-WIDESCREEN` in the ROM as played (`emu_wide_find`)
   makes `emu_wide_on` hook the game core's renderer like the HUD split and feed two
   more software renderers looking a margin to each side (text BGs by mGBA's layer
