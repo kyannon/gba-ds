@@ -1033,10 +1033,17 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 
 	/* the selected game's path at the bottom (Settings > System, GEN-21), the hints above it */
 	pathStrip = cfg->romPath;
-	int pathH = path_block_h(scr);
-	if (pathH && sel >= 0 && sel < nGames) draw_path_text(scr, r.h - px * 4 - pathH, games[sel].path, C_DIM);
+	int pathH = path_block_h(scr), ty = r.h - px * 11;
+	if (pathH) {
+		/* a rule above it, one font pixel thick, two font pixels of black either side (the hints' icons above,
+		 * the path below), in the same grey, margin to margin */
+		int ps = path_scale(scr), pathY = r.h - px * 4 - pathH, ruleY = pathY - 3 * ps;
+		ui_fill(scr, (SDL_Rect) { m, ruleY, r.w - m * 2, ps }, C_DIM);
+		if (sel >= 0 && sel < nGames) draw_path_text(scr, pathY, games[sel].path, C_DIM);
+		ty = ruleY - 2 * ps - (int) (px * 17 / 2); /* (the icons' bottom is ty + 8.5 units) */
+	}
 	/* button hints along the bottom */
-	int ty = r.h - px * 11 - (pathH ? pathH + px * 3 : 0), d = px * 10, bx = m;
+	int d = px * 10, bx = m;
 	int gy = ty + px * 7 / 2 - d / 2;
 	int cap = px * 5, cy = gy + d / 2, wordW = px * 18;
 	bx += draw_brand(scr, BRAND_BTN_A, bx, gy, d) + px * 2;

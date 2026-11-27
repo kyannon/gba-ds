@@ -4,15 +4,15 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
-#: src/library.c:1085
+#: src/library.c:1092
 msgid " (patch)"
 msgstr ""
 
-#: src/library.c:2895
+#: src/library.c:2902
 msgid " Checking for a new version..."
 msgstr ""
 
-#: src/library.c:2896
+#: src/library.c:2903
 msgid " It's the newest version."
 msgstr ""
 
@@ -47,7 +47,7 @@ msgid_plural "%d games found"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/library.c:3459 src/library.c:3507
+#: src/library.c:3466 src/library.c:3514
 #, c-format
 msgid "%d game found."
 msgid_plural "%d games found."
@@ -81,7 +81,7 @@ msgstr[1] ""
 msgid "%s"
 msgstr ""
 
-#: src/library.c:2664
+#: src/library.c:2671
 #, c-format
 msgid "%s %s. Choose another if RetroArch keeps its states somewhere else."
 msgstr ""
@@ -111,7 +111,7 @@ msgstr ""
 msgid "%s opens the menu: press another button"
 msgstr ""
 
-#: src/library.c:2882
+#: src/library.c:2889
 #, c-format
 msgid "%s v%s. Restarting..."
 msgstr ""
@@ -212,11 +212,11 @@ msgstr ""
 msgid "A few seconds"
 msgstr ""
 
-#: src/library.c:2531
+#: src/library.c:2538
 msgid "A game's save already next to it, or in the other type, is copied over the first time you play it. .srm is the type RetroArch uses: choose its saves folder too to share each game's save with it."
 msgstr ""
 
-#: src/library.c:2830
+#: src/library.c:2837
 msgid "A new version of GBA DS"
 msgstr ""
 
@@ -224,7 +224,7 @@ msgstr ""
 msgid "A pattern over every pixel, on both screens."
 msgstr ""
 
-#: src/library.c:1202
+#: src/library.c:1209
 msgid "A to Z"
 msgstr ""
 
@@ -244,7 +244,7 @@ msgstr ""
 msgid "Add a note (optional): what happened, and what you expected to happen."
 msgstr ""
 
-#: src/library.c:2711
+#: src/library.c:2718
 msgid "Adds GBA DS to the emulators for Game Boy Advance games in EmulationStation. Pick it for one game (its Advanced Game Options > Emulator) or for all of them (the system's advanced settings). The other emulators keep working as before."
 msgstr ""
 
@@ -256,7 +256,7 @@ msgstr ""
 msgid "Again for hardcore: restarts, no cheats, loads or fast forward"
 msgstr ""
 
-#: src/library.c:1355
+#: src/library.c:1362
 msgid "All"
 msgstr ""
 
@@ -342,11 +342,11 @@ msgstr ""
 msgid "Are you sure? A: use them now and carry on from here. B: call it off"
 msgstr ""
 
-#: src/library.c:2255 src/library.c:2698
+#: src/library.c:2262 src/library.c:2705
 msgid "Are you sure? Delete them"
 msgstr ""
 
-#: src/library.c:2254 src/library.c:2697
+#: src/library.c:2261 src/library.c:2704
 msgid "Are you sure? Reset settings"
 msgstr ""
 
@@ -359,11 +359,11 @@ msgstr ""
 msgid "Are you sure? Save your game first. A: restart now. B: call it off"
 msgstr ""
 
-#: src/library.c:2105
+#: src/library.c:2112
 msgid "Are you sure? Touch it again to delete every game's own settings. Anything else cancels."
 msgstr ""
 
-#: src/library.c:2104
+#: src/library.c:2111
 msgid "Are you sure? Touch it again to put every setting back to its default. Anything else cancels."
 msgstr ""
 
@@ -399,19 +399,19 @@ msgstr ""
 msgid "Auto-rotate"
 msgstr ""
 
-#: src/config.c:523 src/library.c:2633 src/library.c:3173
+#: src/config.c:523 src/library.c:2640 src/library.c:3180
 msgid "Automatic"
 msgstr ""
 
-#: src/library.c:2834
+#: src/library.c:2841
 msgid "Automatic checks: Off"
 msgstr ""
 
-#: src/library.c:2834
+#: src/library.c:2841
 msgid "Automatic checks: On"
 msgstr ""
 
-#: src/config.c:527 src/library.c:2265 src/library.c:2707 src/library.c:3190
+#: src/config.c:527 src/library.c:2272 src/library.c:2714 src/library.c:3197
 msgid "Automatic follows the system. Text that isn't translated yet stays in English."
 msgstr ""
 
@@ -509,7 +509,7 @@ msgstr ""
 msgid "Can't rewind further"
 msgstr ""
 
-#: src/library.c:1480
+#: src/library.c:1487
 msgid "Can't save files here: no states, logos or screenshots"
 msgstr ""
 
@@ -539,7 +539,7 @@ msgstr ""
 msgid "Cheats"
 msgstr ""
 
-#: src/library.c:2834
+#: src/library.c:2841
 msgid "Check now"
 msgstr ""
 
@@ -551,15 +551,15 @@ msgstr ""
 msgid "Check the account in EmulationStation's RetroAchievements settings"
 msgstr ""
 
-#: src/library.c:3136 src/library.c:3137
+#: src/library.c:3143 src/library.c:3144
 msgid "Choose"
 msgstr ""
 
-#: src/library.c:2517
+#: src/library.c:2524
 msgid "Choose a folder in Android's file picker..."
 msgstr ""
 
-#: src/library.c:2509
+#: src/library.c:2516
 msgid "Choose GBA DS folder"
 msgstr ""
 
@@ -576,15 +576,15 @@ msgstr ""
 msgid "Choose it again to restart: unsaved progress is lost"
 msgstr ""
 
-#: src/library.c:2508
+#: src/library.c:2515
 msgid "Choose ROM folder"
 msgstr ""
 
-#: src/library.c:2508
+#: src/library.c:2515
 msgid "Choose save folder"
 msgstr ""
 
-#: src/library.c:3125
+#: src/library.c:3132
 msgid "Choose the language for GBA DS's menus."
 msgstr ""
 
@@ -598,7 +598,7 @@ msgstr ""
 msgid "Chosen folder not found, files not moved: %s"
 msgstr ""
 
-#: src/library.c:2665
+#: src/library.c:2672
 msgid "Chosen here:"
 msgstr ""
 
@@ -654,7 +654,7 @@ msgstr ""
 msgid "Colors of a Game Boy game: as set for GBA games, none, or as a Game Boy Color or a Game Boy Advance screen showed them."
 msgstr ""
 
-#: src/library.c:2873
+#: src/library.c:2880
 #, c-format
 msgid "Confirm the update to v%s in Android's installer. Android closes GBA DS while it installs; open it again afterwards. If Android asks first, allow GBA DS to install apps."
 msgstr ""
@@ -667,7 +667,7 @@ msgstr ""
 msgid "Contextual toggle"
 msgstr ""
 
-#: src/library.c:3143 src/library.c:3144 src/library.c:3168
+#: src/library.c:3150 src/library.c:3151 src/library.c:3175
 msgid "Continue"
 msgstr ""
 
@@ -712,7 +712,7 @@ msgstr ""
 msgid "Couldn't install the update: %s."
 msgstr ""
 
-#: src/library.c:2401 src/library.c:2412
+#: src/library.c:2408 src/library.c:2419
 msgid "Couldn't keep that choice."
 msgstr ""
 
@@ -729,11 +729,11 @@ msgstr ""
 msgid "Couldn't move GBA DS's files, they stay in %s"
 msgstr ""
 
-#: src/library.c:2566
+#: src/library.c:2573
 msgid "Couldn't open the file picker."
 msgstr ""
 
-#: src/library.c:2356
+#: src/library.c:2363
 msgid "Couldn't open the sign-in box."
 msgstr ""
 
@@ -749,7 +749,7 @@ msgstr ""
 msgid "Couldn't save the bug report."
 msgstr ""
 
-#: src/library.c:2297
+#: src/library.c:2304
 #, c-format
 msgid "Couldn't sign in as %s%s%s. Sign in to try again."
 msgstr ""
@@ -833,16 +833,16 @@ msgstr ""
 msgid "Del"
 msgstr ""
 
-#: src/library.c:2255 src/library.c:2698
+#: src/library.c:2262 src/library.c:2705
 msgid "Delete per-game settings"
 msgstr ""
 
-#: src/library.c:2115
+#: src/library.c:2122
 #, c-format
 msgid "Deleted the settings of %d games."
 msgstr ""
 
-#: src/library.c:2115
+#: src/library.c:2122
 msgid "Deleted the settings of 1 game."
 msgstr ""
 
@@ -850,7 +850,7 @@ msgstr ""
 msgid "Discard changes"
 msgstr ""
 
-#: src/game.c:1351 src/library.c:1860
+#: src/game.c:1351 src/library.c:1867
 msgid "Display"
 msgstr ""
 
@@ -874,7 +874,7 @@ msgstr ""
 msgid "Down"
 msgstr ""
 
-#: src/library.c:2878 src/library.c:2880
+#: src/library.c:2885 src/library.c:2887
 msgid "Downloading"
 msgstr ""
 
@@ -882,7 +882,7 @@ msgstr ""
 msgid "Dual-mode games"
 msgstr ""
 
-#: src/library.c:2303
+#: src/library.c:2310
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr ""
 
@@ -890,11 +890,11 @@ msgstr ""
 msgid "English"
 msgstr ""
 
-#: src/library.c:2429
+#: src/library.c:2436
 msgid "Enter both your username and your password."
 msgstr ""
 
-#: src/library.c:2289
+#: src/library.c:2296
 msgid "Enter your account in the sign-in box..."
 msgstr ""
 
@@ -979,7 +979,7 @@ msgstr ""
 msgid "Feb"
 msgstr ""
 
-#: src/library.c:2972
+#: src/library.c:2979
 msgid "First run only. B: back"
 msgstr ""
 
@@ -987,15 +987,15 @@ msgstr ""
 msgid "Fit"
 msgstr ""
 
-#: src/library.c:2505
+#: src/library.c:2512
 msgid "Folders"
 msgstr ""
 
-#: src/library.c:1965
+#: src/library.c:1972
 msgid "Folders, accounts, updates"
 msgstr ""
 
-#: src/library.c:2282
+#: src/library.c:2289
 msgid "Follows how you hold the phone, and Android's own rotation lock."
 msgstr ""
 
@@ -1023,7 +1023,7 @@ msgstr ""
 msgid "Frames a second above the game, all the time."
 msgstr ""
 
-#: src/library.c:2665
+#: src/library.c:2672
 msgid "From RetroArch's settings:"
 msgstr ""
 
@@ -1111,16 +1111,16 @@ msgstr ""
 msgid "Game's own"
 msgstr ""
 
-#: src/library.c:1859
+#: src/library.c:1866
 msgid "Games"
 msgstr ""
 
-#: src/library.c:2231
+#: src/library.c:2238
 #, c-format
 msgid "Games are read from %s (subfolders too). Saves (%s) are kept in %s."
 msgstr ""
 
-#: src/library.c:2232
+#: src/library.c:2239
 #, c-format
 msgid "Games are read from %s (subfolders too). Saves (%s) are kept next to the games."
 msgstr ""
@@ -1129,7 +1129,7 @@ msgstr ""
 msgid "Games made for both a Game Boy and a Game Boy Color: in colour, or as on a Game Boy. Counts from the next start."
 msgstr ""
 
-#: src/library.c:2709
+#: src/library.c:2716
 msgid "Games picked in BananaOS's own Game Boy Advance list start in GBA DS when it has second-screen support for them. Restart BananaOS after switching this."
 msgstr ""
 
@@ -1137,7 +1137,7 @@ msgstr ""
 msgid "Games shown"
 msgstr ""
 
-#: src/library.c:1660
+#: src/library.c:1667
 msgid "Games start with the GBA BIOS in gba_bios.bin, in the bios folder of GBA DS's data folder."
 msgstr ""
 
@@ -1161,11 +1161,11 @@ msgstr ""
 msgid "GBA B"
 msgstr ""
 
-#: src/library.c:1651
+#: src/library.c:1658
 msgid "GBA BIOS: Built-in"
 msgstr ""
 
-#: src/library.c:1651
+#: src/library.c:1658
 msgid "GBA BIOS: Your Own"
 msgstr ""
 
@@ -1173,7 +1173,7 @@ msgstr ""
 msgid "GBA Down"
 msgstr ""
 
-#: src/library.c:2410 src/library.c:2449
+#: src/library.c:2417 src/library.c:2456
 msgid "GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."
 msgstr ""
 
@@ -1181,27 +1181,27 @@ msgstr ""
 msgid "GBA DS can't save in this folder: choose another"
 msgstr ""
 
-#: src/library.c:2695
+#: src/library.c:2702
 msgid "GBA DS in BananaOS's GBA list: Off"
 msgstr ""
 
-#: src/library.c:2695
+#: src/library.c:2702
 msgid "GBA DS in BananaOS's GBA list: On"
 msgstr ""
 
-#: src/library.c:2696
+#: src/library.c:2703
 msgid "GBA DS in EmulationStation: Off"
 msgstr ""
 
-#: src/library.c:2696
+#: src/library.c:2703
 msgid "GBA DS in EmulationStation: On"
 msgstr ""
 
-#: src/library.c:2250
+#: src/library.c:2257
 msgid "GBA DS in ES-DE: Off"
 msgstr ""
 
-#: src/library.c:2250
+#: src/library.c:2257
 msgid "GBA DS in ES-DE: On"
 msgstr ""
 
@@ -1221,16 +1221,16 @@ msgstr ""
 msgid "GBA DS Logo: Show"
 msgstr ""
 
-#: src/library.c:1958
+#: src/library.c:1965
 msgid "GBA DS Settings"
 msgstr ""
 
-#: src/library.c:2847
+#: src/library.c:2854
 #, c-format
 msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and install it: Android asks you to confirm. Your games, saves, states and settings are kept."
 msgstr ""
 
-#: src/library.c:2851
+#: src/library.c:2858
 #, c-format
 msgid "GBA DS v%s is out (this is v%s). Update now to download it (%.1f MB) and restart into it; your games, saves, states and settings are kept."
 msgstr ""
@@ -1239,21 +1239,21 @@ msgstr ""
 msgid "GBA DS's bezel, or your own PNGs, round the picture."
 msgstr ""
 
-#: src/library.c:2405
+#: src/library.c:2412
 msgid "GBA DS's files are kept there already."
 msgstr ""
 
-#: src/library.c:2415
+#: src/library.c:2422
 #, c-format
 msgid "GBA DS's files go to %s the next time it starts: close GBA DS and open it again."
 msgstr ""
 
-#: src/library.c:2525
+#: src/library.c:2532
 #, c-format
 msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s, moving to %s at the next start."
 msgstr ""
 
-#: src/library.c:2527
+#: src/library.c:2534
 #, c-format
 msgid "GBA DS's own files (states, settings, cheats, overlays) are in %s."
 msgstr ""
@@ -1282,7 +1282,7 @@ msgstr ""
 msgid "GBA Up"
 msgstr ""
 
-#: src/library.c:1658
+#: src/library.c:1665
 msgid "gba_bios.bin can't be used now, so games run with the built-in BIOS. Put it back in the bios folder."
 msgstr ""
 
@@ -1314,11 +1314,11 @@ msgstr ""
 msgid "Held on its own or with the hotkey button. The game doesn't get this button"
 msgstr ""
 
-#: src/library.c:2282
+#: src/library.c:2289
 msgid "Held on its side: the two screens side by side. Either way round."
 msgstr ""
 
-#: src/library.c:2282
+#: src/library.c:2289
 msgid "Held upright: the two screens one above the other. Either way up."
 msgstr ""
 
@@ -1346,7 +1346,7 @@ msgstr ""
 msgid "Hotkey button"
 msgstr ""
 
-#: src/hotkeys.c:138 src/library.c:1998
+#: src/hotkeys.c:138 src/library.c:2005
 msgid "Hotkeys"
 msgstr ""
 
@@ -1400,11 +1400,11 @@ msgstr ""
 msgid "Inner Bezel Color"
 msgstr ""
 
-#: src/library.c:2880
+#: src/library.c:2887
 msgid "Installed"
 msgstr ""
 
-#: src/library.c:2878 src/library.c:2880
+#: src/library.c:2885 src/library.c:2887
 msgid "Installing"
 msgstr ""
 
@@ -1428,7 +1428,7 @@ msgstr ""
 msgid "Keep device shapes"
 msgstr ""
 
-#: src/library.c:2508
+#: src/library.c:2515
 msgid "Keep saves next to the games"
 msgstr ""
 
@@ -1470,16 +1470,16 @@ msgstr ""
 msgid "L button"
 msgstr ""
 
-#: src/config.c:527 src/library.c:1609 src/library.c:3083 src/library.c:3160
+#: src/config.c:527 src/library.c:1616 src/library.c:3090 src/library.c:3167
 msgid "Language"
 msgstr ""
 
-#: src/library.c:2903
+#: src/library.c:2910
 #, c-format
 msgid "Last checked %s."
 msgstr ""
 
-#: src/library.c:2836
+#: src/library.c:2843
 msgid "Later"
 msgstr ""
 
@@ -1572,7 +1572,7 @@ msgstr ""
 msgid "Loading the achievements..."
 msgstr ""
 
-#: src/library.c:1547
+#: src/library.c:1554
 msgid "Loading thumbnail..."
 msgstr ""
 
@@ -1584,7 +1584,7 @@ msgstr ""
 msgid "Made for another version of the game: it can't be switched on for this ROM"
 msgstr ""
 
-#: src/library.c:2274
+#: src/library.c:2281
 msgid "Makes GBA DS the emulator for Game Boy Advance games in ES-DE. For a game it doesn't support, choose another in ES-DE (the game's metadata > Alternative emulator)."
 msgstr ""
 
@@ -1596,7 +1596,7 @@ msgstr ""
 msgid "Map Buttons"
 msgstr ""
 
-#: src/library.c:1998
+#: src/library.c:2005
 msgid "Map buttons"
 msgstr ""
 
@@ -1656,11 +1656,11 @@ msgstr ""
 msgid "Medium (15 a second)"
 msgstr ""
 
-#: src/library.c:1095
+#: src/library.c:1102
 msgid "Modified ROM: not a known dump"
 msgstr ""
 
-#: src/library.c:1102
+#: src/library.c:1109
 msgid "Modified ROM: the second screen may not work"
 msgstr ""
 
@@ -1701,7 +1701,7 @@ msgstr ""
 msgid "No es_systems.cfg found."
 msgstr ""
 
-#: src/library.c:2439
+#: src/library.c:2446
 msgid "No folder chosen."
 msgstr ""
 
@@ -1709,11 +1709,11 @@ msgstr ""
 msgid "No folders in this one"
 msgstr ""
 
-#: src/library.c:2115
+#: src/library.c:2122
 msgid "No game has settings of its own."
 msgstr ""
 
-#: src/library.c:1058
+#: src/library.c:1065
 msgid "No games found"
 msgstr ""
 
@@ -1729,11 +1729,11 @@ msgstr ""
 msgid "No RetroArch states here"
 msgstr ""
 
-#: src/library.c:1117
+#: src/library.c:1124
 msgid "no save state yet!"
 msgstr ""
 
-#: src/library.c:1490
+#: src/library.c:1497
 msgid "No supported games in"
 msgstr ""
 
@@ -1797,7 +1797,7 @@ msgstr ""
 msgid "Not used"
 msgstr ""
 
-#: src/library.c:2729
+#: src/library.c:2736
 msgid "NOTE: Unsupported games will play in RetroArch, but without BananaOS's own second screen (its game panel and companions)."
 msgstr ""
 
@@ -1862,7 +1862,7 @@ msgstr ""
 msgid "Off: every game plays like an ordinary GBA game."
 msgstr ""
 
-#: src/library.c:1630
+#: src/library.c:1637
 msgid "Off: games start with GBA DS's built-in BIOS again."
 msgstr ""
 
@@ -1898,7 +1898,7 @@ msgstr ""
 msgid "On. Restart EmulationStation to see it."
 msgstr ""
 
-#: src/library.c:1638
+#: src/library.c:1645
 msgid "On: games start with your BIOS from now on. A state saved with the other BIOS may not load."
 msgstr ""
 
@@ -1910,7 +1910,7 @@ msgstr ""
 msgid "Only for a single display: this device has two"
 msgstr ""
 
-#: src/library.c:1494
+#: src/library.c:1501
 msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
 msgstr ""
 
@@ -1974,25 +1974,25 @@ msgstr ""
 msgid "Overlays: Off"
 msgstr ""
 
-#: src/library.c:1092
+#: src/library.c:1099
 #, c-format
 msgid "Patch not applied: %s can't be read"
 msgstr ""
 
-#: src/library.c:1090
+#: src/library.c:1097
 #, c-format
 msgid "Patch not applied: %s is for another ROM"
 msgstr ""
 
-#: src/library.c:1095
+#: src/library.c:1102
 msgid "Patched ROM: not a known dump"
 msgstr ""
 
-#: src/library.c:1088
+#: src/library.c:1095
 msgid "Patched, but a patch was left out: see Patches in the game's menu"
 msgstr ""
 
-#: src/library.c:1101
+#: src/library.c:1108
 msgid "Patched: the second screen may not work"
 msgstr ""
 
@@ -2024,11 +2024,11 @@ msgstr ""
 msgid "Performance"
 msgstr ""
 
-#: src/library.c:2701
+#: src/library.c:2708
 msgid "Performance: Let the System Decide"
 msgstr ""
 
-#: src/library.c:2701
+#: src/library.c:2708
 msgid "Performance: Set to Max"
 msgstr ""
 
@@ -2056,7 +2056,7 @@ msgstr ""
 msgid "Pixelated"
 msgstr ""
 
-#: src/library.c:1861
+#: src/library.c:1868
 msgid "Placement, overlays"
 msgstr ""
 
@@ -2064,7 +2064,7 @@ msgstr ""
 msgid "Plain"
 msgstr ""
 
-#: src/library.c:1044 src/library.c:1045
+#: src/library.c:1051 src/library.c:1052
 msgid "Play"
 msgstr ""
 
@@ -2088,7 +2088,7 @@ msgstr ""
 msgid "points"
 msgstr ""
 
-#: src/library.c:2968
+#: src/library.c:2975
 msgid "Preparing the game..."
 msgstr ""
 
@@ -2154,7 +2154,7 @@ msgstr ""
 msgid "Quick save state"
 msgstr ""
 
-#: src/library.c:1049
+#: src/library.c:1056
 msgid "Quit"
 msgstr ""
 
@@ -2171,7 +2171,7 @@ msgstr ""
 msgid "Rank %u of %u · your score %s · best %s"
 msgstr ""
 
-#: src/library.c:1202
+#: src/library.c:1209
 msgid "Recently played"
 msgstr ""
 
@@ -2187,7 +2187,7 @@ msgstr ""
 msgid "Reset Bezels"
 msgstr ""
 
-#: src/library.c:2254 src/library.c:2697
+#: src/library.c:2261 src/library.c:2704
 msgid "Reset settings to defaults"
 msgstr ""
 
@@ -2251,35 +2251,35 @@ msgstr ""
 msgid "RETROACHIEVEMENTS · HARDCORE"
 msgstr ""
 
-#: src/library.c:2242
+#: src/library.c:2249
 msgid "RetroAchievements: Off"
 msgstr ""
 
-#: src/library.c:2243
+#: src/library.c:2250
 msgid "RetroAchievements: Sign In"
 msgstr ""
 
-#: src/library.c:2240
+#: src/library.c:2247
 msgid "RetroAchievements: Sign Out"
 msgstr ""
 
-#: src/library.c:2241
+#: src/library.c:2248
 msgid "RetroAchievements: Signing In..."
 msgstr ""
 
-#: src/library.c:2662
+#: src/library.c:2669
 msgid "RetroArch's settings weren't found here: choose the folder where it keeps its save states."
 msgstr ""
 
-#: src/library.c:2650
+#: src/library.c:2657
 msgid "RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."
 msgstr ""
 
-#: src/library.c:2633
+#: src/library.c:2640
 msgid "RetroArch's State Folder"
 msgstr ""
 
-#: src/library.c:2647
+#: src/library.c:2654
 #, c-format
 msgid "RetroArch's state folder is found from its settings again: %s."
 msgstr ""
@@ -2308,7 +2308,7 @@ msgstr ""
 msgid "Rewind on/off"
 msgstr ""
 
-#: src/library.c:1863
+#: src/library.c:1870
 msgid "Rewind, fast forward"
 msgstr ""
 
@@ -2332,25 +2332,25 @@ msgstr ""
 msgid "Right"
 msgstr ""
 
-#: src/library.c:1098
+#: src/library.c:1105
 #, c-format
 msgid "Romhack: %s%s"
 msgstr ""
 
-#: src/library.c:1099
+#: src/library.c:1106
 #, c-format
 msgid "Romhack: %s%s, untested"
 msgstr ""
 
-#: src/library.c:2253
+#: src/library.c:2260
 msgid "Rotation: Auto"
 msgstr ""
 
-#: src/library.c:2253
+#: src/library.c:2260
 msgid "Rotation: Landscape"
 msgstr ""
 
-#: src/library.c:2253
+#: src/library.c:2260
 msgid "Rotation: Portrait"
 msgstr ""
 
@@ -2374,11 +2374,11 @@ msgstr ""
 msgid "Save failed."
 msgstr ""
 
-#: src/library.c:2508
+#: src/library.c:2515
 msgid "Save files: .sav"
 msgstr ""
 
-#: src/library.c:2508
+#: src/library.c:2515
 msgid "Save files: .srm (RetroArch's)"
 msgstr ""
 
@@ -2403,11 +2403,11 @@ msgstr ""
 msgid "Save State %d"
 msgstr ""
 
-#: src/library.c:2699
+#: src/library.c:2706
 msgid "Save States: GBA DS's Own"
 msgstr ""
 
-#: src/library.c:2699
+#: src/library.c:2706
 msgid "Save States: Shared with RetroArch"
 msgstr ""
 
@@ -2435,15 +2435,15 @@ msgstr ""
 msgid "Saved without a GBA BIOS: see Settings > System"
 msgstr ""
 
-#: src/library.c:2571
+#: src/library.c:2578
 msgid "Saves will be kept next to the games."
 msgstr ""
 
-#: src/library.c:2454
+#: src/library.c:2461
 msgid "Saves will be kept there."
 msgstr ""
 
-#: src/library.c:1860
+#: src/library.c:1867
 msgid "Scale, shader, theme, color"
 msgstr ""
 
@@ -2541,19 +2541,19 @@ msgstr ""
 msgid "Set to Max"
 msgstr ""
 
-#: src/library.c:2022
+#: src/library.c:2029
 msgid "Sets the shortcuts: the hotkey button held with another."
 msgstr ""
 
-#: src/library.c:2022
+#: src/library.c:2029
 msgid "Sets which of this device's buttons does what."
 msgstr ""
 
-#: src/library.c:1582
+#: src/library.c:1589
 msgid "Settings"
 msgstr ""
 
-#: src/library.c:2111
+#: src/library.c:2118
 msgid "Settings are back to their defaults."
 msgstr ""
 
@@ -2605,15 +2605,15 @@ msgstr ""
 msgid "Show FPS: On"
 msgstr ""
 
-#: src/library.c:1666
+#: src/library.c:1673
 msgid "Show ROM Path on Game List: Off"
 msgstr ""
 
-#: src/library.c:1666
+#: src/library.c:1673
 msgid "Show ROM Path on Game List: On"
 msgstr ""
 
-#: src/library.c:1667
+#: src/library.c:1674
 msgid "Shows the selected game's folder and file name under Play and Quit on the game list's other screen."
 msgstr ""
 
@@ -2629,25 +2629,25 @@ msgstr ""
 msgid "Sign-in failed"
 msgstr ""
 
-#: src/library.c:2291
+#: src/library.c:2298
 #, c-format
 msgid "Signed in as %s. Achievements are earned in casual mode."
 msgstr ""
 
-#: src/library.c:2353
+#: src/library.c:2360
 msgid "Signed out of RetroAchievements."
 msgstr ""
 
-#: src/library.c:2293
+#: src/library.c:2300
 #, c-format
 msgid "Signing in as %s..."
 msgstr ""
 
-#: src/library.c:1516 src/library.c:1519 src/library.c:1561 src/library.c:1564
+#: src/library.c:1523 src/library.c:1526 src/library.c:1568 src/library.c:1571
 msgid "Single screen only"
 msgstr ""
 
-#: src/library.c:1078
+#: src/library.c:1085
 msgid "Single screen only: plays normally"
 msgstr ""
 
@@ -2655,7 +2655,7 @@ msgstr ""
 msgid "Skip"
 msgstr ""
 
-#: src/library.c:2836
+#: src/library.c:2843
 msgid "Skip this version"
 msgstr ""
 
@@ -2689,29 +2689,29 @@ msgstr ""
 msgid "Slot %d: Empty"
 msgstr ""
 
-#: src/library.c:2680
+#: src/library.c:2687
 msgid "Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."
 msgstr ""
 
-#: src/library.c:2680
+#: src/library.c:2687
 msgid "Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."
 msgstr ""
 
-#: src/library.c:2643
+#: src/library.c:2650
 #, c-format
 msgid "Slots 0-9 and the automatic state are now shared with RetroArch, in %s."
 msgstr ""
 
-#: src/library.c:2619
+#: src/library.c:2626
 #, c-format
 msgid "Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."
 msgstr ""
 
-#: src/library.c:2617
+#: src/library.c:2624
 msgid "Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."
 msgstr ""
 
-#: src/library.c:2621
+#: src/library.c:2628
 #, c-format
 msgid "Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."
 msgstr ""
@@ -2762,7 +2762,7 @@ msgstr ""
 msgid "Speed"
 msgstr ""
 
-#: src/library.c:1863
+#: src/library.c:1870
 msgid "Speed and sound"
 msgstr ""
 
@@ -2795,23 +2795,23 @@ msgstr ""
 msgid "State saved."
 msgstr ""
 
-#: src/library.c:1862
+#: src/library.c:1869
 msgid "Stick, buttons, hotkeys"
 msgstr ""
 
-#: src/library.c:1642
+#: src/library.c:1649
 msgid "Still off: gba_bios.bin isn't a GBA BIOS (it should be 16 KB)."
 msgstr ""
 
-#: src/library.c:1644
+#: src/library.c:1651
 msgid "Still off: gba_bios.bin isn't a GBA BIOS."
 msgstr ""
 
-#: src/library.c:1641
+#: src/library.c:1648
 msgid "Still off: put your GBA BIOS in the bios folder of GBA DS's data folder, named gba_bios.bin."
 msgstr ""
 
-#: src/library.c:1643
+#: src/library.c:1650
 msgid "Still off: that is a known broken BIOS dump."
 msgstr ""
 
@@ -2847,7 +2847,7 @@ msgstr ""
 msgid "Super Game Boy"
 msgstr ""
 
-#: src/library.c:1355
+#: src/library.c:1362
 msgid "Supported"
 msgstr ""
 
@@ -2875,15 +2875,15 @@ msgstr ""
 msgid "Swipe up for quick menu"
 msgstr ""
 
-#: src/library.c:2300
+#: src/library.c:2307
 msgid "Switched off in gba-ds.cfg (retroachievements = 0)."
 msgstr ""
 
-#: src/library.c:1798
+#: src/library.c:1805
 msgid "System"
 msgstr ""
 
-#: src/library.c:3172
+#: src/library.c:3179
 #, c-format
 msgid "System: %s"
 msgstr ""
@@ -2929,7 +2929,7 @@ msgstr ""
 msgid "Tested romhack: %s"
 msgstr ""
 
-#: src/library.c:2638
+#: src/library.c:2645
 msgid "That folder's path is too long."
 msgstr ""
 
@@ -2942,7 +2942,7 @@ msgstr ""
 msgid "That one is already %s. Press another, or tap to skip."
 msgstr ""
 
-#: src/library.c:2407
+#: src/library.c:2414
 msgid "That's inside GBA DS's own folder: choose one outside it."
 msgstr ""
 
@@ -2991,7 +2991,7 @@ msgstr ""
 msgid "the left shoulder button"
 msgstr ""
 
-#: src/library.c:1864
+#: src/library.c:1871
 msgid "The map and the logo"
 msgstr ""
 
@@ -3019,7 +3019,7 @@ msgstr ""
 msgid "The pattern over a Game Boy game: as set for GBA games, none, a grid, scanlines, soft cells, or a Game Boy's dot matrix with its shadows."
 msgstr ""
 
-#: src/library.c:2717
+#: src/library.c:2724
 msgid "The processor, memory and graphics run at full speed while GBA DS is open: the smoothest play, but the battery runs down faster and the device gets warmer."
 msgstr ""
 
@@ -3043,7 +3043,7 @@ msgstr ""
 msgid "The shades of a monochrome Game Boy game. Counts from the next start of the game."
 msgstr ""
 
-#: src/library.c:2718
+#: src/library.c:2725
 msgid "The system sets the speed, as for its other emulators. If games stutter or the sound breaks up, try Set to Max."
 msgstr ""
 
@@ -3071,12 +3071,12 @@ msgstr ""
 msgid "This game has no achievements yet"
 msgstr ""
 
-#: src/library.c:2894
+#: src/library.c:2901
 #, c-format
 msgid "This is GBA DS v%s."
 msgstr ""
 
-#: src/library.c:1736
+#: src/library.c:1743
 #, c-format
 msgid "This is v%s. Look for a new version, and download and install it."
 msgstr ""
@@ -3115,7 +3115,7 @@ msgstr ""
 msgid "Top screen brightness"
 msgstr ""
 
-#: src/library.c:1576
+#: src/library.c:1583
 msgid "Touch or use the D-Pad"
 msgstr ""
 
@@ -3194,15 +3194,15 @@ msgstr ""
 msgid "Up to %s"
 msgstr ""
 
-#: src/library.c:2836
+#: src/library.c:2843
 msgid "Update now"
 msgstr ""
 
-#: src/library.c:2256 src/library.c:2702 src/library.c:2830
+#: src/library.c:2263 src/library.c:2709 src/library.c:2837
 msgid "Updates"
 msgstr ""
 
-#: src/library.c:1963
+#: src/library.c:1970
 msgid "Updates, integrations"
 msgstr ""
 
@@ -3210,7 +3210,7 @@ msgstr ""
 msgid "Use This Folder"
 msgstr ""
 
-#: src/library.c:1662
+#: src/library.c:1669
 msgid "Use your own GBA BIOS (gba_bios.bin, in the bios folder of GBA DS's data folder) instead of the built-in one. Only needed for save states made with one."
 msgstr ""
 
@@ -3263,11 +3263,11 @@ msgstr ""
 msgid "What the top face button gives the game."
 msgstr ""
 
-#: src/library.c:2285
+#: src/library.c:2292
 msgid "Where games are read from, and the folder their saves are kept in."
 msgstr ""
 
-#: src/library.c:2285
+#: src/library.c:2292
 msgid "Where games are read from. Their saves are kept next to them."
 msgstr ""
 
@@ -3275,7 +3275,7 @@ msgstr ""
 msgid "Where it sits on the second screen, in games with something to turn."
 msgstr ""
 
-#: src/library.c:1859
+#: src/library.c:1866
 msgid "Which games, names, saving"
 msgstr ""
 
@@ -3325,7 +3325,7 @@ msgstr ""
 msgid "with another version of the game (other patches, or another ROM)"
 msgstr ""
 
-#: src/library.c:2906
+#: src/library.c:2913
 msgid "With automatic checks on, GBA DS looks for a new version once a day when the game list opens, and asks before downloading anything. Updates come from the releases on github.com/kyannon/gba-ds."
 msgstr ""
 
@@ -3370,11 +3370,11 @@ msgstr ""
 msgid "Y (left) button"
 msgstr ""
 
-#: src/library.c:1264
+#: src/library.c:1271
 msgid "Y: favorite"
 msgstr ""
 
-#: src/library.c:3126
+#: src/library.c:3133
 msgid "You can change it later in Settings > System."
 msgstr ""
 
@@ -3398,10 +3398,10 @@ msgstr ""
 msgid "Zoom"
 msgstr ""
 
-#: src/game.c:4024 src/game.c:4305 src/library.c:2011
+#: src/game.c:4024 src/game.c:4305 src/library.c:2018
 msgid "‹"
 msgstr ""
 
-#: src/game.c:4002 src/game.c:4020 src/game.c:4306 src/library.c:1817 ...
+#: src/game.c:4002 src/game.c:4020 src/game.c:4306 src/library.c:1824 ...
 msgid "›"
 msgstr ""
