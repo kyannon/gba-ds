@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <sched.h>
 #include <stdarg.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -370,7 +371,7 @@ static void* sampler_main(void* arg) {
 	int round = 0;
 	for (;;) {
 		double wait = trace_ms() < fastUntil || trace_ms() < 30000.0 ? 250.0 : 1000.0;
-		struct timespec ts = { 0, (long) (wait * 1e6) };
+		struct timespec ts = { (time_t) (wait / 1000.0), (long) (fmod(wait, 1000.0) * 1e6) }; /* (tv_nsec must stay below 1e9: 1000 ms as 1e9 ns returned at once) */
 		nanosleep(&ts, NULL);
 		double now = trace_ms(), dt = (now - prevT) / 1000.0;
 		if (dt <= 0) continue;
