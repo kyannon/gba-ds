@@ -157,6 +157,20 @@ def release_name(code):
     return n[:keep]
 
 
+def header_name(romzip, code):
+    """A game the dumps don't list: its patches folder as paths.c patch_folder names it, from
+    the ROM header's title: "TITLE (CODE)" (the GBA DS widescreen test ROM's "GBADS WIDE (ZWSE)")."""
+    try:
+        with zipfile.ZipFile(romzip) as z:
+            gba = [i for i in z.infolist() if i.filename.lower().endswith(".gba")]
+            head = z.read(gba[0])[0xA0:0xAC] if gba else b""
+    except (OSError, zipfile.BadZipFile):
+        return None
+    title = head.split(b"\0")[0].decode("latin-1").rstrip(" ")
+    name = "%s (%s)" % (title or "GBA", code)
+    return re.sub(r'[:/\\*?"<>|]', "_", name)
+
+
 def patches_on(case):
     """A case's "patch_on": one file name or a list, in the order applied."""
     on = case.get("patch_on") or []
@@ -213,7 +227,7 @@ def run_app(case, args, workdir):
     # a list: the ones on, in the order they're applied)
     patchdir = os.path.join(workdir, "patches")
     if case.get("patch_folder") or case.get("patch_on") or "patch_separate" in case:
-        name = release_name(case["rom"][:4])
+        name = release_name(case["rom"][:4]) or header_name(rom, case["rom"][:4])
         if not name:
             r.error = "no release name for %s (src/dumps_data.h)" % case["rom"][:4]
             return r
@@ -366,6 +380,10 @@ def run_app(case, args, workdir):
         # (as fast as it goes, drawing only the frames a screenshot or a
         # touch needs: the same pictures, in under half the time)
         env.update(GBADS_NOPACE="1", GBADS_DRAW_SHOTS_ONLY="1")
+    # WS-6: the widescreen patches' list and files from the repo's own widescreen/ folder, served
+    # here, for a case with "widescreen_list": true; for every other case an address nothing
+    # answers, so no case reaches GitHub (its list would change what a Patches menu shows)
+    env["GBADS_WIDE_URL"] = widescreen_server() if case.get("widescreen_list") else "http://127.0.0.1:9/"
     env.update({k: str(v) for k, v in case.get("env", {}).items()})  # (a case's own: GBADS_TOGGLE_WAIT...)
     try:
         p = subprocess.run(cmd, env=env, capture_output=True, text=True, errors="replace", timeout=args.timeout)
@@ -408,6 +426,31 @@ def run_logo(case, args, workdir):
         return r
     r.shots["logo"] = Image.open(path).convert("RGBA")
     return r
+
+
+_wideServer = None
+_wideLock = __import__("threading").Lock()
+
+
+def widescreen_server():
+    """http://127.0.0.1:PORT/ serving the repo's widescreen/ folder (started once)."""
+    global _wideServer
+    with _wideLock:
+        return _widescreen_server()
+
+
+def _widescreen_server():
+    global _wideServer
+    if _wideServer is None:
+        import functools, http.server, threading
+        class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+        handler = functools.partial(Quiet, directory=os.path.join(ROOT, "widescreen"))
+        srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        _wideServer = "http://127.0.0.1:%d/" % srv.server_address[1]
+    return _wideServer
 
 
 # ------------------------------------------------------------------ checks

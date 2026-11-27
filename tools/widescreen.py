@@ -25,7 +25,19 @@ picture that size, at that shape.
                                                OFFSET (in the ROM file), with
                                                another IPS's records first
     widescreen.py check FILE...                a ROM's or a patch's marker
+    widescreen.py index [--check]              widescreen/index.txt, the list
+                                               the app offers downloads from
+                                               (WS-6), made again from the
+                                               folder (--check: says if it's
+                                               out of date, changes nothing)
+
+The repository's widescreen/ folder holds GBA DS's own patches, never put
+in a release: widescreen/CODE/NAME (16-9).ips, and widescreen/CODE/dumps.txt
+listing the ROM files they fit (CRC32s, one a line; without it, any ROM
+with the code).
 """
+import hashlib
+import os
 import argparse
 import struct
 import sys
@@ -111,6 +123,39 @@ def find(data):
     return None
 
 
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+INDEX_HEAD = ("# GBA DS widescreen patches (docs/WIDESCREEN.md): made by tools/widescreen.py index, don't edit.\n"
+              "# code<TAB>ratio<TAB>file under widescreen/<TAB>SHA-256<TAB>the ROM files it fits (CRC32s, or -)\n")
+
+
+def index_text(folder):
+    lines = []
+    for code in sorted(os.listdir(folder)):
+        d = os.path.join(folder, code)
+        if not os.path.isdir(d):
+            continue
+        if len(code) != 4:
+            raise ValueError(f"widescreen/{code}: folders are named by the game's 4-letter code")
+        crcs = []
+        dumps = os.path.join(d, "dumps.txt")
+        if os.path.exists(dumps):
+            for line in open(dumps):
+                line = line.split("#")[0].strip()
+                if line:
+                    crcs.append("%08x" % int(line, 16))
+        for name in sorted(os.listdir(d)):
+            if os.path.splitext(name)[1].lower() not in (".ips", ".ups", ".bps"):
+                continue
+            if "\t" in name or "\n" in name:
+                raise ValueError(f"{name}: no tabs or line breaks in a name")
+            data = open(os.path.join(d, name), "rb").read()
+            m = find(data)
+            if not m:
+                raise ValueError(f"widescreen/{code}/{name}: no widescreen marker in it (a UPS hides it: use IPS or BPS)")
+            lines.append("\t".join([code, f"{m[1]}:{m[2]}", f"{code}/{name}", hashlib.sha256(data).hexdigest(), ",".join(crcs) or "-"]))
+    return INDEX_HEAD + "".join(l + "\n" for l in lines)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -119,6 +164,7 @@ def main():
     p = sub.add_parser("ips"); p.add_argument("offset"); p.add_argument("ratio")
     p.add_argument("-o", "--out", required=True); p.add_argument("--with", dest="fix")
     p = sub.add_parser("check"); p.add_argument("files", nargs="+")
+    p = sub.add_parser("index"); p.add_argument("--check", action="store_true")
     a = ap.parse_args()
     if a.cmd == "size":
         print("%d x %d" % picture(*parse_ratio(a.ratio)))
@@ -142,6 +188,18 @@ def main():
                 print(f"{f}: no widescreen marker")
                 bad = 1
         sys.exit(bad)
+    elif a.cmd == "index":
+        folder = os.path.join(ROOT, "widescreen")
+        path = os.path.join(folder, "index.txt")
+        text = index_text(folder)
+        old = open(path).read() if os.path.exists(path) else ""
+        if a.check:
+            if old != text:
+                sys.exit("widescreen/index.txt is out of date: run tools/widescreen.py index")
+            print("widescreen/index.txt is up to date (%d patches)" % (text.count("\n") - 2))
+        else:
+            open(path, "w").write(text)
+            print("widescreen/index.txt: %d patches" % (text.count("\n") - 2))
 
 
 if __name__ == "__main__":
