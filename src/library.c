@@ -1509,8 +1509,9 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		char dir[300];
 		fit_text(dir, sizeof(dir), TF_BODY, px * 5, cfg->romDir, r.w - px * 16);
 		ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2, px * 5, dir, C_GOLD, 0);
-		ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 14, px * 4,
-		             "Only games with a map screen are listed (show_all = 1 lists every one)", C_DIM, 0);
+		/* (the games button reads "Supported" while only those are listed: draw_games_button) */
+		ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 14, px * 4, "Only games with a map screen are listed.", C_DIM, 0);
+		ui_font_text(scr, TF_BODY, r.w / 2, r.h / 2 + px * 22, px * 4, "Tap \"Supported\" to see every game.", C_DIM, 0);
 	}
 	int done, total;
 	logo_progress(&done, &total);

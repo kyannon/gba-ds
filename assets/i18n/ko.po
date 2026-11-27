@@ -1114,8 +1114,13 @@ msgstr "예. 메뉴에 반영하려면 BananaOS(설정 > 시스템)를 다시 �
 msgid "On. Restart EmulationStation to see it."
 msgstr "예. 확인하려면 EmulationStation을 다시 시작하세요."
 
-msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
-msgstr "지도 화면이 있는 게임만 표시됩니다 (show_all = 1이면 모두 표시)"
+#: src/library.c:1513
+msgid "Only games with a map screen are listed."
+msgstr "지도 화면이 있는 게임만 표시됩니다."
+
+#: src/library.c:1514
+msgid "Tap \"Supported\" to see every game."
+msgstr "‘지원됨’을 탭하면 모든 게임이 표시됩니다."
 
 msgid "Only one screen: nothing to move"
 msgstr "화면이 하나뿐입니다: 옮길 것이 없습니다"

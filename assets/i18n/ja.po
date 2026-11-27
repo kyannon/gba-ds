@@ -1114,8 +1114,13 @@ msgstr "オン。BananaOS のメニューに反映するには再起動してく
 msgid "On. Restart EmulationStation to see it."
 msgstr "オン。表示するには EmulationStation を再起動してください。"
 
-msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
-msgstr "マップ画面のあるゲームのみ表示します (show_all = 1 ですべて表示)"
+#: src/library.c:1513
+msgid "Only games with a map screen are listed."
+msgstr "マップ画面のあるゲームのみ表示しています。"
+
+#: src/library.c:1514
+msgid "Tap \"Supported\" to see every game."
+msgstr "「対応」をタップするとすべてのゲームを表示します。"
 
 msgid "Only one screen: nothing to move"
 msgstr "画面が 1 つだけなので移動するものはありません"

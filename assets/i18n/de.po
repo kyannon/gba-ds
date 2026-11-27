@@ -1114,8 +1114,13 @@ msgstr "An. Starte BananaOS neu (Einstellungen > System), damit sein Menü es ve
 msgid "On. Restart EmulationStation to see it."
 msgstr "An. Starte EmulationStation neu, um es zu sehen."
 
-msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
-msgstr "Nur Spiele mit Kartenbildschirm werden aufgelistet (show_all = 1 listet alle)"
+#: src/library.c:1513
+msgid "Only games with a map screen are listed."
+msgstr "Nur Spiele mit Kartenbildschirm werden aufgelistet."
+
+#: src/library.c:1514
+msgid "Tap \"Supported\" to see every game."
+msgstr "Tippe auf „Unterstützt“, um alle Spiele zu sehen."
 
 msgid "Only one screen: nothing to move"
 msgstr "Nur ein Bildschirm: nichts zu verschieben"

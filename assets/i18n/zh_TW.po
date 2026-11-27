@@ -1111,8 +1111,13 @@ msgstr "已開啟。重啟 BananaOS（設定 > 系統）後它的選單才會用
 msgid "On. Restart EmulationStation to see it."
 msgstr "已開啟。重啟 EmulationStation 就能看到。"
 
-msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
-msgstr "只列出有地圖畫面的遊戲（show_all = 1 會列出全部）"
+#: src/library.c:1513
+msgid "Only games with a map screen are listed."
+msgstr "只列出有地圖畫面的遊戲。"
+
+#: src/library.c:1514
+msgid "Tap \"Supported\" to see every game."
+msgstr "點按「支援的」可查看全部遊戲。"
 
 msgid "Only one screen: nothing to move"
 msgstr "只有一塊螢幕：無需移動"

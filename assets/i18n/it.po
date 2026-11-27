@@ -1118,8 +1118,13 @@ msgstr "Sì. Riavvia BananaOS (Impostazioni > Sistema) perché il suo menu lo us
 msgid "On. Restart EmulationStation to see it."
 msgstr "Sì. Riavvia EmulationStation per vederlo."
 
-msgid "Only games with a map screen are listed (show_all = 1 lists every one)"
-msgstr "Sono elencati solo i giochi con una schermata mappa (show_all = 1 li elenca tutti)"
+#: src/library.c:1513
+msgid "Only games with a map screen are listed."
+msgstr "Sono elencati solo i giochi con una schermata mappa."
+
+#: src/library.c:1514
+msgid "Tap \"Supported\" to see every game."
+msgstr "Tocca «Supportato» per vedere tutti i giochi."
 
 msgid "Only one screen: nothing to move"
 msgstr "Un solo schermo: niente da spostare"
