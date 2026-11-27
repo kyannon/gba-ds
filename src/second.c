@@ -718,6 +718,20 @@ static void map_frames_free(void) {
 	}
 }
 
+/* One frame of the game (keys: the GBA's, plus the app's bits above them,
+ * which only the copies read), with the Pinball copies (twins.c) and the climb
+ * copy (climb.c) run around it: what a core calls instead of emu_frame. (Was
+ * in game.c's run_frame, with the app's own parts before it: swallowed keys,
+ * the SNES layout's camera pan, WarioWare's dial, the bug log.) */
+void second_run_frame(uint32_t keys) {
+	bool live = twins_before(keys);
+	twins_second_start(keys);
+	if (sec.climbProf) climb_begin(sec.emu, keys, sec.climbOn);
+	emu_frame(sec.emu, keys & 0x3FF);
+	if (sec.climbProf) climb_end(sec.emu);
+	twins_after(live);
+}
+
 /* The game's second screen taken down before second_open sets it up for
  * another game (a compilation: the game running in it changed, game.c's
  * ss_switch): the old game's HUD split and hidden sprites off, its capture and

@@ -188,14 +188,9 @@ static void run_frame(uint32_t keys) {
 			if (!told) told = true, fprintf(stderr, "camera pan: not now (game mode %02x, paused %02x)\n", emu_read8(&emu, sn->when[0].addr), emu_read8(&emu, sn->when[2].addr));
 		}
 	}
-	bool live = twins_before(keys);
-	twins_second_start(keys);
 	ww_step();
-	if (sec.climbProf) climb_begin(&emu, keys, sec.climbOn);
-	emu_frame(&emu, keys & 0x3FF);
-	if (sec.climbProf) climb_end(&emu);
+	second_run_frame(keys); /* (second.c: the game's frame, with the Pinball and climb copies around it) */
 	++bugFrame;
-	twins_after(live);
 }
 
 /* Start the bug log again from here (the frames before belong to another moment). */

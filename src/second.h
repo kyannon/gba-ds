@@ -119,10 +119,13 @@ extern SecondState sec;
  * hud.hooks are set: second_open (code: the profile in use, the game's or for
  * a compilation the game running in it, sec.subCode; screens: how many there
  * are). A compilation whose game changes: second_drop, then second_open for the
- * new one. Each frame, after the game's: second_step. As the game ends, before
- * its emulator is closed: second_close. */
+ * new one. Each frame: second_run_frame (the game's frame), then second_step.
+ * As the game ends, before its emulator is closed: second_close. */
 void second_open(const char* rom, const char* code, int screens);
 void second_drop(void);
+/* the game's frame (instead of emu_frame: the copies run around it), then
+ * second_step */
+void second_run_frame(uint32_t keys);
 void second_step(int screens);
 void second_close(void);
 
