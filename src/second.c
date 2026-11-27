@@ -776,3 +776,39 @@ void second_step(int screens) {
 	if (hud.hudProf) update_hud();
 	if (hud.combatProf) hud_combat_step();
 }
+
+/* The game's logo as a GBA screen would show it, with nothing live to show:
+ * centred on dark grey, at half strength (LOGO_IDLE). A Game Boy / Game Boy
+ * Color game: plain dark grey, no logo (docs/GAME-BOY.md, GB-3). A scraped
+ * logo at full resolution (GEN-11): the same picture at sub pixels per GBA
+ * pixel (GBA_W * sub x GBA_H * sub), to be scaled smoothly to the GBA
+ * picture's place. A user's own logo bigger than that: no picture (the app
+ * shows it as a high-resolution image). *px is malloc'd, the caller's to
+ * free. IDLE_NONE: no logo (*sub as it was); IDLE_NOPIC: a logo, *sub set, no
+ * picture; IDLE_PIC: the picture. (Was the pixel part of game.c's
+ * make_logo_canvas.) */
+int second_idle_picture(uint32_t** px, int* w, int* h, int* sub) {
+	*px = NULL;
+	if (emu_is_gb(&(*sec.emu))) {
+		uint32_t* grey = malloc((size_t) GBA_W * GBA_H * 4);
+		*sub = 1;
+		if (!grey) return IDLE_NOPIC;
+		for (int i = 0; i < GBA_W * GBA_H; ++i) grey[i] = SCREEN_GREY;
+		*px = grey, *w = GBA_W, *h = GBA_H;
+		return IDLE_PIC;
+	}
+	LogoPic lg;
+	int s = 1;
+	if (!sec.hooks.logoLoad(&lg, &s)) return IDLE_NONE;
+	*sub = s;
+	bool big = lg.w > GBA_W * s || lg.h > GBA_H * s;
+	sec.hooks.logoFree(&lg);
+	if (big) return IDLE_NOPIC;
+	int cw = GBA_W * s, ch = GBA_H * s;
+	uint32_t* pic = malloc((size_t) cw * ch * 4);
+	if (!pic) return IDLE_NOPIC;
+	for (int i = 0; i < cw * ch; ++i) pic[i] = SCREEN_GREY;
+	logo_draw(pic, cw, ch, s, 0, LOGO_IDLE);
+	*px = pic, *w = cw, *h = ch;
+	return IDLE_PIC;
+}

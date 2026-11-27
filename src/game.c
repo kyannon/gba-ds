@@ -5245,55 +5245,22 @@ static void logo_free(LogoPic* p) {
  * that's bigger stays a high-resolution image (logoCanvasTex NULL). */
 static void make_logo_canvas(void) {
 	ui_free_image(logoCanvasTex);
-	if (emu_is_gb(&emu)) {
-		/* A Game Boy / Game Boy Color game: the second screen is idle, plain dark grey, no logo
-		 * (docs/GAME-BOY.md, GB-3; logos come later) */
-		static uint32_t grey[GBA_W * GBA_H];
-		for (int i = 0; i < GBA_W * GBA_H; ++i) grey[i] = SCREEN_GREY;
-		logoSub = 1;
-		for (int i = 0; i < nViews; ++i) {
-			logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
-			if (!logoCanvasTex[i]) continue;
-			SDL_SetTextureBlendMode(logoCanvasTex[i], SDL_BLENDMODE_NONE);
-			ui_update_texture(logoCanvasTex[i], grey, GBA_W * 4);
-		}
-		return;
-	}
-	bool pixelArt = false;
-	int sub = 1;
-	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, emu.romCrc, &pixelArt, &sub);
-	if (!lg) return;
+	/* (the picture: second.c second_idle_picture; GB-3 plain grey, GEN-11 a
+	 * scraped logo on a canvas of sub pixels per GBA pixel) */
+	uint32_t* pic = NULL;
+	int w = 0, h = 0, sub = 1;
+	int kind = second_idle_picture(&pic, &w, &h, &sub);
+	if (kind == IDLE_NONE) return;
 	logoSub = sub;
-	bool big = lg->w > GBA_W * sub || lg->h > GBA_H * sub;
-	SDL_FreeSurface(lg);
-	if (big) return;
-	if (sub > 1) {
-		/* a scraped logo at full resolution (GEN-11): the same picture at
-		 * sub pixels per GBA pixel, smoothly scaled to the GBA picture's place */
-		int cw = GBA_W * sub, ch = GBA_H * sub;
-		uint32_t* big4 = malloc((size_t) cw * ch * 4);
-		if (!big4) return;
-		for (int i = 0; i < cw * ch; ++i) big4[i] = SCREEN_GREY;
-		logo_draw(big4, cw, ch, sub, 0, LOGO_IDLE);
-		for (int i = 0; i < nViews; ++i) {
-			logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, cw, ch);
-			if (!logoCanvasTex[i]) continue;
-			SDL_SetTextureBlendMode(logoCanvasTex[i], SDL_BLENDMODE_NONE);
-			SDL_SetTextureScaleMode(logoCanvasTex[i], SDL_ScaleModeLinear);
-			ui_update_texture(logoCanvasTex[i], big4, cw * 4);
-		}
-		free(big4);
-		return;
-	}
-	static uint32_t px[GBA_W * GBA_H];
-	for (int i = 0; i < GBA_W * GBA_H; ++i) px[i] = SCREEN_GREY;
-	logo_draw(px, GBA_W, GBA_H, 1, 0, LOGO_IDLE);
+	if (kind == IDLE_NOPIC) return;
 	for (int i = 0; i < nViews; ++i) {
-		logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, GBA_W, GBA_H);
+		logoCanvasTex[i] = SDL_CreateTexture(views[i].ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, w, h);
 		if (!logoCanvasTex[i]) continue;
 		SDL_SetTextureBlendMode(logoCanvasTex[i], SDL_BLENDMODE_NONE);
-		ui_update_texture(logoCanvasTex[i], px, GBA_W * 4);
+		if (sub > 1) SDL_SetTextureScaleMode(logoCanvasTex[i], SDL_ScaleModeLinear);
+		ui_update_texture(logoCanvasTex[i], pic, w * 4);
 	}
+	free(pic);
 }
 
 

@@ -141,6 +141,11 @@ void update_snapshot(void);
  * blended at alpha (LOGO_IDLE: idle), centred below `top` rows; false if
  * there's no logo (or no room) */
 bool logo_draw(uint32_t* px, int cw, int ch, int k, int top, int alpha);
+/* the idle second screen's picture (the logo on grey, or plain grey for a
+ * Game Boy game): IDLE_PIC with *px (malloc'd, *w x *h, *sub pixels per GBA
+ * pixel); IDLE_NOPIC a logo but no picture (too big: *sub set); IDLE_NONE no logo */
+enum { IDLE_NONE, IDLE_NOPIC, IDLE_PIC };
+int second_idle_picture(uint32_t** px, int* w, int* h, int* sub);
 /* The second screen kept with save states (GBA DS's block inside the state:
  * EXTDATA_GBADS): made now (malloc'd, *n bytes; NULL if nothing), and put
  * back from a loaded state's block (b may be NULL: none; the title card and
