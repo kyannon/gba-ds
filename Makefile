@@ -88,7 +88,7 @@ $(OUT)/rzstd/%.o: $(RZSTD_DIR)/src/%.c $(shell find $(RZSTD_DIR)/include -name '
 	$(CC) $(OPTFLAGS) -std=gnu11 -I$(RZSTD_DIR)/include -c $< -o $@
 
 # development tools (host only; need libpng)
-tools: $(OUT)/harness
+tools: $(OUT)/harness $(OUT)/second-driver
 
 $(OUT)/harness: tools/harness.c tools/png.c $(CORE_SRC) src/logo.c src/*.h $(RZSTD_OBJ)
 	@mkdir -p $(OUT)
@@ -104,8 +104,14 @@ clean:
 # (discussion #75). CI runs it (.github/workflows/module.yml).
 NOSDL_SRC    := $(MODULE_SRC) $(CORE_SRC) src/logo.c
 NOSDL_CFLAGS  = $(filter-out -I$(SDL_PREFIX)/include/SDL2,$(CFLAGS)) -Werror=implicit-function-declaration
-module-check: $(OUT)/module-check
+module-check: $(OUT)/module-check $(OUT)/second-driver
 	$(OUT)/module-check
+
+# the module's reference driver (tools/second_driver.c): replays a trace of the app's calls into the
+# module (GBADS_MODULE_TRACE) with only the module; regress.py's "driver" cases compare it with the app
+$(OUT)/second-driver: tools/second_driver.c $(NOSDL_SRC) src/*.h $(MGBA_BUILD)/libmgba.a $(RZSTD_OBJ)
+	@mkdir -p $(OUT)
+	$(CC) $(NOSDL_CFLAGS) -o $@ tools/second_driver.c $(NOSDL_SRC) $(RZSTD_OBJ) $(MGBA_BUILD)/libmgba.a $(ZLIB_A) -lpthread -lm
 
 $(OUT)/module-check: tools/module_check.c $(NOSDL_SRC) src/*.h $(MGBA_BUILD)/libmgba.a $(RZSTD_OBJ)
 	@mkdir -p $(OUT)

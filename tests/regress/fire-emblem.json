@@ -4,6 +4,7 @@
  "cases": [
   {
    "id": "fe-us-hud",
+   "driver": true,
    "rom": "AE7E",
    "state": "fire-emblem/us-hud.ss",
    "desc": "the unit, goal and terrain windows over the map",
@@ -344,6 +345,7 @@
   },
   {
    "id": "fe-us-ind",
+   "driver": true,
    "rom": "AE7E",
    "state": "fire-emblem/us-ind.ss",
    "desc": "the battle forecast with arrows and x2",

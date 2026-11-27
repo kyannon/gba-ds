@@ -1550,6 +1550,7 @@
    "rom": "BZME",
    "state": "zelda-the-minish-cap/us-town.ss",
    "id": "tmc-us-toggle-view",
+   "driver": true,
    "desc": "the toggle on, on the map of Hyrule: HOME + A fades to black while the hidden copy takes Quest Status, then shows it; again, back to the map",
    "rules": [
     "GEN-14",

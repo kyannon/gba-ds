@@ -78,6 +78,7 @@ static void toggle_apply(int page) {
 }
 
 void toggle_press(void) {
+	second_trace_call("toggle_press");
 	if (!toggle_ready()) {
 		if (sec.debug) fprintf(stderr, "frame %llu: toggle: not ready, ignored\n", (unsigned long long) sec.frame);
 		return;

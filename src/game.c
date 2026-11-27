@@ -3988,6 +3988,7 @@ static bool state_load(const char* path) {
 		ra_state_loaded(side);
 	}
 	if (ok) bug_reset();
+	if (ok) second_trace_state_file(path); /* (tests: the module's trace keeps the file, when it's on) */
 	if (ok) {
 		/* (second.c: the second screen kept with it, put back at the next frame; the HUD's pictures from before dropped) */
 		size_t n = 0;
@@ -6157,6 +6158,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	sec.emu = &emu, sec.cfg = cfg, sec.debug = debug, sec.romPath = romPath;
 	sec.hooks = (SecondHooks) { show_picture, tall_show, logo_load, logo_free };
 	hud.hooks = (HudHooks) { show_hud, show_combat, has_combat, save_bmp };
+	/* tests (tools/regress.py's driver cases): the module's calls traced, and what the screens show at each screenshot */
+	if (getenv("GBADS_MODULE_TRACE") && second_trace_begin(getenv("GBADS_MODULE_TRACE"))) ui_on_shot(second_trace_shot);
 	game_paths(cfg, rom, &gp);
 	ui_brightness(cfg->brightTop, cfg->brightBottom); /* (this game's own, if it has them) */
 	game_keys_reload();
@@ -6207,10 +6210,8 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ui_on_background(on_background);
 	ui_on_foreground(on_foreground);
 
-	sec.mc = NULL;
+	second_game_start(); /* (second.c: the frame count and the map's animation start again) */
 	gameTexAll = true;
-	sec.frame = 0;
-	sec.mapAnimStart = 0; /* (the last game's count was further on) */
 	menuOpen = false;
 	{
 		/* a compilation: the profile of the game running in it (none yet) */
@@ -6353,7 +6354,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	const bool testStarve = getenv("GBADS_TEST_STARVE") && atoi(getenv("GBADS_TEST_STARVE"));
 
 	static int16_t samples[4096 * 2];
-	sec.refresh = (typeof(sec.refresh)) { .sinceMapRequest = 1 << 20, .forceMap = true, .refreshAt = -1 }; /* (the map refresh starts again for this game) */
+	second_loop_start(); /* (second.c: the map refresh starts again for this game) */
 	hotkeys_setup();
 	const int modBtn = hkMod;
 	/* SELECT or START as the hotkey: a GBA button, held back from the game

@@ -1767,6 +1767,7 @@
   },
   {
    "id": "pp-us-sapphire-play",
+   "driver": true,
    "rom": "BPPE",
    "state": "pokemon-pinball/us-sapphire-play.ss",
    "desc": "a table past its start (the owner's bug report, its keys played back): the opening sweep, then the table over both screens",

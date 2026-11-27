@@ -16,6 +16,12 @@
 #include <string.h>
 #include "clamp.h"
 
+/* (the trace: tests, second_trace_begin below) */
+static void trace(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
+static void trace_open(int screens);
+static void trace_loaded(const uint8_t* block, size_t n);
+static void trace_step_end(void);
+
 /* (only this file's: the steps second_open / second_step / second_close run) */
 /* the still map for "Map Animations: Off" into out (r->w * r->h), the pixels
  * that animate marked in mask; pick is the profile's stillPick (STILL_*) */
@@ -39,6 +45,7 @@ static bool frame_is_dark(const uint32_t* fb);
 SecondState sec = { .mapW = GBA_W, .mapH = GBA_H, .mapShownIdx = -1, .fadeLevel = 256, .tgWait = -1 };
 
 void second_new_subject(void) {
+	trace("new_subject");
 	sec.refresh.forceMap = true;
 }
 
@@ -684,6 +691,8 @@ static void second_map_setup(const char* code, bool logoOnly) {
  * With the second screen off (cfg->map) only the reset. (Was inline in game.c's
  * ss_setup.) */
 void second_open(const char* rom, const char* code, int screens) {
+	if (code != sec.subCode) snprintf(sec.subCode, sizeof(sec.subCode), "%.4s", code); /* (the app's callers set it already) */
+	trace_open(screens);
 	second_reset();
 	sec.logoOnly = false;
 	tallProf = NULL;
@@ -724,6 +733,7 @@ static void map_frames_free(void) {
  * in game.c's run_frame, with the app's own parts before it: swallowed keys,
  * the SNES layout's camera pan, WarioWare's dial, the bug log.) */
 void second_run_frame(uint32_t keys) {
+	trace("run %x", (unsigned) keys);
 	bool live = twins_before(keys);
 	twins_second_start(keys);
 	if (sec.climbProf) climb_begin(sec.emu, keys, sec.climbOn);
@@ -736,6 +746,7 @@ void second_run_frame(uint32_t keys) {
  * copies and the climb copy kept is another moment's. (Was in game.c's
  * bug_reset.) */
 void second_jump(void) {
+	trace("jump");
 	twinSeq += 2;
 	climb_reset();
 }
@@ -748,6 +759,7 @@ static uint8_t* restoreBlock;
 static size_t restoreN;
 static bool restorePending;
 void second_state_loaded(uint8_t* block, size_t n) {
+	trace_loaded(block, n);
 	free(restoreBlock);
 	restoreBlock = block, restoreN = n;
 	restorePending = true;
@@ -762,6 +774,7 @@ void second_state_loaded(uint8_t* block, size_t n) {
 /* At the start of a frame, before the game's (and outside second_run_frame,
  * which the app may run on another thread): a loaded state's block put back. */
 void second_frame_start(void) {
+	trace("frame_start");
 	if (!restorePending) return;
 	restorePending = false;
 	second_state_load(restoreBlock, restoreN);
@@ -795,6 +808,7 @@ int second_shown(bool* dim) {
  * ss_switch): the old game's HUD split and hidden sprites off, its capture and
  * pictures gone. */
 void second_drop(void) {
+	trace("drop");
 	if (hud.hudOn) emu_hud_split(sec.emu, false, 0, NULL, 0, hud.hudPx); /* (the old game's HUD split off) */
 	emu_hide_sprites(sec.emu, NULL, 0);
 	sec.hideWhenProf = NULL;
@@ -808,6 +822,7 @@ void second_drop(void) {
  * pictures and the still. Call it before the game's emulator is closed: the
  * copies are taken from it. (Was inline in game.c's end of a game.) */
 void second_close(void) {
+	trace("close");
 	mapcap_destroy(sec.mc);
 	sec.mc = NULL;
 	twin_close();
@@ -930,6 +945,7 @@ static void update_climb(void) {
  * games' tall view (screens: how many there are now), the climb view (profile
  * climb), the HUD split, the fights' picture. (Was inline in game.c's frame loop.) */
 void second_step(int screens) {
+	trace("step %d %llu", screens, (unsigned long long) sec.frame);
 	map_refresh_step();
 
 	if (sec.snapProf) update_snapshot();
@@ -940,6 +956,7 @@ void second_step(int screens) {
 	if (sec.climbProf) update_climb();
 	if (hud.hudProf) update_hud();
 	if (hud.combatProf) hud_combat_step();
+	trace_step_end();
 }
 
 /* The game's logo as a GBA screen would show it, with nothing live to show:
@@ -977,3 +994,208 @@ int second_idle_picture(uint32_t** px, int* w, int* h, int* sub) {
 	*px = pic, *w = cw, *h = ch;
 	return IDLE_PIC;
 }
+
+/* ---- A game's start, as the app's game_run_inner does it (and a core's
+ * retro_load_game): second_game_start before second_open (the frame count
+ * and the map's animation start again), second_loop_start once the game's
+ * first state is loaded, before the first frame (the map refresh starts
+ * again: a capture as soon as it can be). sec.frame is the host's count,
+ * one a pass of its loop. (Were inline in game_run_inner.) */
+void second_game_start(void) {
+	trace("game_start");
+	sec.mc = NULL;
+	sec.frame = 0;
+	sec.mapAnimStart = 0; /* (the last game's count was further on) */
+}
+
+void second_loop_start(void) {
+	trace("loop_start");
+	sec.refresh = (typeof(sec.refresh)) { .sinceMapRequest = 1 << 20, .forceMap = true, .refreshAt = -1 }; /* (the map refresh starts again for this game) */
+}
+
+/* ---- The trace (tests, discussion #75): with second_trace_begin(dir), every
+ * call the host makes into the module is written to dir/trace.txt in order,
+ * with the files a replay needs beside it (the settings at each open, the
+ * game's state and GBA DS's block at each load), and second_trace_shot(name)
+ * writes what the second screen shows then (name.second: kind, dim, w, h and
+ * the picture's RGBA bytes) and the game's picture (name.game: w, h, pixels),
+ * both as of the last second_step. tools/second_driver.c replays a trace with
+ * only the module and writes the same files: regress.py's "driver" cases
+ * compare the two. The hooks are wrapped to keep the last picture each was
+ * handed; what the host's hooks do is unchanged. */
+#include <stdarg.h>
+#ifndef __wasi__
+#include <pthread.h>
+static pthread_mutex_t traceLock = PTHREAD_MUTEX_INITIALIZER; /* (the frame may run on the app's frame-buffer thread) */
+#define TRACE_LOCK() pthread_mutex_lock(&traceLock)
+#define TRACE_UNLOCK() pthread_mutex_unlock(&traceLock)
+#else
+#define TRACE_LOCK()
+#define TRACE_UNLOCK()
+#endif
+static FILE* traceF;
+static char traceDir[700];
+static int traceFiles;
+static SecondHooks traceReal;
+static HudHooks traceRealHud;
+static uint32_t* traceMap;
+static int traceMapW, traceMapH;
+static uint32_t traceHud[HUD_CW * HUD_CH];
+static uint32_t* traceCombat;
+static int traceCombatW, traceCombatH;
+static uint32_t traceGame[GBA_W * GBA_H];
+
+static void trace(const char* fmt, ...) {
+	if (!traceF) return;
+	TRACE_LOCK();
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(traceF, fmt, ap);
+	va_end(ap);
+	fputc('\n', traceF);
+	fflush(traceF);
+	TRACE_UNLOCK();
+}
+
+static bool trace_write(const char* name, const void* a, size_t an, const void* b, size_t bn) {
+	char path[800];
+	snprintf(path, sizeof(path), "%s/%s", traceDir, name);
+	FILE* f = fopen(path, "wb");
+	if (!f) return false;
+	bool ok = fwrite(a, 1, an, f) == an && (!bn || fwrite(b, 1, bn, f) == bn);
+	return fclose(f) == 0 && ok;
+}
+
+static void trace_keep(uint32_t** dst, int* dw, int* dh, const uint32_t* px, int w, int h) {
+	if (*dw != w || *dh != h) {
+		free(*dst);
+		*dst = malloc((size_t) w * h * 4);
+		*dw = *dst ? w : 0, *dh = *dst ? h : 0;
+	}
+	if (*dst) memcpy(*dst, px, (size_t) w * h * 4);
+}
+static void trace_present(const uint32_t* px) {
+	trace_keep(&traceMap, &traceMapW, &traceMapH, px, sec.mapW, sec.mapH);
+	if (traceReal.present) traceReal.present(px);
+}
+static void trace_present_gba(const uint32_t* px) {
+	trace_keep(&traceMap, &traceMapW, &traceMapH, px, GBA_W, GBA_H);
+	if (traceReal.presentGba) traceReal.presentGba(px);
+}
+static void trace_present_hud(const uint32_t* canvas) {
+	memcpy(traceHud, canvas, sizeof(traceHud));
+	if (traceRealHud.presentHud) traceRealHud.presentHud(canvas);
+}
+static void trace_present_combat(const uint32_t* px) {
+	trace_keep(&traceCombat, &traceCombatW, &traceCombatH, px, sec.mapW, sec.mapH);
+	if (traceRealHud.presentCombat) traceRealHud.presentCombat(px);
+}
+
+/* a module call made outside second.c (toggle.c's toggle_press), for the trace */
+void second_trace_call(const char* what) {
+	trace("%s", what);
+}
+
+/* Start tracing into dir (made by the caller), once the hooks are set. */
+bool second_trace_begin(const char* dir) {
+	char path[800];
+	snprintf(traceDir, sizeof(traceDir), "%s", dir);
+	snprintf(path, sizeof(path), "%s/trace.txt", dir);
+	traceF = fopen(path, "w");
+	if (!traceF) return false;
+	traceReal = sec.hooks, traceRealHud = hud.hooks;
+	sec.hooks.present = trace_present, sec.hooks.presentGba = trace_present_gba;
+	hud.hooks.presentHud = trace_present_hud, hud.hooks.presentCombat = trace_present_combat;
+	fprintf(stderr, "module trace: %s\n", path);
+	return true;
+}
+
+static void trace_open(int screens) {
+	if (!traceF) return;
+	char name[40];
+	snprintf(name, sizeof(name), "config-%d.bin", ++traceFiles);
+	trace_write(name, sec.cfg, sizeof(*sec.cfg), NULL, 0);
+	trace("open %.4s %d %s %zu", sec.subCode[0] ? sec.subCode : "-", screens, name, sizeof(*sec.cfg)); /* (a Game Boy game has no code: "-") */
+}
+
+/* The game's state as the host loaded it: a copy of the file (a replay
+ * loads that, with emu_state_load_file: a state from another mGBA version
+ * doesn't come back byte for byte from emu_state_save's), else a snapshot. */
+static char traceStateFile[60];
+void second_trace_state_file(const char* path) {
+	if (!traceF) return;
+	FILE* f = fopen(path, "rb");
+	if (!f) return;
+	fseek(f, 0, SEEK_END);
+	long len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	void* b = len > 0 ? malloc((size_t) len) : NULL;
+	bool ok = b && fread(b, 1, (size_t) len, f) == (size_t) len;
+	fclose(f);
+	snprintf(traceStateFile, sizeof(traceStateFile), "state-%d.ss", ++traceFiles);
+	if (!ok || !trace_write(traceStateFile, b, (size_t) len, NULL, 0)) traceStateFile[0] = 0;
+	free(b);
+}
+
+static void trace_loaded(const uint8_t* block, size_t n) {
+	if (!traceF) return;
+	char sname[60], bname[40];
+	if (traceStateFile[0]) {
+		snprintf(sname, sizeof(sname), "%s", traceStateFile);
+		traceStateFile[0] = 0;
+	} else {
+		size_t sz = emu_state_size(sec.emu);
+		void* st = malloc(sz);
+		if (!st || !emu_state_save(sec.emu, st)) {
+			free(st);
+			trace("loaded ? (the game's state not saved)");
+			return;
+		}
+		snprintf(sname, sizeof(sname), "state-%d.bin", ++traceFiles);
+		trace_write(sname, st, sz, NULL, 0);
+		free(st);
+	}
+	snprintf(bname, sizeof(bname), "block-%d.bin", ++traceFiles);
+	if (block) trace_write(bname, block, n, NULL, 0);
+	trace("loaded %s %s %zu", sname, block ? bname : "-", block ? n : 0);
+}
+
+static void trace_step_end(void) {
+	if (traceF && sec.emu && sec.emu->fb) memcpy(traceGame, sec.emu->fb, sizeof(traceGame));
+}
+
+/* What the screens show now (as of the last second_step), into dir/name.second
+ * and dir/name.game (name: a screenshot's file name, its folder and extension
+ * dropped). */
+void second_trace_shot(const char* name) {
+	if (!traceF) return;
+	char base[200];
+	const char* slash = strrchr(name, '/');
+	snprintf(base, sizeof(base), "%s", slash ? slash + 1 : name);
+	char* dot = strrchr(base, '.');
+	if (dot) *dot = 0;
+	bool dim = false;
+	int kind = second_shown(&dim);
+	const uint32_t* px = NULL;
+	uint32_t* idle = NULL;
+	int w = 0, h = 0;
+	if (kind == SHOWN_COMBAT) px = traceCombat, w = traceCombatW, h = traceCombatH;
+	else if (kind == SHOWN_HUD) px = traceHud, w = HUD_CW, h = HUD_CH;
+	else if (kind == SHOWN_MAP) px = traceMap, w = traceMapW, h = traceMapH;
+	else if (kind == SHOWN_LOGO) {
+		int sub = 1;
+		if (second_idle_picture(&idle, &w, &h, &sub) == IDLE_PIC) px = idle;
+		else w = h = 0;
+	}
+	if (!px) w = h = 0;
+	int32_t head[4] = { kind, dim, w, h };
+	char fname[240];
+	snprintf(fname, sizeof(fname), "%s.second", base);
+	trace_write(fname, head, sizeof(head), px, (size_t) w * h * 4);
+	free(idle);
+	int32_t ghead[2] = { GBA_W, GBA_H };
+	snprintf(fname, sizeof(fname), "%s.game", base);
+	trace_write(fname, ghead, sizeof(ghead), traceGame, sizeof(traceGame));
+	trace("shot %s", base);
+}
+

@@ -121,6 +121,10 @@ extern SecondState sec;
  * are). A compilation whose game changes: second_drop, then second_open for the
  * new one. Each frame: second_run_frame (the game's frame), then second_step.
  * As the game ends, before its emulator is closed: second_close. */
+/* a new game, before second_open; and once its first state is loaded, before
+ * the first frame (see second.c) */
+void second_game_start(void);
+void second_loop_start(void);
 void second_open(const char* rom, const char* code, int screens);
 void second_drop(void);
 /* the game's frame (instead of emu_frame: the copies run around it), then
@@ -176,5 +180,13 @@ int probes_hit(const uint32_t* fb, const Probe* p, int tol);
  * into the game's memory first, for that one frame (pokeAt 0: none) */
 void snapshot_hiding_sprites_poke(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out, uint32_t pokeAt, uint16_t pokeV);
 void snapshot_hiding_sprites(const SpriteRule* hide, int n, const SpriteRule* kept, int nKept, uint32_t* out);
+
+/* ---- Tests: the host's calls into the module traced into dir, and what the
+ * screens show at a screenshot (tools/second_driver.c replays a trace; see
+ * second.c) */
+bool second_trace_begin(const char* dir);
+void second_trace_call(const char* what);
+void second_trace_state_file(const char* path);
+void second_trace_shot(const char* name);
 
 #endif

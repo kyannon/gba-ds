@@ -195,6 +195,20 @@ the release's No-Intro name as `profile_release_name` gives it), and
 `"patch_on": "FILE"` switches one on there (writing `<rom>.patches`; a list switches on several, in the order they're applied; `"patch_separate": false` turns the separate battery save and states switches off). Every
 app case runs with its own `--patch_dir`.
 
+A case with `"driver": true` (or every case, with `--driver`) also checks the second-screen
+module alone against the app (discussion #75): the app runs with `GBADS_MODULE_TRACE`, which
+writes every call it makes into the module (second.c's `second_trace_begin`: open, each frame's
+`second_frame_start` / `second_run_frame` / `second_step`, state loads with the file loaded,
+`second_new_subject`, `toggle_press`, close) and, at each screenshot, what the second screen
+shows (`NAME.second`: `second_shown`'s kind, dim, and the picture) and the game's picture
+(`NAME.game`); then `build/host/second-driver` (tools/second_driver.c, `make tools`) replays
+that trace with only the module and the emulator core, no SDL and none of the app, and writes
+the same. The check ("MODULE") passes when its trace and every picture are the app's, byte for
+byte: a difference means the app changes the module's state outside its calls, which a libretro
+core couldn't. Left out by design (the host's choices, not the module's): ROM patches (the
+driver opens the plain ROM), the player's own or a scraped logo (the driver's is the extracted
+one), Game Boy palettes and the restart prompt (it starts the game again in the same run).
+
 ## Writing a case
 
 ```json

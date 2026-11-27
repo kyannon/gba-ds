@@ -1994,6 +1994,10 @@ void ui_brightness(int top, int bottom) {
 	brightPct[1] = SDL_clamp(bottom, 20, 100);
 }
 
+/* tests: told each scripted screenshot's name as it's taken (GBADS_MODULE_TRACE) */
+static void (*shotHook)(const char* name);
+void ui_on_shot(void (*fn)(const char* name)) { shotHook = fn; }
+
 void ui_present(void) {
 	{
 		/* testing (issue #50): GBADS_TEST_PRESENT_STALL=MS,EVERY holds every
@@ -2007,6 +2011,7 @@ void ui_present(void) {
 		if (stallMs > 0 && stallEvery > 0 && ++presents % stallEvery == 0) SDL_Delay((Uint32) stallMs);
 	}
 	if (pendingShot[0]) {
+		if (shotHook) shotHook(pendingShot);
 		ui_screenshot(pendingShot);
 		pendingShot[0] = 0;
 	}
