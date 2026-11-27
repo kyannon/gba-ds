@@ -366,6 +366,29 @@ static void rtc_pin(Emu* e) {
 	e->core->rtc.value = atoll(t) * 1000;
 }
 
+/* Background work done on the caller's thread, with no thread of its own:
+ * map captures (mapcap.c, run in mapcap_request), logo extraction (logo.c),
+ * the profiles' own workers (profiles.c: Mega Man Battle Network's map,
+ * Baldur's Gate's, Mario Pinball Land's counters) and the climb copy's
+ * pictures, each waited for (climb.c). Exact and repeatable (the same
+ * pictures at the same frames), at the cost of frames that take longer:
+ * the regression tests run so, and a libretro core can choose it (run-ahead,
+ * or a frontend that wants no threads). Off unless set; GBADS_SYNC=1 sets it
+ * at the start (as the tests do). (The battery save's writer, emu.c, and the
+ * Pinball copies' workers, workers.c, run as they always do: the copies'
+ * frames are waited for each frame either way.) */
+static int syncWork = -1;
+void emu_set_sync_work(bool on) {
+	syncWork = on;
+}
+bool emu_sync_work(void) {
+	if (syncWork < 0) {
+		const char* e = getenv("GBADS_SYNC");
+		syncWork = e && atoi(e);
+	}
+	return syncWork;
+}
+
 /* Does the cartridge have a sun sensor (Boktai 1, 2 and 3)? mGBA sets the flag from its
  * game database (or the header's GPIO probe) when the ROM loads. */
 bool emu_has_solar(Emu* e) {
@@ -1027,9 +1050,10 @@ static uint8_t* retroarch_wrap(const uint8_t* core, size_t n, bool compress, siz
 #endif
 }
 
-bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t extraN, StateFormat fmt) {
+uint8_t* emu_state_save_mem(Emu* e, const void* extra, size_t extraN, size_t* outN) {
+	*outN = 0;
 	struct VFile* vf = VFileMemChunk(NULL, 0);
-	if (!vf) return false;
+	if (!vf) return NULL;
 	bool ok = mCoreSaveStateNamed(e->core, vf, SAVESTATE_SAVEDATA | SAVESTATE_RTC | SAVESTATE_METADATA);
 	if (ok && extra) {
 		/* GBA DS's own data, put in with mGBA's (other emulators skip it) */
@@ -1052,6 +1076,18 @@ bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t 
 	uint8_t* core = n ? malloc(n) : NULL;
 	ok = core && vf->seek(vf, 0, SEEK_SET) == 0 && vf->read(vf, core, n) == (ssize_t) n;
 	vf->close(vf);
+	if (!ok) {
+		free(core);
+		return NULL;
+	}
+	*outN = n;
+	return core;
+}
+
+bool emu_state_save_file_as(Emu* e, const char* path, const void* extra, size_t extraN, StateFormat fmt) {
+	size_t n;
+	uint8_t* core = emu_state_save_mem(e, extra, extraN, &n);
+	bool ok = core != NULL;
 	uint8_t* out = core;
 	size_t outN = n;
 	if (ok && fmt != STATE_FORMAT_MGBA) ok = (out = retroarch_wrap(core, n, fmt == STATE_FORMAT_RETROARCH_RZIP, &outN)) != NULL;
@@ -1065,21 +1101,24 @@ bool emu_state_save_file(Emu* e, const char* path) {
 	return emu_state_save_file_as(e, path, NULL, 0, STATE_FORMAT_MGBA);
 }
 
+bool emu_state_load_mem(Emu* e, const void* b, size_t n) {
+	bool ok = false;
+	struct VFile* vf = VFileFromConstMemory(b, n);
+	if (vf) {
+		ok = mCoreLoadStateNamed(e->core, vf, SAVESTATE_RTC);
+		rtc_pin(e);
+		vf->close(vf);
+	}
+	split_resync(e);
+	return ok;
+}
+
 bool emu_state_load_file(Emu* e, const char* path) {
 	size_t n;
 	StateFileKind kind;
 	uint8_t* b = state_file_read(path, &n, &kind);
 	if (!b) return false;
-	bool ok = false;
-	if (kind == STATE_FILE_MGBA || kind == STATE_FILE_RETROARCH) {
-		struct VFile* vf = VFileFromConstMemory(b, n);
-		if (vf) {
-			ok = mCoreLoadStateNamed(e->core, vf, SAVESTATE_RTC);
-			rtc_pin(e);
-			vf->close(vf);
-		}
-		split_resync(e);
-	}
+	bool ok = (kind == STATE_FILE_MGBA || kind == STATE_FILE_RETROARCH) && emu_state_load_mem(e, b, n);
 	free(b);
 	return ok;
 }
@@ -1139,16 +1178,10 @@ bool emu_state_file_rom_crc(const char* path, uint32_t* crc) {
 	return ok;
 }
 
-void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
+void* emu_state_mem_get_extra(Emu* e, const void* b, size_t bn, size_t* n) {
 	*n = 0;
-	size_t bn;
-	StateFileKind kind;
-	uint8_t* b = state_file_read(path, &bn, &kind);
 	struct VFile* vf = b ? VFileFromConstMemory(b, bn) : NULL;
-	if (!vf) {
-		free(b);
-		return NULL;
-	}
+	if (!vf) return NULL;
 	struct mStateExtdata ext;
 	mStateExtdataInit(&ext);
 	void* out = NULL;
@@ -1159,6 +1192,15 @@ void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
 	}
 	mStateExtdataDeinit(&ext);
 	vf->close(vf);
+	return out;
+}
+
+void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n) {
+	*n = 0;
+	size_t bn;
+	StateFileKind kind;
+	uint8_t* b = state_file_read(path, &bn, &kind);
+	void* out = emu_state_mem_get_extra(e, b, bn, n);
 	free(b);
 	return out;
 }
@@ -1316,6 +1358,23 @@ uint8_t* emu_rom_read_all(const char* path, size_t* size) {
 	}
 	if (archive) archive->close(archive);
 	return buf;
+}
+
+bool emu_save_memory(Emu* e, void* buf, size_t size) {
+	struct VFile* vf = buf && size ? VFileFromMemory(buf, size) : NULL;
+	if (!vf) return false;
+	if (!e->core->loadSave(e->core, vf)) {
+		vf->close(vf);
+		return false;
+	}
+	return true;
+}
+
+size_t emu_save_memory_size(Emu* e) {
+	struct GBA* gba = gba_of(e);
+	if (gba) return gba->memory.savedata.type == GBA_SAVEDATA_AUTODETECT ? GBA_SIZE_FLASH1M : GBASavedataSize(&gba->memory.savedata);
+	if (e->core && e->platform == mPLATFORM_GB) return ((struct GB*) e->core->board)->sramSize;
+	return 0;
 }
 
 uint8_t* emu_memory(Emu* e, int region, size_t* size) {

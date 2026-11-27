@@ -5306,7 +5306,7 @@ static const uint32_t* mmbn_live_view(Emu* live, const char* rom) {
 		mmbnStop = false;
 		mmbnBusy = true;
 		/* in exact runs (the tests), and with no threads, made here */
-		if (getenv("GBADS_SYNC") || pthread_create(&mmbnThread, NULL, mmbn_worker, NULL)) mmbnThread = 0, mmbn_worker(NULL);
+		if (emu_sync_work() || pthread_create(&mmbnThread, NULL, mmbn_worker, NULL)) mmbnThread = 0, mmbn_worker(NULL);
 	}
 	if (m->failed && m->early) {
 		/* again in a second, for at most ten seconds */
@@ -7990,7 +7990,7 @@ static const uint32_t* bgd_live_view(Emu* live, const char* rom) {
 		bgdStop = false;
 		bgdBusy = true;
 		/* in exact runs (the tests), and with no threads, made here */
-		if (getenv("GBADS_SYNC") || pthread_create(&bgdThread, NULL, bgd_worker, NULL)) bgdThread = 0, bgd_worker(NULL);
+		if (emu_sync_work() || pthread_create(&bgdThread, NULL, bgd_worker, NULL)) bgdThread = 0, bgd_worker(NULL);
 	}
 	if (m->failed || !m->done) return NULL; /* (the logo meanwhile) */
 	/* a quarter of the size: each pixel the mean of 4x4 of the picture's,
@@ -10302,7 +10302,7 @@ static void mpl_place(Emu* live, const char* rom, bool on) {
 			snprintf(mplRom, sizeof(mplRom), "%s", rom);
 			mplBusy = true;
 			/* in exact runs (the tests), and with no threads, done here */
-			if (getenv("GBADS_SYNC") || pthread_create(&mplThread, NULL, mpl_worker, NULL)) {
+			if (emu_sync_work() || pthread_create(&mplThread, NULL, mpl_worker, NULL)) {
 				mplThread = 0, mpl_worker(NULL);
 				if (mplDone) {
 					mplDone = false;

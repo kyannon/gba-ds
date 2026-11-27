@@ -434,6 +434,7 @@
   },
   {
    "id": "gs-us-battle-party",
+   "driver": true,
    "rom": "AGSE",
    "state": "golden-sun/us-battle-party.ss",
    "desc": "a battle, the party menu (Fight, Flee, Status)",

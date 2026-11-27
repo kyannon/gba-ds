@@ -201,6 +201,7 @@
   },
   {
    "id": "gbw-jp-switching",
+   "driver": true,
    "rom": "BGWJ",
    "state": "game-boy-wars-advance-1-2/jp-title.ss",
    "desc": "the title, then game 2's battle, then the title again",

@@ -247,7 +247,7 @@ into `dev` once it's in good shape, so that `dev` stays releasable.
   them). Don't approve goldens of other games' or shared cases from the
   branch (that broke `dev`'s cases until the merge): if the game's change
   alters a shared picture, give it a new shot name instead. Keep to the game's profile and its own composer: a change to shared
-  code (`game.c`, `emu.c`, `mapcap.c`, `logo.c`, other games' profiles) is
+  code (`game.c`, `second.c`, `hud.c`, `twins.c`, `emu.c`, `mapcap.c`, `logo.c`, other games' profiles) is
   for `dev`. If the game really needs one, keep it small, say so in the
   commit message, and say at the merge which shared-code cases have to run.
 - **Don't edit CHANGELOG.md, README.md or the wiki's game list on the
@@ -299,6 +299,22 @@ release zip, which replaces the main install.
 
 - Desktop (for development and tests): `scripts/setup-host.sh` once (fetches
   and builds mGBA and SDL2 into `deps/`), then `make` and `make tools`.
+- `make module-check`: the second-screen module (`MODULE_SRC`) and the core
+  it runs on (`CORE_SRC`, `src/logo.c`) built with no SDL include path, linked
+  with no SDL library and run (`tools/module_check.c`), so they stay what a
+  libretro core can compile (discussion #75). CI runs it on every push that
+  touches `src/` (`.github/workflows/module.yml`, mGBA only, no SDL). A module
+  file that includes SDL, calls it, or calls back into the app (`game.c`,
+  `ui.c`) fails it. It then runs `tools/module_settings.py`: `docs/LIBRETRO.md`
+  lists the `Config` fields and emu.h `extern`s the module reads (a core's
+  options, with their defaults), and a read the list lacks, or a row nothing
+  reads, fails it.
+- `make tools` also builds `build/host/second-driver` (tools/second_driver.c,
+  no SDL): the module's reference driver, which replays a trace of the app's
+  calls into the module (`GBADS_MODULE_TRACE`) with only the module, for
+  regress.py's `"driver": true` cases and `--driver` (docs/TESTING.md);
+  `GBADS_DRIVER_SAVE_MEM=1` / `GBADS_DRIVER_SERIALIZE=1` make it use the save and
+  states in memory as a core would. `docs/LIBRETRO.md` is the core writer's guide.
 - Device: `scripts/build-rocknix.sh` (fetches an aarch64 toolchain, mGBA
   and SDL2 into `deps/`) produces the release zip in `dist/`.
 - Android: `scripts/build-android.sh` (needs the Android SDK/NDK, so it
@@ -473,7 +489,7 @@ release zip, which replaces the main install.
   per release.
   - *Game work* (a new game, or compatibility work on one): the game's own
     cases, including new ones for its new rules, plus the cases of any
-    shared code the work changed (`game.c`, `emu.c`, `mapcap.c`, `logo.c`,
+    shared code the work changed (`game.c`, `second.c`, `hud.c`, `emu.c`, `mapcap.c`, `logo.c`,
     `ui.c`, shared parts of `profiles.c`...).
   - *GitHub issues and PRs*: only the cases that involve shared code the
     fix changed; a fix that touches none runs none.
@@ -488,7 +504,7 @@ release zip, which replaces the main install.
   readable form: per game, the files and functions it runs) maps each
   function of `src/` to the games whose cases execute it, from a gcov run
   of every game (`tools/regress_deps.py`). `--changed` reads it, so a
-  change inside `game.c`'s `update_tall` picks the pinball games, not all
+  change inside `twins.c`'s `update_tall` picks the pinball games (once the map is measured with twins.c; until then the file is unknown to it and picks every game), not all
   fifty-odd. A change the map can't place (outside any function, a new
   function, a header, a file it doesn't know) picks every game that runs
   the file, or every game: never fewer. `tools/regress_deps.py show
@@ -512,7 +528,10 @@ release zip, which replaces the main install.
   jobs (`gh api -X POST repos/kyannon/gba-ds/actions/runs/RUN_ID/rerun-failed-jobs`),
   and if it fails again, run that shard locally (`python3 tools/regress.py
   GAMES --shard N/K`); docs/TESTING.md, "On GitHub". `GBADS_SYNC=1`
-  makes captures and logo extraction run inline, so runs are exact; the app
+  makes captures and logo extraction run inline, so runs are exact (in the module and
+  core it sets emu.c's `emu_sync_work`, which a core sets with `emu_set_sync_work`: the map
+  captures, logo extraction, the profiles' own workers and the climb copy's pictures on
+  the caller's thread; the app's own threads read `GBADS_SYNC` themselves); the app
   draws with SDL's software renderer (`SDL_RENDER_DRIVER=software`, set by
   regress.py), the same on every machine (through Mesa's OpenGL, blended
   text came out a shade apart from GitHub's runners). A failing case prints
@@ -552,7 +571,10 @@ release zip, which replaces the main install.
   BananaFront's (`RASTATE`, RZIP-compressed (zlib, or zstd since issue #78: the
   vendored decoder `third_party/rzstd`) or not, its mGBA core's bytes in
   the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
-  second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
+  second-screen block (EXTDATA_GBADS) inside the mGBA bytes; `emu_state_save_mem` /
+  `_load_mem` / `emu_state_mem_get_extra` are the same in memory (a libretro core's
+  serialize), and `emu_save_memory` gives the game its battery save in a buffer
+  (`RETRO_MEMORY_SAVE_RAM`; docs/LIBRETRO.md). Save States
   shared with RetroArch (`state_folder = retroarch`, game list Settings >
   Save States, Linux and, since issue #111, Android: docs/ANDROID.md): paths.c `retroarch_state_dir` works out RetroArch's
   folder from its retroarch.cfg as RetroArch does (ROCKNIX: setsettings.sh's
@@ -578,15 +600,16 @@ release zip, which replaces the main install.
   map, screen and memory probes, crops, captureHide/underHide sprite rules,
   logo extraction, regional variants (`variants[]` + patch functions), and
   for logo-only games (Tony Hawk's Pro Skater 2) the `snap` screen copy and
-  `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens as one tall view (game.c update_tall), its top row min(the game's view, rows - 320): the top screen the game as it is while that's its view, else a copy held at rows - 320 with the game's screen-fixed things laid over it (BG0 and the sprites found fixed, drawn by the HUD split: emu_hud_keep_exact); the bottom screen a second copy held 160 rows below the view's top (twins[], run_frame: every frame each copy is taken from the game's state from before the frame before, held at its row (camera stores NOPed, its own pans compensated, twin_jump) and run that frame and this one, on worker threads beside the game: a copy left on its own fell behind the game's logic); sprites alike the game's hidden only when fixed to the screen or wrapped round (twin_hide); paused, the Mart or a message: the game's whole screen on the bottom one (PP-11). See docs/PINBALL.md. Sonic Pinball Party uses the same with `tall.live.carry` (its camera is a row, its table tiles stream through a vblank queue): each copy keeps its own BG0 tile ring, scroll vars and queued ring copies from its last frame (carry_take / carry_put) and walks its camera to its row; the game's own picture is used wherever it has the rows; docs/games/sonic-pinball-party.md has its addresses, tools/scout/sjump.c the experiment. DK: King of Swing (logo-only) has `climb` (climb.c, game.c `update_climb`): in a level the game on the bottom screen and the level above it on the top, drawn by one copy of the game taken from its state every frame with its camera rows lowered 160 and its camera code patched (the profile's `patch`, re-applied with `emu_state_patch32` for IWRAM code), run on its own thread (in step with the game on one core, its pace dropping when the device can't keep up: `climb_pace`); the web player runs it in a worker of its own (docs/WEB-PLAYER.md). `pinball_live = 0` turns it off. A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Other profile switches: `logoIf` / `logoIfOr` (the logo while they match,
+  `controls` four-face layout (Super Mario Advance 2: `controls.snes`, with the camera pan poke done in game.c's run_frame), (Mario Kart; Super Mario Advance 2 in levels, beside its map capture) the `hud` split and when it's on. Pokémon Pinball has `tall`: the table over both screens as one tall view (twins.c update_tall), its top row min(the game's view, rows - 320): the top screen the game as it is while that's its view, else a copy held at rows - 320 with the game's screen-fixed things laid over it (BG0 and the sprites found fixed, drawn by the HUD split: emu_hud_keep_exact); the bottom screen a second copy held 160 rows below the view's top (twins[] in twins.c, driven from game.c's run_frame by twins_before / twins_second_start / twins_after: every frame each copy is taken from the game's state from before the frame before, held at its row (camera stores NOPed, its own pans compensated, twin_jump) and run that frame and this one, on worker threads beside the game: a copy left on its own fell behind the game's logic); sprites alike the game's hidden only when fixed to the screen or wrapped round (twin_hide); paused, the Mart or a message: the game's whole screen on the bottom one (PP-11). See docs/PINBALL.md. Sonic Pinball Party uses the same with `tall.live.carry` (its camera is a row, its table tiles stream through a vblank queue): each copy keeps its own BG0 tile ring, scroll vars and queued ring copies from its last frame (carry_take / carry_put) and walks its camera to its row; the game's own picture is used wherever it has the rows; docs/games/sonic-pinball-party.md has its addresses, tools/scout/sjump.c the experiment. DK: King of Swing (logo-only) has `climb` (climb.c, second.c `update_climb`, run from `second_step`): in a level the game on the bottom screen and the level above it on the top, drawn by one copy of the game taken from its state every frame with its camera rows lowered 160 and its camera code patched (the profile's `patch`, re-applied with `emu_state_patch32` for IWRAM code), run on its own thread (in step with the game on one core, its pace dropping when the device can't keep up: `climb_pace`); the web player runs it in a worker of its own (docs/WEB-PLAYER.md). `pinball_live = 0` turns it off. A compilation with its own RAM per game (Game Boy Wars Advance 1+2, `BGWJ`) has `pick`: game.c's ss_switch sets the second screen up again for the variant it names (BGW1, BGW2). Other profile switches: `logoIf` / `logoIfOr` (the logo while they match,
   map and HUD kept for after; Super Mario Advance 4's World-e castle hall;
   the logo stays until a new HUD picture is drawn, at most a second),
   `hud.freeze` (the HUD picture held as it is while they match: SMA4's
   status bar sliding off), `hud.offAfter` (the HUD off from when they match
   until `on[0]` stops: Superstar Saga's results and level-ups, to the
-  battle's end). A profile whose `composePages` gives pages that turn on a timer (a status screen's three pages, the party's members) sets `pages` (not a marker's blinking frames: they restart with each capture, pages keep their place); it is also what a Toggle row `pages` means (GEN-14), and game.c's `second_page()` is the one place that says which page is up. Adding a game mostly means a profile.
+  battle's end). A profile whose `composePages` gives pages that turn on a timer (a status screen's three pages, the party's members) sets `pages` (not a marker's blinking frames: they restart with each capture, pages keep their place); it is also what a Toggle row `pages` means (GEN-14), and toggle.c's `second_page()` is the one place that says which page is up. Adding a game mostly means a profile.
+- **The second-screen module**, moved out of game.c without SDL so a libretro core can call it as the app does (discussion #75; built on the branch `libretro-core`, merged into `dev` Nov 27, 2026, its full regression run green; every step in the project's `claude/discussion-75-extraction-log.md`; `docs/LIBRETRO.md` is the guide for the core, which Davey-Hughes writes): `second.c` / `second.h` (its state, `SecondState sec`: the capture's pictures, the refresh, the still, the screen copy, the climb view, the toggle's state; and its calls), `hud.c` / `hud.h` (the HUD split and the fights' picture, `HudState hud`), `twins.c` (the Pinball copies and the tall view's composer, `update_tall`, handed the app's state in a `TallEnv`), `toggle.c` (the contextual toggle's state machine and `second_page()`), `workers.c` (the copies' worker threads), `rgba.c` (`rgba_resample`, also ui.c's) and `clamp.h` (SDL's own min / max / clamp macro text, so moved code computes exactly as before: they're type-generic, int stand-ins truncated the HUD's float scaling). What a core calls, in order (tools/second_driver.c is the reference): set `sec.emu / cfg / debug / romPath`, `sec.hooks` (present, presentGba, logoLoad, logoFree) and `hud.hooks` (presentHud, presentCombat, hasCombat, saveBmp); open the game (`emu_open` with its battery save, `profile_set_rom`; `emu_set_sync_work(true)` for exact runs with no threads of the module's or the core's own for that work); `second_game_start()`, `second_open(rom, code, screens)`, a first state if any, `second_loop_start()`; each frame `second_frame_start()`, the game's frame through `second_run_frame(keys)` (the copies run around it), `second_step(screens)`, then `second_shown(&dim)` says which picture the second screen shows; a state load: `second_jump()`, `second_state_loaded(block, n)` (GBA DS's block, put back at the next frame), `second_new_subject()`; a restart: `emu_reset`, `second_jump()`, `second_restarted()`; the logo changed (finished extracting, or switched): `second_logo_changed()`; `second_state_save` with states; `second_idle_picture` / `logo_draw` for the logo; `second_close()` before the game's emulator is closed (a compilation's switch: `second_drop()` then `second_open`). game.c's `ss_setup` / `ss_switch`, `run_frame`, `state_load`, `restart_game`, `logo_refresh`, `draw_game` and the end of a game call the same (game.c writes the module's state itself only to set it up, `sec.emu` / `cfg` / hooks, to count frames, `sec.frame`, the host's, and in `rebuild_textures`, which puts every picture up again after the GPU lost its textures: an app-only event), with the app's own parts around them (controls, button settings, WarioWare's sensor and screens, Android pinning, swallow keys, the SNES layout's camera pan, rewind, rumble). The app's calls can be traced (`GBADS_MODULE_TRACE`: second.c `second_trace_begin`) and replayed by the driver; regress.py's `"driver": true` cases check they give the same pictures (docs/TESTING.md). Keep anything only the module uses `static` in its own file; the headers are the module's interface.
 - `mapcap.c` map capture on a hidden second core in a background thread.
-  A `room` key change starts one once it has held 3 frames (game.c), calling
+  A `room` key change starts one once it has held 3 frames (second.c `map_refresh_step`), calling
   off one still running (`mapcap_cancel`: the shadow's frames stop running,
   `emu_cancelled`, composers keep nothing); `aw_run` waits draw only their
   last two frames (`emu_frame_blind`). `GBADS_DEBUG=1` logs each capture's
@@ -598,11 +621,12 @@ release zip, which replaces the main install.
   else the bezel in its default colours), on `overlay_screens`. `tools/make_overlays.py` is the
   design's reference (the master images, a set for every device in `docs/devices.csv` to check
   against) and `--embed` makes `src/bezel_logo.c`. regress.py runs with `--overlays=off`.
-- `game.c` a play session: input, the second screen (map, logo, THPS2
-  snapshot), the quick bar (Controls picker, buttons, bug reports), pause
-  menu, cheats screen, screenshots.
+- `game.c` a play session: input, the second screen's textures and drawing
+  (its pictures come from the module above: map, logo, THPS2 snapshot, HUD),
+  the quick bar (Controls picker, buttons, bug reports), pause menu, cheats
+  screen, screenshots.
   The contextual toggle (GEN-14, issue #37; settings `toggle`, `auto_rotate`,
-  `toggle_button`, hotkey action `HK_TOGGLE`, HOME + A): `toggle_ready()` is the one
+  `toggle_button`, hotkey action `HK_TOGGLE`, HOME + A; the state machine and `second_page()` are in `toggle.c`, the button in game.c): `toggle_ready()` is the one
   gate, `toggle_press()` / `toggle_step()` the state machine (a turn that waits
   fades the picture: `fadeLevel`), `toggle_new_subject()` starts the pages again
   at the first when a capture was for a new subject (`capSubject`), `second_page()`

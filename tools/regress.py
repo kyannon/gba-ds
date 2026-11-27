@@ -30,7 +30,7 @@ Every run is deterministic: GBADS_SYNC=1 makes map captures and logo
 extraction run inline, at the same frames each time, so goldens are
 compared exactly (a case can allow a tolerance). See docs/TESTING.md.
 """
-import argparse, fnmatch, glob, html, json, os, re, shutil, subprocess, sys, tempfile, time, zipfile
+import argparse, fnmatch, glob, html, json, os, re, shutil, struct, subprocess, sys, tempfile, time, zipfile
 from concurrent.futures import ThreadPoolExecutor
 
 try:
@@ -87,6 +87,7 @@ class Run:
         self.log = ""
         self.error = None
         self.ra_states = None  # a "retroarch" case's stand-in state folder
+        self.driver = None  # a "driver" case's (ok, what): the module alone against the app
 
     def screen(self, shot, name):
         img = self.shots[shot]
@@ -367,6 +368,13 @@ def run_app(case, args, workdir):
         # touch needs: the same pictures, in under half the time)
         env.update(GBADS_NOPACE="1", GBADS_DRAW_SHOTS_ONLY="1")
     env.update({k: str(v) for k, v in case.get("env", {}).items()})  # (a case's own: GBADS_TOGGLE_WAIT...)
+    # "driver": true (or --driver): the app traces its calls into the second-screen module, and
+    # tools/second_driver.c replays them with the module alone (discussion #75): see driver_check
+    driver = (case.get("driver") or args.driver) and case.get("kind") != "library"
+    tracedir = os.path.join(workdir, "trace")
+    if driver:
+        os.makedirs(tracedir)
+        env["GBADS_MODULE_TRACE"] = tracedir
     try:
         p = subprocess.run(cmd, env=env, capture_output=True, text=True, errors="replace", timeout=args.timeout)
         r.log = p.stdout + p.stderr
@@ -381,7 +389,54 @@ def run_app(case, args, workdir):
                 name, p.returncode, ": " + " / ".join(tail) if tail else "")
             return r
         r.shots[name] = Image.open(path).convert("RGB")
+    if driver:
+        env.pop("GBADS_MODULE_TRACE", None)
+        sav = os.path.join(args.fixtures, "saves", case["save"]) if case.get("save") else None
+        r.driver = driver_check(args, rom, tracedir, os.path.join(workdir, "driver"), env, sav)
     return r
+
+
+def driver_check(args, rom, tracedir, outdir, env, save=None):
+    """The module alone against the app: second-driver replays the app's trace; its own trace and
+    every picture it writes (NAME.second: what the second screen shows, NAME.game: the game's
+    picture) must be the app's, byte for byte. (ok, what)"""
+    if not os.path.exists(args.driver_bin):
+        return False, "no %s (make tools)" % os.path.relpath(args.driver_bin, ROOT)
+    try:
+        p = subprocess.run([args.driver_bin, rom, tracedir, outdir] + ([save] if save else []), env=env, capture_output=True, text=True,
+                           errors="replace", timeout=args.timeout)
+    except subprocess.TimeoutExpired:
+        return False, "second-driver timed out"
+    if p.returncode != 0:
+        tail = [l for l in (p.stdout + p.stderr).strip().splitlines() if l.strip()][-2:]
+        return False, "second-driver failed: " + " / ".join(tail)
+    names = sorted(n for n in os.listdir(tracedir) if n.endswith((".second", ".game")))
+    if not names:
+        return False, "the app's trace has no screenshots"
+    kinds = ["off", "fight", "HUD", "map", "logo"]
+    for n in ["trace.txt"] + names:
+        a, b = os.path.join(tracedir, n), os.path.join(outdir, n)
+        if not os.path.exists(b):
+            return False, "second-driver wrote no %s" % n
+        da, db = open(a, "rb").read(), open(b, "rb").read()
+        if da == db:
+            continue
+        if n == "trace.txt":
+            la, lb = da.decode(errors="replace").splitlines(), db.decode(errors="replace").splitlines()
+            i = next((i for i in range(min(len(la), len(lb))) if la[i] != lb[i]), min(len(la), len(lb)))
+            return False, "the traces part at line %d: app %r, driver %r" % (
+                i + 1, la[i] if i < len(la) else "(end)", lb[i] if i < len(lb) else "(end)")
+        if n.endswith(".second"):
+            ha, hb = struct.unpack("<4i", da[:16]), struct.unpack("<4i", db[:16])
+            if ha != hb:
+                desc = lambda h: "%s%s %dx%d" % (kinds[h[0]] if 0 <= h[0] < 5 else h[0], ", dimmed" if h[1] else "", h[2], h[3])
+                return False, "%s: the app shows %s, the driver %s" % (n, desc(ha), desc(hb))
+            off = 16
+        else:
+            off = 8
+        diff = sum(1 for i in range(off, min(len(da), len(db)), 4) if da[i:i + 4] != db[i:i + 4])
+        return False, "%s: %d pixels differ" % (n, diff)
+    return True, "%d pictures and the trace (%d lines) match" % (len(names), open(os.path.join(tracedir, "trace.txt")).read().count("\n"))
 
 
 def run_logo(case, args, workdir):
@@ -519,6 +574,8 @@ def evaluate(case, args):
     run = run_logo(case, args, workdir) if case.get("kind") == "logo" else run_app(case, args, workdir)
     res = {"case": case, "dir": workdir, "secs": 0, "checks": [], "goldens": [], "error": run.error}
     if not run.error:
+        if run.driver:
+            res["checks"].append(("MODULE", "the module alone (second-driver) matches the app", run.driver[0], run.driver[1]))
         for chk in case.get("checks", []):
             try:
                 ok, what = check(run, chk)
@@ -617,6 +674,9 @@ def main():
     ap.add_argument("--fixtures", default=os.environ.get("GBADS_TESTS", os.path.join(os.path.dirname(ROOT), "gba-ds-tests")))
     ap.add_argument("--bin", default=os.path.join(ROOT, "build", "host", "gba-ds"))
     ap.add_argument("--harness", default=os.path.join(ROOT, "build", "host", "harness"))
+    ap.add_argument("--driver", action="store_true",
+                    help="every case also checks the module alone against the app (as \"driver\": true cases do)")
+    ap.add_argument("--driver-bin", default=os.path.join(ROOT, "build", "host", "second-driver"))
     ap.add_argument("--report", default=os.path.join(ROOT, "build", "regress"))
     ap.add_argument("--update", action="store_true", help="save the current pictures as the goldens")
     ap.add_argument("--list", action="store_true")
