@@ -2130,7 +2130,7 @@ SDL_Renderer* ui_ren(int screen) {
 
 /* align: where a picture shorter than the area goes (Screen.align) */
 static void fit_rect_at(const SDL_Rect* area, int w, int h, const char* mode, int align, SDL_Rect* out) {
-	if (!strcmp(mode, "stretch")) {
+	if (!strcmp(mode, "stretch") || !strcmp(mode, "edges")) {
 		*out = *area;
 		return;
 	}
@@ -2362,6 +2362,223 @@ static SDL_Texture* shader_mask(int v, int dw, int dh, int gw, int gh, int kc) {
 
 static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dstp, int lcd);
 
+/* Scale "edges", Edge stretch (a non-linear stretch, as TVs had for 4:3 on
+ * 16:9): the picture fills its area as with Stretch, but the stretch is
+ * uneven along the one direction that would have had black bars (across on a
+ * wide screen, down on a 4:3 one): the middle gets about half of the average
+ * stretch and the edges the rest, so what the eye is on keeps closer to its
+ * shape. The source position for v in [-1, 1] along that direction is
+ * g(v) = A v - (A - 1) v^3 (g(1) = 1; the stretch at the middle is the
+ * average / A, at the edges the average / (3 - 2A)). Set by ui_image_pixels
+ * for draw_pixels, whose copies onto the screen go through put_pic. */
+#define CURVE_MID_SHARE 0.54 /* the middle's share of the extra stretch: 16:9 -> 1.10x in the middle, 1.40x at the edges */
+#define CURVE_STEPS 64       /* strips the picture is drawn in */
+static int curveAxis;        /* 0 none, 1 across, 2 down */
+static double curveA;
+
+static void curve_setup(const SDL_Rect* area, int w, int h) {
+	SDL_Rect fit;
+	double avg = 1;
+	curveAxis = 0;
+	fit_rect_at(area, w, h, "fit", 0, &fit);
+	if (fit.w > 0 && fit.w < area->w) curveAxis = 1, avg = (double) area->w / fit.w;
+	else if (fit.h > 0 && fit.h < area->h) curveAxis = 2, avg = (double) area->h / fit.h;
+	curveA = SDL_min(avg / (1 + CURVE_MID_SHARE * (avg - 1)), 1.4); /* (A < 1.5 keeps g rising) */
+	if (curveA < 1.001) curveAxis = 0; /* bars of a pixel or two: plain stretch */
+}
+
+/* tex (all of it) onto dst: as SDL_RenderCopy, or through the curve */
+static void put_pic(SDL_Renderer* ren, SDL_Texture* tex, const SDL_Rect* dst) {
+	if (!curveAxis) {
+		SDL_RenderCopy(ren, tex, NULL, dst);
+		return;
+	}
+	SDL_Vertex vx[(CURVE_STEPS + 1) * 2];
+	int idx[CURVE_STEPS * 6];
+	const SDL_Color white = { 255, 255, 255, 255 };
+	double A = curveA;
+	for (int i = 0; i <= CURVE_STEPS; ++i) {
+		double t = (double) i / CURVE_STEPS, v = 2 * t - 1;
+		float u = (float) ((1 + A * v - (A - 1) * v * v * v) / 2);
+		u = u < 0 ? 0 : u > 1 ? 1 : u;
+		if (curveAxis == 1) {
+			float x = (float) (dst->x + t * dst->w);
+			vx[2 * i] = (SDL_Vertex) { { x, (float) dst->y }, white, { u, 0 } };
+			vx[2 * i + 1] = (SDL_Vertex) { { x, (float) (dst->y + dst->h) }, white, { u, 1 } };
+		} else {
+			float y = (float) (dst->y + t * dst->h);
+			vx[2 * i] = (SDL_Vertex) { { (float) dst->x, y }, white, { 0, u } };
+			vx[2 * i + 1] = (SDL_Vertex) { { (float) (dst->x + dst->w), y }, white, { 1, u } };
+		}
+	}
+	for (int i = 0; i < CURVE_STEPS; ++i) {
+		int* q = idx + i * 6;
+		q[0] = 2 * i, q[1] = 2 * i + 1, q[2] = 2 * i + 2;
+		q[3] = 2 * i + 1, q[4] = 2 * i + 3, q[5] = 2 * i + 2;
+	}
+	if (SDL_RenderGeometry(ren, tex, vx, (CURVE_STEPS + 1) * 2, idx, CURVE_STEPS * 6) < 0) SDL_RenderCopy(ren, tex, NULL, dst);
+}
+
+/* --- the curve on SDL's software renderer (the web build, regress runs):
+ * its geometry samples nearest only, which drops and doubles pixels when the
+ * stretch isn't even, so the picture is resampled here on the CPU instead.
+ * Sharp: each screen pixel is the average of the source area it covers (what
+ * a GPU's sharp-bilinear does); Smooth: linear between pixel centres. From
+ * the game's own pixels, or the shader's picture at a whole multiple (its grid
+ * drawn in), or the upscaler's result (the web build's, read back). */
+#define CURVE_TAPS 4
+typedef struct {
+	int n, in, axis;  /* output and input length, 0/1/2 as curveAxis for this direction */
+	double A;
+	bool box;
+	int (*tap)[CURVE_TAPS]; /* per output pixel: source index of each tap (-1: none) */
+	int (*wt)[CURVE_TAPS];  /* and its weight, out of 256 */
+} CurveTable;
+static CurveTable curveTabs[2]; /* across, down */
+static uint32_t *curveIn, *curveMid, *curveOut;
+static size_t curveInN, curveMidN, curveOutN;
+static SDL_Texture* curveTex[2];
+static int curveTexW[2], curveTexH[2];
+
+static bool grow(uint32_t** p, size_t* have, size_t n) {
+	if (*have >= n) return true;
+	free(*p);
+	*p = malloc(n * 4);
+	*have = *p ? n : 0;
+	return *p != NULL;
+}
+
+/* where the output edge at t (0..1) falls in the source (0..in) */
+static double curve_edge(const CurveTable* c, double t) {
+	if (!c->axis) return c->in * t;
+	double v = 2 * t - 1;
+	return c->in * (1 + c->A * v - (c->A - 1) * v * v * v) / 2;
+}
+
+static const CurveTable* curve_table(int dir, int n, int in, bool curved, bool box) {
+	CurveTable* c = &curveTabs[dir];
+	int axis = curved ? 1 : 0;
+	double A = curved ? curveA : 1;
+	if (c->tap && c->n == n && c->in == in && c->axis == axis && c->A == A && c->box == box) return c;
+	free(c->tap), free(c->wt);
+	c->n = n, c->in = in, c->axis = axis, c->A = A, c->box = box;
+	c->tap = malloc(sizeof(*c->tap) * n);
+	c->wt = malloc(sizeof(*c->wt) * n);
+	if (!c->tap || !c->wt) {
+		free(c->tap), free(c->wt);
+		c->tap = NULL, c->wt = NULL;
+		return NULL;
+	}
+	for (int i = 0; i < n; ++i) {
+		double w[CURVE_TAPS] = { 0 };
+		int j[CURVE_TAPS];
+		for (int k = 0; k < CURVE_TAPS; ++k) j[k] = -1;
+		if (box) {
+			double a = curve_edge(c, (double) i / n), b = curve_edge(c, (double) (i + 1) / n);
+			if (b - a < 1e-9) b = a + 1e-9;
+			int j0 = (int) floor(a);
+			for (int k = 0; k < CURVE_TAPS && j0 + k < b; ++k) {
+				double lo = SDL_max(a, j0 + k), hi = SDL_min(b, j0 + k + 1.0);
+				if (hi > lo) j[k] = SDL_clamp(j0 + k, 0, in - 1), w[k] = (hi - lo) / (b - a);
+			}
+		} else {
+			double m = (curve_edge(c, (double) i / n) + curve_edge(c, (double) (i + 1) / n)) / 2 - 0.5;
+			int j0 = (int) floor(m);
+			double f = m - j0;
+			j[0] = SDL_clamp(j0, 0, in - 1), w[0] = 1 - f;
+			j[1] = SDL_clamp(j0 + 1, 0, in - 1), w[1] = f;
+		}
+		int sum = 0, big = 0;
+		for (int k = 0; k < CURVE_TAPS; ++k) {
+			c->tap[i][k] = j[k];
+			c->wt[i][k] = j[k] < 0 ? 0 : (int) lround(w[k] * 256);
+			sum += c->wt[i][k];
+			if (c->wt[i][k] > c->wt[i][big]) big = k;
+		}
+		c->wt[i][big] += 256 - sum; /* (the weights add up to 256 exactly) */
+	}
+	return c;
+}
+
+/* one row (or column, with step) of n outputs from src by table t */
+static void curve_run(const CurveTable* t, const uint32_t* src, int sstep, uint32_t* dst, int dstep) {
+	for (int i = 0; i < t->n; ++i) {
+		unsigned r = 0, g = 0, b = 0, a = 0;
+		for (int k = 0; k < CURVE_TAPS; ++k) {
+			int wgt = t->wt[i][k];
+			if (!wgt) continue;
+			uint32_t p = src[t->tap[i][k] * sstep];
+			r += (p & 0xFF) * wgt, g += ((p >> 8) & 0xFF) * wgt, b += ((p >> 16) & 0xFF) * wgt, a += (p >> 24) * wgt;
+		}
+		dst[i * dstep] = ((a >> 8) << 24) | ((b >> 8) << 16) | ((g >> 8) << 8) | (r >> 8);
+	}
+}
+
+static bool ren_software(SDL_Renderer* ren) {
+	SDL_RendererInfo ri;
+	return SDL_GetRendererInfo(ren, &ri) == 0 && !strcmp(ri.name, "software");
+}
+
+static SDL_Texture* shader_mask(int v, int dw, int dh, int gw, int gh, int kc);
+
+/* draw_pixels for the curve on the software renderer; false: couldn't (draw as usual) */
+static bool curve_sw(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h, const SDL_Rect* dst, int lcd, bool game) {
+	const uint32_t* pix = NULL;
+	int pw = w, ph = h;
+	bool box = cfg->filter != FILTER_SMOOTH;
+	int up = game ? upscale_factor(cfg->filter) : 0;
+	if (up && upscale_run(ren, src, w, h, cfg->filter)) {
+		pix = upscale_pixels(&pw, &ph);
+		box = true;
+	}
+	if (!pix) {
+		/* the game's pixels (or with the shader's grid, the picture at a
+		 * whole multiple with the grid drawn in), read back from a target */
+		int k = 1, c = lcd > 1 ? lcd : 1;
+		if (lcd) {
+			k = SDL_max(1, SDL_min(dst->w / w, dst->h / h));
+			if (k * c < 3) k = (3 + c - 1) / c; /* room for the grid's lines */
+			box = true;
+		}
+		pw = w * k, ph = h * k;
+		SDL_Texture* target = pipe_target(v, pw, ph);
+		if (!target || !grow(&curveIn, &curveInN, (size_t) pw * ph)) return false;
+		SDL_Rect clipRect;
+		SDL_RenderGetClipRect(ren, &clipRect);
+		bool clipped = SDL_RenderIsClipEnabled(ren);
+		SDL_RenderSetClipRect(ren, NULL);
+		SDL_SetRenderTarget(ren, target);
+		SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+		SDL_RenderClear(ren);
+		SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
+		SDL_RenderCopy(ren, src, NULL, NULL);
+		if (lcd) {
+			SDL_Texture* grid = shader_mask(v, pw, ph, w / c, h / c, k * c);
+			if (grid) SDL_RenderCopy(ren, grid, NULL, NULL);
+		}
+		int rd = SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ABGR8888, curveIn, pw * 4);
+		SDL_SetRenderTarget(ren, NULL);
+		if (clipped) SDL_RenderSetClipRect(ren, &clipRect);
+		if (rd != 0) return false;
+		pix = curveIn;
+	}
+	const CurveTable* tx = curve_table(0, dst->w, pw, curveAxis == 1, box);
+	const CurveTable* ty = curve_table(1, dst->h, ph, curveAxis == 2, box);
+	if (!tx || !ty || !grow(&curveMid, &curveMidN, (size_t) dst->w * ph) || !grow(&curveOut, &curveOutN, (size_t) dst->w * dst->h)) return false;
+	for (int y = 0; y < ph; ++y) curve_run(tx, pix + (size_t) y * pw, 1, curveMid + (size_t) y * dst->w, 1);
+	for (int x = 0; x < dst->w; ++x) curve_run(ty, curveMid + x, dst->w, curveOut + x, dst->w);
+	if (!curveTex[v] || curveTexW[v] != dst->w || curveTexH[v] != dst->h) {
+		if (curveTex[v]) SDL_DestroyTexture(curveTex[v]);
+		curveTex[v] = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, dst->w, dst->h);
+		curveTexW[v] = dst->w, curveTexH[v] = dst->h;
+		if (!curveTex[v]) return false;
+		SDL_SetTextureBlendMode(curveTex[v], SDL_BLENDMODE_NONE);
+	}
+	SDL_UpdateTexture(curveTex[v], NULL, curveOut, dst->w * 4);
+	SDL_RenderCopy(ren, curveTex[v], NULL, dst);
+	return true;
+}
+
 void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, const char* mode, int lcd) {
 	RECORD(screen, OP_PIXELS) {
 		rec_tex(o, texPerView);
@@ -2386,7 +2603,9 @@ void ui_image_pixels(int screen, SDL_Texture* const* texPerView, int w, int h, c
 		if (hadClip) SDL_IntersectRect(&prev, &s->rect, &c); /* inside an existing ui_clip */
 		SDL_RenderSetClipRect(ren, &c);
 	}
+	if (!strcmp(mode, "edges")) curve_setup(&pic, w, h);
 	draw_pixels(ren, v, src, w, h, &dst, lcd);
+	curveAxis = 0;
 	if (clip) SDL_RenderSetClipRect(ren, hadClip ? &prev : NULL);
 }
 
@@ -2395,6 +2614,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 	SDL_Rect dst = *dstp;
 	bool game = lcd & UI_PIX_GAME;
 	lcd &= ~UI_PIX_GAME;
+	if (curveAxis && ren_software(ren) && curve_sw(ren, v, src, w, h, &dst, lcd, game)) return;
 	int up = game ? upscale_factor(cfg->filter) : 0;
 	if (up) {
 		/* the scaling filter's upscaler (issue #89): the game's picture made
@@ -2405,7 +2625,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		if (big) {
 			bool same = dst.w == w * up && dst.h == h * up;
 			SDL_SetTextureScaleMode(big, same ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
-			SDL_RenderCopy(ren, big, NULL, &dst);
+			put_pic(ren, big, &dst);
 			return;
 		}
 	}
@@ -2416,7 +2636,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 	int gw = w / c, gh = h / c;
 	if (!lcd && (exact || smooth)) {
 		SDL_SetTextureScaleMode(src, smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
-		SDL_RenderCopy(ren, src, NULL, &dst);
+		put_pic(ren, src, &dst);
 		return;
 	}
 	if (lcd && exact && k * c >= 3) {
@@ -2424,9 +2644,9 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		 * No render-target switch, so tiled GPUs don't have to flush and
 		 * reload the whole framebuffer. */
 		SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
-		SDL_RenderCopy(ren, src, NULL, &dst);
+		put_pic(ren, src, &dst);
 		SDL_Texture* grid = shader_mask(v, dst.w, dst.h, gw, gh, k * c);
-		if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
+		if (grid) put_pic(ren, grid, &dst);
 		return;
 	}
 	if (lcd && (dst.w < gw * 3 || dst.h < gh * 3)) {
@@ -2434,17 +2654,17 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 		 * then a grid made at the screen's resolution on top */
 		draw_pixels(ren, v, src, w, h, &dst, 0);
 		SDL_Texture* grid = shader_mask(v, dst.w, dst.h, gw, gh, 0);
-		if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
+		if (grid) put_pic(ren, grid, &dst);
 		return;
 	}
 	SDL_Texture* target = SDL_RenderTargetSupported(ren) ? pipe_target(v, w * k, h * k) : NULL;
 	if (!target) {
 		/* no render targets: draw directly, grid on top */
 		SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
-		SDL_RenderCopy(ren, src, NULL, &dst);
+		put_pic(ren, src, &dst);
 		if (lcd) {
 			SDL_Texture* grid = shader_mask(v, w * k, h * k, gw, gh, k * c);
-			if (grid) SDL_RenderCopy(ren, grid, NULL, &dst);
+			if (grid) put_pic(ren, grid, &dst);
 		}
 		return;
 	}
@@ -2462,7 +2682,7 @@ static void draw_pixels(SDL_Renderer* ren, int v, SDL_Texture* src, int w, int h
 	SDL_SetRenderTarget(ren, NULL);
 	if (clipped) SDL_RenderSetClipRect(ren, &clipRect);
 	SDL_SetTextureScaleMode(target, exact ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
-	SDL_RenderCopy(ren, target, NULL, &dst);
+	put_pic(ren, target, &dst);
 }
 
 SDL_Rect ui_image_rect(int screen, int w, int h, const char* mode) {

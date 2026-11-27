@@ -85,26 +85,225 @@ int upscale_factor(int filter) {
 	return f;
 }
 
+/* --- the shaders */
+
+/* What goes before every shader. First GLSL ES 1.00, as mGBA's GLES2 renderer
+ * does (with high precision where the GPU has it: the upscalers find their
+ * place inside a source pixel from texCoord, which medium precision can't hold
+ * at 4x a 240-pixel row). hq2x, OmniScale and xBR were written for desktop
+ * GLSL (bit operations, mat4x3), which ES 1.00 refuses: those are built again
+ * as GLSL ES 3.00 with mGBA's own GL 3 defines (_gl32VHeader / _gl32FHeader),
+ * which an OpenGL ES 3 context (the RG DS Plus's Mali, Mesa) takes even when
+ * SDL asked for ES 2. */
+static const char* const vsHeader[2] = {
+	"#version 100\n",
+	"#version 300 es\n"
+	"#define attribute in\n"
+	"#define varying out\n",
+};
+static const char* const fsHeader[2] = {
+	"#version 100\n"
+	"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+	"precision highp float;\n"
+	"#else\n"
+	"precision mediump float;\n"
+	"#endif\n",
+	"#version 300 es\n"
+	"precision highp float;\n"
+	"#define varying in\n"
+	"#define texture2D texture\n"
+	"out vec4 compat_FragColor;\n"
+	"#define gl_FragColor compat_FragColor\n",
+};
+static const char* const glslName[2] = { "GLSL ES 1.00", "GLSL ES 3.00" };
+
+/* mGBA's plain vertex shader for a pass (its _nullVertexShader): texCoord's
+ * t = 0 is the first row, as SDL uploads it and as our framebuffer writes it */
+static const char* const plainVs =
+	"attribute vec4 position;\n"
+	"varying vec2 texCoord;\n"
+	"void main() {\n"
+	"	gl_Position = position;\n"
+	"	texCoord = (position.st + vec2(1.0, 1.0)) * vec2(0.5, 0.5);\n"
+	"}\n";
+
+/* One Scale2x step: the target is twice the source each way; gl_FragCoord's
+ * row y comes from the source's row y / 2. */
+static const char* const scale2xFs =
+	"uniform sampler2D tex;\n"
+	"uniform vec2 texSize;\n"
+	"void main() {\n"
+	"	vec2 o = floor(gl_FragCoord.xy);\n"
+	"	vec2 s = floor(o * 0.5);\n"
+	"	vec2 q = o - 2.0 * s;\n"
+	"	vec2 d = 1.0 / texSize;\n"
+	"	vec2 c = (s + 0.5) * d;\n"
+	"	vec4 E = texture2D(tex, c);\n"
+	"	vec4 B = texture2D(tex, c - vec2(0.0, d.y));\n"
+	"	vec4 H = texture2D(tex, c + vec2(0.0, d.y));\n"
+	"	vec4 D = texture2D(tex, c - vec2(d.x, 0.0));\n"
+	"	vec4 F = texture2D(tex, c + vec2(d.x, 0.0));\n"
+	"	vec4 r = E;\n"
+	"	if (B != H && D != F) {\n"
+	"		if (q.y < 0.5) r = q.x < 0.5 ? (D == B ? D : E) : (B == F ? F : E);\n"
+	"		else r = q.x < 0.5 ? (D == H ? D : E) : (H == F ? F : E);\n"
+	"	}\n"
+	"	gl_FragColor = r;\n"
+	"}\n";
+
+static const char* prog_name(int p) {
+	return p >= PROG_PACK0 && p < PROG_COUNT ? upscalePacks[p - PROG_PACK0].name : "Scale2x";
+}
+
 #ifdef __wasi__
+
+/* The web build: SDL's renderer there is the software one, so each pass runs
+ * in the web player's own WebGL2 context instead (web/player/worker.js,
+ * web_gl_pass), with the same shaders, headers, uniforms and quad as on a
+ * device: the picture's pixels go in, the pass's come back, and the result is
+ * an ordinary streaming texture. Slower than on a device (two copies a pass),
+ * but it shows the filters as they look. The State Saver page has no such
+ * import: web_gl_ok answers 0 there and the filters stay greyed. */
+extern int web_gl_ok(void) __attribute__((import_module("env"), import_name("web_gl_ok")));
+extern int web_gl_pass(int key, const char* vs0, const char* fs0, const char* vs1, const char* fs1, const char* uniforms,
+                       const void* in, int inW, int inH, void* out, int outW, int outH)
+    __attribute__((import_module("env"), import_name("web_gl_pass")));
+
+static int webGl = -1;              /* web_gl_ok, asked once */
+static char* webSrc[PROG_COUNT][5]; /* per program: vs0, fs0, vs1, fs1, uniforms */
+static uint32_t* webBuf[MAX_PASSES + 1];
+static size_t webBufN[MAX_PASSES + 1];
+static SDL_Texture* webTex;
+static SDL_Renderer* webTexRen;
+static SDL_Texture* webRead; /* the source copied into a target, to read it back */
+static int webTexW, webTexH, webReadW, webReadH;
+static const uint32_t* webLast;
+static int webLastW, webLastH;
+
+static bool web_gl(void) {
+	if (webGl < 0) {
+		webGl = web_gl_ok() ? 1 : 0;
+		fprintf(stderr, "upscale: %s\n", webGl ? "WebGL2 in the web player (each pass read back)" : "not available (no WebGL2 here)");
+		(void) gpu_class;
+	}
+	return webGl > 0;
+}
+
+static char* cat2(const char* a, const char* b) {
+	size_t la = strlen(a), lb = strlen(b);
+	char* r = malloc(la + lb + 1);
+	if (r) memcpy(r, a, la), memcpy(r + la, b, lb + 1);
+	return r;
+}
+
+static bool web_prog(int p) {
+	if (webSrc[p][0]) return true;
+	const UpscalePack* pk = p >= PROG_PACK0 && p < PROG_COUNT ? &upscalePacks[p - PROG_PACK0] : NULL;
+	const char* vsSrc = pk && pk->vs ? pk->vs : plainVs;
+	const char* fsSrc = pk ? pk->fs : scale2xFs;
+	char uni[512] = "";
+	for (int i = 0; pk && i < pk->nUniforms; ++i) {
+		size_t l = strlen(uni);
+		snprintf(uni + l, sizeof(uni) - l, "%s=%g\n", pk->uniforms[i].name, (double) pk->uniforms[i].value);
+	}
+	webSrc[p][0] = cat2(vsHeader[0], vsSrc), webSrc[p][1] = cat2(fsHeader[0], fsSrc);
+	/* (a shader with an output of its own, as xBR's in GLSL 3.00: WebGL2 refuses
+	 * two outputs without locations, which a device's driver lets by, so the
+	 * header's isn't added) */
+	static const char* const fsHeaderOwnOut =
+	    "#version 300 es\n"
+	    "precision highp float;\n"
+	    "#define varying in\n"
+	    "#define texture2D texture\n";
+	webSrc[p][2] = cat2(vsHeader[1], vsSrc), webSrc[p][3] = cat2(strstr(fsSrc, "\nout vec4 ") ? fsHeaderOwnOut : fsHeader[1], fsSrc);
+	webSrc[p][4] = cat2(uni, "");
+	for (int i = 0; i < 5; ++i) {
+		if (!webSrc[p][i]) return false;
+	}
+	fprintf(stderr, "upscale: %s sent to WebGL2\n", prog_name(p));
+	return true;
+}
+
+static uint32_t* web_buf(int i, int w, int h) {
+	size_t n = (size_t) w * h;
+	if (webBufN[i] < n) {
+		free(webBuf[i]);
+		webBuf[i] = malloc(n * 4);
+		webBufN[i] = webBuf[i] ? n : 0;
+	}
+	return webBuf[i];
+}
 
 bool upscale_ready(SDL_Renderer* ren) {
 	(void) ren;
-	return false;
-}
-bool upscale_filter_ready(SDL_Renderer* ren, int filter) {
-	(void) ren, (void) filter;
-	return false;
+	return web_gl();
 }
 int upscale_fit(SDL_Renderer* ren, int filter) {
 	(void) ren;
-	return upscale_factor(filter) ? UPSCALE_NO_GL : UPSCALE_FITS;
+	if (!upscale_factor(filter)) return UPSCALE_FITS;
+	if (!web_gl()) return UPSCALE_NO_GL;
+	return filters[filter].heavy ? UPSCALE_UNTRIED : UPSCALE_FITS;
+}
+bool upscale_filter_ready(SDL_Renderer* ren, int filter) {
+	(void) ren;
+	return upscale_factor(filter) && web_gl() && web_prog(filters[filter].prog);
 }
 SDL_Texture* upscale_run(SDL_Renderer* ren, SDL_Texture* src, int w, int h, int filter) {
-	(void) ren, (void) src, (void) w, (void) h, (void) filter;
-	return NULL;
+	webLast = NULL;
+	if (!upscale_filter_ready(ren, filter)) return NULL;
+	int p = filters[filter].prog, scale = filters[filter].scale, passes = filters[filter].passes;
+	/* src's pixels: copied into a target of its size and read back */
+	if (!webRead || webReadW != w || webReadH != h) {
+		if (webRead) SDL_DestroyTexture(webRead);
+		webRead = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_TARGET, w, h);
+		webReadW = w, webReadH = h;
+	}
+	uint32_t* in = web_buf(0, w, h);
+	if (!webRead || !in) return NULL;
+	SDL_Texture* was = SDL_GetRenderTarget(ren);
+	SDL_Rect clip;
+	bool clipped = SDL_RenderIsClipEnabled(ren);
+	SDL_RenderGetClipRect(ren, &clip);
+	SDL_RenderSetClipRect(ren, NULL);
+	SDL_SetRenderTarget(ren, webRead);
+	SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+	SDL_RenderClear(ren);
+	SDL_SetTextureScaleMode(src, SDL_ScaleModeNearest);
+	SDL_RenderCopy(ren, src, NULL, NULL);
+	int rd = SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ABGR8888, in, w * 4);
+	SDL_SetRenderTarget(ren, was);
+	if (clipped) SDL_RenderSetClipRect(ren, &clip);
+	if (rd != 0) return NULL;
+	int sw = w, sh = h;
+	const uint32_t* cur = in;
+	for (int i = 0; i < passes; ++i) {
+		uint32_t* out = web_buf(i + 1, sw * scale, sh * scale);
+		if (!out || !web_gl_pass(p, webSrc[p][0], webSrc[p][1], webSrc[p][2], webSrc[p][3], webSrc[p][4], cur, sw, sh, out, sw * scale, sh * scale)) {
+			static bool said;
+			if (!said) fprintf(stderr, "upscale: %s didn't run in WebGL2, drawing without the filter\n", prog_name(p));
+			said = true;
+			return NULL;
+		}
+		cur = out, sw *= scale, sh *= scale;
+	}
+	if (!webTex || webTexRen != ren || webTexW != sw || webTexH != sh) {
+		if (webTex && webTexRen == ren) SDL_DestroyTexture(webTex);
+		webTex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, sw, sh);
+		webTexRen = ren, webTexW = sw, webTexH = sh;
+		if (!webTex) return NULL;
+		SDL_SetTextureBlendMode(webTex, SDL_BLENDMODE_NONE);
+	}
+	SDL_UpdateTexture(webTex, NULL, cur, sw * 4);
+	webLast = cur, webLastW = sw, webLastH = sh;
+	return webTex;
+}
+const uint32_t* upscale_pixels(int* w, int* h) {
+	if (webLast) *w = webLastW, *h = webLastH;
+	return webLast;
 }
 void upscale_forget(SDL_Renderer* ren) {
-	(void) ren;
+	if (webTexRen == ren) webTex = NULL, webTexRen = NULL;
+	if (webRead) webRead = NULL; /* (destroyed with its renderer) */
 }
 
 #else
@@ -191,76 +390,6 @@ static bool load_gl(void) {
 	GLFUNCS(LOAD)
 #undef LOAD
 	return true;
-}
-
-/* --- the shaders */
-
-/* What goes before every shader. First GLSL ES 1.00, as mGBA's GLES2 renderer
- * does (with high precision where the GPU has it: the upscalers find their
- * place inside a source pixel from texCoord, which medium precision can't hold
- * at 4x a 240-pixel row). hq2x, OmniScale and xBR were written for desktop
- * GLSL (bit operations, mat4x3), which ES 1.00 refuses: those are built again
- * as GLSL ES 3.00 with mGBA's own GL 3 defines (_gl32VHeader / _gl32FHeader),
- * which an OpenGL ES 3 context (the RG DS Plus's Mali, Mesa) takes even when
- * SDL asked for ES 2. */
-static const char* const vsHeader[2] = {
-	"#version 100\n",
-	"#version 300 es\n"
-	"#define attribute in\n"
-	"#define varying out\n",
-};
-static const char* const fsHeader[2] = {
-	"#version 100\n"
-	"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-	"precision highp float;\n"
-	"#else\n"
-	"precision mediump float;\n"
-	"#endif\n",
-	"#version 300 es\n"
-	"precision highp float;\n"
-	"#define varying in\n"
-	"#define texture2D texture\n"
-	"out vec4 compat_FragColor;\n"
-	"#define gl_FragColor compat_FragColor\n",
-};
-static const char* const glslName[2] = { "GLSL ES 1.00", "GLSL ES 3.00" };
-
-/* mGBA's plain vertex shader for a pass (its _nullVertexShader): texCoord's
- * t = 0 is the first row, as SDL uploads it and as our framebuffer writes it */
-static const char* const plainVs =
-	"attribute vec4 position;\n"
-	"varying vec2 texCoord;\n"
-	"void main() {\n"
-	"	gl_Position = position;\n"
-	"	texCoord = (position.st + vec2(1.0, 1.0)) * vec2(0.5, 0.5);\n"
-	"}\n";
-
-/* One Scale2x step: the target is twice the source each way; gl_FragCoord's
- * row y comes from the source's row y / 2. */
-static const char* const scale2xFs =
-	"uniform sampler2D tex;\n"
-	"uniform vec2 texSize;\n"
-	"void main() {\n"
-	"	vec2 o = floor(gl_FragCoord.xy);\n"
-	"	vec2 s = floor(o * 0.5);\n"
-	"	vec2 q = o - 2.0 * s;\n"
-	"	vec2 d = 1.0 / texSize;\n"
-	"	vec2 c = (s + 0.5) * d;\n"
-	"	vec4 E = texture2D(tex, c);\n"
-	"	vec4 B = texture2D(tex, c - vec2(0.0, d.y));\n"
-	"	vec4 H = texture2D(tex, c + vec2(0.0, d.y));\n"
-	"	vec4 D = texture2D(tex, c - vec2(d.x, 0.0));\n"
-	"	vec4 F = texture2D(tex, c + vec2(d.x, 0.0));\n"
-	"	vec4 r = E;\n"
-	"	if (B != H && D != F) {\n"
-	"		if (q.y < 0.5) r = q.x < 0.5 ? (D == B ? D : E) : (B == F ? F : E);\n"
-	"		else r = q.x < 0.5 ? (D == H ? D : E) : (H == F ? F : E);\n"
-	"	}\n"
-	"	gl_FragColor = r;\n"
-	"}\n";
-
-static const char* prog_name(int p) {
-	return p >= PROG_PACK0 && p < PROG_COUNT ? upscalePacks[p - PROG_PACK0].name : "Scale2x";
 }
 
 /* --- what's made per renderer (the game's renderer, and on BananaOS's two
@@ -564,6 +693,11 @@ SDL_Texture* upscale_run(SDL_Renderer* ren, SDL_Texture* src, int w, int h, int 
 		return NULL;
 	}
 	return out[passes - 1];
+}
+
+const uint32_t* upscale_pixels(int* w, int* h) {
+	(void) w, (void) h;
+	return NULL;
 }
 
 void upscale_forget(SDL_Renderer* ren) {

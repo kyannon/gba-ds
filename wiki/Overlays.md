@@ -12,7 +12,7 @@ While you're on that screen, the other screen isn't dimmed, so you see the bezel
 
 Out of the box, GBA DS draws a bezel round the picture: a dark grey bezel (`#1A1A1A`) on the navy of the GBA DS logo's outline (`#102060`), with the logo in the bezel by the hinge (below the picture on the top screen, above it on the bottom screen; with **Screen Placement: Closest to Gap**, once, below the picture on the bottom screen). It's drawn whatever the screen shows, the second screen's logo too.
 
-It's drawn by the app for your screens and the scaling you use, so it fits any device and any setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits, and the logo shrinks or is left out; with Stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
+It's drawn by the app for your screens and the scaling you use, so it fits any device and any setting. Where there's little room (Full Width, or the sides in Pixel Perfect on a 4:3 screen), you see only the part of the bezel that fits, and the logo shrinks or is left out; with Stretch or Edge stretch, or Zoom on a 4:3 screen, the picture fills the screen and there's no bezel.
 
 ### Picking its colours
 
@@ -34,7 +34,7 @@ A file's name is made of these parts, in this order, joined by dashes; only `<sc
 
 - `<CODE>`: the game's code, e.g. `A2CE` (Aria of Sorrow, USA), for an overlay for that game only. Each region has its own code: see the table in [[Supported games]].
 - `<screen>`: `top` or `bottom`.
-- `<scale>`: the scaling of the picture on that screen, for an overlay for that scaling only: `integer` (Pixel Perfect), `fit` (Full Width), `zoom` or `stretch`.
+- `<scale>`: the scaling of the picture on that screen, for an overlay for that scaling only: `integer` (Pixel Perfect), `fit` (Full Width), `zoom`, `stretch` or `edges` (Edge stretch).
 - `<shapes>`: **Screen shapes** (pause menu → Display; experimental), for an overlay for that setting only: `aspect` (Match screen aspect ratios) or `size` (Match screen sizes and aspect ratios). Only looked for while that setting is on and your two screens' shapes differ. With **Keep device aspect ratios**, or two screens of a shape (the RG DS), names with a `<shapes>` part are left alone, so the overlays you have keep working as they are.
 
 For each screen the most specific file found is used, so a game's own overlay beats a global one, and one made for your scaling and screen shapes beats one without them:
