@@ -1878,7 +1878,7 @@
    "id": "aw-rom-path-list",
    "kind": "library",
    "rom": "AWRE",
-   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On, and back on the game list a header-coloured strip along its bottom holds the ROM's path",
+   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On, and back on the game list the other screen shows the ROM's path under the Play / Quit hints, on black",
    "rules": [
     "GEN-21"
    ],
@@ -1987,15 +1987,15 @@
    "golden_mask": [
     [
      870,
-     725,
-     1010,
+     600,
+     1024,
      750
     ],
     [
      0,
-     1400,
+     600,
      1024,
-     1536
+     768
     ]
    ],
    "checks": [
@@ -2006,23 +2006,34 @@
      "what": "switched on from the System page"
     },
     {
-     "type": "pixels",
+     "type": "not_uniform",
      "shot": "list-rom-path",
-     "screen": "second",
-     "probes": [
-      [
-       2,
-       766,
-       "1E1A34"
-      ],
-      [
-       1021,
-       766,
-       "1E1A34"
-      ]
+     "screen": "game",
+     "rect": [
+      24,
+      734,
+      700,
+      754
      ],
+     "color": "000000",
+     "frac": 0.999,
      "rule": "GEN-21",
-     "what": "the strip along the game list's bottom, the header's colour"
+     "what": "the path written under the hints, on the black"
+    },
+    {
+     "type": "uniform",
+     "shot": "list-rom-path",
+     "screen": "game",
+     "rect": [
+      0,
+      755,
+      1024,
+      768
+     ],
+     "color": "000000",
+     "frac": 0.999,
+     "rule": "GEN-21",
+     "what": "no coloured strip: black below the path"
     }
    ]
   },

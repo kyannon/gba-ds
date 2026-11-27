@@ -882,8 +882,8 @@ static void load_thumbs(Config* cfg, int idx) {
 	}
 }
 
-/* Settings > System > Show ROM Path on Game List (GEN-21): the selected game's full path and file name in a
- * strip along the bottom of the game list, in the header's colour, written in the quick bar's small pixel
+/* Settings > System > Show ROM Path on Game List (GEN-21): the selected game's full path and file name
+ * under the preview's button hints, on its black, written in the quick bar's small pixel
  * font (pixfont.h) at half a layout unit to a font pixel (2 screen pixels on the RG DS Plus), as the GitHub link. A path with a letter the
  * pixel font lacks is written in Jost at the same size. Too long for one line: up to three, broken after a
  * '/' where one is close enough, the last cut with "...". */
@@ -951,11 +951,12 @@ static int path_lines(const char* path, int maxW, int scale, const char** line, 
 	*cut = *s != 0;
 	return n;
 }
-static bool pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath), for list_geom */
+static bool pathStrip; /* Settings > System > Show ROM Path on Game List (cfg->romPath) */
 static int path_scale(int scr) { return SDL_max(1, (int) ui_px(scr) / 2); } /* (the owner's choice: 2 on the RG DS Plus, as the GitHub link) */
-/* The strip's height on the list screen: room for the longest path's lines, so it doesn't jump
- * as the selection moves (worked out again only when the games or the screen change). 0: off. */
-static int path_strip_h(int scr) {
+static int path_line_h(int scr) { return (pixfont_small.height + 2) * path_scale(scr); }
+/* The path's room under the preview's hints: the longest listed path's lines, so the hints above don't
+ * jump as the selection moves (worked out again only when the games or the screen change). 0: off. */
+static int path_block_h(int scr) {
 	if (!pathStrip || nGames <= 0) return 0;
 	static unsigned key = 0;
 	static int lines = 1;
@@ -971,23 +972,19 @@ static int path_strip_h(int scr) {
 			lines = SDL_max(lines, path_lines(games[i].path, maxW, scale, line, len, &cut));
 		}
 	}
-	int pad = (int) ui_px(scr) * 2;
-	return pad * 2 + (pixfont_small.height + 2) * scale * lines - 2 * scale;
+	return path_line_h(scr) * lines - 2 * scale;
 }
-/* the strip along the list screen's bottom, h high, the header's colour, the path's lines centred in it */
-static void draw_path_strip(int scr, int h, const char* path) {
-	if (h <= 0) return;
+/* the path's lines, left at the preview's margin, the first one's top at y (on the black: no strip) */
+static void draw_path_text(int scr, int y, const char* path, SDL_Color c) {
+	if (!path || !path[0]) return;
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	int scale = path_scale(scr), m = px * 6;
-	int lineH = (pixfont_small.height + 2) * scale, maxW = r.w - m * 2;
-	ui_fill(scr, (SDL_Rect) { 0, r.h - h, r.w, h }, C_HEADER);
-	if (!path || !path[0]) return;
+	int lineH = path_line_h(scr), maxW = r.w - m * 2;
 	bool pix = path_pixel(path), cut;
 	const char* line[PATH_LINES];
 	size_t len[PATH_LINES];
 	int n = path_lines(path, maxW, scale, line, len, &cut);
-	int top = r.h - h + (h - (lineH * n - 2 * scale)) / 2;
 	for (int i = 0; i < n; ++i) {
 		char buf[1100];
 		size_t k = SDL_min(len[i], sizeof(buf) - 4);
@@ -1001,9 +998,9 @@ static void draw_path_strip(int scr, int h, const char* path) {
 			memcpy(buf + k, "...", 4);
 			k += 3;
 		}
-		int y = top + i * lineH;
-		if (pix) pix_draw(scr, &pixfont_small, m, y, scale, buf, k, C_TEXT);
-		else ui_font_text_as_is(scr, TF_BODY, m, y + pixfont_small.cap * scale / 2, pixfont_small.cap * scale, buf, C_TEXT, -1);
+		int ly = y + i * lineH;
+		if (pix) pix_draw(scr, &pixfont_small, m, ly, scale, buf, k, c);
+		else ui_font_text_as_is(scr, TF_BODY, m, ly + pixfont_small.cap * scale / 2, pixfont_small.cap * scale, buf, c, -1);
 	}
 }
 
@@ -1034,8 +1031,12 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 		pix_line(scr, m + px * 2, m + headH + px * 2, vpx, "github.com/kyannon/gba-ds", C_DIM, false);
 	}
 
+	/* the selected game's path at the bottom (Settings > System, GEN-21), the hints above it */
+	pathStrip = cfg->romPath;
+	int pathH = path_block_h(scr);
+	if (pathH && sel >= 0 && sel < nGames) draw_path_text(scr, r.h - px * 4 - pathH, games[sel].path, C_DIM);
 	/* button hints along the bottom */
-	int ty = r.h - px * 11, d = px * 10, bx = m;
+	int ty = r.h - px * 11 - (pathH ? pathH + px * 3 : 0), d = px * 10, bx = m;
 	int gy = ty + px * 7 / 2 - d / 2;
 	int cap = px * 5, cy = gy + d / 2, wordW = px * 18;
 	bx += draw_brand(scr, BRAND_BTN_A, bx, gy, d) + px * 2;
@@ -1124,7 +1125,6 @@ static void draw_preview(Config* cfg, int scr, int sel) {
 typedef struct {
 	int headerH, listH, m, gap, tileW, tileH, rowH, cols, visibleRows;
 	int barH; /* the sort bar above the first row: part of the list, it scrolls away (0 with no games) */
-	int footH; /* the ROM path strip along the bottom (Settings > System), or 0 */
 } ListGeom;
 
 /* The game list as names (default) or a grid of logos, two or three columns
@@ -1138,8 +1138,7 @@ static ListGeom list_geom(int scr) {
 	SDL_Rect r = screens[scr].rect;
 	float px = ui_px(scr);
 	g.headerH = px * 20;
-	g.footH = path_strip_h(scr);
-	g.listH = r.h - g.headerH - g.footH;
+	g.listH = r.h - g.headerH;
 	g.m = px * 4;
 	if (listMode) { /* one row per game */
 		g.gap = px * 2;
@@ -1500,7 +1499,7 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 	bool extracting = done < total || ui_file_crc_pending(); /* (or a ROM's checksum, for its logo's name) */
 	for (int i = 0; i < nGames && i < 256; ++i) {
 		SDL_Rect t = tile_rect(&g, i, scroll);
-		if (t.y + t.h <= g.headerH || t.y >= r.h - g.footH) continue;
+		if (t.y + t.h <= g.headerH || t.y >= r.h) continue;
 		bool on = i == sel && !barFocus;
 		ui_key(scr, t, px * 3, on ? KEY_SEL : KEY_PLAIN);
 		draw_star_mark(scr, &t, games[i].fav);
@@ -1566,8 +1565,6 @@ static void draw_list(Config* cfg, int scr, int sel, int scroll) {
 		}
 	}
 	draw_sort_bar(scr, &g, scroll);
-	/* the selected game's path along the bottom, over the tiles (GEN-21) */
-	draw_path_strip(scr, g.footH, sel >= 0 && sel < nGames && !barFocus ? games[sel].path : NULL);
 	/* header drawn last so tiles scroll underneath it */
 	ui_fill(scr, (SDL_Rect) { 0, 0, r.w, g.headerH }, C_HEADER);
 	SDL_Rect sb = settings_button(scr);
@@ -1665,9 +1662,9 @@ static const char* bios_note(const Config* cfg, SDL_Color* col) {
 	return tr("Use your own GBA BIOS (gba_bios.bin, in the bios folder of GBA DS's data folder) instead of the built-in one. Only needed for save states made with one.");
 }
 
-/* System's Show ROM Path on Game List row: the selected game's file in a strip along the list's bottom (draw_path_strip) */
+/* System's Show ROM Path on Game List row: the selected game's file under the preview's hints (draw_path_text) */
 static const char* rompath_label(const Config* cfg) { return cfg->romPath ? N_("Show ROM Path on Game List: On") : N_("Show ROM Path on Game List: Off"); }
-static const char* rompath_note(void) { return N_("Shows the selected game's folder and file name along the bottom of the game list."); }
+static const char* rompath_note(void) { return N_("Shows the selected game's folder and file name under Play and Quit on the game list's other screen."); }
 static void rompath_switch(Config* cfg) {
 	cfg->romPath = !cfg->romPath;
 	pathStrip = cfg->romPath;
@@ -2982,7 +2979,7 @@ static void prioritise(int scr, int sel, int scroll) {
 	SDL_Rect r = screens[scr].rect;
 	for (int i = nGames - 1; i >= 0; --i) {
 		SDL_Rect t = tile_rect(&g, i, scroll);
-		if (i != sel && t.y + t.h > g.headerH && t.y < r.h - g.footH) logo_front(games[i].code, false);
+		if (i != sel && t.y + t.h > g.headerH && t.y < r.h) logo_front(games[i].code, false);
 	}
 	if (sel >= 0 && sel < nGames) logo_front(games[sel].code, false);
 }
@@ -3296,7 +3293,7 @@ void library_language_ask(Config* cfg) {
 }
 
 bool library_run(Config* cfg, char* outPath, size_t outSize) {
-	pathStrip = cfg->romPath; /* (the list's geometry leaves room for the path strip, GEN-21) */
+	pathStrip = cfg->romPath; /* (the preview's room for the ROM path, GEN-21) */
 	if (!cfg->languageAsked) library_language_ask(cfg); /* (a first install, issue #92) */
 	storage_check(cfg);
 	sortMode = !strcmp(cfg->librarySort, "recent") ? 1 : 0;
@@ -3653,7 +3650,7 @@ bool library_run(Config* cfg, char* outPath, size_t outSize) {
 			} else if (p.kind == 2 && pressed) {
 				pressed = false;
 				if (dragging) continue;
-				if (p.y >= g.headerH && p.y < screens[ls].rect.h - g.footH) { /* (not the header, not the path strip) */
+				if (p.y >= g.headerH) {
 					SDL_Point pt = { p.x, p.y };
 					bool used = false;
 					for (int w = 0; w < 2 && nGames && !used; ++w) {
