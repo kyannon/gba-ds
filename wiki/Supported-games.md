@@ -48,6 +48,7 @@ The releases listed for each game are supported (for most games, the USA, Europe
 | Mario Kart: Super Circuit (Mario Kart Advance in Japan) | `AMKE` `AMKP` `AMKJ` | the race HUD, results and podium | Better colors (USA, Europe) |
 | Mario & Luigi: Superstar Saga (Mario & Luigi RPG in Japan) | `A88E` `A88P` `A88J` | Bros. Info of the brother you're controlling; in battles, the boxes and meters | [Superstar Saga+](#mario--luigi-superstar-saga) v1.5 (100%; its 80% and 60% versions untested) |
 | Mario Party Advance | `B8ME` `B8MP` `B8MJ` | on the board: the Map and Quest Data in turn | |
+| Mario Pinball Land (Super Mario Ball in Europe and Japan) | `BMVE` (USA and Australia) `BMVP` `BMVJ` | in a room: the whole HUD, as when paused, with the logo | |
 | Mario vs. Donkey Kong | `BM5E` `BM5P` `BM5J` | in levels: the HUD (lives, score, presents or TOY blocks, Mini-Marios, Donkey Kong's hits, time), and the level with its high score | |
 | Mega Man Battle Network (Battle Network Rockman EXE in Japan) | `AREE` `AREP` `AREJ` | MegaMan's status (level, HP, armor, buster) with your money, in battles too; on the net, a map of the area | |
 | Mega Man Battle Network 2 (Battle Network Rockman EXE 2 in Japan) | `AE2E` `AM2P` `AE2J` | MegaMan's status (level, HP, style, buster) with your money, in battles too; on the net, a map of the area | |
@@ -521,6 +522,16 @@ The USA, European and Japanese releases.
 - In dialogs, the dice, the L menu and scenes, the last pages stay. While you have the game's own Map or Quest Data open, the second screen shows the logo, so the same page isn't on both screens.
 - On the title, the name entry and the main menu, the second screen shows the logo.
 - Tried in Shroom City's Town area (Europe and Japan at a new file's first turn; Europe in English and French). Not tried yet: the minigames, Party Land, Challenge Land and the other areas' boards, a Map with a flag placed.
+
+## Mario Pinball Land
+
+Mario Pinball Land in the USA and Australia, Super Mario Ball in Europe and Japan. Added by cmyksoda (pull request #97).
+
+- **In a room** (a table, a boss's room, Toad's shop, a mini game), in the adventure or in Time Attack, the second screen shows the game's HUD on black with the logo in the middle, each piece where the game draws it: the stars and the score along the top with your lives (Time Attack's timer in their place), the coins and blue coins at the bottom left, the B button and the item slot at the bottom right. An item falling into the slot falls there too. The game screen shows the table alone.
+- **The whole HUD, as when paused.** Playing, the game shows your lives, the score and the blue coins only for a moment after one of them changes, and slides them off again; pausing brings them all in. The second screen always has them where the pause puts them, with the numbers as they are now. What a room leaves out even when paused stays out (the score in Toad's shop, the lives in Time Attack). When a number gains a digit, it can sit a little off for a split second.
+- Toad running round the table, the item roulette, the pause menu, a shop's price and the target game's counter stay on the game screen.
+- **Elsewhere** (the title, the world select, the ball falling through the drain, the bonus screens, Time Attack's level select and best times), the second screen shows the logo.
+- Not tried yet: a boss played through, a Time Attack run won, Time Attack and an item falling into the slot in the European and Japanese releases, and their Virtual Console dumps.
 
 ## Mario vs. Donkey Kong
 

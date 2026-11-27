@@ -1080,7 +1080,7 @@ static bool tallLive;      /* the live view: the table over both screens (update
 static const MapProfile* hudProf;
 static uint32_t hudPx[GBA_W * GBA_H];
 static bool hudOn; /* the frame being emulated is split */
-static unsigned long long onWithAt; /* hud.onWith: the frame a sprite like it last showed */
+static unsigned long long onWithAt; /* hud.onWith: when a sprite like it last showed */
 /* the second screen's picture: the HUD at 2x over the backdrop, its map
  * larger; the backdrop, made from the grabbed layers as each race starts */
 #define HUD_CW (GBA_W * 2)
@@ -4601,20 +4601,6 @@ static bool oam_has_tile(int tile) {
 	return false;
 }
 
-/* A shown sprite matching `r`, as emu.c's sprite rules match (not a window's) */
-static bool oam_rule_shown(const SpriteRule* r) {
-	for (int i = 0; i < 128; ++i) {
-		uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8), a1 = emu_read16(&emu, 0x07000002 + i * 8);
-		uint16_t a2 = emu_read16(&emu, 0x07000004 + i * 8);
-		if ((a0 & 0x300) == 0x200 || a0 >> 14 == 3 || ((a0 >> 10) & 3) == 2) continue;
-		int x = (int) ((uint32_t) a1 << 23) >> 23, y = a0 & 0xFF, tile = a2 & 0x3FF, prio = (a2 >> 10) & 3, pal = a2 >> 12;
-		if (y >= 160) y -= 256;
-		if (x >= r->x0 && x <= r->x1 && y >= r->y0 && y <= r->y1 && tile >= r->tileMin && tile <= r->tileMax &&
-		    (r->prio < 0 || prio == r->prio) && (!r->palMask || (r->palMask >> pal & 1))) return true;
-	}
-	return false;
-}
-
 /* A sprite with a tile from tile to tileMax (0: tile alone) in this
  * palette is shown */
 static bool oam_has_tile_pal(int tile, int tileMax, int pal, int prio1) {
@@ -4625,6 +4611,22 @@ static bool oam_has_tile_pal(int tile, int tileMax, int pal, int prio1) {
 		uint16_t a2 = emu_read16(&emu, 0x07000004 + i * 8);
 		if ((a2 & 0x3FF) >= tile && (a2 & 0x3FF) <= tileMax && a2 >> 12 == pal
 		    && (!prio1 || ((a2 >> 10) & 3) == prio1 - 1)) return true;
+	}
+	return false;
+}
+
+/* A shown sprite matching r's box, tiles, priority, palettes and shapes (not the sprite window; `tagged` isn't read) */
+static bool oam_rule_shown(const SpriteRule* r) {
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a0 = emu_read16(&emu, 0x07000000 + i * 8), a1 = emu_read16(&emu, 0x07000002 + i * 8);
+		uint16_t a2 = emu_read16(&emu, 0x07000004 + i * 8);
+		if ((a0 & 0x300) == 0x200 || a0 >> 14 == 3 || ((a0 >> 10) & 3) == 2) continue;
+		int x = (int) ((uint32_t) a1 << 23) >> 23, y = a0 & 0xFF, tile = a2 & 0x3FF, prio = (a2 >> 10) & 3, pal = a2 >> 12;
+		if (y >= 160) y -= 256;
+		if (x < r->x0 || x > r->x1 || y < r->y0 || y > r->y1 || tile < r->tileMin || tile > r->tileMax ||
+		    (r->prio >= 0 && prio != r->prio) || (r->palMask && !(r->palMask >> pal & 1)) ||
+		    (r->shapes && !(r->shapes >> ((a0 >> 14) * 4 + (a1 >> 14)) & 1))) continue;
+		return true;
 	}
 	return false;
 }
@@ -5230,12 +5232,12 @@ static void update_hud(void) {
 	bool main = memprobes_match(h->on, 4, &emu);
 	if (rule_count(&h->onWith, 1)) {
 		bool with = main && oam_rule_shown(&h->onWith);
+		if (with) onWithAt = frameCount;
 		if (main && (!hudOn || hudAlt)) main = with;
-		else if (main && frameCount - onWithAt > (unsigned) h->onLost) {
+		else if (main && frameCount - onWithAt > (unsigned long long) h->onLost) {
 			main = false;
 			if (debug) fprintf(stderr, "frame %llu: HUD off: no onWith sprite\n", (unsigned long long) frameCount);
 		}
-		if (with) onWithAt = frameCount;
 	}
 	bool altOn = !main && h->alt.on[0].addr && memprobes_match(h->alt.on, (int) (sizeof h->alt.on / sizeof h->alt.on[0]), &emu);
 	bool race = main || altOn || (hudOn && h->stay[0].addr && memprobes_match(h->stay, 2, &emu));
@@ -5438,6 +5440,9 @@ static void update_hud(void) {
 		mapFound = false;
 		mapHeldOk = false, nMapDots = 0, mapUndrawn = 0; /* (hud.mapAt.holdTile: none held yet) */
 	}
+	/* hud.place: the profile's own places for the HUD's sprites, worked out
+	 * each frame (Mario Pinball Land: where the game has them paused) */
+	if (h->place) h->place(&emu, romPath, hudOn && !hudAlt);
 	/* a spell or other animation: its effects are on the text box layers,
 	 * in other palettes than the text boxes; those layers stay (from the
 	 * next frame) */
@@ -6480,6 +6485,8 @@ static bool state_load(const char* path) {
 	if (ok) aheadReady = false; /* a frame emulated before the load: emulate afresh */
 	if (ok) mirrorHave = false; /* (hud.mirror: the picture from before is another moment's) */
 	if (ok) hudOffLatch = false; /* (hud.offAfter: found again from the loaded game) */
+	if (ok) onWithAt = 0; /* (hud.onWith: a sprite seen before the load doesn't hold the HUD on after it) */
+	if (ok && hudProf && hudProf->hud.place) hudProf->hud.place(&emu, romPath, false); /* (hud.place: worked out again from the loaded game) */
 	return ok;
 }
 

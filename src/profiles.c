@@ -10205,6 +10205,131 @@ static uint32_t crv_virt(Emu* e, uint32_t addr) {
 /* Pokemon Mystery Dungeon: Red Rescue Team (USA; pmd_moved for the others): gDungeon, the pointer to the floor being played (0 elsewhere) */
 #define PMD_DUNGEON 0x0203B418u
 
+/* Mario Pinball Land (MPL-3): the HUD below laid out as the game lays it out paused. Playing,
+ * the game slides the lives, the score, the blue coins (and in some rooms a second star
+ * counter) off the screen a moment after each change; START brings them all in (those the room
+ * has: no score in Toad's shop, no lives in Time Attack). A third copy of the game is paused
+ * from the live game's moment, and where its sprites are once they've slid in is where the HUD
+ * picture draws the live game's own (the same sprites by their number in the sprite table:
+ * their pictures, kept up to date while off the screen, stay the live game's). Done again in
+ * a new room and when a counter gets another digit or the stars change. */
+static Emu mplEmu;
+static bool mplEmuOpen;
+static char mplRom[1024];
+static uint8_t* mplJob;
+static size_t mplJobSize;
+static pthread_t mplThread;
+static volatile bool mplBusy, mplDone, mplPaused;
+static uint16_t mplOam[512];
+
+/* the pause's words: 16x16 priority-1 sprites in the middle of the screen */
+static int mpl_middle(const uint16_t* oam) {
+	int n = 0;
+	for (int i = 0; i < 128; ++i) {
+		uint16_t a = oam[i * 4], b = oam[i * 4 + 1], c = oam[i * 4 + 2];
+		int y = a & 0xFF, x = b & 0x1FF;
+		if ((a & 0x0300) == 0x0200 || (a >> 14) || (b >> 14) != 1 || ((c >> 10) & 3) != 1) continue;
+		n += y >= 32 && y < 124 && x >= 32 && x < 208;
+	}
+	return n;
+}
+
+static void* mpl_worker(void* arg) {
+	(void) arg;
+	Emu* e = &mplEmu;
+	bool paused = false;
+	if (!mplEmuOpen) mplEmuOpen = emu_open(e, mplRom, NULL, false);
+	if (mplEmuOpen && emu_state_load(e, mplJob)) {
+		uint16_t before[512];
+		emu_oam_read(e, before);
+		/* START, then the slide (a pixel a frame: 16, 32 for Time Attack's coins) */
+		for (int i = 0; i < 4; ++i) emu_frame_blind(e, K_START);
+		for (int i = 0; i < 48; ++i) emu_frame_blind(e, 0);
+		emu_oam_read(e, mplOam);
+		paused = mpl_middle(mplOam) >= mpl_middle(before) + 4;
+	}
+	mplPaused = paused;
+	mplDone = true;
+	mplBusy = false;
+	return NULL;
+}
+
+static int mpl_digits(uint32_t v) {
+	int n = 1;
+	while (v >= 10) v /= 10, ++n;
+	return n;
+}
+
+/* a HUD piece that slides: 16x16, priority 1, in the top rows (palettes 0 and 2) or the
+ * bottom left corner (palettes 0-4), on the screen */
+static bool mpl_slider(uint16_t a, uint16_t b, uint16_t c) {
+	if ((a & 0x0300) == 0x0200 || (a >> 14) || (b >> 14) != 1 || ((c >> 10) & 3) != 1) return false;
+	int y = a & 0xFF, x = b & 0x1FF, pal = c >> 12;
+	if (y >= 160) y -= 256;
+	if (x >= 256) x -= 512;
+	if (y <= -16 || y >= 160 || x <= -16 || x >= 240) return false;
+	return (y <= 19 && (pal == 0 || pal == 2)) || (x <= 60 && y >= 112 && pal <= 4);
+}
+
+static void mpl_place(Emu* live, const char* rom, bool on) {
+	static bool have, placing;
+	static uint32_t key, retry;
+	static uint16_t pause[512];
+	if (mplDone && !mplBusy) {
+		if (mplThread) pthread_join(mplThread, NULL), mplThread = 0;
+		mplDone = false;
+		if (mplPaused && on) memcpy(pause, mplOam, sizeof(pause)), have = true;
+		else retry = 60; /* (START ignored then: a ball being launched) */
+	}
+	if (!on) {
+		if (placing) emu_hud_place(NULL, NULL), placing = false;
+		have = false, key = 0, retry = 0;
+		return;
+	}
+	/* what the layout goes by: the room, each counter's digits, the stars */
+	uint32_t k = emu_read8(live, 0x03000030) | 0x100u;
+	k = k * 31 + (uint32_t) mpl_digits(emu_read32(live, 0x03000000));
+	k = k * 31 + (uint32_t) mpl_digits(emu_read32(live, 0x03000004));
+	k = k * 31 + (uint32_t) mpl_digits(emu_read32(live, 0x03000008));
+	k = k * 31 + (uint32_t) mpl_digits(emu_read32(live, 0x0300000C));
+	k = k * 31 + emu_read32(live, 0x03000014);
+	if (retry && --retry == 0) key = 0;
+	if (k != key && !mplBusy && !mplDone) {
+		size_t sz = emu_state_size(live);
+		if (sz > mplJobSize) free(mplJob), mplJob = malloc(sz), mplJobSize = mplJob ? sz : 0;
+		if (mplJob && emu_state_save(live, mplJob)) {
+			key = k;
+			snprintf(mplRom, sizeof(mplRom), "%s", rom);
+			mplBusy = true;
+			/* in exact runs (the tests), and with no threads, done here */
+			if (getenv("GBADS_SYNC") || pthread_create(&mplThread, NULL, mpl_worker, NULL)) {
+				mplThread = 0, mpl_worker(NULL);
+				if (mplDone) {
+					mplDone = false;
+					if (mplPaused) memcpy(pause, mplOam, sizeof(pause)), have = true;
+					else retry = 60;
+				}
+			}
+		}
+	}
+	if (!have) return;
+	/* the live game's sliding pieces where the paused copy has the same ones (the same
+	 * picture, palette, shape and size) */
+	uint16_t oam[512];
+	emu_oam_read(live, oam);
+	static uint8_t how[128];
+	static uint16_t ab[128][2];
+	for (int i = 0; i < 128; ++i) {
+		const uint16_t* p = &pause[i * 4];
+		const uint16_t* l = &oam[i * 4];
+		how[i] = 0;
+		if (mpl_slider(p[0], p[1], p[2]) && p[2] == l[2] && (p[0] >> 14) == (l[0] >> 14) && (p[1] >> 14) == (l[1] >> 14))
+			how[i] = 1, ab[i][0] = p[0], ab[i][1] = p[1];
+	}
+	emu_hud_place(how, ab);
+	placing = true;
+}
+
 static const MapProfile profiles[] = {
 	/* PRELIMINARY (pokemon-preliminary): see docs/pokemon-ideas.md. One entry per engine (the USA and Europe releases) */
 #define PK_PROFILE(ENGINE_LOGO, TITLE, ...) \
@@ -13300,6 +13425,28 @@ static const MapProfile profiles[] = {
 		.logo = { .steps = { { 0, 1300 }, { K_START, 4 }, { 0, 200 } }, .layer = 0, .maxY = 96 },
 	},
 	{
+		/* Mario Pinball Land (docs/games/mario-pinball-land.md) */
+		.codes = { "BMVE" },
+		.title = "Mario Pinball Land",
+		.logoOnly = true,
+		/* START cuts the intro film short: the title's lettering alone on BG3 (PRESS START is sprites) */
+		.logo = { .steps = { { 0, 1200 }, { K_START, 4 }, { 0, 300 } }, .layer = 3 },
+		.hud = {
+			/* a room: not the title (BG3), with the item slot's frame, which the ball bonus screens lack (the star counter's
+			 * icon leaves 4 s into a Time Attack run) */
+			.on = { { 0x04000000, 0x0800, 0, 2 } },
+			.onWith = { 176, 96, 176, 96, 0, 1023, 1, 1u << 3, 0, 1u << 3 }, /* 64x64, palette 3 */
+			.onLost = 30,
+			.place = mpl_place, /* (the counters as the game has them paused: MPL-3) */
+			/* the HUD is priority-1 sprites: 16x16 in palettes 0 and 2 along the top, palettes 0-4 in the bottom corners, the item
+			 * falling down the slot's column and in it, and the 64x64 slot; Toad, others running past and the roulette have other places or tiles */
+			.objs = { { -512, -256, 511, 19, 0, 1023, 1, 1u << 0 | 1u << 2, 0, 1u << 1 }, { -512, 112, 60, 255, 0, 1023, 1, 0x1F, 0, 1u << 1 },
+			          { 170, 112, 511, 255, 0, 1023, 1, 0x1F, 0, 1u << 1 }, { 206, -32, 206, 255, 0, 399, 1, 0, 0, 1u << 2 },
+			          { 170, 80, 511, 255, 0, 1023, 1, 0, 0, 1u << 3 } },
+			.logoBelow = true,
+		},
+	},
+	{
 		/* Cruis'n Velocity (docs/games/cruisn-velocity.md): the HUD is sprites on a mode 4
 		 * bitmap sharing tiles, so the time and the lap box are picked by place. */
 		.codes = { "ACFE" },
@@ -13976,6 +14123,9 @@ static void dkks_jpn(MapProfile* p) {
 static const Variant variants[] = {
 	{ "B24P", "B24E", 0, pmd_eur },
 	{ "B24J", "B24E", 0, pmd_jpn },
+	/* Mario Pinball Land: Super Mario Ball in Europe and Japan; the same intro, palettes and sprites, so nothing to move */
+	{ "BMVP", "BMVE", 0, NULL },
+	{ "BMVJ", "BMVE", 0, NULL },
 	/* Mario Party Advance: Europe and Japan, the USA release's addresses */
 	{ "B8MP", "B8ME", 0, mpa_eur },
 	{ "B8MJ", "B8ME", 0, NULL },
