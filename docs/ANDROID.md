@@ -122,6 +122,17 @@ it from the Actions tab and sideloads it.
   session generates the keystore (keytool is available) and hands it to the
   owner to add under Settings > Secrets and variables > Actions; the
   keystore itself is never committed.
+- **Maven Central's HTTP 429** ("Too Many Requests" while Gradle resolves a
+  dependency) is a rate limit on GitHub's shared runners, not the code.
+  Since Nov 27, 2026 (branch `android-fix-rate-limiting`) the workflow keeps
+  Gradle's downloads in a cache on every branch (`cache-read-only: false`:
+  setup-gradle otherwise saves only on `main`, where the workflow never
+  runs, so every run downloaded everything), and the Build step tries once
+  more after 90 seconds when the log shows a 429 (a "Maven Central rate
+  limit" warning on the run). A new branch's first run still starts with an
+  empty cache. If a run still fails on a 429 after both tries, re-run it:
+  `gh api -X POST repos/kyannon/gba-ds/actions/runs/<id>/rerun-failed-jobs`.
+  The job stops after 20 minutes (a normal run takes 2-3).
 
 ## First milestone (proof of concept)
 
