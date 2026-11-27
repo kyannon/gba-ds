@@ -28,7 +28,7 @@ Leaving a game saves its state automatically, and launching it again picks up ex
 
 ## Save states shared with RetroArch
 
-On ROCKNIX, BananaOS and other Linux systems, GBA DS can share its save states with RetroArch, so you can save in one and go on in the other. In the game list, open **Settings** (SELECT) > **System** and choose **Save States** to switch between **GBA DS's Own** (the default) and **Shared with RetroArch**. **RetroArch's State Folder**, under it, says which folder RetroArch keeps its states in, and lets you choose it yourself, if GBA DS didn't find RetroArch or you keep its states somewhere else: open folders with A (or a tap), go up with B, and choose **Use This Folder**. It says how many RetroArch states are in the folder you're looking at. **Automatic** goes back to the folder RetroArch's settings give.
+GBA DS can share its save states with RetroArch, so you can save in one and go on in the other (on the same device, or on another one if you sync the folder, with Syncthing for example). In the game list, open **Settings** (SELECT) > **System** and choose **Save States** to switch between **GBA DS's Own** (the default) and **Shared with RetroArch**. **RetroArch's State Folder**, under it, says which folder RetroArch keeps its states in, and lets you choose it yourself, if GBA DS didn't find RetroArch or you keep its states somewhere else: open folders with A (or a tap), go up with B, and choose **Use This Folder**. It says how many RetroArch states are in the folder you're looking at. **Automatic** goes back to the folder RetroArch's settings give.
 
 When they're shared:
 
@@ -42,6 +42,8 @@ When they're shared:
 - RetroAchievements progress isn't shared: each app keeps its own with its states.
 
 GBA DS works out RetroArch's state folder from RetroArch's own settings, the way RetroArch does: on ROCKNIX `/storage/roms/savestates/gba`, on BananaOS `/data/states/mGBA`. If RetroArch is somewhere GBA DS doesn't look, choose its folder with **RetroArch's State Folder**.
+
+On Android, GBA DS looks for RetroArch's states in `RetroArch/states/mGBA` on your storage, and needs All files access to use them. Some RetroArch builds keep their states inside their own `Android/data` folder instead, which Android doesn't let other apps open: in RetroArch, set **Settings** > **Directory** > **Save States** to a folder on your storage (such as `RetroArch/states`), then choose that folder (or its `mGBA` folder, if RetroArch sorts states by core) with **RetroArch's State Folder** in GBA DS.
 
 States RetroArch compressed with zstd (RetroArch 1.21 and later can) load like the others.
 

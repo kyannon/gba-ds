@@ -1676,7 +1676,7 @@ static int updatesSel;
  * there's one; Map Buttons and Hotkeys; Performance, where GBA DS can set
  * the clock governors (clocks.c); Updates. Android: Folders,
  * RetroAchievements, Map Buttons and Hotkeys, Updates. */
-#define SETTINGS_MAX 10
+#define SETTINGS_MAX 12
 static int nRows = 1; /* rows shown (Back is row nRows) */
 /* (Hotkeys shares Map Buttons' line: the right half of it, under one text) */
 enum { ROW_BANANA, ROW_ES, ROW_MAP, ROW_HOTKEYS, ROW_UPDATES, ROW_FOLDERS, ROW_RA, ROW_ESDE, ROW_PERF, ROW_STATES, ROW_STATES_DIR, ROW_RESET, ROW_DELCFG, ROW_ROTATION, ROW_LANGUAGE, ROW_BIOS, ROW_ROMPATH };
@@ -1775,6 +1775,10 @@ static void settings_rows(const Config* cfg) {
 	if (esde_present()) rowKind[nRows++] = ROW_ESDE;
 	for (size_t i = 0; i < sizeof(android) / sizeof(android[0]); ++i) {
 		rowKind[nRows++] = android[i];
+		if (android[i] == ROW_FOLDERS) {
+			rowKind[nRows++] = ROW_STATES; /* (save states shared with RetroArch: issue #111) */
+			rowKind[nRows++] = ROW_STATES_DIR;
+		}
 		/* one display (a phone, a Surface Duo): hold the window portrait or landscape (issue #60) */
 		if (android[i] == ROW_RA && android_one_display()) rowKind[nRows++] = ROW_ROTATION;
 	}
@@ -2376,6 +2380,125 @@ static bool settings_pages_input(Config* cfg, int ls) {
 	return true;
 }
 
+/* Settings > Save States (issue #39): slots 0-9 and the automatic state in
+ * GBA DS's own folder, or shared with RetroArch (its own files, in its
+ * folder: a game goes on in either). The folder shown is the selected
+ * game's (RetroArch's can depend on the game's). */
+/* a long path's last parts (…/savestates/gba; whole up to 40 characters), for a line of text */
+static const char* path_tail(const char* path) {
+	const char* p = path;
+	int parts = 0;
+	for (const char* c = path + strlen(path); strlen(path) > 40 && c > path; --c) {
+		if (*c == '/' && ++parts == 3) {
+			p = c;
+			break;
+		}
+	}
+	static char out[1100];
+	snprintf(out, sizeof(out), "%s%s", p != path ? "\xe2\x80\xa6" : "", p);
+	return out;
+}
+static const char* states_rom(void) {
+	return thumbFor >= 0 && thumbFor < nGames ? games[thumbFor].path : NULL; /* (the game shown in the list) */
+}
+static void states_text(const Config* cfg, char* out, size_t n) {
+	char dir[1024];
+	bool compress;
+	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
+	if (!found)
+		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."));
+	else if (strcmp(cfg->stateFolder, "retroarch"))
+		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."), path_tail(dir));
+	else
+		snprintf(out, n, tr("Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."), path_tail(dir));
+}
+/* Settings > RetroArch's Folder: its state folder chosen by hand (kept as
+ * retroarch_state_dir in library.cfg), or found from its settings again
+ * (Automatic). Choosing one shares the states with RetroArch. */
+static void states_dir_pick(Config* cfg) {
+	char dir[1024] = "", chosen[1024];
+	bool compress;
+	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
+	bool byHand = cfg->raStateDir[0] != 0;
+#ifdef __ANDROID__
+	/* (GBA DS's own picker, which lists folders as files: the storage needs All files access) */
+	DIR* top = opendir("/storage/emulated/0");
+	if (!top) {
+		snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+		         tr("GBA DS can't save files there: allow it All files access in Android's settings, or choose another folder."));
+		return;
+	}
+	closedir(top);
+	const char* start = found ? dir : "/storage/emulated/0/RetroArch/states";
+#else
+	/* (opens at the folder now, else where ROCKNIX or BananaOS keep RetroArch's states; else home) */
+	const char* start = found ? dir : file_exists("/storage/roms") ? "/storage/roms/savestates" : "/data/states";
+#endif
+	FolderPick r = folder_pick("RetroArch's State Folder", start, ".state", true, byHand ? "Automatic" : NULL, chosen,
+	                           sizeof(chosen));
+	if (r == FOLDER_CANCEL) return;
+	if (r == FOLDER_CHOSEN) {
+		if (strlen(chosen) >= sizeof(cfg->raStateDir)) { /* (a cut-off path would be another folder) */
+			snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("That folder's path is too long."));
+			return;
+		}
+#ifdef __ANDROID__
+		/* (another app's own folder: Android 11 and later keep it from GBA DS, All files access or not) */
+		if (strstr(chosen, "/Android/data/") || access(chosen, R_OK | W_OK) != 0) {
+			snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+			         tr("GBA DS can't use that folder. In RetroArch, set Settings > Directory > Save States to a folder on your "
+			            "storage (not in Android/data), then choose it here."));
+			return;
+		}
+#endif
+		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
+		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
+		snprintf(settingsMsg, sizeof(settingsMsg), tr("Slots 0-9 and the automatic state are now shared with RetroArch, in %s."), path_tail(chosen));
+	} else {
+		cfg->raStateDir[0] = 0;
+		if (retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
+			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's state folder is found from its settings again: %s."), path_tail(dir));
+		} else {
+			snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "gbads");
+			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."));
+		}
+	}
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: RetroArch's state folder %s%s, states %s\n", cfg->raStateDir[0] ? "chosen: " : "from its settings",
+	        cfg->raStateDir, strcmp(cfg->stateFolder, "retroarch") ? "GBA DS's own" : "shared");
+}
+/* RetroArch's State Folder's note: the folder, and where it came from */
+static void states_dir_text(const Config* cfg, char* out, size_t n) {
+	char dir[1024];
+	bool compress;
+	if (!retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress))
+#ifdef __ANDROID__
+		snprintf(out, n, "%s",
+		         tr("RetroArch's states weren't found. In RetroArch, set Settings > Directory > Save States to a folder on your "
+		            "storage (not in Android/data), then choose it here."));
+#else
+		snprintf(out, n, tr("RetroArch's settings weren't found here: choose the folder where it keeps its save states."));
+#endif
+	else
+		snprintf(out, n, tr("%s %s. Choose another if RetroArch keeps its states somewhere else."),
+		         cfg->raStateDir[0] ? tr("Chosen here:"): tr("From RetroArch's settings:"), path_tail(dir));
+}
+static void states_switch(Config* cfg) {
+	char dir[1024];
+	bool compress;
+	bool shared = !strcmp(cfg->stateFolder, "retroarch");
+	if (!shared && !retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
+		/* (RetroArch's settings not found: where are its states?) */
+		states_dir_pick(cfg);
+		return;
+	}
+	snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "%s", shared ? "gbads" : "retroarch");
+	save_library_cfg(cfg);
+	fprintf(stderr, "library: save states %s\n", shared ? "in GBA DS's own folder" : "shared with RetroArch");
+	snprintf(settingsMsg, sizeof(settingsMsg), "%s",
+	         shared ? tr("Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."): tr("Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."));
+}
+
 #ifdef __ANDROID__
 /* Android: the ROM and save folders (Folders, a panel of its own), chosen
  * with Android's folder picker (android.c), kept in <state_dir>/library.cfg;
@@ -2421,6 +2544,8 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		          : k == ROW_ROMPATH ? rompath_label(cfg)
 		          : k == ROW_ESDE    ? (esde_integration_on() ? N_("GBA DS in ES-DE: On"): N_("GBA DS in ES-DE: Off"))
 		          : k == ROW_FOLDERS ? "Folders"
+		          : k == ROW_STATES  ? (!strcmp(cfg->stateFolder, "retroarch") ? N_("Save States: Shared with RetroArch"): N_("Save States: GBA DS's Own"))
+		          : k == ROW_STATES_DIR ? "RetroArch's State Folder"
 		          : k == ROW_RA      ? raLabel
 		          : k == ROW_ROTATION ? (android_rotation_get() == 1 ? N_("Rotation: Portrait"): android_rotation_get() == 2 ? N_("Rotation: Landscape"): N_("Rotation: Auto"))
 		          : k == ROW_RESET   ? (confirmRow == i ? N_("Are you sure? Reset settings"): N_("Reset settings to defaults"))
@@ -2452,6 +2577,14 @@ static void draw_settings(const Config* cfg, int scr, int sel) {
 		break;
 	case ROW_ROTATION:
 		text = android_rotation_get() == 1 ? N_("Held upright: the two screens one above the other. Either way up."): android_rotation_get() == 2 ? N_("Held on its side: the two screens side by side. Either way round."): N_("Follows how you hold the phone, and Android's own rotation lock.");
+		break;
+	case ROW_STATES:
+		states_text(cfg, line, sizeof(line));
+		text = line;
+		break;
+	case ROW_STATES_DIR:
+		states_dir_text(cfg, line, sizeof(line));
+		text = line;
 		break;
 	case ROW_FOLDERS:
 		text = cfg->saveDir[0] ? N_("Where games are read from, and the folder their saves are kept in."): N_("Where games are read from. Their saves are kept next to them.");
@@ -2511,6 +2644,12 @@ static void settings_activate(Config* cfg, int row) {
 		return;
 	case ROW_FOLDERS:
 		foldersOpen = true, foldersSel = 0;
+		return;
+	case ROW_STATES:
+		states_switch(cfg);
+		return;
+	case ROW_STATES_DIR:
+		states_dir_pick(cfg);
 		return;
 	case ROW_UPDATES:
 		updatesOpen = true, updatesNotice = false, updatesSel = 0;
@@ -2759,98 +2898,6 @@ static bool folders_input(Config* cfg, int ls) {
 }
 #else
 static int settingsMsgRow; /* the row settingsMsg is about: shown in place of its text */
-
-/* Settings > Save States (issue #39): slots 0-9 and the automatic state in
- * GBA DS's own folder, or shared with RetroArch (its own files, in its
- * folder: a game goes on in either). The folder shown is the selected
- * game's (RetroArch's can depend on the game's). */
-/* a long path's last parts (…/savestates/gba; whole up to 40 characters), for a line of text */
-static const char* path_tail(const char* path) {
-	const char* p = path;
-	int parts = 0;
-	for (const char* c = path + strlen(path); strlen(path) > 40 && c > path; --c) {
-		if (*c == '/' && ++parts == 3) {
-			p = c;
-			break;
-		}
-	}
-	static char out[1100];
-	snprintf(out, sizeof(out), "%s%s", p != path ? "\xe2\x80\xa6" : "", p);
-	return out;
-}
-static const char* states_rom(void) {
-	return thumbFor >= 0 && thumbFor < nGames ? games[thumbFor].path : NULL; /* (the game shown in the list) */
-}
-static void states_text(const Config* cfg, char* out, size_t n) {
-	char dir[1024];
-	bool compress;
-	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
-	if (!found)
-		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. To share them, choose RetroArch's state folder."));
-	else if (strcmp(cfg->stateFolder, "retroarch"))
-		snprintf(out, n, tr("Slots 0-9 and the resume point are GBA DS's own. Shared, they're RetroArch's: %s."), path_tail(dir));
-	else
-		snprintf(out, n, tr("Slots 0-9 and the resume point are RetroArch's (its GBA core set to mGBA): %s."), path_tail(dir));
-}
-/* Settings > RetroArch's Folder: its state folder chosen by hand (kept as
- * retroarch_state_dir in library.cfg), or found from its settings again
- * (Automatic). Choosing one shares the states with RetroArch. */
-static void states_dir_pick(Config* cfg) {
-	char dir[1024] = "", chosen[1024];
-	bool compress;
-	bool found = retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress);
-	bool byHand = cfg->raStateDir[0] != 0;
-	/* (opens at the folder now, else where ROCKNIX or BananaOS keep RetroArch's states; else home) */
-	const char* start = found ? dir : file_exists("/storage/roms") ? "/storage/roms/savestates" : "/data/states";
-	FolderPick r = folder_pick("RetroArch's State Folder", start, ".state", true, byHand ? "Automatic" : NULL, chosen,
-	                           sizeof(chosen));
-	if (r == FOLDER_CANCEL) return;
-	if (r == FOLDER_CHOSEN) {
-		if (strlen(chosen) >= sizeof(cfg->raStateDir)) { /* (a cut-off path would be another folder) */
-			snprintf(settingsMsg, sizeof(settingsMsg), "%s", tr("That folder's path is too long."));
-			return;
-		}
-		snprintf(cfg->raStateDir, sizeof(cfg->raStateDir), "%s", chosen);
-		snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "retroarch");
-		snprintf(settingsMsg, sizeof(settingsMsg), tr("Slots 0-9 and the automatic state are now shared with RetroArch, in %s."), path_tail(chosen));
-	} else {
-		cfg->raStateDir[0] = 0;
-		if (retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
-			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's state folder is found from its settings again: %s."), path_tail(dir));
-		} else {
-			snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "gbads");
-			snprintf(settingsMsg, sizeof(settingsMsg), tr("RetroArch's settings weren't found, so slots 0-9 and the automatic state are GBA DS's own again."));
-		}
-	}
-	save_library_cfg(cfg);
-	fprintf(stderr, "library: RetroArch's state folder %s%s, states %s\n", cfg->raStateDir[0] ? "chosen: " : "from its settings",
-	        cfg->raStateDir, strcmp(cfg->stateFolder, "retroarch") ? "GBA DS's own" : "shared");
-}
-/* RetroArch's State Folder's note: the folder, and where it came from */
-static void states_dir_text(const Config* cfg, char* out, size_t n) {
-	char dir[1024];
-	bool compress;
-	if (!retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress))
-		snprintf(out, n, tr("RetroArch's settings weren't found here: choose the folder where it keeps its save states."));
-	else
-		snprintf(out, n, tr("%s %s. Choose another if RetroArch keeps its states somewhere else."),
-		         cfg->raStateDir[0] ? tr("Chosen here:"): tr("From RetroArch's settings:"), path_tail(dir));
-}
-static void states_switch(Config* cfg) {
-	char dir[1024];
-	bool compress;
-	bool shared = !strcmp(cfg->stateFolder, "retroarch");
-	if (!shared && !retroarch_state_dir(cfg, states_rom(), dir, sizeof(dir), &compress)) {
-		/* (RetroArch's settings not found: where are its states?) */
-		states_dir_pick(cfg);
-		return;
-	}
-	snprintf(cfg->stateFolder, sizeof(cfg->stateFolder), "%s", shared ? "gbads" : "retroarch");
-	save_library_cfg(cfg);
-	fprintf(stderr, "library: save states %s\n", shared ? "in GBA DS's own folder" : "shared with RetroArch");
-	snprintf(settingsMsg, sizeof(settingsMsg), "%s",
-	         shared ? tr("Slots 0-9 and the automatic state are GBA DS's own again. The states saved in RetroArch's folder stay there."): tr("Slots 0-9 and the automatic state are now RetroArch's. GBA DS's own states stay in its folder, for when this is switched back."));
-}
 
 static void draw_settings(const Config* cfg, int scr, int sel) {
 	if (sel != confirmRow) confirmRow = -1; /* moved off the row: no longer asked */

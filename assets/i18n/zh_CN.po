@@ -24,6 +24,12 @@ msgstr " 毫秒"
 msgid " s"
 msgstr " 秒"
 
+msgid "GBA DS can't use that folder. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "GBA DS 无法使用那个文件夹。请在 RetroArch 里把 Settings > Directory > Save States 设为存储空间里的一个文件夹（不要在 Android/data 里），再在这里选择它。"
+
+msgid "RetroArch's states weren't found. In RetroArch, set Settings > Directory > Save States to a folder on your storage (not in Android/data), then choose it here."
+msgstr "没找到 RetroArch 的即时存档。请在 RetroArch 里把 Settings > Directory > Save States 设为存储空间里的一个文件夹（不要在 Android/data 里），再在这里选择它。"
+
 msgid "\"Swipe up for quick menu\" at a game's start."
 msgstr "游戏开始时显示“上滑打开快捷菜单”。"
 
