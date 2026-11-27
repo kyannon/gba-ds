@@ -15,6 +15,9 @@
 - **A translation or romhack GBA DS knows now has its own logo** (pull request #102 by cmyksoda). With the Japanese game and its English translation both in your game list, each now shows its own title, in the list and on the second screen, instead of both showing whichever logo was made first: F-Zero Climax, Fire Emblem: The Binding Blade, Shin Megami Tensei and Densetsu no Stafy 1 to 3. A translation shows the Japanese game's logo until you've selected it once in the list. A logo made from a translation before this update stays on the Japanese game until you delete that game's logo file in the `states/logos/` folder (`BFTJ.png` for F-Zero Climax, named by the game code).
 - **RG DS Plus on the Stock Linux OS: the left stick's left and right are no longer swapped** (issue #104). The controls GBA DS ships for that system had the stick's left and right the wrong way round, in the menus and in games. A mapping you made yourself with Map Buttons still comes first.
 
+### Menus
+- **Mute while fast forwarding** (issue #109). Fast forward's sped-up, high-pitched sound is now muted by default. To hear it again, turn off **Mute while fast forwarding** in Settings > Speed and sound, or in the pause menu's Speed and sound settings, right below Fast forward. Like the other settings there, it can be set for one game or for all.
+
 ## v1.6.3 (2026-11-25)
 
 ### New games

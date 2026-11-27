@@ -72,6 +72,7 @@ typedef struct Config {
 	bool rewind;       /* keep a rewind buffer (hold L2 to rewind) */
 	int rewindSeconds; /* how far back */
 	bool fastForward;  /* hold R2 to fast-forward */
+	bool ffMute;       /* no sound while fast-forwarding (ff_mute, issue #109); on */
 	bool matchDisplay; /* run at the display's refresh rate (if close to the GBA's) instead of 59.73 Hz */
 	int mapInterval;   /* frames between periodic map refreshes */
 	int solarLevel;    /* the sunlight a sun sensor (Boktai) reads, 0-10 */

@@ -3974,6 +3974,7 @@ static const char* row_disabled(const char* key) {
 	if ((!strcmp(key, "single_layout") || !strcmp(key, "single_size")) && !ui_one_display()) return N_("Only for a single display: this device has two");
 	if (!strcmp(key, "single_size") && !strcmp(cfg->singleLayout, "off")) return N_("Choose how to show both screens first");
 	if ((!strcmp(key, "auto_rotate") || !strcmp(key, "toggle_button")) && !cfg->toggle) return N_("Turn on the contextual toggle first");
+	if (!strcmp(key, "ff_mute") && !cfg->fastForward) return N_("Turn on fast forward first");
 	return NULL;
 }
 
@@ -6796,8 +6797,8 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	         cfg->toggle, cfg->autoRotate, cfg->toggleButton);
 	text_add(t, "logo_folder %s, custom_logos %s; logo: %s\n", cfg->logoFolder[0] ? cfg->logoFolder : "(not set)",
 	         cfg->customLogos == CL_OFF ? "off" : cfg->customLogos == CL_FULL ? "full" : "pixelated", ui_logo_note());
-	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d\n", cfg->frameBuffer,
-	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->fastForward, cfg->ffSpeed);
+	text_add(t, "frame_buffer %d, match_display %d, vsync %d, audio_latency %d, rewind %d (%d s), fast_forward %d, ff_speed %d, ff_mute %d\n", cfg->frameBuffer,
+	         cfg->matchDisplay, cfg->vsync, cfg->audioLatency, cfg->rewind, cfg->rewindSeconds, cfg->fastForward, cfg->ffSpeed, cfg->ffMute);
 	text_add(t, "hotkey %s, menu_combo %s, home_button %d, ab_swap %d, touch_map %s, touch_screen %s\n", cfg->hotkey, cfg->menuCombo,
 	         cfg->homeButton, cfg->abSwap, cfg->touchMap, cfg->touchScreen);
 	text_add(t, "hotkeys: %s +", hotkeyBtnNames[hkMod]);
@@ -9352,6 +9353,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_SPEED, "rewind");
 	ROW(PG_SPEED, "rewind_seconds");
 	ROW(PG_SPEED, "fast_forward");
+	ROW(PG_SPEED, "ff_mute");
 	ROW(PG_SPEED, "save_on_quit");
 	ROW(PG_SPEED, "auto_load");
 	ROW(PG_MAP, "map");
@@ -10321,7 +10323,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 							bytes += 4;
 						}
 					}
-					int vol = ui_volume();
+					int vol = ff && cfg->ffMute ? 0 : ui_volume(); /* (issue #109: muted, the sound still flows, as silence, so the queue keeps its level) */
 					if (vol < 100) {
 						/* (squared: closer to how loud it sounds) */
 						int gain = vol * vol * 65536 / 10000;
