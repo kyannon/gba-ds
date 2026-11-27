@@ -1706,7 +1706,7 @@ typedef struct {
 static const SetPage setPages[SP_SYSTEM] = {
 	{ N_("Games"), N_("Which games, names, saving"), { "show_all", "name_tags", "save_on_quit", "auto_load", "custom_logos", "quick_bar_hint" } },
 	{ N_("Display"), N_("Scale, shader, theme, color"), { "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_border", "gb_correction", "gb_ghosting", "gb_shader", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "smooth", "theme", "accent" } },
-	{ "Screens", N_("Placement, overlays"), { "swap", "single_layout", "single_size", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
+	{ "Screens", N_("Placement, overlays"), { "swap", "single_layout", "single_size", "pad_cover", "screen_match", "screen_placement", "overlays", "overlay_screens", "bezel_logo", "brightness_top", "brightness_bottom" } },
 	{ "Controls", N_("Stick, buttons, hotkeys"), { "@map", "@hotkeys", "left_stick_dpad", "ab_swap", "button_right", "button_bottom", "button_top", "button_left", "button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right", "turbo_rate", "rumble_strength" } },
 	{ N_("Speed and sound"), N_("Rewind, fast forward"), { "show_fps", "match_display", "frame_buffer", "rewind", "rewind_seconds", "fast_forward", "audio_latency", "performance" } },
 	{ "Second screen", N_("The map and the logo"), { "map", "map_interval", "toggle", "auto_rotate", "toggle_button", "pinball_live" } },
@@ -1891,7 +1891,7 @@ static void setting_changed(Config* cfg, const Setting* st) {
 	if (!strcmp(st->key, "rumble_strength")) ui_rumble_pulse(cfg->rumbleStrength / 100.0f, 250); /* a buzz to feel it by */
 	if (!strcmp(st->key, "show_all") || !strcmp(st->key, "name_tags")) setRescan = true;
 	if (!strcmp(st->key, "screen_match") || !strcmp(st->key, "screen_placement")) ui_layout_pictures();
-	if (!strcmp(st->key, "single_layout") || !strcmp(st->key, "single_size")) ui_layout();
+	if (!strcmp(st->key, "single_layout") || !strcmp(st->key, "single_size") || !strcmp(st->key, "pad_cover")) ui_layout();
 	fprintf(stderr, "setting: %s = %s (all games)\n", lines[0][0], lines[0][1]);
 }
 
