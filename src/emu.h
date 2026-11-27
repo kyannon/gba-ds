@@ -195,6 +195,14 @@ BiosRefusal emu_state_file_bios_refusal(Emu* e, const char* path);
 bool emu_state_file_rom_crc(const char* path, uint32_t* crc);
 /* GBA DS's own data kept inside a state file, as a malloc'd copy (NULL: none) */
 void* emu_state_file_get_extra(Emu* e, const char* path, size_t* n);
+/* The same in memory (a libretro core's retro_serialize / retro_unserialize):
+ * the bytes of a state file in mGBA's format (STATE_FORMAT_MGBA, extra kept
+ * inside as there), malloc'd, *n bytes, NULL on failure; loading them, as
+ * emu_state_load_file loads a file (its battery save left as it is); and the
+ * extra data inside such bytes, malloc'd (NULL: none). */
+uint8_t* emu_state_save_mem(Emu* e, const void* extra, size_t extraN, size_t* n);
+bool emu_state_load_mem(Emu* e, const void* b, size_t n);
+void* emu_state_mem_get_extra(Emu* e, const void* b, size_t bn, size_t* n);
 
 /* The whole ROM file (inside a .zip / .7z too), malloc'd; NULL on failure. */
 uint8_t* emu_rom_read_all(const char* path, size_t* size);
@@ -215,6 +223,14 @@ void emu_patch_plan(const char* rom, char files[][1024], int n);
 /* The ROM with the patches given applied, in order (the game list's
  * checksum of each game as it would be played) */
 uint8_t* emu_rom_read_patched(const char* path, char files[][1024], int n, size_t* size, int* patch, char* patchName);
+/* The battery save in memory (a libretro core's RETRO_MEMORY_SAVE_RAM, as
+ * mGBA's libretro core keeps it): the game opened with no savePath, then
+ * before its first frame given buf (size bytes: 128 KB, GBA_SIZE_FLASH1M, set
+ * to 0xFF and filled from the frontend's save), which the game reads and
+ * writes in place. emu_save_memory_size: how much of it is the save (all of
+ * it until the game's save type is known), as that core reports it. */
+bool emu_save_memory(Emu* e, void* buf, size_t size);
+size_t emu_save_memory_size(Emu* e);
 /* A memory region of the running game (GBA address >> 24: 2 EWRAM, 3 IWRAM,
  * 0xE save RAM), or NULL. */
 uint8_t* emu_memory(Emu* e, int region, size_t* size);

@@ -3,7 +3,8 @@
  * profiles.c, logo.c...) built with no SDL include path and linked with no
  * SDL library, so they stay what a libretro core can compile (discussion
  * #75). This program only has to build: it takes the address of every call a
- * core makes (second.h's first section), so none of them can go missing. */
+ * core makes (second.h's first section, and emu.c's for its states and
+ * battery save in memory), so none of them can go missing. */
 #include "../src/second.h"
 #include "../src/hud.h"
 #include "../src/toggle.h"
@@ -27,6 +28,8 @@ int main(void) {
 		(const void*) second_shown, (const void*) second_jump, (const void*) second_state_loaded,
 		(const void*) second_restarted, (const void*) second_logo_changed, (const void*) second_game_start,
 		(const void*) second_loop_start, (const void*) emu_set_sync_work,
+		(const void*) emu_state_save_mem, (const void*) emu_state_load_mem, (const void*) emu_state_mem_get_extra,
+		(const void*) emu_save_memory, (const void*) emu_save_memory_size,
 	};
 	/* the synchronous-work setting (checklist item 4): off unless GBADS_SYNC says so, then
 	 * as a core sets it */

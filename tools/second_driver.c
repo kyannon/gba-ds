@@ -20,7 +20,13 @@
  * logo is the one logo.c extracts from the ROM (the app's own, scraped or
  * extracted logo as its logos folder has it; with none of the player's own,
  * the same picture), hasCombat says whether the profile has a fights'
- * picture (the app makes a place for it then). */
+ * picture (the app makes a place for it then).
+ *
+ * GBADS_DRIVER_SERIALIZE=1 also saves the game's state and loads it back in
+ * memory after every frame (emu_state_save_mem / emu_state_load_mem, a
+ * core's retro_serialize / retro_unserialize): the pictures must still be the
+ * app's. GBADS_DRIVER_SAVE_MEM=1 gives the game its battery save in memory
+ * (emu_save_memory, a core's RETRO_MEMORY_SAVE_RAM) instead of a file. */
 #include "../src/second.h"
 #include "../src/hud.h"
 #include "../src/logo.h"
@@ -68,7 +74,7 @@ static void d_logo_free(LogoPic* p) { (void) p; }
 
 static void* read_file(const char* dir, const char* name, size_t* n) {
 	char path[900];
-	snprintf(path, sizeof(path), "%s/%s", dir, name);
+	snprintf(path, sizeof(path), "%s%s%s", dir ? dir : "", dir ? "/" : "", name); /* (dir NULL: name as it is) */
 	FILE* f = fopen(path, "rb");
 	if (!f) return NULL;
 	fseek(f, 0, SEEK_END);
@@ -101,13 +107,24 @@ int main(int argc, char** argv) {
 	remove(save);
 	if (argc == 5) {
 		size_t n;
-		void* b = read_file(".", argv[4], &n);
+		void* b = read_file(NULL, argv[4], &n);
 		FILE* f = b ? fopen(save, "wb") : NULL;
 		if (f) fwrite(b, 1, n, f), fclose(f);
 		free(b);
 	}
+	/* GBADS_DRIVER_SAVE_MEM=1: the battery save in memory instead (emu_save_memory, a
+	 * core's RETRO_MEMORY_SAVE_RAM), loaded from SAVE */
+	static uint8_t saveMem[0x20000]; /* (GBA_SIZE_FLASH1M: 128 KB) */
+	bool inMemory = getenv("GBADS_DRIVER_SAVE_MEM") && atoi(getenv("GBADS_DRIVER_SAVE_MEM"));
+	if (inMemory) {
+		memset(saveMem, 0xFF, sizeof(saveMem));
+		size_t n = 0;
+		void* b = argc == 5 ? read_file(NULL, argv[4], &n) : NULL;
+		if (b) memcpy(saveMem, b, n < sizeof(saveMem) ? n : sizeof(saveMem));
+		free(b);
+	}
 	profile_set_rom(NULL, 0);
-	if (!emu_open(&emu, romPath, save, false)) {
+	if (!emu_open(&emu, romPath, inMemory ? NULL : save, false) || (inMemory && !emu_save_memory(&emu, saveMem, sizeof(saveMem)))) {
 		fprintf(stderr, "second-driver: can't open %s\n", romPath);
 		return 2;
 	}
@@ -125,6 +142,7 @@ int main(int argc, char** argv) {
 	}
 	char line[1024];
 	int lineNo = 0, bad = 0;
+	bool roundTrip = getenv("GBADS_DRIVER_SERIALIZE") && atoi(getenv("GBADS_DRIVER_SERIALIZE"));
 	while (fgets(line, sizeof(line), t)) {
 		++lineNo;
 		line[strcspn(line, "\n")] = 0;
@@ -134,7 +152,22 @@ int main(int argc, char** argv) {
 		unsigned long long fr;
 		size_t n;
 		if (!strcmp(line, "frame_start")) second_frame_start();
-		else if (sscanf(line, "run %x", &x) == 1) second_run_frame(x);
+		else if (sscanf(line, "run %x", &x) == 1) {
+			second_run_frame(x);
+			if (roundTrip) { /* (GBADS_DRIVER_SERIALIZE: the game's state saved and loaded back in memory after every frame) */
+				/* (with the second screen's block inside, as a core's retro_serialize keeps it:
+				 * it must come out of the bytes as it went in) */
+				size_t sn, bn = 0, en = 0;
+				void* block = second_state_save(&bn);
+				uint8_t* st = emu_state_save_mem(&emu, block, bn, &sn);
+				void* back = st ? emu_state_mem_get_extra(&emu, st, sn, &en) : NULL;
+				if (!st || (block && (en != bn || memcmp(back, block, bn))) || !emu_state_load_mem(&emu, st, sn)) {
+					fprintf(stderr, "second-driver: line %d: the state didn't go through memory\n", lineNo);
+					++bad;
+				}
+				free(st), free(block), free(back);
+			}
+		}
 		else if (sscanf(line, "step %d %llu", &s, &fr) == 2) sec.frame = fr, second_step(s); /* (the frame count is the host's) */
 		else if (!strcmp(line, "new_subject")) second_new_subject();
 		else if (!strcmp(line, "jump")) second_jump();

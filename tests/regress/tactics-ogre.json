@@ -3004,6 +3004,11 @@
    "id": "to-us-resume",
    "rom": "ATOE",
    "save": "ATOE-suspended-lutra.sav",
+   "driver": true,
+   "env": {
+    "GBADS_DRIVER_SAVE_MEM": 1,
+    "GBADS_DRIVER_SERIALIZE": 1
+   },
    "desc": "a battle suspended (Lutra Islands, turn 1: START, Yes), then from the title Continue, Resume suspended game, Yes: the logo through the Winning Condition banner, BATTLE START and the tips; Kybard's details once the field is free",
    "rules": [
     "TO-5",

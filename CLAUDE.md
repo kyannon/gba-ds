@@ -312,7 +312,9 @@ release zip, which replaces the main install.
 - `make tools` also builds `build/host/second-driver` (tools/second_driver.c,
   no SDL): the module's reference driver, which replays a trace of the app's
   calls into the module (`GBADS_MODULE_TRACE`) with only the module, for
-  regress.py's `"driver": true` cases and `--driver` (docs/TESTING.md).
+  regress.py's `"driver": true` cases and `--driver` (docs/TESTING.md);
+  `GBADS_DRIVER_SAVE_MEM=1` / `GBADS_DRIVER_SERIALIZE=1` make it use the save and
+  states in memory as a core would. `docs/LIBRETRO.md` is the core writer's guide.
 - Device: `scripts/build-rocknix.sh` (fetches an aarch64 toolchain, mGBA
   and SDL2 into `deps/`) produces the release zip in `dist/`.
 - Android: `scripts/build-android.sh` (needs the Android SDK/NDK, so it
@@ -569,7 +571,10 @@ release zip, which replaces the main install.
   BananaFront's (`RASTATE`, RZIP-compressed (zlib, or zstd since issue #78: the
   vendored decoder `third_party/rzstd`) or not, its mGBA core's bytes in
   the MEM block); `emu_state_save_file_as` writes either, with GBA DS's
-  second-screen block (EXTDATA_GBADS) inside the mGBA bytes. Save States
+  second-screen block (EXTDATA_GBADS) inside the mGBA bytes; `emu_state_save_mem` /
+  `_load_mem` / `emu_state_mem_get_extra` are the same in memory (a libretro core's
+  serialize), and `emu_save_memory` gives the game its battery save in a buffer
+  (`RETRO_MEMORY_SAVE_RAM`; docs/LIBRETRO.md). Save States
   shared with RetroArch (`state_folder = retroarch`, game list Settings >
   Save States, Linux and, since issue #111, Android: docs/ANDROID.md): paths.c `retroarch_state_dir` works out RetroArch's
   folder from its retroarch.cfg as RetroArch does (ROCKNIX: setsettings.sh's

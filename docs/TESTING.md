@@ -208,6 +208,13 @@ byte: a difference means the app changes the module's state outside its calls, w
 core couldn't. Left out by design (the host's choices, not the module's): ROM patches (the
 driver opens the plain ROM), the player's own or a scraped logo (the driver's is the extracted
 one), Game Boy palettes and the restart prompt (it starts the game again in the same run).
+Two settings in a case's `env` (or the shell's) make the driver work as a libretro core
+would: `GBADS_DRIVER_SAVE_MEM=1` gives the game its battery save in memory
+(`emu_save_memory`, a core's `RETRO_MEMORY_SAVE_RAM`) instead of a file, and
+`GBADS_DRIVER_SERIALIZE=1` saves the game's state and loads it back in memory after every
+frame (`emu_state_save_mem` / `emu_state_load_mem`, `retro_serialize` /
+`retro_unserialize`); the app ignores both, so the pictures must still be the app's.
+`to-us-resume` (a battery save, no state) runs with both.
 
 ## Writing a case
 
