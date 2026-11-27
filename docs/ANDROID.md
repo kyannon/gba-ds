@@ -833,8 +833,6 @@ Player-facing Android changes since the last release, for the main session
 to move into CHANGELOG.md and the release notes (see CLAUDE.md, "More than
 one session"). Empty after each release.
 
-- **Save states shared with RetroArch on Android too** (issue #111): the game list's Settings now has **Save States: Shared with RetroArch** and **RetroArch's State Folder**, as on Linux, so the pause menu's slots 0 to 9 and the resume point can be RetroArch's own (save in one, go on in the other, or on another device you sync the folder with). GBA DS finds them in `RetroArch/states/mGBA` on your storage; choose another folder with **RetroArch's State Folder** (needs All files access). Known: RetroArch builds that keep their states inside `Android/data` can't share them, as Android keeps other apps out of that folder: set RetroArch's Settings > Directory > Save States to a folder on your storage first.
-
 Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6.1.1 Changes. Notes for sessions: `openSecondScreen` logs every display to launch.log and picks the display with FLAG_PRESENTATION, then one that is STATE_ON, then the first that isn't the activity's. Displays were read once at start; a display added or taken away later is picked up since issue #90 (a restart with the new layout: see "Notes for sessions: second display hot-plug" below; its line is in CHANGELOG.md's v1.6.2 Fixes).
 
 ## Rotation, and Performance (issue #60, Nov 2026; in v1.5.5)
