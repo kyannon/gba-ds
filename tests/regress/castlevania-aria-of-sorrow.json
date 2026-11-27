@@ -446,6 +446,173 @@
      70
     ]
    ]
+  },
+  {
+   "id": "cva-us-single-library",
+   "kind": "library",
+   "rom": "A2CE",
+   "desc": "both screens on one display (a tall one, automatic: stacked): the game list shows the list and the selected game's screen as on a two-screen device; its Settings takes the whole display; after Close Game in the pause menu the game list comes back with both screens (issue #108), and again after Settings closes",
+   "rules": [
+    "GEN-19"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "auto",
+    "update_check": 0
+   },
+   "env": {
+    "GBADS_WINDOW": "1200x1920"
+   },
+   "input": [
+    [
+     40,
+     "A"
+    ],
+    [
+     44,
+     "-"
+    ],
+    [
+     300,
+     "TAP:0.5,0.25"
+    ],
+    [
+     360,
+     "DOWN"
+    ],
+    [
+     364,
+     "-"
+    ],
+    [
+     370,
+     "DOWN"
+    ],
+    [
+     374,
+     "-"
+    ],
+    [
+     380,
+     "DOWN"
+    ],
+    [
+     384,
+     "-"
+    ],
+    [
+     390,
+     "DOWN"
+    ],
+    [
+     394,
+     "-"
+    ],
+    [
+     400,
+     "DOWN"
+    ],
+    [
+     404,
+     "-"
+    ],
+    [
+     430,
+     "A"
+    ],
+    [
+     434,
+     "-"
+    ],
+    [
+     460,
+     "A"
+    ],
+    [
+     464,
+     "-"
+    ],
+    [
+     610,
+     "SELECT"
+    ],
+    [
+     614,
+     "-"
+    ],
+    [
+     650,
+     "B"
+    ],
+    [
+     654,
+     "-"
+    ]
+   ],
+   "shots": {
+    "list": 30,
+    "back": 600,
+    "settings": 640,
+    "back-settings": 690
+   },
+   "golden_mask": [
+    [
+     960,
+     880,
+     1200,
+     960
+    ]
+   ],
+   "checks": [
+    {
+     "rule": "GEN-19",
+     "what": "the game list with both screens",
+     "type": "log",
+     "match": "both on one display, 1200x1920 stacked 50% swap 0 \\(game list\\)"
+    },
+    {
+     "rule": "GEN-19",
+     "what": "back to the game list after Close Game",
+     "type": "log",
+     "match": "^library: 1 game\\(s\\), 2 file\\(s\\).*\\nscreens: both on one display, 1200x1920 stacked 50% swap 0 \\(game list\\)"
+    }
+   ]
+  },
+  {
+   "id": "cva-us-single-library-small",
+   "kind": "library",
+   "rom": "A2CE",
+   "desc": "both screens on one small display (640x480, automatic: side by side): the list's half would be too narrow, so the game list is the list alone; the game still has both",
+   "rules": [
+    "GEN-19"
+   ],
+   "config": {
+    "layout": "single",
+    "single_layout": "auto",
+    "update_check": 0
+   },
+   "env": {
+    "GBADS_WINDOW": "640x480"
+   },
+   "shots": {
+    "list": 30
+   },
+   "golden_mask": [
+    [
+     480,
+     200,
+     640,
+     240
+    ]
+   ],
+   "checks": [
+    {
+     "rule": "GEN-19",
+     "what": "the list alone",
+     "type": "log",
+     "match": "640x480 side 50% swap 0 \\(game list: its part too small, the list alone\\)"
+    }
+   ]
   }
  ]
 }

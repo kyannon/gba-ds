@@ -8013,10 +8013,10 @@ static void overlays_reload(void) {
 
 /* GEN-19: with both screens on one display the pause menu takes the whole
  * display (it is drawn on the touch screen, which would be half of it); the
- * two screens come back when it closes. */
+ * two screens come back when it closes (ui.c ui_face says how for each). */
 static void menu_layout_sync(void) {
 	int was = nScreens;
-	ui_menu_full(menuOpen);
+	ui_face(menuOpen ? UI_FACE_MENU : UI_FACE_GAME);
 	if (nScreens != was) overlays_reload(), gameTexAll = true;
 }
 
@@ -8441,7 +8441,7 @@ static void setting_applied(const Setting* st) {
 	} else if (!strcmp(k, "lcd_ghosting") || !strcmp(k, "gb_ghosting")) {
 		ghostHave = false;
 	} else if (!strcmp(k, "swap")) {
-		if (ui_one_display() && strcmp(cfg->singleLayout, "off")) ui_layout(); /* (which end the game is at) */
+		if (ui_one_display()) ui_layout(); /* (which end the game is at) */
 		if (emu.fb) {
 			for (int i = 0; i < nViews; ++i) ui_update_texture(gameTex[i], game_tex_px(emu.fb), game_tex_pitch());
 		}
@@ -9197,6 +9197,7 @@ enum GameExit game_run(Config* c, const char* rom, bool fromLibrary) {
 	int n = config_load_game_file(c, p.settings);
 	Config after = *c;
 	uniCfg = before;
+	ui_face(UI_FACE_GAME); /* (GEN-19: before anything asks how many screens there are) */
 	if (n) {
 		fprintf(stderr, "game settings: %d from %s\n", n, p.settings);
 		ui_layout_pictures();
