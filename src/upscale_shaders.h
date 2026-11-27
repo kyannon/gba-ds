@@ -17,7 +17,7 @@ typedef struct {
 } UpscalePack;
 
 /* in tools/embed_shaders.py's PACKS order */
-enum { UP_PACK_HQ2X, UP_PACK_MMPX, UP_PACK_XBR_LV2, UP_PACK_XBR_LV3, UP_PACK_OMNISCALE, UP_PACK_COUNT };
+enum { UP_PACK_HQ2X, UP_PACK_XBR_LV2, UP_PACK_COUNT };
 extern const UpscalePack upscalePacks[UP_PACK_COUNT];
 
 #endif

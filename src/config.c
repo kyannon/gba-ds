@@ -9,7 +9,7 @@
 #include <string.h>
 #include <strings.h>
 
-const char* const filterNames[FILTER_COUNT] = { "0", "1", "scale2x", "scale4x", "hq2x", "mmpx", "xbr-lv2", "xbr-lv3", "omniscale" }; /* gba-ds.cfg's "smooth" */
+const char* const filterNames[FILTER_COUNT] = { "0", "1", "scale2x", "scale4x", "hq2x", "xbr-lv2" }; /* gba-ds.cfg's "smooth" */
 const char* const shaderNames[SH_COUNT] = { N_("off"), "grid", "scanlines", "soft", "subpixels-light", "subpixels", "subpixels-strong" };
 const char* const hotkeyNames[HK_COUNT] = { "quit", "close_game", "save_state", "load_state", "quick_menu", "swap_screens", "shader", "toggle",
 	                                          "rewind_toggle", "fast_forward_toggle" };
@@ -448,7 +448,7 @@ void config_usage(const char* argv0) {
 	        "                         subpixels-light, subpixels, subpixels-strong\n"
 	        "                         (--lcd-strength=0..100 for the first three)\n"
 	        "  --lcd-ghosting         each frame blended with the one before, as on a GBA's LCD\n"
-	        "  --smooth=FILTER         scaling filter: 0 sharp, 1 linear, scale2x, scale4x, hq2x, mmpx, xbr-lv2, xbr-lv3, omniscale\n"
+	        "  --smooth=FILTER         scaling filter: 0 sharp, 1 linear, scale2x, scale4x, hq2x, xbr-lv2\n"
 	        "  --vsync                sync presentation to the display\n"
 	        "  --no-map               disable the map screen\n"
 	        "  --map-interval=N       frames between map refreshes (90)\n"
@@ -509,8 +509,7 @@ static const SettingChoice chShader[] = {
 };
 static const SettingChoice chFilter[] = {
 	{ "0", "Sharp", FILTER_SHARP }, { "1", "Smooth", FILTER_SMOOTH }, { "scale2x", "Scale2x", FILTER_SCALE2X }, { "scale4x", "Scale4x", FILTER_SCALE4X },
-	{ "hq2x", "hq2x", FILTER_HQ2X }, { "mmpx", "MMPX", FILTER_MMPX }, { "xbr-lv2", "xBR-lv2", FILTER_XBR_LV2 }, { "xbr-lv3", "xBR-lv3", FILTER_XBR_LV3 },
-	{ "omniscale", "OmniScale", FILTER_OMNISCALE },
+	{ "hq2x", "hq2x", FILTER_HQ2X }, { "xbr-lv2", "xBR", FILTER_XBR_LV2 },
 };
 static const SettingChoice chSwap[] = { { "0", "Game on top", 0 }, { "1", "Game below", 1 } };
 static const SettingChoice chMatch[] = { { "keep", "Keep device shapes", 0 }, { "aspect", "Match aspect ratios", 0 }, { "size", "Match sizes and shapes", 0 } };

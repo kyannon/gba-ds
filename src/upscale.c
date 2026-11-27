@@ -20,7 +20,7 @@
  *     where two neighbours meeting at that corner match and the edge isn't
  *     straight. The pixels are read at their centres, nearest, so equal colours
  *     compare exactly. Scale4x is two Scale2x passes.
- *   - hq2x, MMPX, xBR-lv2, xBR-lv3, OmniScale: mGBA's own shader packs, unmodified
+ *   - hq2x and xBR-lv2: mGBA's own shader packs, unmodified
  *     (third_party/mgba-shaders, embedded by tools/embed_shaders.py), run the way
  *     mGBA's GLES2 renderer runs them: GLSL ES 1.00 with its plain vertex shader
  *     where the pack has none, attribute `position`, uniforms `tex`, `texSize`
@@ -28,7 +28,10 @@
  *     uniforms at their defaults. (libmgba itself is built without that
  *     renderer: scripts/mgba-options.sh.)
  * Each program is built the first time its filter is used; one that doesn't
- * build leaves its filter drawing as Sharp (logged once). */
+ * build leaves its filter drawing as Sharp (logged once).
+ * Left out (issue #89, the owner's rule: nothing ships that can't hold full
+ * speed on the RG DS Plus): mGBA's MMPX, xBR-lv3 and OmniScale took about
+ * 200, 200 and 60 ms a frame on its Mali-G52 (Panfrost, Nov 26, 2026). */
 #include "upscale.h"
 #include "upscale_shaders.h"
 
@@ -43,10 +46,7 @@ static const struct {
 	[FILTER_SCALE2X] = { PROG_SCALE2X, 2, 1 },
 	[FILTER_SCALE4X] = { PROG_SCALE2X, 2, 2 },
 	[FILTER_HQ2X] = { PROG_PACK0 + UP_PACK_HQ2X, 2, 1 },
-	[FILTER_MMPX] = { PROG_PACK0 + UP_PACK_MMPX, 2, 1 },
 	[FILTER_XBR_LV2] = { PROG_PACK0 + UP_PACK_XBR_LV2, 4, 1 },
-	[FILTER_XBR_LV3] = { PROG_PACK0 + UP_PACK_XBR_LV3, 4, 1 },
-	[FILTER_OMNISCALE] = { PROG_PACK0 + UP_PACK_OMNISCALE, 4, 1 },
 };
 #define MAX_PASSES 2
 
@@ -164,7 +164,7 @@ static bool load_gl(void) {
 /* What goes before every shader. First GLSL ES 1.00, as mGBA's GLES2 renderer
  * does (with high precision where the GPU has it: the upscalers find their
  * place inside a source pixel from texCoord, which medium precision can't hold
- * at 4x a 240-pixel row). hq2x, OmniScale and xBR were written for desktop
+ * at 4x a 240-pixel row). hq2x and xBR were written for desktop
  * GLSL (bit operations, mat4x3), which ES 1.00 refuses: those are built again
  * as GLSL ES 3.00 with mGBA's own GL 3 defines (_gl32VHeader / _gl32FHeader),
  * which an OpenGL ES 3 context (the RG DS Plus's Mali, Mesa) takes even when

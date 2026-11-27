@@ -1,6 +1,6 @@
 /* Upscaling filters (issue #89): the game's picture made 2x or 4x larger by
- * a pixel-art scaler on the GPU (Scale2x / Scale4x, and mGBA's hq2x, MMPX,
- * xBR-lv2, xBR-lv3 and OmniScale), before SDL scales it to the screen.
+ * a pixel-art scaler on the GPU (Scale2x / Scale4x, and mGBA's hq2x and
+ * xBR-lv2), before SDL scales it to the screen.
  *
  * Only with SDL's OpenGL ES 2 renderer (the device, Android): our own small
  * GLES2 program runs between SDL's draws, on SDL's own context, and puts
