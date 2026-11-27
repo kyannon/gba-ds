@@ -8,6 +8,7 @@
 #include "textfont.h"
 #include "fonts_data.h"
 #include "logo.h"
+#include "rgba.h"
 #include "paths.h"
 #include "upscale.h"
 #include "profiles.h"
@@ -834,7 +835,15 @@ void ui_layout_pictures(void) {
 static bool oneDisplay; /* (set by layout_screens) */
 static bool stripMode; /* the game list's strip over the list (GEN-19; set by layout_screens) */
 static float stripPx;  /* the strip's layout unit */
+static int stripExtra; /* pixels the strip needs beyond UI_STRIP_UNITS (a larger ROM path, GEN-21) */
 bool ui_list_strip(void) { return stripMode; }
+bool ui_list_strip_extra(int px) {
+	if (px == stripExtra) return false;
+	stripExtra = px;
+	if (!stripMode) return false;
+	ui_layout();
+	return true;
+}
 static enum UiFace face = UI_FACE_GAME; /* what is up: decides how one display is cut (GEN-19) */
 
 /* GEN-19, the one place that says how one display is cut, by what is up:
@@ -1001,7 +1010,7 @@ static void layout_screens(void) {
 			 * Plus's other screen is across, the strip at most a quarter of the height),
 			 * the list under it */
 			stripPx = SDL_max(2.0f, SDL_min(w / 256.0f, h / 4.0f / UI_STRIP_UNITS));
-			int s = (int) (stripPx * UI_STRIP_UNITS);
+			int s = SDL_min((int) (stripPx * UI_STRIP_UNITS) + stripExtra, h / 2);
 			nScreens = 2;
 			stripMode = true;
 			screens[0] = (Screen) { 0, { 0, 0, w, s } };
@@ -2014,6 +2023,10 @@ void ui_brightness(int top, int bottom) {
 	brightPct[1] = SDL_clamp(bottom, 20, 100);
 }
 
+/* tests: told each scripted screenshot's name as it's taken (GBADS_MODULE_TRACE) */
+static void (*shotHook)(const char* name);
+void ui_on_shot(void (*fn)(const char* name)) { shotHook = fn; }
+
 void ui_present(void) {
 	{
 		/* testing (issue #50): GBADS_TEST_PRESENT_STALL=MS,EVERY holds every
@@ -2027,6 +2040,7 @@ void ui_present(void) {
 		if (stallMs > 0 && stallEvery > 0 && ++presents % stallEvery == 0) SDL_Delay((Uint32) stallMs);
 	}
 	if (pendingShot[0]) {
+		if (shotHook) shotHook(pendingShot);
 		ui_screenshot(pendingShot);
 		pendingShot[0] = 0;
 	}
@@ -3185,29 +3199,7 @@ static SDL_Surface* trim_alpha(SDL_Surface* s, bool jpeg) {
 SDL_Surface* ui_resample(const SDL_Surface* s, int w, int h) {
 	SDL_Surface* o = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_RGBA32);
 	if (!o) return NULL;
-	for (int y = 0; y < h; ++y) {
-		int sy0 = y * s->h / h, sy1 = SDL_max(sy0 + 1, (y + 1) * s->h / h);
-		uint8_t* out = (uint8_t*) o->pixels + (size_t) y * o->pitch;
-		for (int x = 0; x < w; ++x) {
-			int sx0 = x * s->w / w, sx1 = SDL_max(sx0 + 1, (x + 1) * s->w / w);
-			double r = 0, g = 0, b = 0, a = 0;
-			int cnt = 0;
-			for (int yy = sy0; yy < sy1; ++yy) {
-				const uint8_t* p = (const uint8_t*) s->pixels + (size_t) yy * s->pitch + (size_t) sx0 * 4;
-				for (int xx = sx0; xx < sx1; ++xx, p += 4) {
-					r += p[0] * p[3], g += p[1] * p[3], b += p[2] * p[3], a += p[3];
-					++cnt;
-				}
-			}
-			uint8_t* q = out + x * 4;
-			if (a > 0) {
-				q[0] = (uint8_t) lround(r / a), q[1] = (uint8_t) lround(g / a), q[2] = (uint8_t) lround(b / a);
-			} else {
-				q[0] = q[1] = q[2] = 0;
-			}
-			q[3] = (uint8_t) lround(a / cnt);
-		}
-	}
+	rgba_resample(s->pixels, s->w, s->h, s->pitch, o->pixels, w, h, o->pitch); /* (rgba.c) */
 	return o;
 }
 

@@ -25,6 +25,7 @@
   },
   {
    "id": "spp-us-sonic-table",
+   "driver": true,
    "rom": "A3VE",
    "state": "sonic-pinball-party/us-sonic-table.ss",
    "desc": "Arcade, the Sonic table (a player's bug report): the table over both screens",

@@ -300,7 +300,7 @@ static void ww_step(void) {
 	if (c || prev != ww.angle) {
 		static int logEvery = -1;
 		if (logEvery < 0) logEvery = getenv("GBADS_GYRO_LOG") != NULL;
-		if (logEvery) fprintf(stderr, "gyro: frame %llu %s counts %d angle %.2f\n", (unsigned long long) frameCount, ww.touch ? "dial" : "sensor", c, ww.angle);
+		if (logEvery) fprintf(stderr, "gyro: frame %llu %s counts %d angle %.2f\n", (unsigned long long) sec.frame, ww.touch ? "dial" : "sensor", c, ww.angle);
 	}
 }
 
@@ -354,7 +354,7 @@ static void ww_switch(void) {
 	if (!ww_can_touch()) return;
 	ww.touch = !ww.touch;
 	ww_rest();
-	fprintf(stderr, "frame %llu: gyro: %s mode\n", (unsigned long long) frameCount, ww.touch ? "Touch" : "Gyro");
+	fprintf(stderr, "frame %llu: gyro: %s mode\n", (unsigned long long) sec.frame, ww.touch ? "Touch" : "Gyro");
 }
 
 /* ---- the wheel (WWT-4): the main menu's rings, checkered disc and console, from a hidden copy of the game
@@ -540,9 +540,9 @@ static bool ww_wheel_shown(void) {
 /* ---- Gyro mode's second screen (WWT-2): the logo on white, tilting with the sensor's turning */
 static void ww_logo_load(void) {
 	/* (the logo is made in the background at the start: asked for again every half second until it's there) */
-	if (ww.logo || (ww.logoTried && frameCount < ww.logoRetry)) return;
+	if (ww.logo || (ww.logoTried && sec.frame < ww.logoRetry)) return;
 	ww.logoTried = true;
-	ww.logoRetry = frameCount + 30;
+	ww.logoRetry = sec.frame + 30;
 	bool pixelArt = false;
 	int sub = 1;
 	SDL_Surface* lg = ui_logo_surface(cfg, romPath, emu.gameCode, emu.romCrc, &pixelArt, &sub);
@@ -777,7 +777,7 @@ static bool ww_pointer(const Pointer* p) {
 		else {
 			ww.press = WWP_NONE;
 			ww_cfg_save();
-			fprintf(stderr, "frame %llu: dial: sensitivity %d%%\n", (unsigned long long) frameCount, ww.sens);
+			fprintf(stderr, "frame %llu: dial: sensitivity %d%%\n", (unsigned long long) sec.frame, ww.sens);
 		}
 		return true;
 	}
@@ -800,7 +800,7 @@ static bool ww_pointer(const Pointer* p) {
 		if (p->y >= screens[ts].rect.h - u * 36) return false; /* (the bottom edge: the quick bar's swipe) */
 		ww.press = WWP_DIAL, ww.down = true, ww.dragFrac = 0;
 		ww.pressY = p->x; /* (where the finger went down: across) */
-		fprintf(stderr, "frame %llu: dial: grabbed\n", (unsigned long long) frameCount);
+		fprintf(stderr, "frame %llu: dial: grabbed\n", (unsigned long long) sec.frame);
 		return true;
 	}
 	if (ww.press == WWP_NONE) return false;
@@ -813,14 +813,14 @@ static bool ww_pointer(const Pointer* p) {
 		ww.press = WWP_NONE;
 		if (press == WWP_DIAL) {
 			ww.down = false;
-			fprintf(stderr, "frame %llu: dial: let go at %.1f degrees\n", (unsigned long long) frameCount, ww.angle);
+			fprintf(stderr, "frame %llu: dial: let go at %.1f degrees\n", (unsigned long long) sec.frame, ww.angle);
 		} else if (press == WWP_BUTTON) {
 			int s = ww_ui_screen();
 			if (s >= 0 && ww_ui_hit(s, p->x, p->y, 0)) ww_switch();
 		} else if (press == WWP_PAUSE) {
 			int s = ww_ui_screen();
 			if (s >= 0 && ww_ui_hit(s, p->x, p->y, 2)) {
-				fprintf(stderr, "frame %llu: pause button\n", (unsigned long long) frameCount);
+				fprintf(stderr, "frame %llu: pause button\n", (unsigned long long) sec.frame);
 				open_menu();
 				ignorePointerUp = true;
 			}

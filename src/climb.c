@@ -373,7 +373,7 @@ bool climb_open(const char* rom, const MapProfile* p, Emu* game, bool worker) {
 		C.started = pthread_create(&C.thread, NULL, worker_async, NULL) == 0;
 		pthread_mutex_unlock(&C.lock);
 		C.async = C.started;
-		C.syncStep = C.async && getenv("GBADS_SYNC"); /* (the tests: each picture waited for, none a frame late) */
+		C.syncStep = C.async && emu_sync_work(); /* (exact runs, emu_sync_work: each picture waited for, none a frame late) */
 	}
 	C.open = true;
 	return true;

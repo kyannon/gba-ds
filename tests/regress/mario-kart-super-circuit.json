@@ -4,6 +4,7 @@
  "cases": [
   {
    "id": "mk-us-race-start",
+   "driver": true,
    "rom": "AMKE",
    "state": "mario-kart-super-circuit/us-race-start.ss",
    "desc": "the countdown on Peach Circuit",

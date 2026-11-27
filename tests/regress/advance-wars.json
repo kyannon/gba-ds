@@ -229,6 +229,7 @@
   },
   {
    "id": "aw-us-co-screen",
+   "driver": true,
    "rom": "AWRE",
    "state": "advance-wars/us-co-screen.ss",
    "desc": "the CO dossier open on army 2's turn in a two-player Versus game: the logo (AW-4's known limitation: a later army's turn is taken for the computer's)",
@@ -349,6 +350,7 @@
   },
   {
    "id": "aw-us-exit-map",
+   "driver": true,
    "rom": "AWRE",
    "state": "advance-wars/us-cursor-empty.ss",
    "desc": "the Battle Intel taken, then a map quit (Options > Exit Map) to the mode menu (a player's bug report)",
@@ -1293,7 +1295,7 @@
     {
      "type": "file",
      "path": "mGBA/AWRE.state.auto.png",
-     "starts": "\u0089PNG",
+     "starts": "PNG",
      "rule": "GEN-13",
      "what": "its thumbnail"
     },
@@ -1333,7 +1335,7 @@
     {
      "type": "file",
      "path": "AWRE.state.auto.png",
-     "starts": "\u0089PNG",
+     "starts": "PNG",
      "rule": "GEN-13",
      "what": "its thumbnail"
     }
@@ -1878,7 +1880,7 @@
    "id": "aw-rom-path-list",
    "kind": "library",
    "rom": "AWRE",
-   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On, and back on the game list the other screen shows the ROM's path under the Play / Quit hints, on black",
+   "desc": "Settings > System > Show ROM Path on Game List switched on: the row reads On (Font size: 1x), and back on the game list the other screen shows the ROM's path under the Play / Quit hints, on black",
    "rules": [
     "GEN-21"
    ],
@@ -1981,7 +1983,7 @@
     ]
    ],
    "shots": {
-    "system-rom-path-on": 150,
+    "system-rom-path-1x": 150,
     "list-rom-path": 200
    },
    "golden_mask": [
