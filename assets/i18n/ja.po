@@ -541,6 +541,9 @@ msgstr "ダウンロード中"
 msgid "Earn achievements in casual mode with your retroachievements.org account. GBA DS keeps a sign-in token, not your password."
 msgstr "retroachievements.org のアカウントでカジュアルモードの実績を獲得できます。GBA DS が保持するのはサインイン用トークンで、パスワードではありません。"
 
+msgid "Edge stretch"
+msgstr "端を引き伸ばし"
+
 msgid "English"
 msgstr "English"
 
@@ -1461,6 +1464,9 @@ msgstr "セーブはそこに保存されます。"
 
 msgid "Scale, shader, theme, color"
 msgstr "拡大率、シェーダー、テーマ、色"
+
+msgid "Scale: Edge stretch"
+msgstr "拡大: 端を引き伸ばし"
 
 msgid "Scale: Full Width"
 msgstr "拡大: 幅いっぱい"
