@@ -402,11 +402,11 @@ static bool connector_mode(struct drm_mode_modeinfo* out) {
 	/* (only the modes: libdrm's drmModeGetConnector fetches the rest too) */
 	struct drm_mode_get_connector c2 = { .connector_id = L.connector, .count_modes = c.count_modes,
 		                                 .modes_ptr = (uint64_t) (uintptr_t) modes };
-	bool ok = drm_ioctl(DRM_IOCTL_MODE_GETCONNECTOR, &c2) == 0 && c2.count_modes > 0;
+	/* (more modes than asked for, the list grown between the calls: the kernel copied none) */
+	bool ok = drm_ioctl(DRM_IOCTL_MODE_GETCONNECTOR, &c2) == 0 && c2.count_modes > 0 && c2.count_modes <= c.count_modes;
 	if (ok) {
-		uint32_t n = c2.count_modes < c.count_modes ? c2.count_modes : c.count_modes;
 		*out = modes[0];
-		for (uint32_t i = 0; i < n; ++i) {
+		for (uint32_t i = 0; i < c2.count_modes; ++i) {
 			if (modes[i].type & DRM_MODE_TYPE_PREFERRED) {
 				*out = modes[i];
 				break;
@@ -428,7 +428,7 @@ static uint32_t obj_properties(uint32_t obj, uint32_t type, uint32_t** ids, uint
 	*values = calloc(n, sizeof(**values));
 	op.props_ptr = (uint64_t) (uintptr_t) *ids, op.prop_values_ptr = (uint64_t) (uintptr_t) *values;
 	if (!*ids || !*values || drm_ioctl(DRM_IOCTL_MODE_OBJ_GETPROPERTIES, &op) < 0) return 0;
-	return op.count_props < n ? op.count_props : n;
+	return op.count_props <= n ? op.count_props : 0; /* (more than asked for: none copied) */
 }
 
 /* An object's property by name: its id, 0 when it has none (FindPropertyId). */
@@ -542,11 +542,12 @@ static bool buffer_make(Buffer* b, uint32_t w, uint32_t h) {
 	b->handle = cd.handle, b->pitch = cd.pitch, b->size = cd.size;
 	struct drm_mode_fb_cmd fc = { .width = w, .height = h, .pitch = cd.pitch, .bpp = 32, .depth = 24, .handle = cd.handle };
 	struct drm_mode_map_dumb md = { .handle = cd.handle };
-	if (drm_ioctl(DRM_IOCTL_MODE_ADDFB, &fc) < 0 || drm_ioctl(DRM_IOCTL_MODE_MAP_DUMB, &md) < 0) {
+	bool added = drm_ioctl(DRM_IOCTL_MODE_ADDFB, &fc) == 0;
+	if (added) b->fb = fc.fb_id; /* (kept for buffer_free whatever fails next) */
+	if (!added || drm_ioctl(DRM_IOCTL_MODE_MAP_DUMB, &md) < 0) {
 		LOG("can't set up a buffer: %s\n", strerror(errno));
 		return false;
 	}
-	b->fb = fc.fb_id;
 	void* p = mmap(NULL, cd.size, PROT_READ | PROT_WRITE, MAP_SHARED, L.fd, (off_t) md.offset);
 	if (p == MAP_FAILED) {
 		LOG("can't map a buffer: %s\n", strerror(errno));
