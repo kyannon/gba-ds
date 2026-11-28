@@ -719,7 +719,7 @@ void update_tall(const TallEnv* env) {
 		 * are the game's own again. Until the copy is there, what the top
 		 * screen showed last) */
 		if (s - k - GBA_H < top) {
-			for (int i = 0; i < GBA_W * GBA_H; ++i) tallTop[i] = SCREEN_GREY;
+			for (int i = 0; i < GBA_W * GBA_H; ++i) tallTop[i] = second_idle_back();
 			logo_draw(tallTop, GBA_W, GBA_H, 1, 0, LOGO_IDLE);
 			tallTopLogo = true;
 		} else {

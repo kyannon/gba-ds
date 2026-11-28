@@ -983,8 +983,9 @@ void second_step(int screens) {
 }
 
 /* The game's logo as a GBA screen would show it, with nothing live to show:
- * centred on dark grey, at half strength (LOGO_IDLE). A Game Boy / Game Boy
- * Color game: plain dark grey, no logo (docs/GAME-BOY.md, GB-3). A scraped
+ * centred on dark grey (black with logo_background, issue #113:
+ * second_idle_back), at half strength (LOGO_IDLE). A Game Boy / Game Boy
+ * Color game: plain dark grey (or black), no logo (docs/GAME-BOY.md, GB-3). A scraped
  * logo at full resolution (GEN-11): the same picture at sub pixels per GBA
  * pixel (GBA_W * sub x GBA_H * sub), to be scaled smoothly to the GBA
  * picture's place. A user's own logo bigger than that: no picture (the app
@@ -992,13 +993,17 @@ void second_step(int screens) {
  * free. IDLE_NONE: no logo (*sub as it was); IDLE_NOPIC: a logo, *sub set, no
  * picture; IDLE_PIC: the picture. (Was the pixel part of game.c's
  * make_logo_canvas.) */
+uint32_t second_idle_back(void) {
+	return sec.cfg && sec.cfg->logoBlack ? SCREEN_LIVE : SCREEN_GREY;
+}
+
 int second_idle_picture(uint32_t** px, int* w, int* h, int* sub) {
 	*px = NULL;
 	if (emu_is_gb(sec.emu)) {
 		uint32_t* grey = malloc((size_t) GBA_W * GBA_H * 4);
 		*sub = 1;
 		if (!grey) return IDLE_NOPIC;
-		for (int i = 0; i < GBA_W * GBA_H; ++i) grey[i] = SCREEN_GREY;
+		for (int i = 0; i < GBA_W * GBA_H; ++i) grey[i] = second_idle_back();
 		*px = grey, *w = GBA_W, *h = GBA_H;
 		return IDLE_PIC;
 	}
@@ -1012,7 +1017,7 @@ int second_idle_picture(uint32_t** px, int* w, int* h, int* sub) {
 	int cw = GBA_W * s, ch = GBA_H * s;
 	uint32_t* pic = malloc((size_t) cw * ch * 4);
 	if (!pic) return IDLE_NOPIC;
-	for (int i = 0; i < cw * ch; ++i) pic[i] = SCREEN_GREY;
+	for (int i = 0; i < cw * ch; ++i) pic[i] = second_idle_back();
 	logo_draw(pic, cw, ch, s, 0, LOGO_IDLE);
 	*px = pic, *w = cw, *h = ch;
 	return IDLE_PIC;

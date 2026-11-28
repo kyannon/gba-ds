@@ -566,6 +566,40 @@
    ]
   },
   {
+   "id": "gb-idle-logo-black",
+   "rom": "cvju",
+   "desc": "Logo background: Black (issue #113): a Game Boy game's idle second screen is black, not grey",
+   "rules": [
+    "GB-3",
+    "GEN-1"
+   ],
+   "config": {
+    "logo_background": "black"
+   },
+   "shots": {
+    "s": 60
+   },
+   "golden": [
+    "s"
+   ],
+   "checks": [
+    {
+     "type": "uniform",
+     "rule": "GB-3",
+     "what": "the second screen is idle black, 000000",
+     "screen": "second",
+     "shot": "s",
+     "rect": [
+      100,
+      100,
+      900,
+      600
+     ],
+     "color": "000000"
+    }
+   ]
+  },
+  {
    "id": "gb-size-native-pixel",
    "rom": "cvju",
    "desc": "Game Boy screen, Pixel Perfect: 5x, 800x720, centred; the second screen idle grey",

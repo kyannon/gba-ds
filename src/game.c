@@ -5593,8 +5593,8 @@ static void setting_applied(const Setting* st) {
 		pacing_update();
 	} else if (!strcmp(k, "rewind") || !strcmp(k, "rewind_seconds")) {
 		rewind_setup();
-	} else if (!strcmp(k, "custom_logos")) {
-		logo_refresh();
+	} else if (!strcmp(k, "custom_logos") || !strcmp(k, "logo_background")) {
+		logo_refresh(); /* (every picture the idle logo is in, made again) */
 	} else if (!strcmp(k, "ab_swap") || !strncmp(k, "button_", 7)) {
 		fb_default();
 	} else if (!strcmp(k, "pinball_live")) {
@@ -6451,6 +6451,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_SPEED, "save_on_quit");
 	ROW(PG_SPEED, "auto_load");
 	ROW(PG_MAP, "map");
+	ROW(PG_MAP, "logo_background");
 	ROW(PG_MAP, "map_interval");
 	ROW(PG_MAP, "toggle");
 	ROW(PG_MAP, "auto_rotate");

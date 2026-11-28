@@ -582,6 +582,48 @@
    ]
   },
   {
+   "id": "gs-us-battle-start-logo-black",
+   "rom": "AGSE",
+   "state": "golden-sun/us-field.ss",
+   "desc": "a battle starting with Logo background: Black (issue #113): the fight's logo picture on black",
+   "rules": [
+    "GS-8",
+    "GEN-1"
+   ],
+   "config": {
+    "logo_background": "black"
+   },
+   "input": [
+    [
+     400,
+     "LOAD:golden-sun/us-battle-start.ss"
+    ]
+   ],
+   "shots": {
+    "battle": 520
+   },
+   "golden": [
+    "battle"
+   ],
+   "checks": [
+    {
+     "type": "uniform",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      704
+     ],
+     "color": "000000",
+     "frac": 0.5,
+     "rule": "GEN-1",
+     "what": "the logo on black as the battle starts",
+     "shot": "battle"
+    }
+   ]
+  },
+  {
    "id": "gs-us-battle-first-turn",
    "rom": "AGSE",
    "state": "golden-sun/us-battle-first-turn.ss",

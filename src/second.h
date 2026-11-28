@@ -15,6 +15,8 @@
 #define STILL_IDX MAP_MAX_FRAMES
 /* the logo drawn idle on the second screen: at half strength */
 #define LOGO_IDLE 128
+/* and behind it: dark grey, or black with logo_background = black (issue #113) */
+uint32_t second_idle_back(void);
 
 /* What the app does for the second screen (set by the app, once per game):
  * present puts the picture (sec.mapW x sec.mapH) on the screen, presentGba

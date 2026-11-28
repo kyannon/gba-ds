@@ -284,6 +284,10 @@ static bool set_option(Config* c, const char* key, const char* val) {
 	BOOL("show_all", showAll)
 	BOOL("left_stick_dpad", leftStickDpad)
 	STR("accent", accent)
+	if (!strcmp(key, "logo_background")) {
+		c->logoBlack = !strcmp(val, "black") || parse_bool(val);
+		return true;
+	}
 	if (!strcmp(key, "theme")) {
 		c->lightTheme = !strcmp(val, "light") || parse_bool(val);
 		return true;
@@ -339,7 +343,7 @@ static int nCliKeys;
 static const char* const perGameKeys[] = {
 	"swap", "scale", "map_scale", "gb_size", "gb_scale", "gb_palette", "gb_dual", "gb_border", "gb_correction", "gb_ghosting", "gb_shader", "smooth", "border_color", "overlays", "overlay_screens", "bezel_logo", "bezel_inner",
 	"bezel_outer", "shader", "lcd_strength", "color_correction", "lcd_ghosting", "frame_buffer", "match_display", "map",
-	"map_interval", "custom_logos", "pinball_live", "toggle", "auto_rotate", "toggle_button", "rewind", "rewind_seconds",
+	"map_interval", "logo_background", "custom_logos", "pinball_live", "toggle", "auto_rotate", "toggle_button", "rewind", "rewind_seconds",
 	"fast_forward", "ff_speed", "ff_mute", "ab_swap", "show_fps", "audio_latency", "screen_match", "screen_placement",
 	"save_on_quit", "auto_load", "left_stick_dpad", "turbo_rate", "rumble_strength", "brightness_top", "brightness_bottom", "button_right", "button_bottom", "button_top", "button_left",
 	"button_l", "button_r", "button_dpad_up", "button_dpad_down", "button_dpad_left", "button_dpad_right",
@@ -495,6 +499,7 @@ void config_usage(const char* argv0) {
 
 #define OFFB(f) offsetof(Config, f), sizeof(((Config*) 0)->f)
 #define ARR(a) a, (int) (sizeof(a) / sizeof(a[0]))
+static const SettingChoice chLogoBg[] = { { "grey", "Dark grey", 0 }, { "black", "Black", 1 } };
 static const SettingChoice chTheme[] = { { "dark", "Dark", 0 }, { "light", "Light", 1 } };
 static const SettingChoice chAccent[] = {
 	{ "purple", "Purple", 0 }, { "blue", "Blue", 0 }, { "teal", "Teal", 0 }, { "green", "Green", 0 }, { "red", "Red", 0 }, { "orange", "Orange", 0 }, { "pink", "Pink", 0 },
@@ -612,6 +617,7 @@ static const Setting settingsTable[] = {
 	{ "performance", "Performance", SF_BOOL, OFFB(perfMax), ARR(chPerf), 0, 0, 0, NULL, "Max: full speed, a warmer device and a shorter battery." },
 
 	{ "map", "Second screen", SF_BOOL, OFFB(map), ARR(chOnOff), 0, 0, 0, NULL, "Off: every game plays like an ordinary GBA game." },
+	{ "logo_background", "Logo background", SF_BOOL, OFFB(logoBlack), ARR(chLogoBg), 0, 0, 0, NULL, "Behind the logo when it's all the second screen shows. Black blends into OLED screens." },
 	{ "map_interval", "Map refresh", SF_INT, OFFB(mapInterval), ARR(chInterval), 0, 0, 0, NULL, "Shorter can make the sound crackle on a slow device." },
 	{ "toggle", "Contextual toggle", SF_BOOL, OFFB(toggle), ARR(chOnOff), 0, 0, 0, NULL, "Turn the second screen's pages or view by hand: HOME + A, or its button." },
 	{ "auto_rotate", "Auto-rotate", SF_BOOL, OFFB(autoRotate), ARR(chOnOff), 0, 0, 0, NULL, "Timed pages keep turning by themselves. Off: a page stays until you press." },

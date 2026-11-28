@@ -69,6 +69,7 @@ typedef struct Config {
 	bool frameBuffer; /* emulate a frame ahead on a second thread: smoother, a frame more input delay */
 	bool pinCores; /* Android: the game thread on a core of its own, the map capture off it (off by default) */
 	bool map;          /* enable the second-screen map */
+	bool logoBlack;    /* the idle logo on black instead of dark grey (logo_background = black; issue #113: OLED screens) */
 	bool tallLive;     /* Pokemon Pinball: a second copy of the game draws the bottom screen live */
 	bool toggle;       /* the contextual toggle (GEN-14, issue #37): the second screen's pages or view turned by hand; off */
 	bool autoRotate;   /* with the toggle on: timed pages keep turning by themselves (a press moves them on); on */

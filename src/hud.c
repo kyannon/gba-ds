@@ -1257,7 +1257,7 @@ void make_combat_canvas(void) {
 	hud.combatMade = true;
 	uint32_t* px = malloc((size_t) sec.mapW * sec.mapH * 4);
 	if (!px) return;
-	for (int i = 0; i < sec.mapW * sec.mapH; ++i) px[i] = SCREEN_GREY;
+	for (int i = 0; i < sec.mapW * sec.mapH; ++i) px[i] = second_idle_back();
 	logo_draw(px, sec.mapW, sec.mapH, S_MAX(1, sec.mapW / GBA_W), 0, LOGO_IDLE);
 	hud.hooks.presentCombat(px);
 	free(hud.combatPx);
