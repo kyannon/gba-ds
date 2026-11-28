@@ -2,6 +2,10 @@
 
 ## v1.6.6 (not yet released)
 
+### RetroAchievements
+- **Android: a local RetroAchievements proxy can set the server.** An app on the same device, such as RAOfflineProxy, can ask GBA DS to send its RetroAchievements requests to it by broadcast (`io.github.kyannon.gbads.action.SET_RETROACHIEVEMENTS_HOST_OVERRIDE` with the extra `host`, and `...CLEAR_RETROACHIEVEMENTS_HOST_OVERRIDE`). Only plain http to `127.0.0.1`, `localhost` or `[::1]` with a port is accepted, anything else is refused. It is kept in GBA DS's private folder, used from the next game start or sign-in, and Hardcore stays off while it is set (your own Hardcore setting is not changed, so it is back after the override is cleared).
+- **`ra_host` only allows plain http for this device.** The option sends RetroAchievements requests to another server (a local proxy on the same device, say). An `https://` address still works anywhere; plain `http://` is now accepted only for `127.0.0.1`, `localhost` and `[::1]`, so a password or sign-in token can't leave the device unencrypted. Anything else is ignored, and `gba-ds.log` says so. On Android, plain http to those three addresses is now allowed (it was blocked, so `ra_host = http://127.0.0.1:<port>` could not connect). `ra_host` is now in the Settings wiki page and the shipped `gba-ds.cfg`.
+
 ## v1.6.5 (2026-11-27)
 
 ### Widescreen patches

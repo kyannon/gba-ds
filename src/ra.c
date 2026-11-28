@@ -48,6 +48,94 @@ static const Config* cfg;
 static char userAgent[160];
 static char cacheDir[1100]; /* <state_dir>/ra: login token, badges */
 
+/* ra_host: https anywhere, plain http (also a bare host:port, which rcheevos
+ * reads as http) only for this device itself, so a password or token never
+ * travels unencrypted off the device */
+static bool ra_host_allowed(const char* host) {
+	const char* rest = host;
+	const char* sep = strstr(host, "://");
+	if (sep) {
+		size_t scheme = (size_t) (sep - host);
+		if (scheme == 5 && !strncasecmp(host, "https", 5)) return true;
+		if (scheme != 4 || strncasecmp(host, "http", 4)) return false;
+		rest = sep + 3;
+	}
+	size_t len = strcspn(rest, "/?#");
+	if (memchr(rest, '@', len)) return false;
+	size_t nameLen = len;
+	if (*rest == '[') {
+		const char* close = memchr(rest, ']', len);
+		if (!close) return false;
+		nameLen = (size_t) (close - rest) + 1;
+	} else {
+		const char* colon = memchr(rest, ':', len);
+		if (colon) nameLen = (size_t) (colon - rest);
+	}
+	static const char* const local[] = { "localhost", "127.0.0.1", "[::1]" };
+	for (size_t i = 0; i < sizeof(local) / sizeof(local[0]); ++i)
+		if (nameLen == strlen(local[i]) && !strncasecmp(rest, local[i], nameLen)) return true;
+	return false;
+}
+
+#ifdef __ANDROID__
+static bool ra_override_read(char* out, size_t n) {
+	const char* files = getenv("GBADS_APP_FILES");
+	if (!files || !*files) return false;
+	char path[1200];
+	snprintf(path, sizeof(path), "%s/ra-host-override", files);
+	FILE* f = fopen(path, "r");
+	if (!f) return false;
+	bool ok = fgets(out, (int) n, f) != NULL;
+	fclose(f);
+	if (!ok) return false;
+	out[strcspn(out, "\r\n")] = 0;
+	return !strncasecmp(out, "http://", 7) && ra_host_allowed(out);
+}
+#else
+static bool ra_override_read(char* out, size_t n) {
+	(void) out, (void) n;
+	return false;
+}
+#endif
+
+static char activeHost[256];
+static bool overrideActive;
+
+/* The server RetroAchievements requests go to: the override the Android app's
+ * broadcast receiver keeps in its private folder (http on this device only),
+ * else ra_host, else NULL (retroachievements.org). Read again each time, so a
+ * change shows at the next game start or sign-in. */
+static const char* ra_host(void) {
+	static bool cfgRejectedLogged;
+	if (!cfg) return NULL;
+	char want[256] = "";
+	overrideActive = ra_override_read(want, sizeof(want));
+	if (!overrideActive && cfg->raHost[0]) {
+		if (ra_host_allowed(cfg->raHost)) {
+			snprintf(want, sizeof(want), "%s", cfg->raHost);
+		} else if (!cfgRejectedLogged) {
+			cfgRejectedLogged = true;
+			fprintf(stderr, "ra: ra_host = %s ignored: http is only allowed for 127.0.0.1, localhost and [::1] (use https for another server)\n", cfg->raHost);
+		}
+	}
+	if (strcmp(want, activeHost)) {
+		snprintf(activeHost, sizeof(activeHost), "%s", want);
+		if (want[0]) fprintf(stderr, "ra: using the server %s (%s)\n", want, overrideActive ? "set by the proxy app" : "ra_host");
+		else fprintf(stderr, "ra: using retroachievements.org\n");
+	}
+	return want[0] ? activeHost : NULL;
+}
+
+bool ra_host_override_active(void) {
+	ra_host();
+	return overrideActive;
+}
+
+static void apply_host(void) {
+	const char* host = ra_host();
+	rc_client_set_host(client, host ? host : "");
+}
+
 /* ------------------------------------------------------------ HTTP (curl; Android: Java's HttpURLConnection) */
 
 /* One request for the worker thread: a server call for rc_client (its
@@ -612,7 +700,7 @@ static void replay_done(const rc_api_server_response_t* resp, void* ud) {
  * this session's token and the time it has been waiting added). */
 static void pending_replay(const char* user, const char* token) {
 	pending_read();
-	rc_api_host_t host = { cfg->raHost[0] ? cfg->raHost : NULL, NULL };
+	rc_api_host_t host = { ra_host(), NULL };
 	time_t now = time(NULL);
 	for (Pending* p = pendingList; p; p = p->next) {
 		if (p->sending || strcasecmp(p->user, user)) continue;
@@ -1338,7 +1426,7 @@ static bool client_setup(void) {
 	rc_client_enable_logging(client, getenv("GBADS_DEBUG") ? RC_CLIENT_LOG_LEVEL_VERBOSE : RC_CLIENT_LOG_LEVEL_WARN, log_message);
 	rc_client_set_event_handler(client, on_event);
 	rc_client_set_hardcore_enabled(client, 0); /* on from ra_start_mode, before a game starts */
-	if (cfg->raHost[0]) rc_client_set_host(client, cfg->raHost);
+	apply_host();
 	/* RetroAchievements' client identity (hardcore compliance, C): name and version
 	 * (numbers only: "1.5.8-dev" sends 1.5.8), the system, the core and its version,
 	 * then rc_client's own clause */
@@ -1417,6 +1505,7 @@ void ra_sign_in(const char* user, const char* password) {
 		loginState = LOGIN_FAILED;
 		return;
 	}
+	apply_host();
 	if (loginState == LOGIN_OK) rc_client_logout(client);
 	snprintf(raUser, sizeof(raUser), "%s", user);
 	snprintf(raPass, sizeof(raPass), "%s", password);
@@ -1474,6 +1563,10 @@ bool ra_hardcore(void) {
  * be casual; the player's choice stays for the next game. */
 void ra_start_mode(bool hardcore, bool casualOnly) {
 	if (!client) return;
+	if (hardcore && ra_host_override_active()) {
+		fprintf(stderr, "ra: starting in casual mode (the proxy app's server is in use)\n");
+		hardcore = false;
+	}
 	rc_client_set_hardcore_enabled(client, hardcore && !casualOnly);
 	resetWanted = false; /* (nothing loaded yet: no reset to ask for) */
 	if (hardcore && casualOnly) fprintf(stderr, "ra: starting in casual mode (the game starts from a saved state or an input script)\n");
@@ -1483,6 +1576,7 @@ void ra_start_mode(bool hardcore, bool casualOnly) {
  * (rc_client asks for the reset: ra_reset_wanted); off carries on as it is. */
 void ra_set_hardcore(bool on) {
 	if (!client) return;
+	if (on && ra_host_override_active()) on = false;
 	fprintf(stderr, "ra: %s mode\n", on ? "hardcore" : "casual");
 	rc_client_set_hardcore_enabled(client, on);
 }
@@ -1499,6 +1593,7 @@ bool ra_reset_wanted(void) {
 
 void ra_game_start(Emu* e, const char* romPath) {
 	if (!client) return;
+	apply_host();
 	emu = e;
 	gameLoaded = false;
 	loadFailed = false;

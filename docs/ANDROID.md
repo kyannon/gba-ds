@@ -905,3 +905,22 @@ Issue #65 (second screen on a USB-C display): its line is in CHANGELOG.md's v1.6
   the screen in, and after about a second the game restarts and the map or
   logo is on it, where you were. `launch.log` has "displays changed (one -> two)".
   Unplugging goes back to one screen the same way.
+
+## A local RetroAchievements proxy sets the server (broadcast receiver)
+
+`RetroAchievementsHostOverrideReceiver` (exported, in the manifest) takes
+`<applicationId>.action.SET_RETROACHIEVEMENTS_HOST_OVERRIDE` (string extra
+`host`) and `...CLEAR_RETROACHIEVEMENTS_HOST_OVERRIDE`.
+`RetroAchievementsHostOverride.normalize` accepts only plain http to
+127.0.0.1, localhost or [::1] with a port (no user info, query, fragment or
+path other than `/dorequest.php`); a refused SET leaves the old value and
+sets RESULT_CANCELED on an ordered broadcast. The value goes to
+`<getFilesDir()>/ra-host-override` (app-private, written whole or not at
+all); native reads it through GBADS_APP_FILES (ra.c `ra_host()`), again at
+each game start (`ra_game_start`) and sign-in (`ra_sign_in`), and it wins
+over `ra_host`. While it is there `ra_start_mode`, `ra_set_hardcore` and the
+pause menu keep hardcore off without touching `ra_hardcore` in prefs.cfg,
+so the player's choice is back once it is cleared. The network security
+config allows cleartext to 127.0.0.1 and localhost only. Tried: the
+validator and the file logic on the desktop, the receiver compiles against
+android-34; not tried on a device.

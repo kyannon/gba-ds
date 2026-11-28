@@ -149,6 +149,7 @@ How the Metroid map screens are tidied:
 |---|---|---|
 | `retroachievements` | `auto` | `auto`: on when RetroAchievements is switched on in EmulationStation with an account signed in (ROCKNIX's `system.cfg`). `1` on, `0` off. |
 | `ra_username`, `ra_password` | empty | Use another account than EmulationStation's. After the first sign-in GBA DS keeps a token instead (`states/ra/login.cfg`). |
+| `ra_host` | empty | Send RetroAchievements requests (and the badge pictures) to another server, for a program on the same device that sits between GBA DS and RetroAchievements, such as a local caching proxy (`http://127.0.0.1:8080`). An `https://` address works anywhere; plain `http://` only for `127.0.0.1`, `localhost` and `[::1]`, anything else is ignored and the log says so. Empty: retroachievements.org. On Android, plain http to those three addresses is allowed for this. |
 
 ## Sound and timing
 
@@ -165,5 +166,6 @@ How the Metroid map screens are tidied:
 
 | Option | Default | |
 |---|---|---|
+| RetroAchievements server | Default | A local proxy app (RAOfflineProxy, say) can set the server by broadcast, instead of `ra_host`: `io.github.kyannon.gbads.action.SET_RETROACHIEVEMENTS_HOST_OVERRIDE` with the string extra `host` (`http://127.0.0.1:8080`), and `io.github.kyannon.gbads.action.CLEAR_RETROACHIEVEMENTS_HOST_OVERRIDE`. Only plain http to `127.0.0.1`, `localhost` or `[::1]`, with a port, is accepted. It is kept in GBA DS's private folder (not in `GBA DS/`), takes effect at the next game start or sign-in and wins over `ra_host`. While it is set GBA DS plays in casual mode (Hardcore stays off; your own setting is back after Clear). |
 | `pin_cores` | `0` | `1` keeps the game thread on a CPU core of its own. It made no difference on the RG DS Plus; there for testing. |
 | Rotation | Auto | With one display (a phone, the Surface Duo): Settings > System > **Rotation**. **Portrait** holds GBA DS upright, the two screens one above the other; **Landscape** on its side, side by side; **Auto** leaves it to the phone and follows Android's rotation lock. Either way up still turns. Not shown on devices with two displays. |
