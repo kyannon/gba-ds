@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.6.6 (not yet released)
+
 ## v1.6.5 (2026-11-27)
 
 ### Widescreen patches
