@@ -2,6 +2,9 @@
 
 ## v1.6.6 (not yet released)
 
+### Fixes
+- **Game Boy games use the same game code in game as in the game list.** The log and bug reports now say whether a Game Boy ROM is a known dump (they said "not checked" for every one). Custom overlay files for a Game Boy game are named by that code too, as for a GBA game: files made for one before this update under another name (starting with "-" or with a maker's code such as "VPHE") need renaming.
+
 ## v1.6.5 (2026-11-27)
 
 ### Widescreen patches

@@ -313,12 +313,15 @@ static const char* dump_text(char* buf, size_t n) {
 	size_t l = strlen(buf);
 	if (emu.patch == PATCH_APPLIED || emu.patch == PATCH_PARTIAL) {
 		const char* fname = NULL;
-		DumpKind fk = profile_dump(emu.gameCode, emu.fileCrc, &fname);
+		bool gb = profile_code_is_gb(emu.gameCode);
+		DumpKind fk = gb ? DUMP_UNLISTED : profile_dump(emu.gameCode, emu.fileCrc, &fname);
 		snprintf(buf + l, n - l, "; patched as it started with %s, the ROM file itself CRC32 %08x (%s)", emu.patchName,
 		         emu.fileCrc,
-		         fk == DUMP_TESTED     ? "the tested dump"
+		         gb                    ? (profile_gb_dump_known(emu.fileCrc) ? "a known Game Boy dump" : "not a known dump")
+		         : fk == DUMP_TESTED   ? "the tested dump"
 		         : fk == DUMP_OFFICIAL ? "an official dump"
 		         : fk == DUMP_MODIFIED ? "not a known dump"
+		         : fk == DUMP_UNLISTED ? "not checked"
 		                               : "a known mod");
 		l = strlen(buf);
 		if (emu.patch == PATCH_PARTIAL)
@@ -6415,7 +6418,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 	ROW(PG_DISPLAY, "color_correction");
 	ROW(PG_DISPLAY, "lcd_ghosting");
 	ROW(PG_DISPLAY, "smooth"); /* the scaling filter (issue #89) */
-	if (ui_logo_custom(cfg, romPath, emu.gameCode)) ROW(PG_DISPLAY, "custom_logos"); /* the game has the player's own or a scraped logo (GEN-11) */
+	if (!emu_is_gb(&emu) && ui_logo_custom(cfg, romPath, emu.gameCode)) ROW(PG_DISPLAY, "custom_logos"); /* the game has the player's own or a scraped logo (GEN-11; a Game Boy game's second screen shows none, GB-3) */
 	if (nScreens >= 2) ROW(PG_SCREENS, "swap");
 	ROW(PG_SCREENS, "single_layout");
 	ROW(PG_SCREENS, "single_size");

@@ -543,9 +543,11 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	e->platform = (int) e->core->platform(e->core);
 	e->gbKind = 0;
 	bool sgbHeader = false; /* the cartridge says it supports the Super Game Boy (0x146 = 3) */
+	char gbCode[5] = ""; /* a Game Boy game's code: the game list's (D12) */
 	if (e->platform == mPLATFORM_GB) {
 		uint8_t h[EMU_HEADER_MAX];
 		if (emu_rom_header(romPath, h, sizeof(h))) {
+			emu_rom_code(h, sizeof(h), gbCode);
 			e->gbKind = h[0x143] == 0xC0 ? 2 : h[0x143] == 0x80 ? 1 : 0;
 			sgbHeader = h[0x146] == 0x03 && h[0x143] != 0xC0;
 			e->gbSgbHeader = sgbHeader;
@@ -700,6 +702,11 @@ bool emu_open(Emu* e, const char* romPath, const char* savePath, bool audio) {
 	if (e->patch != PATCH_APPLIED && e->patch != PATCH_PARTIAL) e->fileCrc = e->romCrc;
 	const char* codeless = memcmp(info.code, "\0\0\0\0", 4) ? NULL : profile_codeless(e->fileCrc);
 	if (codeless) memcpy(e->gameCode, codeless, 5);
+	/* (D12) A Game Boy game is known by the code the game list gives it (emu_rom_code: "g" or "c" and a hash of
+	 * its header), not mGBA's (empty for most cartridges, a maker's code for some): the dump check (GB-14), the
+	 * player's logo (GEN-11), overlays and cheats are all named by it. From the ROM file as it is, as the list
+	 * reads it: a patch that fixes the header's checksums would otherwise change it. */
+	if (profile_code_is_gb(gbCode)) memcpy(e->gameCode, gbCode, 5); /* (a file without the Game Boy's header keeps mGBA's) */
 	return true;
 }
 
