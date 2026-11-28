@@ -6,7 +6,7 @@ This is an exception to the first principle (wiki/Philosophy.md: a GBA with two 
 
 | | |
 |---|---|
-| Games | the ones a GBA DS widescreen patch is made for (none yet); the test ROM |
+| Games | the ones a GBA DS widescreen patch is made for: Pokémon FireRed USA / Europe, 16:9 (`BPRE`, PK-9; its source in `tools/widepatch/BPRE/`); the test ROM |
 | Code | `src/emu.c` (`emu_wide_*`: the marker, the margins' renderers), `src/game.c` (`game_tex_*`, `game_scale`, at the game's start; the Patches menu's offers, `PR_DOWNLOAD`, `patch_wide_alone`), `src/widedl.c` (the list and the downloads) |
 | Patches | `widescreen/CODE/*.ips` and `widescreen/index.txt` in the repository, never in a release (README there) |
 | Tools | `tools/widescreen.py` (the marker, a patch's IPS, `index` for the list); `tools/widetest/build.py` (the test ROM and its 16:9, 16:10 and 4:3 patches) |

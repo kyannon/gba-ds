@@ -1,0 +1,2 @@
+# Pokemon - FireRed Version (USA, Europe), the cartridge dump (1.0); Rev 1 moves the code the patch changes
+dd88761c
