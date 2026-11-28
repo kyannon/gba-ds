@@ -6,7 +6,7 @@ This is an exception to the first principle (wiki/Philosophy.md: a GBA with two 
 
 | | |
 |---|---|
-| Games | the ones a GBA DS widescreen patch is made for (none yet); the test ROM |
+| Games | the ones a GBA DS widescreen patch is made for: Castlevania: Aria of Sorrow (USA, 16:9; CVA-6, its source in `tools/widepatches/A2CE/`); the test ROM |
 | Code | `src/emu.c` (`emu_wide_*`: the marker, the margins' renderers), `src/game.c` (`game_tex_*`, `game_scale`, at the game's start; the Patches menu's offers, `PR_DOWNLOAD`, `patch_wide_alone`), `src/widedl.c` (the list and the downloads) |
 | Patches | `widescreen/CODE/*.ips` and `widescreen/index.txt` in the repository, never in a release (README there) |
 | Tools | `tools/widescreen.py` (the marker, a patch's IPS, `index` for the list); `tools/widetest/build.py` (the test ROM and its 16:9, 16:10 and 4:3 patches) |
@@ -70,7 +70,7 @@ One patch per ratio: a game can have a 16:9, a 16:10 and a 4:3 patch, each with 
 
 ## Adding a game's patches
 
-1. Make the patch: the game's fixes and the marker, `tools/widescreen.py ips OFFSET 16:9 --with FIXES.ips -o "widescreen/CODE/Game (16-9).ips"` (IPS or BPS: a UPS hides the marker from the list). Name it for the game and the ratio: that's the file name players get.
+1. Make the patch: the game's fixes and the marker (keep what builds the fixes in `tools/widepatches/CODE/`, as Aria of Sorrow's `build.py` and `wide.c`, which write the finished patch themselves), `tools/widescreen.py ips OFFSET 16:9 --with FIXES.ips -o "widescreen/CODE/Game (16-9).ips"` (IPS or BPS: a UPS hides the marker from the list). Name it for the game and the ratio: that's the file name players get.
 2. `widescreen/CODE/dumps.txt`: the CRC32 of each ROM file it fits, one a line (the tested dump from the game's rules file; without the file, any ROM with the code is offered it).
 3. `tools/widescreen.py index`, and commit the patch, `dumps.txt` and `index.txt` together. `tools/widescreen.py index --check` says whether the list is up to date.
 4. A rule for it in the game's rules file, and a case with the patch on.

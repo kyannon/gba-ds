@@ -752,6 +752,50 @@
      "frac": 0.99
     }
    ]
+  },
+  {
+   "id": "cva-us-wide-16-9",
+   "rom": "A2CE",
+   "state": "castlevania-aria-of-sorrow/us-play-wide.ss",
+   "patch": "Castlevania - Aria of Sorrow (16-9).ips",
+   "desc": "the 16:9 widescreen patch on (state saved with it): 284x160, the scenery going on into both margins at rest and while walking right up the stairs, the status bar not repeated at the right; the map still captured",
+   "rules": [
+    "CVA-6",
+    "CVA-1",
+    "WS-2"
+   ],
+   "input": [
+    [
+     90,
+     "RIGHT"
+    ],
+    [
+     330,
+     "-"
+    ]
+   ],
+   "shots": {
+    "rest": 60,
+    "stairs": 330
+   },
+   "golden": [
+    "rest",
+    "stairs"
+   ],
+   "checks": [
+    {
+     "rule": "CVA-6",
+     "what": "the marker found",
+     "type": "log",
+     "match": "widescreen: 16:9, 284 x 160 \\(margins 22\\)"
+    },
+    {
+     "rule": "CVA-1",
+     "what": "a capture was shown",
+     "type": "log",
+     "match": "map updated"
+    }
+   ]
   }
  ]
 }

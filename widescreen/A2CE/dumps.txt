@@ -1,0 +1,2 @@
+# Castlevania: Aria of Sorrow (USA), cartridge (the tested dump; tools/widepatches/A2CE/build.py checks it)
+35536183
