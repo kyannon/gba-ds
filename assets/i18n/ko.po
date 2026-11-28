@@ -92,7 +92,7 @@ msgid "%s, Select, Start or L3. Tap to keep it as it is"
 msgstr "%s, Select, Start 또는 L3. 눌러서 그대로 두기"
 
 msgid "%u of %u achievements unlocked"
-msgstr "업적 %u개 중 %u개 달성"
+msgstr "업적 %2$u개 중 %1$u개 달성"
 
 msgid ", RetroArch"
 msgstr ", RetroArch"
@@ -1333,16 +1333,16 @@ msgid "Resumed. Tap or HOME for the menu"
 msgstr "이어서 플레이합니다. 탭하거나 HOME으로 메뉴"
 
 msgid "RetroAchievements couldn't start"
-msgstr "RetroAchievements couldn't start"
-
-msgid "RetroAchievements doesn't allow patched games"
 msgstr "RetroAchievements를 시작할 수 없었습니다"
 
-msgid "RetroAchievements is off"
+msgid "RetroAchievements doesn't allow patched games"
 msgstr "RetroAchievements는 패치된 게임을 허용하지 않습니다"
 
-msgid "RETROACHIEVEMENTS · CASUAL"
+msgid "RetroAchievements is off"
 msgstr "RetroAchievements가 꺼져 있습니다"
+
+msgid "RETROACHIEVEMENTS · CASUAL"
+msgstr "RETROACHIEVEMENTS · 캐주얼"
 
 msgid "RetroAchievements: Off"
 msgstr "RetroAchievements: 끔"
@@ -2143,3 +2143,18 @@ msgstr "게임을 빨리 감는 동안 소리를 내지 않습니다."
 
 msgid "Turn on fast forward first"
 msgstr "먼저 빨리 감기를 켜세요"
+
+msgid "GAME COMPLETED"
+msgstr "게임 완료"
+
+msgid "%u of %u unlocked · %u of %u points · casual"
+msgstr "%2$u개 중 %1$u개 달성 · %4$u점 중 %3$u점 · 캐주얼"
+
+msgid "%u of %u unlocked · %u of %u points · hardcore"
+msgstr "%2$u개 중 %1$u개 달성 · %4$u점 중 %3$u점 · 하드코어"
+
+msgid "Off for Game Boy games"
+msgstr "게임보이 게임에서는 꺼짐"
+
+msgid "Achievements aren't available for Game Boy games yet"
+msgstr "게임보이 게임에서는 아직 업적을 사용할 수 없습니다"

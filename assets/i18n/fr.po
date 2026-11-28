@@ -1337,16 +1337,16 @@ msgid "Resumed. Tap or HOME for the menu"
 msgstr "Repris. Touchez ou HOME pour le menu"
 
 msgid "RetroAchievements couldn't start"
-msgstr "RetroAchievements couldn't start"
-
-msgid "RetroAchievements doesn't allow patched games"
 msgstr "RetroAchievements n'a pas pu démarrer"
 
-msgid "RetroAchievements is off"
+msgid "RetroAchievements doesn't allow patched games"
 msgstr "RetroAchievements n'autorise pas les jeux patchés"
 
-msgid "RETROACHIEVEMENTS · CASUAL"
+msgid "RetroAchievements is off"
 msgstr "RetroAchievements est désactivé"
+
+msgid "RETROACHIEVEMENTS · CASUAL"
+msgstr "RETROACHIEVEMENTS · DÉCONTRACTÉ"
 
 msgid "RetroAchievements: Off"
 msgstr "RetroAchievements : Non"
@@ -2147,3 +2147,18 @@ msgstr "Pas de son pendant que le jeu est en avance rapide."
 
 msgid "Turn on fast forward first"
 msgstr "Activez d'abord l'avance rapide"
+
+msgid "GAME COMPLETED"
+msgstr "JEU TERMINÉ"
+
+msgid "%u of %u unlocked · %u of %u points · casual"
+msgstr "%u sur %u débloqués · %u points sur %u · décontracté"
+
+msgid "%u of %u unlocked · %u of %u points · hardcore"
+msgstr "%u sur %u débloqués · %u points sur %u · hardcore"
+
+msgid "Off for Game Boy games"
+msgstr "Désactivé pour les jeux Game Boy"
+
+msgid "Achievements aren't available for Game Boy games yet"
+msgstr "Les succès ne sont pas encore disponibles pour les jeux Game Boy"

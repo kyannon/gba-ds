@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <signal.h>
 #ifndef __ANDROID__
 #include <spawn.h>
 #endif
@@ -161,6 +162,13 @@ static int run_curl(char* const* argv, const char* in, char** out, size_t* outLe
 	size_t cap = 4096, len = 0;
 	char* buf = malloc(cap + 1);
 	for (;;) {
+		if (!buf) { /* (nothing to read into: drained, so curl isn't left blocked on its output) */
+			char sink[512];
+			ssize_t r = read(po[0], sink, sizeof(sink));
+			if (r < 0 && errno == EINTR) continue;
+			if (r <= 0) break;
+			continue;
+		}
 		if (len == cap) {
 			char* nb = realloc(buf, cap * 2 + 1);
 			if (!nb) break;
@@ -172,7 +180,7 @@ static int run_curl(char* const* argv, const char* in, char** out, size_t* outLe
 		len += (size_t) r;
 	}
 	close(po[0]);
-	buf[len] = 0;
+	if (buf) buf[len] = 0;
 	int st = 0;
 	while (waitpid(pid, &st, 0) < 0 && errno == EINTR) {}
 	if (out) {
@@ -304,8 +312,8 @@ static void run_job_libcurl(Job* j) {
 	if (hdr) lc.slist_free_all(hdr);
 	lc.easy_cleanup(c);
 	if (j->outPath) {
-		fclose(sink.f);
-		if (rc == 0) rename(tmp, j->outPath);
+		bool written = fclose(sink.f) == 0; /* (a full card: no half badge kept) */
+		if (rc == 0 && written) rename(tmp, j->outPath);
 		else unlink(tmp);
 		free(sink.buf);
 		return;
@@ -383,6 +391,13 @@ static void* worker_main(void* arg) {
 	(void) arg;
 #ifdef __ANDROID__
 	android_pin_worker_thread("RetroAchievements");
+#else
+	/* A request's body goes to curl through a pipe: if curl is gone before it has read it, the write
+	 * fails (EPIPE) rather than SIGPIPE ending the app. */
+	sigset_t pipeSet;
+	sigemptyset(&pipeSet);
+	sigaddset(&pipeSet, SIGPIPE);
+	pthread_sigmask(SIG_BLOCK, &pipeSet, NULL);
 #endif
 	pthread_mutex_lock(&qLock);
 	for (;;) {
@@ -473,8 +488,10 @@ static void pending_save(void) {
 		fprintf(f, "%c %lld %s %u %d %s %u\n", p->leaderboard ? 'L' : 'A', (long long) p->queued, p->user, p->id,
 		        p->leaderboard ? (int) p->score : (int) p->hardcore, p->hash[0] ? p->hash : "-", p->since);
 	}
-	fclose(f);
-	rename(tmp, path);
+	bool ok = !ferror(f);
+	if (fclose(f)) ok = false;
+	if (ok) rename(tmp, path); /* (a full card: the file from before is kept) */
+	else unlink(tmp);
 }
 
 static void pending_key(Pending* p) {
@@ -628,6 +645,10 @@ static void pending_replay(const char* user, const char* token) {
 		}
 		if (rc != RC_OK) continue;
 		Job* j = calloc(1, sizeof(*j));
+		if (!j) {
+			rc_api_destroy_request(&rq);
+			continue; /* (kept: sent at the next sign-in) */
+		}
 		j->url = dupstr(rq.url);
 		j->post = dupstr(rq.post_data);
 		j->ctype = dupstr(rq.content_type);
@@ -645,6 +666,11 @@ static void pending_replay(const char* user, const char* token) {
 static void server_call(const rc_api_request_t* req, rc_client_server_callback_t cb, void* cbData, rc_client_t* c) {
 	(void) c;
 	Job* j = calloc(1, sizeof(*j));
+	if (!j) { /* (rc_client is told, as if the connection failed: it tries again) */
+		rc_api_server_response_t resp = { "", 0, RC_API_SERVER_RESPONSE_RETRYABLE_CLIENT_ERROR };
+		cb(&resp, cbData);
+		return;
+	}
 	j->url = dupstr(req->url);
 	j->post = dupstr(req->post_data);
 	j->ctype = dupstr(req->content_type);
@@ -682,8 +708,13 @@ static void fetch_badge(const char* url, bool soon) {
 	badge_path(url, path, sizeof(path));
 	if (file_exists(path)) return;
 	Job* j = calloc(1, sizeof(*j));
+	if (!j) return;
 	j->url = strdup(url);
 	j->outPath = strdup(path);
+	if (!j->url || !j->outPath) {
+		job_free(j);
+		return;
+	}
 	submit(j, true, soon);
 }
 
@@ -1219,7 +1250,7 @@ static void on_event(const rc_client_event_t* ev, rc_client_t* c) {
 		rc_client_get_user_game_summary(client, &sum);
 		char desc[120];
 		snprintf(desc, sizeof(desc), tr("All %u achievements unlocked"), sum.num_core_achievements);
-		popup_add(POP_DONE, "GAME COMPLETED", g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
+		popup_add(POP_DONE, tr("GAME COMPLETED"), g ? g->title : "", desc, 0, g ? g->badge_url : NULL);
 		break;
 	}
 	case RC_CLIENT_EVENT_ACHIEVEMENT_CHALLENGE_INDICATOR_SHOW:
@@ -1497,8 +1528,16 @@ bool ra_reset_wanted(void) {
 	return r;
 }
 
+static void game_off(const char* title, const char* desc, const char* why);
+
 void ra_game_start(Emu* e, const char* romPath) {
 	if (!client) return;
+	if (emu_is_gb(e)) {
+		/* rc_client would load a Game Boy game's set by its hash, but read_memory reads the GBA's memory
+		 * map: its achievements would test the wrong bytes (docs/GAME-BOY.md: not available yet) */
+		game_off(N_("Off for Game Boy games"), N_("Achievements aren't available for Game Boy games yet"), "a Game Boy game");
+		return;
+	}
 	emu = e;
 	gameLoaded = false;
 	loadFailed = false;
@@ -1537,15 +1576,20 @@ bool ra_loading(void) {
 	return client && gameWanted && !gameLoaded && !loadFailed && (loginState == LOGIN_OK || loginState == LOGIN_BUSY);
 }
 
-void ra_game_patched(void) {
-	if (!client) return;
+/* No achievements for this game: said once as it starts */
+static void game_off(const char* title, const char* desc, const char* why) {
 	emu = NULL;
 	gameLoaded = gameWanted = false;
 	nPopups = 0;
 	overlays_clear();
 	gameHash[0] = 0;
-	note("Off while a patch is on", "RetroAchievements doesn't allow patched games");
-	fprintf(stderr, "ra: off, the game is patched\n");
+	note(title, desc);
+	fprintf(stderr, "ra: off, %s\n", why);
+}
+
+void ra_game_patched(void) {
+	if (!client) return;
+	game_off(N_("Off while a patch is on"), N_("RetroAchievements doesn't allow patched games"), "the game is patched");
 }
 
 void ra_list_close(void);
@@ -1595,8 +1639,9 @@ void ra_state_saved(const char* statePath) {
 		snprintf(path, sizeof(path), "%s.ra", statePath);
 		FILE* f = fopen(path, "wb");
 		if (f) {
-			fwrite(buf, 1, n, f);
-			fclose(f);
+			bool ok = fwrite(buf, 1, n, f) == n;
+			if (fclose(f)) ok = false;
+			if (!ok) unlink(path); /* (a full card: no progress rather than half of it) */
 		}
 	}
 	free(buf);
@@ -1715,8 +1760,10 @@ void ra_list_draw(int s, SDL_Rect a) {
 	if (!sum.num_core_achievements) {
 		snprintf(line, sizeof(line), tr("This game has no achievements yet"));
 	} else {
-		snprintf(line, sizeof(line), "%u of %u unlocked \xC2\xB7 %u of %u points \xC2\xB7 %s", sum.num_unlocked_achievements,
-		         sum.num_core_achievements, sum.points_unlocked, sum.points_core, ra_hardcore() ? "hardcore" : "casual");
+		snprintf(line, sizeof(line),
+		         ra_hardcore() ? tr("%u of %u unlocked \xC2\xB7 %u of %u points \xC2\xB7 hardcore")
+		                       : tr("%u of %u unlocked \xC2\xB7 %u of %u points \xC2\xB7 casual"),
+		         sum.num_unlocked_achievements, sum.num_core_achievements, sum.points_unlocked, sum.points_core);
 	}
 	ui_font_text(s, TF_BODY, a.x + a.w / 2, a.y + px * 5, px * 4, line, P_GOLD, 0);
 	int top = a.y + px * 12;

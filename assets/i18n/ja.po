@@ -1333,16 +1333,16 @@ msgid "Resumed. Tap or HOME for the menu"
 msgstr "再開しました。メニューはタップまたは HOME"
 
 msgid "RetroAchievements couldn't start"
-msgstr "RetroAchievements couldn't start"
-
-msgid "RetroAchievements doesn't allow patched games"
 msgstr "RetroAchievements を開始できませんでした"
 
-msgid "RetroAchievements is off"
+msgid "RetroAchievements doesn't allow patched games"
 msgstr "RetroAchievements はパッチ適用済みのゲームを許可していません"
 
-msgid "RETROACHIEVEMENTS · CASUAL"
+msgid "RetroAchievements is off"
 msgstr "RetroAchievements はオフです"
+
+msgid "RETROACHIEVEMENTS · CASUAL"
+msgstr "RETROACHIEVEMENTS · カジュアル"
 
 msgid "RetroAchievements: Off"
 msgstr "RetroAchievements: オフ"
@@ -2143,3 +2143,18 @@ msgstr "早送り中は音を出しません。"
 
 msgid "Turn on fast forward first"
 msgstr "先に早送りをオンにしてください"
+
+msgid "GAME COMPLETED"
+msgstr "ゲームクリア"
+
+msgid "%u of %u unlocked · %u of %u points · casual"
+msgstr "%u / %u 解除済み · %u / %u ポイント · カジュアル"
+
+msgid "%u of %u unlocked · %u of %u points · hardcore"
+msgstr "%u / %u 解除済み · %u / %u ポイント · ハードコア"
+
+msgid "Off for Game Boy games"
+msgstr "ゲームボーイのゲームではオフ"
+
+msgid "Achievements aren't available for Game Boy games yet"
+msgstr "ゲームボーイのゲームではまだ実績を利用できません"

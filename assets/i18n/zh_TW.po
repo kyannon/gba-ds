@@ -2143,3 +2143,18 @@ msgstr "遊戲快進時不發出聲音。"
 
 msgid "Turn on fast forward first"
 msgstr "請先開啟快進"
+
+msgid "GAME COMPLETED"
+msgstr "遊戲完成"
+
+msgid "%u of %u unlocked · %u of %u points · casual"
+msgstr "已解鎖 %u / %u · %u / %u 分 · 休閒模式"
+
+msgid "%u of %u unlocked · %u of %u points · hardcore"
+msgstr "已解鎖 %u / %u · %u / %u 分 · 硬核模式"
+
+msgid "Off for Game Boy games"
+msgstr "Game Boy 遊戲不可用"
+
+msgid "Achievements aren't available for Game Boy games yet"
+msgstr "Game Boy 遊戲暫時還不能獲得成就"
