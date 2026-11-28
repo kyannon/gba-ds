@@ -5882,6 +5882,10 @@ static bool activate(int item, enum GameExit* exitTo) {
 		/* either way the game starts over (a whole run counts as one mode), and the
 		 * banner comes up again to say which */
 		bool on = !ra_hardcore();
+		if (on && ra_host_override_active()) {
+			snprintf(menuNote, sizeof(menuNote), "Hardcore is off while a local RetroAchievements proxy is used");
+			break;
+		}
 		cfg->raHardcore = on;
 		save_prefs();
 		ra_set_hardcore(on);
@@ -6479,7 +6483,7 @@ static enum GameExit game_run_inner(Config* c, const char* rom, bool fromLibrary
 		ui_osd("Starting over: the colors were changed since the game was last played"); /* (GB-6, GB-7: a new start) */
 	} else if (autoLoadNow && !patchReload && file_exists(gp.autoState)) { /* (not right after switching a patch) */
 		if (state_load(gp.autoState)) {
-			if (!stateWarned) ui_osd(cfg->raHardcore && ra_enabled() && !ra_hardcore() ? "Resumed in casual mode (hardcore resumes from the menu). Tap or HOME for the menu": "Resumed. Tap or HOME for the menu");
+			if (!stateWarned) ui_osd(cfg->raHardcore && ra_enabled() && !ra_hardcore() && !ra_host_override_active() ? "Resumed in casual mode (hardcore resumes from the menu). Tap or HOME for the menu": "Resumed. Tap or HOME for the menu");
 		} else if (stateLoadKind == STATE_FILE_OTHER_CORE) {
 			/* (RetroArch's automatic state, from another of its GBA cores) */
 			ui_osd_long("Not resumed: RetroArch's automatic state is from another of its GBA cores. To share states, set RetroArch's GBA core to mGBA.");

@@ -38,6 +38,7 @@ void ra_game_start(Emu* e, const char* romPath);
  * doesn't allow patched games), the banner says so instead */
 void ra_game_patched(void);
 bool ra_hardcore(void);                           /* hardcore is on for this game */
+bool ra_host_override_active(void);              /* the Android proxy app has set the server (hardcore stays off) */
 void ra_start_mode(bool hardcore, bool casualOnly); /* before ra_game_start */
 void ra_set_hardcore(bool on);
 void ra_show_banner(void);                        /* the start banner again (the mode just switched) */
@@ -78,6 +79,7 @@ static inline void ra_shutdown(void) {}
 static inline void ra_game_start(Emu* e, const char* romPath) { (void) e, (void) romPath; }
 static inline void ra_game_patched(void) {}
 static inline bool ra_hardcore(void) { return false; }
+static inline bool ra_host_override_active(void) { return false; }
 static inline void ra_start_mode(bool hardcore, bool casualOnly) { (void) hardcore, (void) casualOnly; }
 static inline void ra_set_hardcore(bool on) { (void) on; }
 static inline bool ra_reset_wanted(void) { return false; }

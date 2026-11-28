@@ -28,6 +28,7 @@
         android:allowBackup="false"
         android:hardwareAccelerated="true"
         android:requestLegacyExternalStorage="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
 
         <activity
@@ -74,5 +75,15 @@
             android:launchMode="singleTop"
             android:preferMinimalPostProcessing="true"
             android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation|density" />
+
+        <receiver
+            android:name=".RetroAchievementsHostOverrideReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="${applicationId}.action.SET_RETROACHIEVEMENTS_HOST_OVERRIDE" />
+                <action android:name="${applicationId}.action.CLEAR_RETROACHIEVEMENTS_HOST_OVERRIDE" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>
