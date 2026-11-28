@@ -5,6 +5,7 @@
 ### Fixes
 - **Game Boy games use the same game code in game as in the game list.** The log and bug reports now say whether a Game Boy ROM is a known dump (they said "not checked" for every one). Custom overlay files for a Game Boy game are named by that code too, as for a GBA game: files made for one before this update under another name (starting with "-" or with a maker's code such as "VPHE") need renaming.
 - **RetroAchievements is off for Game Boy games**, and says so as the game starts: their achievements were being checked against the wrong memory, so they could never unlock properly (or could unlock by mistake). Achievements for Game Boy games come later.
+- **Bug reports keep passwords and tokens out of the log they carry, however long the line.** A line mentioning either was already left out, but part of a very long one could get through.
 - **RetroAchievements messages in the right words:** in French, German, Spanish, Italian, Portuguese, Japanese and Korean, the message for a patched game, "couldn't start", "is off" and the casual banner had each other's text. Also translated now: the achievements list's summary line and "Game completed". In Korean, the count of unlocked achievements had its two numbers the wrong way round.
 
 ## v1.6.5 (2026-11-27)

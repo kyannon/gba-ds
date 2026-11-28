@@ -1923,9 +1923,7 @@ static void draw_note(int scr) {
 		for (int c = 0; c < note_row_len(r); ++c) {
 			SDL_Rect k = note_key_rect(scr, r, c);
 			bool sel = r == noteRow && c == noteCol;
-			bool special = noteKeys[r][c][0] < ' ';
-			bool lit = noteKeys[r][c][0] == '\x01' && noteShift;
-			(void) special; /* (the special keys look like the others) */
+			bool lit = noteKeys[r][c][0] == '\x01' && noteShift; /* (the special keys look like the others, Shift lit while on) */
 			ui_key(scr, k, rad, sel ? KEY_SEL : lit ? KEY_LIT : KEY_PLAIN);
 			ui_label(scr, k.x + k.w / 2, k.y + k.h / 2, kc, note_key_label(r, c), lit ? (SDL_Color) { 20, 16, 36, 255 } : C_TEXT);
 		}
@@ -3706,14 +3704,7 @@ static void draw_menu(void) {
 
 /* ---------------------------------------------------------------- helpers */
 
-
-
-/* Logo-only games: copy a recognised screen (THPS2 goal sheet) to the second
- * screen; back to the logo at the menus. */
-/* The grabbed sky and scenery (the rows above the horizon), scaled up to
- * cover the canvas (centred), and dimmed well back. */
-
-/* (the HUD split: hud.c) */
+/* (the logo-only games' screen copy: second.c; the HUD split: hud.c) */
 
 /* (the tall view's composer, update_tall: twins.c) */
 int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
@@ -4282,7 +4273,6 @@ static void put32(FILE* f, uint32_t v) {
 }
 
 /* A .zip of n files, stored (states don't shrink much, and it needs no zlib). */
-int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
 static bool zip_write(const char* path, const char* const* names, uint8_t* const* data, const size_t* sizes, int n) {
 	FILE* f = fopen(path, "wb");
 	if (!f) return false;
@@ -4475,12 +4465,16 @@ static void bug_info(Text* t, const char* date, uint64_t back) {
 	fseek(lf, 0, SEEK_END);
 	long n = ftell(lf), keep = 48 * 1024;
 	fseek(lf, n > keep ? n - keep : 0, SEEK_SET);
-	if (n > keep && !fgets(line, sizeof(line), lf)) line[0] = 0; /* (from the next whole line) */
-	char big[1024];
-	while (fgets(big, sizeof(big), lf)) {
+	/* whole lines, however long: a line is left out by what it says anywhere in it (fgets' 1 KB
+	 * pieces let the rest of a long line about a token through) */
+	char* big = NULL;
+	size_t bigCap = 0;
+	if (n > keep && getline(&big, &bigCap, lf) < 0) n = 0; /* (from the next whole line; nothing after it: none) */
+	while (getline(&big, &bigCap, lf) > 0) {
 		if (strstr(big, "password") || strstr(big, "token")) continue;
 		text_add(t, "%s", big);
 	}
+	free(big);
 	fclose(lf);
 }
 
@@ -4652,7 +4646,7 @@ static bool bug_report(char* out, size_t outSize) {
 		bool xok = stbi_write_png(xtmp[0], GBA_W * 3, GBA_H * 2, 4, sheet, GBA_W * 3 * 4) != 0;
 		FILE* f = fopen(xtmp[1], "wb");
 		if (f) {
-			fprintf(f, "# GBA DS live view, the last %u frames (top/bottom screen and the copies' rows; game.c update_tall)\n",
+			fprintf(f, "# GBA DS live view, the last %u frames (top/bottom screen and the copies' rows; twins.c update_tall)\n",
 			        tallLogN < TALL_LOG ? tallLogN : TALL_LOG);
 			for (unsigned i = tallLogN > TALL_LOG ? tallLogN - TALL_LOG : 0; i < tallLogN; ++i) fprintf(f, "%s\n", tallLog[i % TALL_LOG]);
 			fclose(f);
