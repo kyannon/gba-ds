@@ -1,0 +1,2 @@
+# Super Mario Advance 2: Super Mario World (USA, Australia), cartridge (the tested dump; tools/widepatches/AA2E/build.py checks it)
+5206880a

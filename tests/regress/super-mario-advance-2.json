@@ -611,6 +611,71 @@
      "match": "^frame \\d+: game keys 100$"
     }
    ]
+  },
+  {
+   "id": "sma-us-wide-16-9",
+   "rom": "AA2E",
+   "state": "super-mario-advance-2/us-level-wide.ss",
+   "patch": "Super Mario Advance 2 (16-9).ips",
+   "desc": "the 16:9 widescreen patch on (state saved with it), Yoshi's Island 1: 284x160, the scenery in both margins; the Koopa walking off the left stays drawn into the left margin (koopa), the Banzai Bill comes in from the right margin's edge (bill); the status bar still on the second screen",
+   "rules": [
+    "SMA-8",
+    "SMA-2",
+    "WS-2"
+   ],
+   "input": [
+    [
+     10,
+     "A+RIGHT"
+    ],
+    [
+     35,
+     "RIGHT+B"
+    ],
+    [
+     110,
+     "RIGHT+B+A"
+    ],
+    [
+     135,
+     "RIGHT+B"
+    ],
+    [
+     200,
+     "-"
+    ]
+   ],
+   "shots": {
+    "koopa": 88,
+    "bill": 175
+   },
+   "golden": [
+    "koopa",
+    "bill"
+   ],
+   "checks": [
+    {
+     "rule": "SMA-8",
+     "what": "the marker found",
+     "type": "log",
+     "match": "widescreen: 16:9, 284 x 160 \\(margins 22\\)"
+    },
+    {
+     "rule": "SMA-2",
+     "what": "the status bar along the top",
+     "type": "not_uniform",
+     "shot": "koopa",
+     "screen": "second",
+     "rect": [
+      32,
+      64,
+      992,
+      130
+     ],
+     "color": "000000",
+     "frac": 0.97
+    }
+   ]
   }
  ]
 }
