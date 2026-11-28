@@ -74,3 +74,4 @@ One patch per ratio: a game can have a 16:9, a 16:10 and a 4:3 patch, each with 
 2. `widescreen/CODE/dumps.txt`: the CRC32 of each ROM file it fits, one a line (the tested dump from the game's rules file; without the file, any ROM with the code is offered it).
 3. `tools/widescreen.py index`, and commit the patch, `dumps.txt` and `index.txt` together. `tools/widescreen.py index --check` says whether the list is up to date.
 4. A rule for it in the game's rules file, and a case with the patch on.
+5. For the owner's device check, send the `.ips` file itself, not a test build, when nothing the app is built from changed (CLAUDE.md, Conventions): the released app applies it from the game's patches folder.

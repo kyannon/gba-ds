@@ -48,7 +48,8 @@ it lives here:
   release notes in plain words. A cut-off status screen that's written
   down is fine; one left for players to find isn't.
 - **Keep changes small enough to test.** Every change ends with a test
-  build and a short note of what to check on the device; if that note
+  build (for a widescreen patch alone, the patch itself: see Conventions)
+  and a short note of what to check on the device; if that note
   would be long, the change is probably too big for one step.
 
 ## Conventions
@@ -135,6 +136,20 @@ it lives here:
   topic branch or a game branch never replaces the owner's GBA DS install.
   Android test APKs are the artifacts of the workflow runs on `android` /
   `dev` (link the run).
+- **Widescreen and other aspect-ratio patches: send the IPS, not a test
+  build** (the owner's rule, Nov 27, 2026). When the work is a game's patch
+  under `widescreen/` (with its build source in `tools/widepatches/`, rule,
+  case and fixtures) and changes nothing the app is built from (`src/`, the
+  Makefile, `scripts/`, `dist/`, `web/`: check with `git diff --stat
+  <last release> -- src Makefile scripts dist web`), the released app (v1.6.5
+  on) already applies it, so a test build adds nothing: send the `.ips` file
+  itself with its SHA-256 and the note of what to check. Say how to try it:
+  copy it into the game's patches folder (`gba-ds/patches/<the release's
+  No-Intro name>/`) and switch it on in Extras > Patches (the download is
+  only offered for a shape the player's screens match: a 16:9 patch isn't
+  offered on the RG DS Plus's 4:3 screens). If the work does change the app
+  (the marker, the margins' renderers, the Patches menu), it gets a side
+  build as usual.
 - **Final dev build** (the last test zip before a release; the owner asks
   for it once the release's games and changes are all merged): a checklist of
   what to confirm on the device, and a zip that carries the test save states.
@@ -804,7 +819,7 @@ release zip, which replaces the main install.
 - **The owner's preferences:** player-facing text in plain sentence case;
   changelog lines and release notes written for players (What's new /
   Fixes / Known issues / Install / upgrade, checksums at the end); a test
-  zip after every change, with a short note of what changed and what to
+  zip after every change (a widescreen patch alone: the `.ips` instead), with a short note of what changed and what to
   check on the device; known limitations said plainly. When a game's
   behaviour changes, the rule in `docs/games/` changes first.
 - **Open by-hand checks** (`tools/regress.py --uncovered`): none open
