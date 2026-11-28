@@ -145,7 +145,7 @@ What `second_shown(&dim)` returns, and what to show:
 | `SHOWN_COMBAT` | The fights' picture (`presentCombat`'s). |
 | `SHOWN_HUD` | The HUD picture (`presentHud`'s). |
 | `SHOWN_MAP` | The map picture (`present` / `presentGba`'s). |
-| `SHOWN_LOGO` | The idle picture: the logo at half strength on grey. |
+| `SHOWN_LOGO` | The idle picture: the logo at half strength on grey (black with `logoBlack`). |
 
 `dim` true: darken the whole screen, as the app does with black at alpha 120 of
 255 over it (the last map kept while the game has none, A Link to the Past
@@ -154,7 +154,7 @@ indoors). A picture smaller than 240 x 160 is centred, on black.
 The idle picture comes from `second_idle_picture(&px, &w, &h, &sub)` (malloc'd,
 the core's to free), asked for after `second_open` and after each
 `second_logo_changed`: `IDLE_PIC` gives it (240 x 160 with `sub` 1: the logo
-drawn at half strength on grey, `0x303030`; a Game Boy game's plain grey);
+drawn at half strength on grey, `0x303030`, or on black with `logoBlack`; a Game Boy game's plain grey, or black);
 `IDLE_NOPIC` a logo too big to draw on it; `IDLE_NONE` no logo yet (grey).
 
 ## Settings
@@ -173,6 +173,7 @@ read "each frame" takes effect at once.
 | Field | gba-ds.cfg key | Default | Choices | Read | What it changes | As a core option |
 |---|---|---|---|---|---|---|
 | `map` | `map` | 1 (on) | 0 off, 1 on | at open and each frame | Off: no second screen at all. No captures start and `second_shown()` says `SHOWN_OFF`; the game plays like an ordinary GBA game. | Yes ("Second screen") |
+| `logoBlack` | `logo_background` | 0 (`grey`) | 0 `grey`, 1 `black` | when the idle picture is made | What's behind the logo on the idle second screen (`SHOWN_LOGO`, `second_idle_picture`, a fight's picture, the pinball view's top): dark grey `0x303030`, or black for OLED screens. The logo stays at half strength. After changing it, call `second_logo_changed()` and make the idle picture again. | Yes ("Logo background") |
 | `mapInterval` | `map_interval` | 60 | 30, 60, 90, 180 (frames: every 0.5, 1, 1.5, 3 s) | each frame | How often a captured screen is taken again. A profile's own shorter interval wins (Swordcraft Story); after failed captures it backs off up to 8 times longer. Shorter can make the sound crackle on a slow device. | Yes ("Map refresh") |
 | `swap` | `swap` | 0 | 0 game on top, 1 game below | each frame | In the two-screen pinball view, which half of the table goes on the second screen. Where the screens go is the core's own layout; this only has to agree with it. | Yes, as the core's screen order ("Screens") |
 | `tallLive` | `pinball_live` | 1 (on) | 0 off, 1 on | at open | The live two-screen views: Pokémon Pinball's and Sonic Pinball Party's table over both screens, DK: King of Swing's level above the game. Off: those games play on one screen with the logo on the other (for slower devices: the views run extra copies of the game). | Yes ("Pinball two-screen view"), applied at the next game start |
