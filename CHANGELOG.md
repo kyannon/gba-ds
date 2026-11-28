@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.5 (not yet released)
+## v1.6.5 (2026-11-27)
 
 ### Widescreen patches
 - **Widescreen patches.** A game with a GBA DS widescreen patch can be played wider (16:9, 16:10) or taller (4:3), at your screen's shape, showing more of the game at its sides (or above and below), drawn by the game itself. Where GBA DS has a patch for your game and your screen, the game's Patches menu offers to download it and switch it on (A, then A again); once downloaded it's a patch like any other, and only one widescreen patch is on at a time. The picture keeps its shape whatever the game screen scale (Pixel Perfect stays Pixel Perfect, every other scale shows it at Full Width), and the second screen stays as it was. No game has one yet: they'll come game by game, starting from a test ROM. Known: pictures of resume points and bug reports show the middle 240×160 only; LCD ghosting and run-ahead act on the middle only; the new menu text isn't translated yet; downloads haven't been tried on Android, and the web player has none.
